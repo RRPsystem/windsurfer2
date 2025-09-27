@@ -1,0 +1,12 @@
+# Normalize line endings across platforms
+* text=auto
+
+# Treat common binary types properly
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.mp4 binary
+*.mov binary

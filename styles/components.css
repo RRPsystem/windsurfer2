@@ -1,0 +1,786 @@
+/* Component styling voor de website builder */
+
+/* Basis component styling */
+.wb-component {
+    position: relative;
+    margin: 0.5rem 0;
+    min-height: 40px;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    border-radius: 4px;
+}
+
+/* Edge-to-edge section option (within canvas width) */
+.wb-component.edge-to-edge {
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 0;
+}
+
+/* Make hero visually full-bleed within the canvas when edge-to-edge */
+.wb-hero-travel.edge-to-edge {
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 0;
+}
+
+/* Feature + Media */
+.wb-feature-media {
+    background: #fff;
+    border-radius: 12px;
+    padding: 32px;
+    margin: 1rem;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+}
+
+.wb-feature-media .fm-inner {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 32px;
+    align-items: center;
+}
+.wb-feature-media.right .fm-inner {
+    grid-template-columns: 1fr 1.1fr;
+}
+
+.wb-feature-media .fm-media { position: relative; }
+
+.wb-feature-media .fm-media img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    display: block;
+}
+
+.wb-feature-media .fm-media-chooser {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+}
+
+.wb-feature-media .fm-media-chooser:hover {
+    background: rgba(0,0,0,0.7);
+}
+
+.wb-feature-media .fm-image.placeholder,
+.wb-feature-media .fm-video.placeholder {
+    background: #f5f5f5;
+    border: 2px dashed #ddd;
+    border-radius: 12px;
+    color: #888;
+    height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.wb-feature-media .fm-image.placeholder i,
+.wb-feature-media .fm-video.placeholder i {
+    font-size: 28px;
+}
+
+.wb-feature-media .fm-video {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.wb-feature-media .fm-video iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.wb-feature-media .fm-title {
+    font-size: 32px;
+    line-height: 1.2;
+    margin-bottom: 12px;
+}
+
+.wb-feature-media .fm-label {
+    display: inline-block;
+    background: var(--brand-primary);
+    color: var(--brand-on-primary);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.4px;
+    margin-bottom: 10px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+}
+
+.wb-feature-media .fm-subtitle {
+    font-size: 18px;
+    color: #444;
+    opacity: 0.9;
+    margin: 6px 0 10px 0;
+}
+
+.wb-feature-media .fm-text {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 16px;
+}
+
+.wb-feature-media .fm-features {
+    list-style: none;
+}
+
+.wb-feature-media .fm-features li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+    padding: 12px 14px;
+    background: #fff;
+    border: 1px solid rgba(17,24,39,0.08);
+    border-radius: 10px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+}
+
+.wb-feature-media .fm-features i { color: var(--brand-secondary); }
+
+.wb-feature-media .fm-cta {
+    display: flex;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.wb-feature-media .fm-cta .btn {
+    padding: 0.75rem 1.25rem;
+}
+
+@media (max-width: 900px) {
+    .wb-feature-media .fm-inner {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Hero Travel Video specific */
+.wb-hero-travel-video { position: relative; }
+.wb-hero-travel-video .hero-video {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;             /* put behind overlay/content */
+  pointer-events: none;    /* do not block clicks */
+}
+.wb-hero-travel-video .hero-video iframe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 177.78%; /* 16:9 to cover */
+  height: 100%;
+  transform: translate(-50%, -50%);
+  pointer-events: none; /* prevent accidental interaction */
+}
+.wb-hero-travel-video .hero-overlay { z-index: 1; pointer-events: none; }
+.wb-hero-travel-video .hero-content { z-index: 2; position: relative; }
+/* keep toolbar visible and clickable */
+.wb-hero-travel-video .component-toolbar { display: flex; z-index: 5000; }
+.wb-hero-travel-video .hero-cards-wrap { z-index: 3; }
+
+.wb-component:hover {
+    border-color: #2196F3;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+.wb-component.selected {
+    border-color: #2196F3;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+.wb-component.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+}
+
+/* Component toolbar */
+.component-toolbar {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #2196F3;
+    border-radius: 6px;
+    padding: 0.25rem;
+    display: none;
+    z-index: 5000;
+    pointer-events: auto;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+}
+
+.wb-component:hover .component-toolbar,
+.wb-component.selected .component-toolbar {
+    display: flex;
+}
+
+/* Make sure the hero toolbar is always clickable and visible */
+.wb-hero-travel .component-toolbar { display: flex; }
+.wb-hero-travel .hero-overlay { z-index: 1; }
+.wb-hero-travel .hero-content { z-index: 2; }
+
+.toolbar-btn {
+    background: none;
+    border: none;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    border-radius: 2px;
+    font-size: 0.8rem;
+    transition: background 0.2s ease;
+}
+
+.toolbar-btn:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+/* Container component */
+.wb-container {
+    background: #f8f9fa;
+    border: 1px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 2rem;
+    margin: 1rem 0;
+    min-height: 100px;
+    position: relative;
+}
+
+.wb-container.empty::before {
+    content: "Container - Sleep hier componenten naartoe";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #6c757d;
+    font-style: italic;
+    pointer-events: none;
+}
+
+.wb-container.drag-over {
+    border-color: #2196F3;
+    background: rgba(33, 150, 243, 0.05);
+}
+
+/* Row component */
+.wb-row {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+    min-height: 60px;
+    background: #f1f3f4;
+    border: 1px dashed #dadce0;
+    border-radius: 6px;
+    padding: 1rem;
+    position: relative;
+}
+
+.wb-row.empty::before {
+    content: "Rij - Voeg kolommen toe";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #5f6368;
+    font-style: italic;
+    pointer-events: none;
+}
+
+/* Column component */
+.wb-column {
+    flex: 1;
+    background: #ffffff;
+    border: 1px dashed #e8eaed;
+    border-radius: 4px;
+    padding: 1rem;
+    min-height: 80px;
+    position: relative;
+}
+
+.wb-column.empty::before {
+    content: "Kolom";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #80868b;
+    font-style: italic;
+    font-size: 0.9rem;
+    pointer-events: none;
+}
+
+/* Heading component */
+.wb-heading {
+    margin: 1rem 0;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #333;
+}
+
+.wb-heading.h1 {
+    font-size: 2.5rem;
+}
+
+.wb-heading.h2 {
+    font-size: 2rem;
+}
+
+.wb-heading.h3 {
+    font-size: 1.5rem;
+}
+
+.wb-heading.h4 {
+    font-size: 1.25rem;
+}
+
+.wb-heading.h5 {
+    font-size: 1rem;
+}
+
+.wb-heading.h6 {
+    font-size: 0.875rem;
+}
+
+/* Text component */
+.wb-text {
+    margin: 1rem 0;
+    line-height: 1.6;
+    color: #333;
+    font-size: 1rem;
+}
+
+.wb-text.editable {
+    outline: none;
+    cursor: text;
+}
+
+.wb-text.editable:focus {
+    background: rgba(33, 150, 243, 0.05);
+    border-radius: 4px;
+    padding: 0.5rem;
+}
+
+/* Image component */
+.wb-image {
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.wb-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.wb-image.placeholder {
+    background: #f5f5f5;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    padding: 3rem 2rem;
+    color: #999;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.wb-image.placeholder:hover {
+    border-color: #2196F3;
+    background: rgba(33, 150, 243, 0.05);
+}
+
+.wb-image.placeholder i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+/* Button component */
+.wb-button {
+    margin: 1rem 0;
+    display: inline-block;
+}
+
+.wb-button button {
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.wb-button.primary button {
+    background: #2196F3;
+    color: white;
+}
+
+.wb-button.primary button:hover {
+    background: #1976D2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.wb-button.secondary button {
+    background: #6c757d;
+    color: white;
+}
+
+.wb-button.secondary button:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.wb-button.outline button {
+    background: transparent;
+    color: #2196F3;
+    border: 2px solid #2196F3;
+}
+
+.wb-button.outline button:hover {
+    background: #2196F3;
+    color: white;
+}
+
+/* Video component */
+.wb-video {
+    margin: 1rem 0;
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.wb-video iframe,
+.wb-video video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.wb-video.placeholder {
+    background: #f5f5f5;
+    border: 2px dashed #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    cursor: pointer;
+    padding-bottom: 200px;
+    height: 200px;
+}
+
+.wb-video.placeholder:hover {
+    border-color: #2196F3;
+    background: rgba(33, 150, 243, 0.05);
+}
+
+.wb-video.placeholder i {
+    font-size: 3rem;
+    margin-right: 1rem;
+}
+
+/* Gallery component */
+.wb-gallery {
+    margin: 1rem 0;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.gallery-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.gallery-item:hover {
+    transform: scale(1.05);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.wb-gallery.placeholder {
+    background: #f5f5f5;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    padding: 3rem 2rem;
+    text-align: center;
+    color: #999;
+    cursor: pointer;
+}
+
+.wb-gallery.placeholder:hover {
+    border-color: #2196F3;
+    background: rgba(33, 150, 243, 0.05);
+}
+
+.wb-gallery.placeholder i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+/* Drop zones */
+.drop-zone-small {
+    min-height: 60px;
+    border: 2px dashed #e0e0e0;
+    border-radius: 4px;
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.drop-zone-small.drag-over {
+    border-color: #2196F3;
+    background: rgba(33, 150, 243, 0.05);
+    color: #2196F3;
+}
+
+/* Responsive helpers */
+@media (max-width: 768px) {
+    .wb-row {
+        flex-direction: column;
+    }
+    
+    .wb-heading.h1 {
+        font-size: 2rem;
+    }
+    
+    .wb-heading.h2 {
+        font-size: 1.5rem;
+    }
+    
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .gallery-item img {
+        height: 150px;
+    }
+}
+
+/* Animation classes */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Hero Travel Section */
+.wb-hero-travel {
+    position: relative;
+    min-height: 520px;
+    border-radius: 12px;
+    /* Allow cards to overlap outside the hero */
+    overflow: visible;
+    margin: 1rem 1rem 6.5rem 1rem;
+}
+
+.wb-hero-travel .hero-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    /* Avoid subtle scaling that causes softening on some browsers */
+    transform: none;
+    filter: none;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.wb-hero-travel .hero-bg-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    image-rendering: auto;
+    -webkit-transform: translateZ(0); /* nudge to GPU without scaling */
+    pointer-events: none;
+}
+
+.wb-hero-travel .hero-overlay {
+    --overlay-opacity: 0.45;
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.4), rgba(0,0,0,0.4)), rgba(0,0,0,var(--overlay-opacity));
+}
+
+.wb-hero-travel .hero-content {
+    position: relative;
+    z-index: 2;
+    color: #fff;
+    text-align: center;
+    padding: 60px 24px 120px 24px;
+}
+
+.wb-hero-travel .hero-badge {
+    display: inline-block;
+    background: #ff9f1a;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+    /* Angle and slight left offset to mimic the screenshot */
+    transform: rotate(-8deg) translateX(-200px);
+}
+
+.wb-hero-travel .hero-title {
+    font-size: 44px;
+    line-height: 1.2;
+    font-weight: 800;
+    text-shadow: 0 4px 16px rgba(0,0,0,0.35);
+}
+
+.wb-hero-travel .hero-subtitle {
+    font-size: 18px;
+    opacity: 0.9;
+    margin-top: 10px;
+    margin-bottom: 26px;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.35);
+}
+
+.wb-hero-travel .hero-search {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr auto;
+    gap: 0;
+    align-items: stretch;
+    background: #fff;
+    color: #333;
+    border-radius: 10px;
+    padding: 12px 12px 12px 16px;
+    max-width: 980px;
+    margin: 0 auto;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+}
+
+.wb-hero-travel .hero-search .divider {
+    width: 1px;
+    background: #e5e7eb;
+}
+
+.wb-hero-travel .search-item {
+    padding: 8px 14px;
+}
+
+.wb-hero-travel .search-item label {
+    display: block;
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.wb-hero-travel .search-item label i { color: #16a34a; margin-right: 6px; }
+.wb-hero-travel .search-item .value { font-weight: 700; }
+
+.wb-hero-travel .hero-search .search-btn {
+    border-radius: 8px;
+    padding: 0 22px;
+    margin-left: 8px;
+    background: #4CAF50;
+}
+
+.wb-hero-travel .hero-deco {
+    margin-top: 22px;
+    font-size: 20px;
+    opacity: 0.9;
+}
+
+.wb-hero-travel .hero-cards-wrap {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: -64px;
+    z-index: 3;
+}
+
+.wb-hero-travel .hero-cards {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 18px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+.wb-hero-travel .hero-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 18px 18px 16px;
+    box-shadow: 0 10px 22px rgba(0,0,0,0.12);
+    text-align: left;
+}
+
+.wb-hero-travel .hero-card .icon { color: #16a34a; font-size: 26px; margin-bottom: 10px; }
+.wb-hero-travel .hero-card h4 { margin: 0 0 10px 0; font-weight: 700; }
+.wb-hero-travel .hero-card .sep { width: 24px; height: 2px; background: #111827; opacity: 0.2; margin: 8px 0 10px; }
+.wb-hero-travel .hero-card p { color: #6b7280; font-size: 14px; }
+
+@media (max-width: 992px) {
+    .wb-hero-travel .hero-search { grid-template-columns: 1fr; row-gap: 8px; }
+    .wb-hero-travel .hero-search .divider { display: none; }
+    .wb-hero-travel .hero-cards { grid-template-columns: repeat(2, 1fr); }
+    .wb-hero-travel .hero-badge { transform: rotate(-6deg) translateX(-80px); }
+}
+
+@media (max-width: 600px) {
+    .wb-hero-travel { margin-bottom: 8rem; }
+    .wb-hero-travel .hero-title { font-size: 32px; }
+    .wb-hero-travel .hero-cards { grid-template-columns: 1fr; }
+    .wb-hero-travel .hero-badge { transform: rotate(-5deg) translateX(0); }
+}

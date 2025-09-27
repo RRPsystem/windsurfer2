@@ -1,0 +1,342 @@
+/* Brand variables */
+:root {
+    --brand-primary: #ff7700;
+    --brand-secondary: #2563eb;
+    --brand-on-primary: #ffffff;
+    --brand-on-secondary: #ffffff;
+}
+
+/* Reset en basis styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    overflow: hidden;
+}
+
+/* App container */
+.app-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.app-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.header-left h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.header-left i {
+    margin-right: 0.5rem;
+    color: #ffd700;
+}
+
+.header-right {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Buttons */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: var(--brand-primary);
+    color: var(--brand-on-primary);
+    border-color: var(--brand-primary);
+}
+
+.btn-primary:hover {
+    filter: brightness(0.95);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-secondary {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.btn-secondary:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+}
+
+/* Outline variant tied to brand color when .outline is used */
+.btn.outline {
+    background: transparent;
+    color: var(--brand-primary);
+    border: 2px solid var(--brand-primary);
+}
+.btn.outline:hover {
+    filter: brightness(0.95);
+}
+
+/* App body */
+.app-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 280px;
+    background: white;
+    border-right: 1px solid #e0e0e0;
+    padding: 1.5rem;
+    overflow-y: auto;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+}
+
+/* Properties panel */
+.properties-panel {
+    width: 320px;
+    background: #ffffff;
+    border-left: 1px solid #e0e0e0;
+    padding: 1.5rem;
+    overflow-y: auto;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+}
+
+.sidebar h3 {
+    color: #333;
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.category {
+    margin-bottom: 2rem;
+}
+
+.category h4 {
+    color: #666;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.component-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.component-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: grab;
+    transition: all 0.3s ease;
+    user-select: none;
+    -webkit-user-select: none; /* Safari */
+}
+
+.component-item:hover {
+    background: #e3f2fd;
+    border-color: #2196F3;
+    transform: translateX(4px);
+}
+
+.component-item:active {
+    cursor: grabbing;
+}
+
+.component-item i {
+    color: #2196F3;
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+
+.component-item span {
+    font-weight: 500;
+    color: #333;
+}
+
+/* Canvas area */
+.canvas-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #f0f2f5;
+}
+
+.canvas-header {
+    background: white;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: center;
+}
+
+.device-selector {
+    display: flex;
+    gap: 0.5rem;
+    background: #f5f5f5;
+    padding: 0.25rem;
+    border-radius: 8px;
+}
+
+.device-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.device-btn.active,
+.device-btn:hover {
+    background: white;
+    color: #2196F3;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.canvas-wrapper {
+    padding: 24px;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow-x: hidden;        /* extra guard against horizontal scroll */
+}
+
+.canvas {
+    background: #fff;
+    border-radius: 12px;
+    min-height: 600px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    position: relative;        /* containing block for absolute children */
+    overflow-x: hidden;        /* prevent wide children (e.g., 177% iframes) from spilling */
+    width: 1100px;             /* sensible default working width for desktop */
+    max-width: 100%;
+}
+
+.modal-header {
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    font-size: 1.3rem;
+    color: #333;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+    background: #f5f5f5;
+    color: #333;
+}
+
+.modal-body {
+    flex: 1;
+    padding: 1rem;
+}
+
+#previewFrame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 8px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .sidebar {
+        width: 250px;
+    }
+    
+    .properties-panel {
+        width: 250px;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-header {
+        padding: 1rem;
+    }
+    
+    .header-left h1 {
+        font-size: 1.2rem;
+    }
+    
+    .sidebar {
+        width: 200px;
+        padding: 1rem;
+    }
+    
+    .properties-panel {
+        width: 200px;
+        padding: 1rem;
+    }
+}
