@@ -22,9 +22,13 @@ class DragDropManager {
             // Click-to-insert fallback (handig als drag&drop niet werkt)
             item.addEventListener('click', () => {
                 const componentType = item.getAttribute('data-component');
-                if (componentType) {
-                    this.addComponentToCanvas(componentType);
+                if (!componentType) return;
+                if (!window.ComponentFactory || typeof window.ComponentFactory.createComponent !== 'function') {
+                    console.error('[DND] ComponentFactory ontbreekt bij click insert');
+                    alert('Kan component nog niet toevoegen: scripts zijn nog niet volledig geladen. Probeer Ctrl+F5 of herstart de server.');
+                    return;
                 }
+                this.addComponentToCanvas(componentType);
             });
 
             item.addEventListener('dragstart', (e) => {
@@ -108,33 +112,60 @@ class DragDropManager {
             }
         });
     }
-
     addComponentToCanvas(componentType) {
         const canvas = document.getElementById('canvas');
         const dropZone = canvas.querySelector('.drop-zone');
         
-        // Create new component
-        const component = ComponentFactory.createComponent(componentType);
-        if (!component) return;
-        
-        // Ensure the initial drop zone is removed so it doesn't keep space
-        if (dropZone) {
-            dropZone.remove();
-        }
-        
-        // Add component to canvas
-        canvas.appendChild(component);
-        
-        // Add animation
-        component.classList.add('fade-in');
-        
-        // Auto-select the new component
-        setTimeout(() => {
-            this.selectComponent(component);
-        }, 100);
-        
-        // Make the new component sortable
-        this.makeSortable(component);
+        // Guard: voorkom crash als ComponentFactory nog niet beschikbaar is
+        // Probeer automatisch js/components.js te laden en daarna te vervolgen
+        const ensureFactory = () => new Promise((resolve) => {
+            if (window.ComponentFactory && typeof window.ComponentFactory.createComponent === 'function') return resolve(true);
+            // Kijk of script al aanwezig is in DOM
+            const existing = document.querySelector('script[src$="js/components.js"],script[src*="/js/components.js"]');
+            if (existing) {
+                // Wacht heel even en check opnieuw (script kan nog laden)
+                setTimeout(() => resolve(!!(window.ComponentFactory && window.ComponentFactory.createComponent)), 150);
+                return;
+            }
+            const s = document.createElement('script');
+            s.src = 'js/components.js';
+            s.onload = () => resolve(true);
+            s.onerror = () => resolve(false);
+            document.head.appendChild(s);
+        });
+
+        // eslint-disable-next-line no-inner-declarations
+        const proceed = async () => {
+            const ok = await ensureFactory();
+            if (!ok || !window.ComponentFactory || typeof window.ComponentFactory.createComponent !== 'function') {
+                console.error('[DND] ComponentFactory is not defined – kan geen component maken.');
+                try { window.ExportManager?.showNotification?.('Scripts nog niet geladen. Probeer Ctrl+F5.', 'error'); } catch {}
+                alert('Kan component niet toevoegen: scripts nog niet geladen. Probeer Ctrl+F5.');
+                return;
+            }
+
+            // Create new component
+            const component = ComponentFactory.createComponent(componentType);
+            if (!component) return;
+
+            // Ensure the initial drop zone is removed so it doesn't keep space
+            if (dropZone) {
+                dropZone.remove();
+            }
+
+            // Add component to canvas
+            canvas.appendChild(component);
+            // Add animation
+            component.classList.add('fade-in');
+            // Auto-select the new component
+            setTimeout(() => {
+                this.selectComponent(component);
+            }, 100);
+            // Make the new component sortable
+            this.makeSortable(component);
+        };
+
+        proceed();
     }
 
     // Remove the initial drop zone if there are real components already (e.g., after loading a project)

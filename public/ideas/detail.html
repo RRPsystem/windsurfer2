@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reis – Detail</title>
+  <link rel="stylesheet" href="../../styles/components.css">
+  <link rel="stylesheet" href="../../styles/ideas.css">
+  <style>
+    .idea-detail { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+    .idea-hero h1 { margin: 0 0 8px; font-size: 32px; font-weight: 800; }
+    .idea-meta { color: #6b7280; margin-bottom: 14px; }
+    .idea-gallery { display: grid; grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); gap: 10px; margin: 14px 0; }
+    .idea-gallery img { width: 100%; height: 120px; object-fit: cover; border-radius: 10px; display: block; }
+    .idea-intro { color: #374151; line-height: 1.6; margin: 8px 0 16px; }
+    .idea-itinerary { margin-top: 20px; }
+    .idea-day { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+    .idea-day h3 { margin: 0 0 6px; font-size: 18px; font-weight: 700; }
+    .idea-actions { display:flex; gap: 12px; align-items:center; justify-content: space-between; margin-top: 16px; }
+    .btn { display:inline-block; padding: 0.6rem 1rem; border-radius: 8px; font-weight:700; text-decoration:none; border:1px solid #2563eb; color:#fff; background:#2563eb; }
+    .btn-outline { background:#fff; color:#2563eb; }
+    .price { font-size: 20px; font-weight:800; color:#111827; }
+    .idea-hotels, .idea-transports { margin-top: 28px; }
+    .idea-themes { margin-top: 10px; }
+    .theme-chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+    .theme-chip { background:#eef2ff; color:#1e3a8a; border:1px solid #c7d2fe; padding:4px 10px; border-radius:999px; font-size:12px; }
+    .cards { display:grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap: 12px; }
+    .card { background:#fff; border:1px solid #e5e7eb; border-radius: 12px; overflow:hidden; }
+    .card .ph { background:#eef2ff; height:140px; }
+    .card img { width:100%; height:140px; object-fit:cover; display:block; }
+    .card-body { padding:10px 12px; }
+    .card-title { margin:0 0 6px; font-weight:800; }
+    .card-meta { color:#6b7280; font-size: 13px; margin-bottom: 6px; }
+    .card-desc { color:#374151; font-size: 14px; }
+    .chips { display:flex; gap:6px; flex-wrap:wrap; margin-top: 6px; }
+    .chip { background:#f3f4f6; border:1px solid #e5e7eb; border-radius:999px; padding:2px 8px; font-size:12px; color:#374151; }
+    .gallery-actions { margin-top: 8px; }
+    .dest-card img { height: 120px; }
+    .dest-card .card-body { padding-top:8px; }
+    .idea-activities { margin-top:28px; }
+  </style>
+</head>
+<body>
+  <main class="idea-detail">
+    <a href="index.html" class="btn btn-outline">← Terug naar overzicht</a>
+    <section class="idea-hero">
+      <h1 id="title">Reis</h1>
+      <div id="meta" class="idea-meta"></div>
+      <div id="themes" class="idea-themes theme-chips"></div>
+    </section>
+    <section id="gallery" class="idea-gallery"></section>
+    <div class="gallery-actions"><button id="showMoreBtn" class="btn btn-outline" style="display:none">Toon alle foto's</button></div>
+    <section>
+      <p id="intro" class="idea-intro"></p>
+      <div class="idea-actions">
+        <div id="price" class="price"></div>
+        <div>
+          <select id="langSelect"><option value="NL" selected>NL</option><option value="EN">EN</option></select>
+          <select id="currencySelect"><option value="EUR" selected>EUR</option><option value="USD">USD</option></select>
+          <button id="refreshBtn" class="btn btn-outline">Vernieuwen</button>
+        </div>
+      </div>
+    </section>
+    <section class="idea-itinerary">
+      <h2>Dag voor dag</h2>
+      <div id="days"></div>
+    </section>
+
+    <section class="idea-destinations">
+      <h2>Bestemmingen</h2>
+      <div id="destinations" class="cards"></div>
+    </section>
+
+    <section class="idea-hotels">
+      <h2>Accommodaties</h2>
+      <div id="hotels" class="cards"></div>
+    </section>
+
+    <section class="idea-transports">
+      <h2>Vervoer</h2>
+      <div id="transports" class="cards"></div>
+    </section>
+
+    <section class="idea-activities">
+      <h2>Activiteiten</h2>
+      <div id="activities" class="cards"></div>
+    </section>
+  </main>
+
+  <script src="./detail.js"></script>
+</body>
+</html>

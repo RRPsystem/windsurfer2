@@ -3,7 +3,145 @@ class WebsiteBuilder {
     constructor() {
         this.currentDevice = 'desktop';
         this.isInitialized = false;
+        // Multi-page state
+        this.pages = [];
+        this.currentPageId = null;
         this.init();
+    }
+
+    setupPublishButton() {
+        const btn = document.getElementById('publishBtn');
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+
+            const modalContent = document.createElement('div');
+            modalContent.className = 'modal-content';
+            modalContent.style.maxWidth = '640px';
+            modalContent.innerHTML = `
+                <div class="modal-header">
+                    <h3><i class="fas fa-cloud-upload-alt"></i> Publish naar GitHub</h3>
+                    <button class="modal-close"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="modal-body">
+                    <p style="color:#555; margin-bottom:10px;">Gebruik onderstaand PowerShell-commando om alle wijzigingen te committen en te pushen naar <code>origin main</code>:</p>
+                    <div style="display:flex; gap:8px; align-items:flex-start;">
+                        <textarea id="publishCmd" class="form-control" style="height:90px; flex:1; font-family: Consolas, monospace;">
+./publish.ps1 -Message "chore: update"
+                        </textarea>
+                        <button id="copyPublish" class="btn btn-primary" style="white-space:nowrap;">
+                            <i class="fas fa-copy"></i> Kopieer
+                        </button>
+                    </div>
+                    <div style="font-size:12px; color:#6b7280; margin-top:10px;">
+                        Tip: Voer dit uit in PowerShell in de map <code>C:\\Users\\info\\CascadeProjects\\website-builder</code>. Zorg dat de remote <code>origin</code> staat op jouw repo.
+                    </div>
+                    <div style="margin-top:12px; background:#f8fafc; padding:10px; border-radius:8px; font-size:12px; color:#374151;">
+                        Als pushen faalt door ontbrekende remote, voer eerst uit:<br/>
+                        <code>git remote add origin https://github.com/RRPsystem/windsurfer.git</code>
+                    </div>
+                </div>
+            `;
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+
+            const closeBtn = modalContent.querySelector('.modal-close');
+            const copyBtn = modalContent.querySelector('#copyPublish');
+            const textarea = modalContent.querySelector('#publishCmd');
+
+            // --- Inject "Publiceer naar Bolt Database" UI bovenaan de modal body ---
+            try {
+                const bodyEl = modalContent.querySelector('.modal-body');
+                if (bodyEl && !bodyEl.querySelector('#pubToDb')) {
+                    const dbBox = document.createElement('div');
+                    dbBox.style.border = '1px solid #e5e7eb';
+                    dbBox.style.borderRadius = '8px';
+                    dbBox.style.padding = '12px';
+                    dbBox.style.marginBottom = '16px';
+                    dbBox.innerHTML = `
+                        <div style="font-weight:600; margin-bottom:8px;">Publiceer naar Bolt Database</div>
+                        <div style="display:grid; grid-template-columns: 100px 1fr; gap:8px; align-items:center;">
+                          <label for="pubTitle">Titel</label><input id="pubTitle" class="form-control" type="text" placeholder="Pagina titel" />
+                          <label for="pubSlug">Slug</label><input id="pubSlug" class="form-control" type="text" placeholder="pagina-slug" />
+                        </div>
+                        <div style="display:flex; gap:8px; margin-top:10px;">
+                          <button id="pubToDb" class="btn btn-primary"><i class="fas fa-cloud-upload-alt"></i> Publiceer</button>
+                          <div id="pubStatus" style="font-size:12px; color:#6b7280; align-self:center;"></div>
+                        </div>`;
+                    bodyEl.insertBefore(dbBox, bodyEl.firstChild);
+
+                    // Prefill title/slug uit huidige page meta
+                    try {
+                        const meta = (typeof window.exportBuilderAsJSON === 'function') ? window.exportBuilderAsJSON() : { title: 'Pagina', slug: `pagina-${Date.now()}` };
+                        const pubTitle = dbBox.querySelector('#pubTitle');
+                        const pubSlug = dbBox.querySelector('#pubSlug');
+                        if (pubTitle && !pubTitle.value) pubTitle.value = meta.title || 'Pagina';
+                        if (pubSlug && !pubSlug.value) pubSlug.value = meta.slug || `pagina-${Date.now()}`;
+                    } catch (_) {}
+
+                    // Publish handler
+                    const pubBtn = dbBox.querySelector('#pubToDb');
+                    const pubStatus = dbBox.querySelector('#pubStatus');
+                    pubBtn && (pubBtn.onclick = async () => {
+                        try {
+                            pubStatus.textContent = 'Bezig met publiceren…';
+                            // Sync huidige canvas naar state
+                            if (typeof this.captureCurrentCanvasToPage === 'function') this.captureCurrentCanvasToPage();
+
+                            const pubTitle = dbBox.querySelector('#pubTitle');
+                            const pubSlug = dbBox.querySelector('#pubSlug');
+
+                            const contentJson = (typeof window.exportBuilderAsJSON === 'function') ? window.exportBuilderAsJSON() : { title: pubTitle?.value || 'Pagina', slug: pubSlug?.value || `pagina-${Date.now()}` };
+                            // Overschrijf met UI waarden en normaliseer slug
+                            if (pubTitle) contentJson.title = pubTitle.value || contentJson.title;
+                            if (pubSlug) contentJson.slug = (pubSlug.value || contentJson.slug).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+
+                            const brand_id = window.CURRENT_BRAND_ID;
+                            if (!brand_id) {
+                                pubStatus.textContent = '';
+                                this.showErrorMessage('Geen brand_id ingesteld. Vul CURRENT_BRAND_ID in js/config.local.js');
+                                return;
+                            }
+
+                            if (!window.BuilderPublishAPI) {
+                                pubStatus.textContent = '';
+                                this.showErrorMessage('Publish helpers niet geladen (js/publish.js)');
+                                return;
+                            }
+
+                            const page = await window.BuilderPublishAPI.saveDraft({
+                                brand_id,
+                                title: contentJson.title,
+                                slug: contentJson.slug,
+                                content_json: contentJson
+                            });
+
+                            const htmlString = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '<h1>Pagina</h1>';
+                            await window.BuilderPublishAPI.publishPage(page.id, htmlString);
+                            pubStatus.textContent = '';
+                            this.showNotification('✅ Gepubliceerd naar Bolt Database', 'success');
+                            // Optioneel: modal sluiten na succes
+                            // closeModal();
+                        } catch (err) {
+                            console.error(err);
+                            pubStatus.textContent = '';
+                            this.showErrorMessage('Publiceren mislukt (zie console)');
+                        }
+                    });
+                }
+            } catch (e) { /* stil */ }
+
+            const closeModal = () => { document.body.removeChild(modal); };
+            closeBtn.onclick = closeModal;
+            modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+            copyBtn.onclick = () => {
+                textarea.select();
+                document.execCommand('copy');
+                this.showNotification('📋 Publish-commando gekopieerd', 'success');
+            };
+        });
     }
 
     init() {
@@ -25,7 +163,11 @@ class WebsiteBuilder {
             this.setupKeyboardShortcuts();
             this.setupAutoSave();
             this.setupWelcomeMessage();
+            this.setupPublishButton();
+            this.setupPagesButton();
+            this.setupFileSaveLoad();
             this.loadSavedProject();
+            this.ensurePagesInitialized();
             
             this.isInitialized = true;
             console.log('✅ Website Builder succesvol geïnitialiseerd!');
@@ -40,6 +182,209 @@ class WebsiteBuilder {
             console.error('❌ Fout bij initialiseren van Website Builder:', error);
             this.showErrorMessage('Er is een fout opgetreden bij het laden van de Website Builder.');
         }
+    }
+
+    // ---------- Page Manager ----------
+    ensurePagesInitialized() {
+        const canvas = document.getElementById('canvas');
+        if (!this.pages || this.pages.length === 0) {
+            const initialHtml = canvas.innerHTML;
+            const id = this.generateId('page');
+            this.pages = [{ id, name: 'Home', slug: 'home', html: initialHtml }];
+            this.currentPageId = id;
+            this.persistPagesToLocalStorage(true);
+        } else if (!this.currentPageId) {
+            this.currentPageId = this.pages[0].id;
+        }
+    }
+
+    setupPagesButton() {
+        const btn = document.getElementById('pagesBtn');
+        if (!btn) return;
+        btn.addEventListener('click', () => this.openPagesModal());
+    }
+
+    openPagesModal() {
+        // Save current canvas to current page before opening
+        this.captureCurrentCanvasToPage();
+
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'flex';
+
+        const content = document.createElement('div');
+        content.className = 'modal-content';
+        content.style.maxWidth = '800px';
+        content.innerHTML = `
+            <div class="modal-header">
+                <h3><i class=\"fas fa-file-alt\"></i> Pagina's</h3>
+                <div style=\"display:flex; gap:8px;\">
+                    <button class=\"btn btn-secondary\" id=\"pmNew\"><i class=\"fas fa-plus\"></i> Nieuw</button>
+                    <button class=\"btn btn-secondary\" id=\"pmRename\"><i class=\"fas fa-i-cursor\"></i> Hernoemen</button>
+                    <button class=\"btn btn-secondary\" id=\"pmDelete\"><i class=\"fas fa-trash\"></i> Verwijderen</button>
+                    <button class=\"modal-close\"><i class=\"fas fa-times\"></i></button>
+                </div>
+            </div>
+            <div class=\"modal-body\" style=\"display:grid; grid-template-columns: 1fr 1fr; gap: 16px;\">
+                <div>
+                    <div style=\"font-weight:600; margin-bottom:6px; color:#374151;\">Lijst</div>
+                    <div id=\"pmList\" style=\"border:1px solid #e5e7eb; border-radius:8px; overflow:auto; max-height:55vh;\"></div>
+                </div>
+                <div>
+                    <div style=\"font-weight:600; margin-bottom:6px; color:#374151;\">Details</div>
+                    <div id=\"pmDetails\" style=\"border:1px solid #e5e7eb; border-radius:8px; padding:10px;\">
+                        <div style=\"display:grid; grid-template-columns: 110px 1fr; gap:8px; align-items:center;\">
+                            <label>Naam</label><input id=\"pmName\" class=\"form-control\" type=\"text\" />
+                            <label>Slug</label><input id=\"pmSlug\" class=\"form-control\" type=\"text\" />
+                        </div>
+                        <button id=\"pmApply\" class=\"btn btn-primary\" style=\"margin-top:10px;\">Toepassen</button>
+                        <button id=\"pmOpen\" class=\"btn btn-secondary\" style=\"margin-top:10px;\">Openen</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+
+        const close = () => { document.body.removeChild(modal); };
+        content.querySelector('.modal-close').onclick = close;
+        modal.onclick = (e) => { if (e.target === modal) close(); };
+
+        const listEl = content.querySelector('#pmList');
+        const nameInput = content.querySelector('#pmName');
+        const slugInput = content.querySelector('#pmSlug');
+        const applyBtn = content.querySelector('#pmApply');
+        const openBtn = content.querySelector('#pmOpen');
+
+        let selectedId = this.currentPageId;
+
+        const renderList = () => {
+            listEl.innerHTML = '';
+            this.pages.forEach(p => {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.justifyContent = 'space-between';
+                row.style.alignItems = 'center';
+                row.style.padding = '10px 12px';
+                row.style.borderBottom = '1px solid #f3f4f6';
+                row.style.cursor = 'pointer';
+                row.style.background = p.id === selectedId ? '#e8f5e9' : '#fff';
+                row.innerHTML = `<div><strong>${p.name}</strong><div style=\"font-size:12px; color:#6b7280;\">/${p.slug}</div></div><div>${p.id===this.currentPageId?'<span style=\"font-size:12px; color:#16a34a; font-weight:700;\">actief</span>':''}</div>`;
+                row.onclick = () => { selectedId = p.id; fillDetails(); renderList(); };
+                listEl.appendChild(row);
+            });
+        };
+
+        const fillDetails = () => {
+            const p = this.pages.find(x => x.id === selectedId);
+            if (!p) return;
+            nameInput.value = p.name;
+            slugInput.value = p.slug;
+        };
+
+        renderList();
+        fillDetails();
+
+        applyBtn.onclick = () => {
+            const p = this.pages.find(x => x.id === selectedId);
+            if (!p) return;
+            p.name = (nameInput.value || 'Pagina').trim();
+            p.slug = (slugInput.value || p.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')).trim();
+            this.persistPagesToLocalStorage();
+            renderList();
+            this.showNotification('✅ Pagina bijgewerkt', 'success');
+        };
+
+        openBtn.onclick = async () => {
+            await this.switchToPage(selectedId);
+            close();
+        };
+
+        content.querySelector('#pmNew').onclick = () => {
+            const id = this.generateId('page');
+            const newPage = { id, name: `Pagina ${this.pages.length+1}`, slug: `pagina-${this.pages.length+1}`, html: this.blankCanvasHtml() };
+            this.pages.push(newPage);
+            selectedId = id;
+            this.persistPagesToLocalStorage();
+            renderList();
+            fillDetails();
+        };
+
+        content.querySelector('#pmRename').onclick = () => {
+            const p = this.pages.find(x => x.id === selectedId);
+            if (!p) return;
+            const nv = prompt('Nieuwe paginanaam:', p.name) || p.name;
+            p.name = nv.trim() || p.name;
+            this.persistPagesToLocalStorage();
+            renderList();
+            fillDetails();
+        };
+
+        content.querySelector('#pmDelete').onclick = async () => {
+            if (this.pages.length <= 1) { this.showNotification('Minimaal 1 pagina vereist', 'info'); return; }
+            if (!confirm('Deze pagina verwijderen?')) return;
+            const idx = this.pages.findIndex(x => x.id === selectedId);
+            if (idx >= 0) {
+                const removed = this.pages.splice(idx, 1)[0];
+                if (removed.id === this.currentPageId) {
+                    this.currentPageId = this.pages[0].id;
+                    await this.switchToPage(this.currentPageId);
+                }
+                selectedId = this.pages[0].id;
+                this.persistPagesToLocalStorage();
+                renderList();
+                fillDetails();
+            }
+        };
+    }
+
+    async switchToPage(pageId) {
+        if (pageId === this.currentPageId) return;
+        // Save current canvas to current page
+        this.captureCurrentCanvasToPage();
+        // Load target page
+        const target = this.pages.find(p => p.id === pageId);
+        if (!target) return;
+        const canvas = document.getElementById('canvas');
+        canvas.innerHTML = target.html;
+        this.currentPageId = pageId;
+        this.reattachEventListeners();
+        this.persistPagesToLocalStorage();
+        this.showNotification(`📄 Gewisseld naar: ${target.name}`, 'success');
+    }
+
+    captureCurrentCanvasToPage() {
+        const canvas = document.getElementById('canvas');
+        const current = this.pages.find(p => p.id === this.currentPageId);
+        if (current) current.html = canvas.innerHTML;
+    }
+
+    persistPagesToLocalStorage(silent = false) {
+        const projectData = {
+            pages: this.pages,
+            currentPageId: this.currentPageId,
+            device: this.currentDevice,
+            timestamp: new Date().toISOString(),
+            version: '1.1'
+        };
+        localStorage.setItem('wb_project', JSON.stringify(projectData));
+        if (!silent) console.log('💾 Pages opgeslagen', projectData);
+    }
+
+    blankCanvasHtml() {
+        return `
+            <div class=\"drop-zone\">
+                <div class=\"drop-zone-content\">
+                    <i class=\"fas fa-plus-circle\"></i>
+                    <p>Sleep componenten hierheen om te beginnen</p>
+                </div>
+            </div>
+        `;
+    }
+
+    generateId(prefix) {
+        return `${prefix}_${Math.random().toString(36).slice(2,8)}_${Date.now().toString(36).slice(-4)}`;
     }
 
     setupDeviceSelector() {
@@ -323,14 +668,23 @@ class WebsiteBuilder {
 
     saveProject(silent = false) {
         try {
-            const canvas = document.getElementById('canvas');
+            // Sync current canvas to current page (safe if method missing)
+            if (typeof this.captureCurrentCanvasToPage === 'function') {
+                this.captureCurrentCanvasToPage();
+            } else {
+                const canvas = document.getElementById('canvas');
+                if (this.pages && this.pages.length) {
+                    const cur = this.pages.find(p => p.id === this.currentPageId) || this.pages[0];
+                    if (cur) cur.html = canvas?.innerHTML || cur.html || '';
+                }
+            }
             const projectData = {
-                html: canvas.innerHTML,
+                pages: this.pages,
+                currentPageId: this.currentPageId,
                 device: this.currentDevice,
                 timestamp: new Date().toISOString(),
-                version: '1.0'
+                version: '1.1'
             };
-            
             localStorage.setItem('wb_project', JSON.stringify(projectData));
             
             if (!silent) {
@@ -353,31 +707,38 @@ class WebsiteBuilder {
             if (saved) {
                 const projectData = JSON.parse(saved);
                 const canvas = document.getElementById('canvas');
-                
-                if (projectData.html && projectData.html.trim() !== '') {
+
+                if (projectData.pages && Array.isArray(projectData.pages)) {
+                    this.pages = projectData.pages;
+                    this.currentPageId = projectData.currentPageId || (this.pages[0] && this.pages[0].id);
+                    const cur = this.pages.find(p => p.id === this.currentPageId) || this.pages[0];
+                    if (cur) canvas.innerHTML = cur.html || this.blankCanvasHtml();
+                } else if (projectData.html) {
+                    // Backwards compatibility with v1.0
+                    const id = this.generateId('page');
+                    this.pages = [{ id, name: 'Home', slug: 'home', html: projectData.html }];
+                    this.currentPageId = id;
                     canvas.innerHTML = projectData.html;
-                    
-                    // Hide drop zone if content exists
-                    const dropZone = canvas.querySelector('.drop-zone');
-                    if (dropZone && canvas.children.length > 1) {
-                        dropZone.style.display = 'none';
-                    }
-                    
-                    // Restore device setting
-                    if (projectData.device) {
-                        this.currentDevice = projectData.device;
-                        const deviceBtn = document.querySelector(`[data-device="${projectData.device}"]`);
-                        if (deviceBtn) {
-                            deviceBtn.click();
-                        }
-                    }
-                    
-                    // Re-attach event listeners
-                    this.reattachEventListeners();
-                    
-                    console.log('📂 Project geladen:', projectData);
-                    this.showNotification('📂 Vorig project geladen', 'info');
                 }
+                
+                // Hide drop zone if content exists
+                const dropZone = canvas.querySelector('.drop-zone');
+                if (dropZone && canvas.children.length > 1) {
+                    dropZone.style.display = 'none';
+                }
+                
+                // Restore device setting
+                if (projectData.device) {
+                    this.currentDevice = projectData.device;
+                    const deviceBtn = document.querySelector(`[data-device="${projectData.device}"]`);
+                    if (deviceBtn) deviceBtn.click();
+                }
+                
+                // Re-attach event listeners
+                this.reattachEventListeners();
+                
+                console.log('📂 Project geladen:', projectData);
+                this.showNotification('📂 Vorig project geladen', 'info');
             }
         } catch (error) {
             console.error('❌ Fout bij laden project:', error);
@@ -435,30 +796,99 @@ class WebsiteBuilder {
         this.showNotification(`❌ ${message}`, 'error');
     }
 
+    // Add Save/Open buttons behavior
+    setupFileSaveLoad() {
+        const saveBtn = document.getElementById('saveProjectBtn');
+        const openBtn = document.getElementById('openProjectBtn');
+        const fileInput = document.getElementById('projectFileInput');
+
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                try {
+                    const data = this.getProjectData();
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    const dt = new Date();
+                    const y = dt.getFullYear();
+                    const m = String(dt.getMonth()+1).padStart(2,'0');
+                    const d = String(dt.getDate()).padStart(2,'0');
+                    a.download = `website_project_${y}${m}${d}.wbproj`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    this.showNotification('💾 Project gedownload (.wbproj)', 'success');
+                } catch (err) {
+                    console.error('Save error', err);
+                    this.showErrorMessage('Opslaan mislukt');
+                }
+            });
+        }
+
+        if (openBtn && fileInput) {
+            openBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                try {
+                    const text = await file.text();
+                    const data = JSON.parse(text);
+                    this.loadProjectData(data);
+                    this.saveProject(true); // also update localStorage
+                    this.showNotification('📂 Project geladen uit bestand', 'success');
+                } catch (err) {
+                    console.error('Load error', err);
+                    this.showErrorMessage('Bestand kon niet worden geladen');
+                } finally {
+                    e.target.value = '';
+                }
+            });
+        }
+    }
+
     // Public API methods
     getProjectData() {
-        const canvas = document.getElementById('canvas');
+        // Sync current canvas to current page before export (safe)
+        if (typeof this.captureCurrentCanvasToPage === 'function') {
+            this.captureCurrentCanvasToPage();
+        } else {
+            const canvas = document.getElementById('canvas');
+            if (this.pages && this.pages.length) {
+                const cur = this.pages.find(p => p.id === this.currentPageId) || this.pages[0];
+                if (cur) cur.html = canvas?.innerHTML || cur.html || '';
+            }
+        }
         return {
-            html: canvas.innerHTML,
+            pages: this.pages,
+            currentPageId: this.currentPageId,
             device: this.currentDevice,
             timestamp: new Date().toISOString()
         };
     }
 
     loadProjectData(data) {
-        if (data && data.html) {
-            const canvas = document.getElementById('canvas');
+        if (!data) return;
+        const canvas = document.getElementById('canvas');
+        if (data.pages && Array.isArray(data.pages)) {
+            this.pages = data.pages;
+            this.currentPageId = data.currentPageId || (this.pages[0] && this.pages[0].id);
+            const cur = this.pages.find(p => p.id === this.currentPageId) || this.pages[0];
+            canvas.innerHTML = cur?.html || this.blankCanvasHtml();
+        } else if (data.html) {
+            // Backwards compatible import
+            const id = this.generateId('page');
+            this.pages = [{ id, name: 'Home', slug: 'home', html: data.html }];
+            this.currentPageId = id;
             canvas.innerHTML = data.html;
-            
-            if (data.device) {
-                this.currentDevice = data.device;
-                const deviceBtn = document.querySelector(`[data-device="${data.device}"]`);
-                if (deviceBtn) deviceBtn.click();
-            }
-            
-            this.reattachEventListeners();
-            this.showNotification('📂 Project geladen', 'success');
         }
+        if (data.device) {
+            this.currentDevice = data.device;
+            const deviceBtn = document.querySelector(`[data-device="${data.device}"]`);
+            if (deviceBtn) deviceBtn.click();
+        }
+        this.reattachEventListeners();
+        this.persistPagesToLocalStorage(true);
+        this.showNotification('📂 Project geladen', 'success');
     }
 }
 

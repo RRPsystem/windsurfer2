@@ -6,6 +6,29 @@
     --brand-on-secondary: #ffffff;
 }
 
+/* Modal base */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none; /* toggled to block in JS */
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 24px; /* margin around content on small screens */
+}
+
+.modal .modal-content {
+    background: #fff;
+    border-radius: 12px;
+    width: min(1100px, 95vw);
+    height: min(85vh, 900px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+
 /* Reset en basis styling */
 * {
     margin: 0;
@@ -105,7 +128,7 @@ body {
 .app-body {
     flex: 1;
     display: flex;
-    overflow: hidden;
+    overflow: hidden; /* side panels manage their own scroll; center gets its own below */
 }
 
 /* Sidebar */
@@ -196,6 +219,7 @@ body {
     display: flex;
     flex-direction: column;
     background: #f0f2f5;
+    overflow-y: auto; /* allow vertical scrolling in the main work area */
 }
 
 .canvas-header {
@@ -237,7 +261,8 @@ body {
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    overflow-x: hidden;        /* extra guard against horizontal scroll */
+    overflow-x: visible;        /* allow edge-to-edge sections to be zichtbaar */
+    overflow-y: auto;           /* scroll vertically when content grows */
 }
 
 .canvas {
@@ -246,7 +271,7 @@ body {
     min-height: 600px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     position: relative;        /* containing block for absolute children */
-    overflow-x: hidden;        /* prevent wide children (e.g., 177% iframes) from spilling */
+    overflow-x: visible;        /* allow full-bleed sections to break out */
     width: 1100px;             /* sensible default working width for desktop */
     max-width: 100%;
 }

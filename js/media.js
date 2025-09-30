@@ -127,9 +127,11 @@ class MediaPicker {
         const unsplashPane = body.querySelector('.tab-content[data-tab="unsplash"]');
         const noteEl = unsplashPane ? unsplashPane.querySelector('.unsplash-note') : null;
         const moreBtn = unsplashPane ? unsplashPane.querySelector('.unsplash-more') : null;
-        const key = (window.MEDIA_CONFIG && window.MEDIA_CONFIG.unsplashKey) ? window.MEDIA_CONFIG.unsplashKey : '';
+        const key = (window.MEDIA_CONFIG && (window.MEDIA_CONFIG.unsplashAccessKey || window.MEDIA_CONFIG.unsplashKey))
+          ? (window.MEDIA_CONFIG.unsplashAccessKey || window.MEDIA_CONFIG.unsplashKey)
+          : '';
         if (!key) {
-          if (noteEl) noteEl.textContent = 'Tip: Voeg later een Unsplash API key toe (window.MEDIA_CONFIG.unsplashKey) om hier te zoeken.';
+          if (noteEl) noteEl.textContent = 'Tip: voeg een Unsplash Access Key toe in js/config.local.js als window.MEDIA_CONFIG.unsplashAccessKey (of unsplashKey) om hier te zoeken.';
         }
         let currentPage = 1;
         let currentQuery = '';
@@ -145,9 +147,9 @@ class MediaPicker {
           try {
             if (!key) {
               const demo = [
-                'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=800&auto=format&fit=crop',
-                'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=800&auto=format&fit=crop',
-                'https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=800&auto=format&fit=crop'
+                'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop',
+                'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=1600&auto=format&fit=crop',
+                'https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1600&auto=format&fit=crop'
               ];
               if (grid) grid.innerHTML = '';
               demo.forEach(url => {
@@ -206,7 +208,9 @@ class MediaPicker {
         const noteEl = ytPane ? ytPane.querySelector('.yt-note') : null;
         const grid = ytPane ? ytPane.querySelector('.yt-grid') : null;
         const moreBtnYt = ytPane ? ytPane.querySelector('.yt-more') : null;
-        const key = (window.MEDIA_CONFIG && window.MEDIA_CONFIG.youtubeKey) ? window.MEDIA_CONFIG.youtubeKey : '';
+        const key = (window.MEDIA_CONFIG && (window.MEDIA_CONFIG.youtubeApiKey || window.MEDIA_CONFIG.youtubeKey))
+          ? (window.MEDIA_CONFIG.youtubeApiKey || window.MEDIA_CONFIG.youtubeKey)
+          : '';
 
         let nextPageToken = '';
         let lastQuery = '';
@@ -282,7 +286,7 @@ class MediaPicker {
       }
 
       // Default tab
-      const hasYtKey = !!(window.MEDIA_CONFIG && window.MEDIA_CONFIG.youtubeKey);
+      const hasYtKey = !!(window.MEDIA_CONFIG && (window.MEDIA_CONFIG.youtubeApiKey || window.MEDIA_CONFIG.youtubeKey));
       const initialTab = defaultTab || (type === 'video' && hasYtKey ? 'youtube' : 'unsplash');
       setTab(initialTab);
 

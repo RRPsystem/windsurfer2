@@ -25,3 +25,7 @@ out/
 *.temp
 *.bak
 *.swp
+
+# Local server secrets
+server/.env
+js/config.local.js

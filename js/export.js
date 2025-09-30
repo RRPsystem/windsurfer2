@@ -21,19 +21,21 @@ class ExportManager {
         const modal = document.getElementById('previewModal');
         const iframe = document.getElementById('previewFrame');
         
-        // Generate HTML for preview
-        const html = this.generateHTML();
-        const blob = new Blob([html], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        
-        iframe.src = url;
+        // Generate HTML for preview (include builder CSS for faithful rendering)
+        const html = this.generateHTML({
+            title: 'Preview',
+            useBuilderCss: true
+        });
+        // Use srcdoc so we can include absolute CSS from current origin
+        iframe.removeAttribute('src');
+        iframe.srcdoc = html;
         modal.style.display = 'block';
         
         // Close modal functionality
         const closeBtn = document.getElementById('closePreview');
         const closeModal = () => {
             modal.style.display = 'none';
-            URL.revokeObjectURL(url);
+            // srcdoc cleans up automatically
         };
         
         closeBtn.onclick = closeModal;
@@ -228,6 +230,7 @@ Upload deze bestanden naar je webserver om je website live te zetten.
         const includeBootstrap = options.includeBootstrap !== false;
         const includeAnimations = options.includeAnimations !== false;
         const responsiveDesign = options.responsiveDesign !== false;
+        const useBuilderCss = options.useBuilderCss === true; // preview mode
         
         let cssLinks = '';
         let inlineCSS = '';
@@ -237,6 +240,13 @@ Upload deze bestanden naar je webserver om je website live te zetten.
         }
         
         cssLinks += '    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">\n';
+        
+        // In preview, also include the project's own CSS so sections look identical
+        if (useBuilderCss) {
+            const origin = window.location.origin;
+            cssLinks += `    <link rel="stylesheet" href="${origin}/styles/main.css">\n`;
+            cssLinks += `    <link rel="stylesheet" href="${origin}/styles/components.css">\n`;
+        }
         
         if (separateCSS) {
             cssLinks += '    <link rel="stylesheet" href="styles.css">\n';
@@ -418,6 +428,15 @@ body {
     height: 200px;
     object-fit: cover;
 }
+/* Full-bleed helper */
+.wb-component.edge-to-edge {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    border-radius: 0;
+}
+/* Hero default spacing when full-bleed */
+.wb-hero-travel.edge-to-edge { margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw); }
 `;
 
         if (responsiveDesign) {
@@ -671,3 +690,55 @@ document.head.appendChild(notificationStyle);
 
 // Initialize export manager
 window.ExportManager = new ExportManager();
+// ===== Simple export helpers =====
+// Haal huidige pagina-naam/slug uit localStorage state van de builder
+function getCurrentPageMeta() {
+  try {
+    const saved = localStorage.getItem('wb_project');
+    if (saved) {
+      const data = JSON.parse(saved);
+      if (data && Array.isArray(data.pages) && data.pages.length) {
+        const currentId = data.currentPageId || (data.pages[0] && data.pages[0].id);
+        const cur = data.pages.find(p => p.id === currentId) || data.pages[0];
+        if (cur) {
+          const name = (cur.name || 'Pagina').toString();
+          // Slugify naam indien slug ontbreekt
+          const slug = (cur.slug && cur.slug.toString().trim()) || name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+          return { title: name, slug };
+        }
+      }
+    }
+  } catch (e) { /* ignore */ }
+  const fallback = `pagina-${Date.now()}`;
+  return { title: 'Pagina', slug: fallback };
+}
+
+window.exportBuilderAsJSON = function exportBuilderAsJSON() {
+  const canvas = document.getElementById('canvas');
+  const meta = getCurrentPageMeta();
+  return {
+    title: meta.title,
+    slug: meta.slug,
+    htmlSnapshot: canvas ? canvas.innerHTML : ''
+  };
+};
+
+window.exportBuilderAsHTML = function exportBuilderAsHTML(contentJson) {
+  const canvas = document.getElementById('canvas');
+  const bodyHtml = canvas ? canvas.innerHTML : '<div></div>';
+  const title = (contentJson && contentJson.title) ? contentJson.title : getCurrentPageMeta().title;
+
+  return `<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${title}</title>
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/components.css">
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>`;
+};
