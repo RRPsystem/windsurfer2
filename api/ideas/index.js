@@ -16,7 +16,9 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Missing TC_BASE_URL or TC_MICROSITE_ID' });
     }
 
-    const url = `${TC_BASE_URL.replace(/\/$/, '')}/travelidea/${encodeURIComponent(TC_MICROSITE_ID)}`;
+    const micrositeId = String(req.query?.micrositeId || TC_MICROSITE_ID);
+    const base = TC_BASE_URL.replace(/\/$/, '');
+    const url = `${base}/travelidea/${encodeURIComponent(micrositeId)}`;
 
     // Pass-through selected query params with safe defaults
     const {
@@ -52,10 +54,21 @@ export default async function handler(req, res) {
       headers.Authorization = `Basic ${basic}`;
     }
 
-    const r = await fetch(`${url}?${params.toString()}`, { headers });
+    const upstreamUrl = `${url}?${params.toString()}`;
+    const r = await fetch(upstreamUrl, { headers });
     const status = r.status;
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) return res.status(status).json({ error: 'Upstream error', detail: data });
+    let data;
+    const text = await r.text();
+    try { data = JSON.parse(text); } catch { data = null; }
+    if (!r.ok) {
+      return res.status(status).json({
+        error: 'Upstream error',
+        status,
+        upstreamUrl,
+        authMode: TC_TOKEN ? 'bearer' : (TC_USERNAME && TC_PASSWORD ? 'basic' : 'none'),
+        detail: data || text || null
+      });
+    }
 
     // Optional: field projection
     let items = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : data?.ideas || [];

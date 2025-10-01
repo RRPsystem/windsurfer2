@@ -22,8 +22,9 @@ class WebsiteBuilder {
             const ideaId = prompt('Voer Travel Compositor ID in:');
             if (!ideaId) return;
             try {
-                const base = '';
-                const resp = await fetch(`${base}/api/ideas/${encodeURIComponent(ideaId)}`);
+                const base = (window.TC_API_BASE || '').replace(/\/$/, '');
+                const url = `${base}/api/ideas/${encodeURIComponent(ideaId)}`;
+                const resp = await fetch(base ? url : `/api/ideas/${encodeURIComponent(ideaId)}`);
                 if (!resp.ok) throw new Error(await resp.text());
                 const data = await resp.json();
                 this.insertTcBlocks(data);
