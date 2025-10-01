@@ -1,3 +1,56 @@
+// Simple local dev server with a Git push endpoint
+const express = require('express');
+const cors = require('cors');
+const morgan = require('morgan');
+const path = require('path');
+const { spawn } = require('child_process');
+
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: '1mb' }));
+app.use(morgan('dev'));
+
+// Serve static files (optional) so you can preview index.html via http://localhost:8080/
+app.use(express.static(path.join(__dirname, '..')));
+
+// POST /api/git/push { message?: string }
+app.post('/api/git/push', (req, res) => {
+  const commitMsg = (req.body && req.body.message) ? String(req.body.message) : 'chore: update';
+  const repoCwd = path.join(__dirname, '..');
+
+  // Run a small git pipeline: add ., commit, push
+  const commands = [
+    { cmd: 'git', args: ['add', '.'] },
+    { cmd: 'git', args: ['commit', '-m', commitMsg] },
+    { cmd: 'git', args: ['push', 'origin', 'main'] },
+  ];
+
+  let logs = '';
+
+  const runNext = (i) => {
+    if (i >= commands.length) {
+      return res.json({ ok: true, output: logs });
+    }
+    const { cmd, args } = commands[i];
+    const child = spawn(cmd, args, { cwd: repoCwd, shell: process.platform === 'win32' });
+    child.stdout.on('data', d => { logs += d.toString(); });
+    child.stderr.on('data', d => { logs += d.toString(); });
+    child.on('close', (code) => {
+      if (code !== 0) {
+        return res.status(500).json({ ok: false, step: i, command: `${cmd} ${args.join(' ')}`, output: logs });
+      }
+      runNext(i + 1);
+    });
+  };
+
+  runNext(0);
+});
+
+const port = process.env.PORT || 8080;
+app.listen(port, () => {
+  console.log(`Dev server running at http://localhost:${port}`);
+});
+
 // Simple local dev proxy for Travel Compositor
 // Do NOT expose keys in frontend. Put real keys in server/.env (not committed).
 

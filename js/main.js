@@ -171,6 +171,7 @@ class WebsiteBuilder {
             this.setupPublishButton();
             this.setupPagesButton();
             this.setupLayoutButton();
+            this.setupGitPushButton();
             this.setupFileSaveLoad();
             this.loadSavedProject();
             this.ensurePagesInitialized();
@@ -1030,6 +1031,58 @@ class WebsiteBuilder {
         root.querySelectorAll(`[data-kind="${kind}"]`).forEach(x => x.classList.remove('selected'));
         const el = root.querySelector(`[data-kind="${kind}"][data-preset="${key}"]`);
         if (el) el.classList.add('selected');
+    }
+
+    // ---------- Git Push Button ----------
+    setupGitPushButton() {
+        const btn = document.getElementById('gitPushBtn');
+        if (!btn) return;
+        btn.addEventListener('click', async () => {
+            // Ensure latest project is saved
+            this.saveProject(true);
+            const message = prompt('Commit bericht:', 'chore: update') || 'chore: update';
+            try {
+                const res = await fetch('http://localhost:8080/api/git/push', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+                if (!res.ok) throw new Error(await res.text());
+                this.showNotification('✅ Wijzigingen naar GitHub gepusht', 'success');
+            } catch (err) {
+                console.warn('Git push via API mislukt', err);
+                // Fallback modal with PowerShell command
+                const modal = document.createElement('div');
+                modal.className = 'modal';
+                modal.style.display = 'block';
+                const content = document.createElement('div');
+                content.className = 'modal-content';
+                content.style.maxWidth = '640px';
+                const cmd = `./publish.ps1 -Message "${message.replace(/"/g,'\"')}"`;
+                content.innerHTML = `
+                    <div class="modal-header">
+                        <h3><i class="fas fa-upload"></i> Stuur naar GitHub</h3>
+                        <button class="modal-close"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Start de server (npm run dev) voor 1-klik push, of voer dit uit in PowerShell:</p>
+                        <div style="display:flex; gap:8px; align-items:flex-start;">
+                            <textarea class="form-control" style="height:90px; flex:1; font-family: Consolas, monospace;">${cmd}</textarea>
+                            <button class="btn btn-primary" id="copyGitCmd"><i class="fas fa-copy"></i> Kopieer</button>
+                        </div>
+                    </div>`;
+                modal.appendChild(content);
+                document.body.appendChild(modal);
+                const close = () => { document.body.removeChild(modal); };
+                content.querySelector('.modal-close').onclick = close;
+                modal.onclick = (e) => { if (e.target === modal) close(); };
+                content.querySelector('#copyGitCmd').onclick = () => {
+                    const ta = content.querySelector('textarea');
+                    ta.select(); document.execCommand('copy');
+                    this.showNotification('📋 Commando gekopieerd', 'success');
+                };
+            }
+        });
     }
 
     loadProjectData(data) {
