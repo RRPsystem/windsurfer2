@@ -20,11 +20,27 @@
                 <h1><i class="fas fa-code"></i> Website Builder</h1>
             </div>
             <div class="header-right">
+                <div class="page-meta" style="display:flex;align-items:center;gap:8px;margin-right:12px;">
+                    <label for="pageTitleInput" style="color:#f8fafc;font-size:12px;opacity:.9;">Titel</label>
+                    <input id="pageTitleInput" class="form-control" placeholder="Pagina titel" style="width:220px;height:28px;padding:4px 8px;border-radius:6px;border:1px solid #cbd5e1;" />
+                    <label for="pageSlugInput" style="color:#f8fafc;font-size:12px;opacity:.9;">Slug</label>
+                    <input id="pageSlugInput" class="form-control" placeholder="pagina-slug" style="width:180px;height:28px;padding:4px 8px;border-radius:6px;border:1px solid #cbd5e1;" />
+                    <span id="pageSaveStatus" style="color:#e2e8f0;font-size:12px;margin-left:8px;opacity:.9;white-space:nowrap;">Niet opgeslagen</span>
+                </div>
                 <button class="btn btn-secondary" id="pagesBtn" aria-label="Paginas beheren" title="Paginas beheren">
                     <i class="fas fa-file-alt"></i> Pagina's
                 </button>
                 <button class="btn btn-secondary" id="layoutBtn" aria-label="Layout" title="Kies header & footer layout">
                     <i class="fas fa-layer-group"></i> Layout
+                </button>
+                <button class="btn btn-secondary" id="headerBuilderBtn" aria-label="Header Builder" title="Bewerk Header (vol scherm)">
+                    <i class="fas fa-heading"></i> Header Builder
+                </button>
+                <button class="btn btn-secondary" id="footerBuilderBtn" aria-label="Footer Builder" title="Bewerk Footer (vol scherm)">
+                    <i class="fas fa-window-maximize"></i> Footer Builder
+                </button>
+                <button class="btn btn-secondary" id="backToDashboardBtn" aria-label="Terug naar Dashboard" title="Ga terug naar Bolt Dashboard">
+                    <i class="fas fa-arrow-left"></i> Terug naar Dashboard
                 </button>
                 <button class="btn btn-secondary" id="openProjectBtn" aria-label="Openen" title="Projectbestand openen (.wbproj)">
                     <i class="fas fa-folder-open"></i> Openen
@@ -182,6 +198,20 @@
     <!-- Optional local config for API keys (gitignored). Define window.MEDIA_CONFIG here if needed. -->
     <script src="js/config.prod.js?v=2"></script>
     <script src="js/config.local.js"></script>
+    <script>
+      // Step 1: Read brand_id and token from URL so Bolt.new can deep-link into the builder
+      try {
+        const qp = new URLSearchParams(location.search);
+        const brandId = qp.get('brand_id');
+        const token = qp.get('token');
+        const api = qp.get('api'); // optional: base URL for Bolt.new API
+        if (brandId) window.CURRENT_BRAND_ID = brandId;
+        if (token) window.CURRENT_TOKEN = token;
+        if (api) window.BOLT_API = { baseUrl: api };
+        // Also allow config.local.js to set BOLT_API
+        window.BOLT_API = window.BOLT_API || (window.BOLT && window.BOLT.API) || null;
+      } catch (e) { console.warn('Query parsing failed', e); }
+    </script>
     <script>
         if (!window.BOLT_DB) {
           console.error('BOLT_DB niet geladen. Controleer js/config.local.js');

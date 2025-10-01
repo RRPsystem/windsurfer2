@@ -14,6 +14,85 @@ class WebsiteBuilder {
         this.init();
     }
 
+    // ---------- Page Title/Slug inputs ----------
+    setupPageMetaInputs() {
+        const titleEl = document.getElementById('pageTitleInput');
+        const slugEl = document.getElementById('pageSlugInput');
+        if (!titleEl || !slugEl) return;
+
+        this._slugTouched = false;
+        const slugify = (s) => String(s || '')
+            .toLowerCase()
+            .normalize('NFD').replace(/\p{Diacritic}+/gu, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .slice(0, 80);
+
+        // Change handlers
+        titleEl.addEventListener('input', () => {
+            if (!this._slugTouched) slugEl.value = slugify(titleEl.value);
+            const s = document.getElementById('pageSaveStatus');
+            if (s) s.textContent = 'Wijzigingen…';
+        });
+        slugEl.addEventListener('input', () => { this._slugTouched = true; const s = document.getElementById('pageSaveStatus'); if (s) s.textContent = 'Wijzigingen…'; });
+
+        const persistMeta = () => {
+            const title = titleEl.value && titleEl.value.trim() ? titleEl.value.trim() : 'Nieuwe pagina';
+            const slug = slugEl.value && slugEl.value.trim() ? slugEl.value.trim() : slugify(title);
+            // Update current page record
+            if (this.pages && this.pages.length) {
+                const cur = this.pages.find(p => p.id === this.currentPageId) || this.pages[0];
+                if (cur) { cur.name = title; cur.slug = slug; }
+            }
+            // Save + auto-publish
+            this.saveProject(true);
+        };
+        titleEl.addEventListener('blur', persistMeta);
+        slugEl.addEventListener('blur', persistMeta);
+
+        // Populate on init or after page switch
+        this._applyPageMetaToInputs = () => {
+            const cur = (this.pages || []).find(p => p.id === this.currentPageId) || (this.pages || [])[0] || {};
+            const title = cur.name || 'Nieuwe pagina';
+            const slug = cur.slug || slugify(title);
+            titleEl.value = title;
+            slugEl.value = slug;
+            this._slugTouched = false;
+            const s = document.getElementById('pageSaveStatus');
+            if (s) s.textContent = 'Opgeslagen';
+        };
+    }
+
+    // ---------- Back to Dashboard ----------
+    setupBackToDashboardLink() {
+        const btn = document.getElementById('backToDashboardBtn');
+        if (!btn) return;
+        const brandId = window.CURRENT_BRAND_ID || '';
+        const apiBase = (window.BOLT_API && window.BOLT_API.baseUrl) || '';
+        btn.addEventListener('click', () => {
+            if (apiBase) {
+                const pagesUrl = `${apiBase.replace(/\/$/, '')}/admin/website/pages${brandId?`?brand_id=${encodeURIComponent(brandId)}`:''}`;
+                window.location.href = pagesUrl;
+            } else {
+                this.showNotification('Geen Bolt API baseUrl gevonden. Stel ?api= in de URL om terug te keren naar het dashboard.', 'info');
+            }
+        });
+    }
+
+    // ---------- Toolbar simplification when launched from Bolt ----------
+    adjustToolbarForBoltContext() {
+        const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl);
+        if (!isBolt) return;
+        const hideIds = [
+            'openProjectBtn',
+            'saveProjectBtn',
+            'exportBtn',
+            'publishBtn',
+            'gitPushBtn'
+        ];
+        hideIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    }
+
     setupPublishButton() {
         const btn = document.getElementById('publishBtn');
         if (!btn) return;
@@ -171,6 +250,10 @@ class WebsiteBuilder {
             this.setupPublishButton();
             this.setupPagesButton();
             this.setupLayoutButton();
+            this.setupHeaderFooterBuilderLinks();
+            this.setupBackToDashboardLink();
+            this.adjustToolbarForBoltContext();
+            this.setupPageMetaInputs();
             this.setupGitPushButton();
             this.setupFileSaveLoad();
             this.loadSavedProject();
@@ -699,6 +782,15 @@ class WebsiteBuilder {
             if (!silent) {
                 console.log('💾 Project opgeslagen:', projectData);
             }
+            // Update UI save status
+            const s = document.getElementById('pageSaveStatus');
+            if (s) {
+                const d = new Date();
+                const hh = String(d.getHours()).padStart(2,'0');
+                const mm = String(d.getMinutes()).padStart(2,'0');
+                const ss = String(d.getSeconds()).padStart(2,'0');
+                s.textContent = `Opgeslagen • ${hh}:${mm}:${ss}`;
+            }
             
             // Auto-publish on save (simple for users): throttle to avoid spam on autosave
             this.scheduleAutoPublish();
@@ -1031,6 +1123,34 @@ class WebsiteBuilder {
         root.querySelectorAll(`[data-kind="${kind}"]`).forEach(x => x.classList.remove('selected'));
         const el = root.querySelector(`[data-kind="${kind}"][data-preset="${key}"]`);
         if (el) el.classList.add('selected');
+    }
+
+    // ---------- Header/Footer Builder deeplinks ----------
+    setupHeaderFooterBuilderLinks() {
+        const headerBtn = document.getElementById('headerBuilderBtn');
+        const footerBtn = document.getElementById('footerBuilderBtn');
+        const brandId = window.CURRENT_BRAND_ID || '';
+        const token = window.CURRENT_TOKEN || '';
+        const apiBase = (window.BOLT_API && window.BOLT_API.baseUrl) || '';
+        const buildQS = () => {
+            const qs = new URLSearchParams();
+            if (brandId) qs.set('brand_id', brandId);
+            if (token) qs.set('token', token);
+            // provide a back-api param so the target can call back into this builder if needed
+            qs.set('api', apiBase || '');
+            return qs.toString();
+        };
+        const openTarget = (path) => {
+            const qs = buildQS();
+            if (apiBase) {
+                window.open(`${apiBase.replace(/\/$/, '')}${path}?${qs}`, '_blank');
+            } else {
+                // Fallback: open a placeholder route in this app (not yet implemented)
+                this.showNotification('Header/Footer builder opent in Bolt.new zodra API baseUrl is gezet.', 'info');
+            }
+        };
+        if (headerBtn) headerBtn.addEventListener('click', () => openTarget('/builder/header'));
+        if (footerBtn) footerBtn.addEventListener('click', () => openTarget('/builder/footer'));
     }
 
     // ---------- Git Push Button ----------
