@@ -14,6 +14,83 @@ class WebsiteBuilder {
         this.init();
     }
 
+    // ---------- Importeer TC ID ----------
+    setupImportTcButton() {
+        const btn = document.getElementById('importTcBtn');
+        if (!btn) return;
+        btn.addEventListener('click', async () => {
+            const ideaId = prompt('Voer Travel Compositor ID in:');
+            if (!ideaId) return;
+            try {
+                const base = '';
+                const resp = await fetch(`${base}/api/ideas/${encodeURIComponent(ideaId)}`);
+                if (!resp.ok) throw new Error(await resp.text());
+                const data = await resp.json();
+                this.insertTcBlocks(data);
+                this.showNotification('✅ TC-content geïmporteerd', 'success');
+                this.saveProject(true);
+            } catch (e) {
+                console.warn('TC import failed', e);
+                this.showNotification('❌ Importeren mislukt', 'error');
+            }
+        });
+    }
+
+    insertTcBlocks(tc) {
+        const canvas = document.getElementById('canvas');
+        if (!canvas) return;
+        const safe = (s) => (s || '').toString();
+        const title = safe(tc.title || tc.name || 'Reis');
+        const desc = safe(tc.description || '');
+        const gallery = Array.isArray(tc.gallery) ? tc.gallery : (Array.isArray(tc.images) ? tc.images : []);
+        const days = Array.isArray(tc.itinerary) ? tc.itinerary : (Array.isArray(tc.days) ? tc.days : []);
+        const images = Array.isArray(tc.images) ? tc.images : [];
+        const cover = (tc.thumb || images[0] || '');
+
+        // Hero block (simple)
+        const heroHtml = `
+          <section class="wb-block hero" style="padding:48px 16px;background:linear-gradient(135deg,#eef2ff,#ecfeff);border-radius:14px;margin:18px 0;">
+            <div style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1.2fr 1fr;gap:18px;align-items:center;">
+              <div>
+                <h1 style="font-size:36px;margin:0 0 10px;">${title}</h1>
+                <p style="color:#4b5563;font-size:16px;">${desc}</p>
+              </div>
+              ${cover?`<img src="${cover}" alt="${title}" style="width:100%;height:260px;object-fit:cover;border-radius:12px;"/>`:''}
+            </div>
+          </section>`;
+
+        // Gallery block (up to 6)
+        const gal = (gallery || images).slice(0, 6);
+        const galleryHtml = gal.length ? `
+          <section class="wb-block gallery" style="margin:18px 0;">
+            <div style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+              ${gal.map(u=>`<img src="${u}" style="width:100%;height:180px;object-fit:cover;border-radius:10px;"/>`).join('')}
+            </div>
+          </section>` : '';
+
+        // Itinerary block (accordion)
+        const itHtml = days.length ? `
+          <section class="wb-block itinerary" style="margin:18px 0;">
+            <div style="max-width:900px;margin:0 auto;">
+              <h2 style="font-size:24px;">Dag-tot-dag</h2>
+              <div class="wb-accordion">
+                ${days.map((d,idx)=>{
+                    const t = safe(d.title || d.name || `Dag ${idx+1}`);
+                    const txt = safe(d.text || d.description || '');
+                    return `
+                    <details ${idx===0?'open':''} style="border:1px solid #e5e7eb;border-radius:10px;padding:10px;margin:10px 0;background:#fff;">
+                      <summary style="font-weight:600;cursor:pointer;">Dag ${d.day||idx+1}: ${t}</summary>
+                      <div style="color:#374151;margin-top:8px;">${txt}</div>
+                    </details>`;
+                }).join('')}
+              </div>
+            </div>
+          </section>` : '';
+
+        // Append blocks
+        canvas.insertAdjacentHTML('beforeend', heroHtml + galleryHtml + itHtml);
+    }
+
     // ---------- Page Title/Slug inputs ----------
     setupPageMetaInputs() {
         const titleEl = document.getElementById('pageTitleInput');
@@ -88,7 +165,12 @@ class WebsiteBuilder {
             'saveProjectBtn',
             'exportBtn',
             'publishBtn',
-            'gitPushBtn'
+            'gitPushBtn',
+            'pagesBtn',
+            'layoutBtn',
+            'headerBuilderBtn',
+            'footerBuilderBtn',
+            'previewBtn'
         ];
         hideIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     }
@@ -254,6 +336,7 @@ class WebsiteBuilder {
             this.setupBackToDashboardLink();
             this.adjustToolbarForBoltContext();
             this.setupPageMetaInputs();
+            this.setupImportTcButton();
             this.setupGitPushButton();
             this.setupFileSaveLoad();
             this.loadSavedProject();
