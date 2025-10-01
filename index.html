@@ -23,6 +23,9 @@
                 <button class="btn btn-secondary" id="pagesBtn" aria-label="Paginas beheren" title="Paginas beheren">
                     <i class="fas fa-file-alt"></i> Pagina's
                 </button>
+                <button class="btn btn-secondary" id="layoutBtn" aria-label="Layout" title="Kies header & footer layout">
+                    <i class="fas fa-layer-group"></i> Layout
+                </button>
                 <button class="btn btn-secondary" id="openProjectBtn" aria-label="Openen" title="Projectbestand openen (.wbproj)">
                     <i class="fas fa-folder-open"></i> Openen
                 </button>
@@ -174,15 +177,24 @@
     <input type="file" id="projectFileInput" accept=".wbproj,application/json" style="display:none" />
 
     <!-- Optional local config for API keys (gitignored). Define window.MEDIA_CONFIG here if needed. -->
-    <script src="js/config.prod.js"></script>
+    <script src="js/config.prod.js?v=2"></script>
     <script src="js/config.local.js"></script>
     <script>
         if (!window.BOLT_DB) {
           console.error('BOLT_DB niet geladen. Controleer js/config.local.js');
         } else {
           window.db = window.supabase.createClient(window.BOLT_DB.url, window.BOLT_DB.anonKey);
+          // Health check: log DB reachability in console
+          try {
+            fetch(window.BOLT_DB.url + '/auth/v1/health')
+              .then(r => console.log('DB health status:', r.status))
+              .catch(e => console.warn('DB health check failed:', e.message || e));
+          } catch (e) {
+            console.warn('DB health check error:', e);
+          }
         }
       </script>
+    <script src="js/layouts.js"></script>
     <script src="js/iconPicker.js"></script>
     <script src="js/components.js"></script>
     <script src="js/dragdrop.js"></script>

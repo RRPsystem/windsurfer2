@@ -6,6 +6,11 @@ class WebsiteBuilder {
         // Multi-page state
         this.pages = [];
         this.currentPageId = null;
+        // Layout state (header/footer presets)
+        this.projectLayout = null;
+        // Auto-publish throttle state
+        this._lastAutoPublishAt = 0;
+        this._autoPublishTimer = null;
         this.init();
     }
 
@@ -165,6 +170,7 @@ class WebsiteBuilder {
             this.setupWelcomeMessage();
             this.setupPublishButton();
             this.setupPagesButton();
+            this.setupLayoutButton();
             this.setupFileSaveLoad();
             this.loadSavedProject();
             this.ensurePagesInitialized();
@@ -365,6 +371,7 @@ class WebsiteBuilder {
             pages: this.pages,
             currentPageId: this.currentPageId,
             device: this.currentDevice,
+            layout: this.projectLayout || this.defaultLayout(),
             timestamp: new Date().toISOString(),
             version: '1.1'
         };
@@ -682,6 +689,7 @@ class WebsiteBuilder {
                 pages: this.pages,
                 currentPageId: this.currentPageId,
                 device: this.currentDevice,
+                layout: this.projectLayout || this.defaultLayout(),
                 timestamp: new Date().toISOString(),
                 version: '1.1'
             };
@@ -691,6 +699,9 @@ class WebsiteBuilder {
                 console.log('💾 Project opgeslagen:', projectData);
             }
             
+            // Auto-publish on save (simple for users): throttle to avoid spam on autosave
+            this.scheduleAutoPublish();
+
             return true;
         } catch (error) {
             console.error('❌ Fout bij opslaan project:', error);
@@ -698,6 +709,41 @@ class WebsiteBuilder {
                 this.showNotification('❌ Fout bij opslaan project', 'error');
             }
             return false;
+        }
+    }
+
+    scheduleAutoPublish() {
+        try {
+            const brand_id = window.CURRENT_BRAND_ID;
+            if (!brand_id || !window.BuilderPublishAPI) return; // no-op if not configured
+            const now = Date.now();
+            const since = now - (this._lastAutoPublishAt || 0);
+            const delay = since > 2500 ? 300 : 2000 - since; // quick after manual save, slower after recent
+            clearTimeout(this._autoPublishTimer);
+            this._autoPublishTimer = setTimeout(() => this.autoPublishCurrentPage().catch(()=>{}), Math.max(300, delay));
+        } catch {}
+    }
+
+    async autoPublishCurrentPage() {
+        const brand_id = window.CURRENT_BRAND_ID;
+        if (!brand_id || !window.BuilderPublishAPI) return;
+        // Build content JSON and HTML (with layout)
+        const contentJson = (typeof window.exportBuilderAsJSON === 'function') ? window.exportBuilderAsJSON() : null;
+        const htmlString = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson || undefined) : null;
+        if (!contentJson || !htmlString) return;
+        try {
+            const page = await window.BuilderPublishAPI.saveDraft({
+                brand_id,
+                title: contentJson.title,
+                slug: contentJson.slug,
+                content_json: contentJson
+            });
+            await window.BuilderPublishAPI.publishPage(page.id, htmlString);
+            this._lastAutoPublishAt = Date.now();
+            this.showNotification('✅ Wijzigingen gepubliceerd', 'success');
+        } catch (err) {
+            console.warn('Auto-publish failed', err);
+            // Keep silent to avoid noisy UX; consider a single toast if persistent
         }
     }
 
@@ -733,6 +779,8 @@ class WebsiteBuilder {
                     const deviceBtn = document.querySelector(`[data-device="${projectData.device}"]`);
                     if (deviceBtn) deviceBtn.click();
                 }
+                // Restore layout
+                this.projectLayout = projectData.layout || this.defaultLayout();
                 
                 // Re-attach event listeners
                 this.reattachEventListeners();
@@ -862,8 +910,126 @@ class WebsiteBuilder {
             pages: this.pages,
             currentPageId: this.currentPageId,
             device: this.currentDevice,
+            layout: this.projectLayout || this.defaultLayout(),
             timestamp: new Date().toISOString()
         };
+    }
+
+    // ---------- Layout Picker ----------
+    defaultLayout() {
+        return { headerPreset: 'minimal', footerPreset: 'compact', brandName: 'Brand', accent: '#16a34a', logoUrl: '' };
+    }
+
+    setupLayoutButton() {
+        const btn = document.getElementById('layoutBtn');
+        if (!btn) return;
+        btn.addEventListener('click', () => this.openLayoutModal());
+    }
+
+    openLayoutModal() {
+        // Ensure current is set
+        if (!this.projectLayout) this.projectLayout = this.defaultLayout();
+
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'flex';
+
+        const content = document.createElement('div');
+        content.className = 'modal-content';
+        content.style.maxWidth = '760px';
+        content.innerHTML = `
+            <div class="modal-header">
+                <h3><i class="fas fa-layer-group"></i> Layout kiezen</h3>
+                <button class="modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <div style="font-weight:600; margin-bottom:6px; color:#374151;">Header</div>
+                    <div id="lpHeader" style="display:grid; gap:8px;">
+                        ${this.renderPresetOption('header', 'minimal', 'Minimal')}
+                        ${this.renderPresetOption('header', 'centered', 'Centered')}
+                        ${this.renderPresetOption('header', 'transparent', 'Transparent')}
+                    </div>
+                    <div style="font-weight:600; margin:12px 0 6px; color:#374151;">Footer</div>
+                    <div id="lpFooter" style="display:grid; gap:8px;">
+                        ${this.renderPresetOption('footer', 'compact', 'Compact')}
+                        ${this.renderPresetOption('footer', 'three_cols', '3 kolommen')}
+                        ${this.renderPresetOption('footer', 'dark', 'Donker')}
+                    </div>
+                </div>
+                <div>
+                    <div style="font-weight:600; margin-bottom:6px; color:#374151;">Instellingen</div>
+                    <div style="display:grid; grid-template-columns: 110px 1fr; gap:8px; align-items:center;">
+                        <label>Brand</label><input id="lpBrand" class="form-control" type="text" placeholder="Brand" />
+                        <label>Accent</label><input id="lpAccent" class="form-control" type="color" />
+                        <label>Logo URL</label><input id="lpLogo" class="form-control" type="text" placeholder="https://..." />
+                    </div>
+                    <button id="lpApply" class="btn btn-primary" style="margin-top:10px;">Toepassen</button>
+                    <button id="lpPreview" class="btn btn-secondary" style="margin-top:10px; margin-left:8px;">Preview</button>
+                </div>
+            </div>
+        `;
+
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+
+        const close = () => { document.body.removeChild(modal); };
+        content.querySelector('.modal-close').onclick = close;
+        modal.onclick = (e) => { if (e.target === modal) close(); };
+
+        // Prefill
+        const lp = this.projectLayout || this.defaultLayout();
+        const brandInput = content.querySelector('#lpBrand');
+        const accentInput = content.querySelector('#lpAccent');
+        const logoInput = content.querySelector('#lpLogo');
+        if (brandInput) brandInput.value = lp.brandName || 'Brand';
+        if (accentInput) accentInput.value = lp.accent || '#16a34a';
+        if (logoInput) logoInput.value = lp.logoUrl || '';
+        // Mark selected presets
+        this.markPresetSelected(content, 'header', lp.headerPreset || 'minimal');
+        this.markPresetSelected(content, 'footer', lp.footerPreset || 'compact');
+
+        const apply = () => {
+            const headerPreset = content.querySelector('[data-kind="header"].selected')?.getAttribute('data-preset') || 'minimal';
+            const footerPreset = content.querySelector('[data-kind="footer"].selected')?.getAttribute('data-preset') || 'compact';
+            this.projectLayout = {
+                headerPreset,
+                footerPreset,
+                brandName: brandInput?.value || 'Brand',
+                accent: accentInput?.value || '#16a34a',
+                logoUrl: logoInput?.value || ''
+            };
+            this.persistPagesToLocalStorage(true);
+            this.showNotification('🎨 Layout bijgewerkt', 'success');
+        };
+
+        content.querySelector('#lpApply').onclick = () => { apply(); close(); };
+        content.querySelector('#lpPreview').onclick = () => { apply(); try { window.ExportManager?.showPreview(); } catch {} };
+
+        // click handlers for preset boxes
+        content.querySelectorAll('[data-role="preset"]').forEach(el => {
+            el.addEventListener('click', () => {
+                const kind = el.getAttribute('data-kind');
+                content.querySelectorAll(`[data-kind="${kind}"]`).forEach(x => x.classList.remove('selected'));
+                el.classList.add('selected');
+            });
+        });
+    }
+
+    renderPresetOption(kind, key, label) {
+        const selected = (this.projectLayout?.[kind === 'header' ? 'headerPreset' : 'footerPreset'] || (kind==='header'?'minimal':'compact')) === key;
+        return `
+            <div data-role="preset" data-kind="${kind}" data-preset="${key}" style="border:1px solid #e5e7eb;border-radius:8px;padding:10px;cursor:pointer;${selected?'outline:2px solid #16a34a;':''}">
+                <div style="font-weight:600;color:#374151;">${label}</div>
+                <div style="color:#6b7280;font-size:12px;">${key}</div>
+            </div>
+        `;
+    }
+
+    markPresetSelected(root, kind, key) {
+        root.querySelectorAll(`[data-kind="${kind}"]`).forEach(x => x.classList.remove('selected'));
+        const el = root.querySelector(`[data-kind="${kind}"][data-preset="${key}"]`);
+        if (el) el.classList.add('selected');
     }
 
     loadProjectData(data) {

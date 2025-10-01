@@ -14,47 +14,28 @@ class ExportManager {
         
         previewBtn.addEventListener('click', () => {
             this.showPreview();
-        });
     }
 
     showPreview() {
         const modal = document.getElementById('previewModal');
         const iframe = document.getElementById('previewFrame');
-        
         // Generate HTML for preview (include builder CSS for faithful rendering)
-        const html = this.generateHTML({
-            title: 'Preview',
-            useBuilderCss: true
-        });
+        const html = this.generateHTML({ title: 'Preview', useBuilderCss: true, wrapWithLayout: true });
         // Use srcdoc so we can include absolute CSS from current origin
         iframe.removeAttribute('src');
         iframe.srcdoc = html;
         modal.style.display = 'block';
-        
-        // Close modal functionality
-        const closeBtn = document.getElementById('closePreview');
-        const closeModal = () => {
-            modal.style.display = 'none';
-            // srcdoc cleans up automatically
-        };
-        
+        // Close modal wiring
+        const closeBtn = modal.querySelector('.modal-close');
+        const closeModal = () => { modal.style.display = 'none'; };
         closeBtn.onclick = closeModal;
-        modal.onclick = (e) => {
-            if (e.target === modal) closeModal();
-        };
-        
-        // ESC key to close
+        modal.onclick = (e) => { if (e.target === modal) closeModal(); };
         const handleEsc = (e) => {
-            if (e.key === 'Escape') {
-                closeModal();
-                document.removeEventListener('keydown', handleEsc);
-            }
+            if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', handleEsc); }
         };
         document.addEventListener('keydown', handleEsc);
     }
-
     showExportModal() {
-        // Create export modal
         const modal = document.createElement('div');
         modal.className = 'modal';
         modal.style.display = 'block';
@@ -140,29 +121,19 @@ class ExportManager {
         document.body.appendChild(modal);
         
         // Event listeners
-        const closeBtn = modalHeader.querySelector('.modal-close');
-        const exportOptions = modalBody.querySelectorAll('.export-option');
-        
-        const closeModal = () => {
-            document.body.removeChild(modal);
-        };
-        
-        closeBtn.onclick = closeModal;
-        modal.onclick = (e) => {
-            if (e.target === modal) closeModal();
-        };
+        const closeBtn2 = modalHeader.querySelector('.modal-close');
+        const closeModal2 = () => { document.body.removeChild(modal); };
+        closeBtn2.onclick = closeModal2;
+        modal.onclick = (e) => { if (e.target === modal) closeModal2(); };
         
         exportOptions.forEach(btn => {
             btn.addEventListener('click', () => {
                 const type = btn.getAttribute('data-type');
                 const options = this.getExportOptions(modalBody);
                 this.exportWebsite(type, options);
-                closeModal();
+                closeModal2();
             });
         });
-    }
-
-    getExportOptions(modalBody) {
         return {
             title: modalBody.querySelector('#websiteTitle').value || 'Mijn Website',
             description: modalBody.querySelector('#websiteDescription').value || '',
@@ -257,6 +228,16 @@ Upload deze bestanden naar je webserver om je website live te zetten.
         const faviconTag = favicon ? `    <link rel="icon" href="${favicon}">\n` : '';
         const metaDescription = description ? `    <meta name="description" content="${description}">\n` : '';
         
+        // Optionally wrap body with chosen layout (for preview/export)
+        let bodyWrapped = `\n    <div class="container-fluid">\n${canvasContent}\n    </div>`;
+        try {
+            const saved = localStorage.getItem('wb_project');
+            const layout = saved ? (JSON.parse(saved).layout || null) : null;
+            if ((options.wrapWithLayout || options.useBuilderCss) && window.Layouts && typeof window.Layouts.renderWithLayout === 'function') {
+                bodyWrapped = window.Layouts.renderWithLayout(bodyWrapped, layout);
+            }
+        } catch { /* ignore */ }
+
         return `<!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -265,9 +246,7 @@ Upload deze bestanden naar je webserver om je website live te zetten.
     <title>${title}</title>
 ${metaDescription}${faviconTag}${cssLinks}${inlineCSS}</head>
 <body>
-    <div class="container-fluid">
-${canvasContent}
-    </div>
+${bodyWrapped}
     
     ${includeBootstrap ? '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>' : ''}
     ${includeAnimations ? this.generateAnimationScript() : ''}
@@ -716,10 +695,19 @@ function getCurrentPageMeta() {
 window.exportBuilderAsJSON = function exportBuilderAsJSON() {
   const canvas = document.getElementById('canvas');
   const meta = getCurrentPageMeta();
+  let layout = undefined;
+  try {
+    const saved = localStorage.getItem('wb_project');
+    if (saved) {
+      const d = JSON.parse(saved);
+      if (d && d.layout) layout = d.layout;
+    }
+  } catch {}
   return {
     title: meta.title,
     slug: meta.slug,
-    htmlSnapshot: canvas ? canvas.innerHTML : ''
+    htmlSnapshot: canvas ? canvas.innerHTML : '',
+    layout
   };
 };
 
@@ -727,6 +715,15 @@ window.exportBuilderAsHTML = function exportBuilderAsHTML(contentJson) {
   const canvas = document.getElementById('canvas');
   const bodyHtml = canvas ? canvas.innerHTML : '<div></div>';
   const title = (contentJson && contentJson.title) ? contentJson.title : getCurrentPageMeta().title;
+  const layout = (contentJson && contentJson.layout) ? contentJson.layout : undefined;
+
+  // Build body with optional layout wrapping (for parity with preview)
+  let bodyWrapped = `\n  ${bodyHtml}`;
+  try {
+    if (window.Layouts && typeof window.Layouts.renderWithLayout === 'function') {
+      bodyWrapped = window.Layouts.renderWithLayout(bodyWrapped, layout);
+    }
+  } catch {}
 
   return `<!doctype html>
 <html lang="nl">
@@ -738,7 +735,6 @@ window.exportBuilderAsHTML = function exportBuilderAsHTML(contentJson) {
   <link rel="stylesheet" href="/styles/components.css">
 </head>
 <body>
-  ${bodyHtml}
+  ${bodyWrapped}
 </body>
 </html>`;
-};
