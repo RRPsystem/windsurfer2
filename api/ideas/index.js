@@ -54,12 +54,23 @@ export default async function handler(req, res) {
       headers.Authorization = `Basic ${basic}`;
     }
 
-    const upstreamUrl = `${url}?${params.toString()}`;
-    const r = await fetch(upstreamUrl, { headers });
-    const status = r.status;
-    let data;
-    const text = await r.text();
-    try { data = JSON.parse(text); } catch { data = null; }
+    // Try primary path /travelidea/{micrositeId}
+    let upstreamUrl = `${url}?${params.toString()}`;
+    let r = await fetch(upstreamUrl, { headers });
+    let status = r.status;
+    let text = await r.text();
+    let data; try { data = JSON.parse(text); } catch { data = null; }
+
+    // If 404, try fallback path /travelidea (microsite only as header)
+    if (status === 404) {
+      const fallbackUrl = `${base}/travelidea?${params.toString()}`;
+      r = await fetch(fallbackUrl, { headers });
+      status = r.status;
+      text = await r.text();
+      try { data = JSON.parse(text); } catch { data = null; }
+      upstreamUrl = fallbackUrl;
+    }
+
     if (!r.ok) {
       return res.status(status).json({
         error: 'Upstream error',
