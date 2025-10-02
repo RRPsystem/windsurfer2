@@ -1,12 +1,13 @@
 // Vercel Serverless Function: GET /api/ideas
 // Proxies Travel Compositor ideas list using env credentials.
+// Updated to match TC docs: authenticate to get Bearer token, then call /resources/travelidea/{micrositeId}
 
 export default async function handler(req, res) {
   try {
     const {
-      TC_BASE_URL = '',
+      TC_BASE_URL = '', // e.g. https://online.travelcompositor.com
       TC_MICROSITE_ID = '',
-      TC_TOKEN = '',
+      TC_TOKEN = '', // optional static token
       TC_USERNAME = '',
       TC_PASSWORD = '',
       TC_TENANT_ID = ''
@@ -18,13 +19,15 @@ export default async function handler(req, res) {
 
     const micrositeId = String(req.query?.micrositeId || TC_MICROSITE_ID);
     const base = TC_BASE_URL.replace(/\/$/, '');
-    const url = `${base}/travelidea/${encodeURIComponent(micrositeId)}`;
+    const AUTH_PATH = (process.env.TC_AUTH_PATH || '/resources/authentication/authenticate');
+    const IDEAS_PATH = (process.env.TC_TRAVELIDEA_PATH || '/resources/travelidea');
+    const ideasUrl = `${base}${IDEAS_PATH}/${encodeURIComponent(micrositeId)}`;
 
     // Pass-through selected query params with safe defaults
     const {
-      first = '0',
+      first = '0', // TC uses firstResult
       limit = '20',
-      lang = 'NL',
+      language = 'NL',
       currency = 'EUR',
       themes,
       destinations,
@@ -34,9 +37,9 @@ export default async function handler(req, res) {
     } = req.query || {};
 
     const params = new URLSearchParams();
-    params.set('first', String(first));
+    params.set('firstResult', String(first));
     params.set('limit', String(limit));
-    params.set('lang', String(lang));
+    params.set('language', String(language));
     params.set('currency', String(currency));
     if (themes) params.set('themes', String(themes));
     if (destinations) params.set('destinations', String(destinations));
@@ -45,38 +48,42 @@ export default async function handler(req, res) {
 
     const headers = { Accept: 'application/json' };
     if (TC_TENANT_ID) headers['X-Tenant-Id'] = String(TC_TENANT_ID);
-    headers['X-Microsite-Id'] = String(TC_MICROSITE_ID);
 
-    if (TC_TOKEN) {
-      headers.Authorization = `Bearer ${TC_TOKEN}`;
-    } else if (TC_USERNAME && TC_PASSWORD) {
-      const basic = Buffer.from(`${TC_USERNAME}:${TC_PASSWORD}`).toString('base64');
-      headers.Authorization = `Basic ${basic}`;
+    // Acquire token: prefer static TC_TOKEN; else authenticate
+    let bearer = TC_TOKEN;
+    if (!bearer) {
+      if (!TC_USERNAME || !TC_PASSWORD || !micrositeId) {
+        return res.status(500).json({ error: 'Missing TC credentials to authenticate' });
+      }
+      const authRes = await fetch(`${base}${AUTH_PATH}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ username: TC_USERNAME, password: TC_PASSWORD, micrositeId })
+      });
+      const authText = await authRes.text();
+      let authJson; try { authJson = JSON.parse(authText); } catch { authJson = null; }
+      if (!authRes.ok || !authJson?.token) {
+        return res.status(authRes.status || 500).json({ error: 'Auth failed', detail: authJson || authText });
+      }
+      bearer = authJson.token;
     }
+    headers.Authorization = `Bearer ${bearer}`;
 
-    // Try primary path /travelidea/{micrositeId}
-    let upstreamUrl = `${url}?${params.toString()}`;
+    // Call /resources/travelidea/{micrositeId}
+    let upstreamUrl = `${ideasUrl}?${params.toString()}`;
     let r = await fetch(upstreamUrl, { headers });
     let status = r.status;
     let text = await r.text();
     let data; try { data = JSON.parse(text); } catch { data = null; }
 
-    // If 404, try fallback path /travelidea (microsite only as header)
-    if (status === 404) {
-      const fallbackUrl = `${base}/travelidea?${params.toString()}`;
-      r = await fetch(fallbackUrl, { headers });
-      status = r.status;
-      text = await r.text();
-      try { data = JSON.parse(text); } catch { data = null; }
-      upstreamUrl = fallbackUrl;
-    }
+    // No fallback needed per docs, but keep diagnostics detailed
 
     if (!r.ok) {
       return res.status(status).json({
         error: 'Upstream error',
         status,
         upstreamUrl,
-        authMode: TC_TOKEN ? 'bearer' : (TC_USERNAME && TC_PASSWORD ? 'basic' : 'none'),
+        authMode: 'bearer',
         detail: data || text || null
       });
     }
