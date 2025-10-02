@@ -1,36 +1,40 @@
 // js/publish.js
 
-// If Bolt.new API base is provided, publish via Bolt.new; otherwise fallback to Supabase tables/RPC.
+// If Bolt.new API base is provided, publish via Bolt.new Functions endpoints; otherwise fallback to Supabase.
 function hasBoltApi() {
   return !!(window.BOLT_API && window.BOLT_API.baseUrl);
 }
 
-async function saveDraftBolt({ brand_id, title, slug, content_json }) {
+function boltHeaders() {
+  const h = { 'Content-Type': 'application/json' };
+  if (window.CURRENT_TOKEN) h.Authorization = `Bearer ${window.CURRENT_TOKEN}`;
+  return h;
+}
+
+async function saveDraftBolt({ brand_id, page_id, title, slug, content_json }) {
   const base = window.BOLT_API.baseUrl.replace(/\/$/, '');
-  const res = await fetch(`${base}/api/pages/saveDraft`, {
+  const payload = { brand_id, title, slug, content_json };
+  if (page_id) payload.page_id = page_id;
+  const res = await fetch(`${base}/functions/v1/pages-api/saveDraft`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(window.CURRENT_TOKEN ? { Authorization: `Bearer ${window.CURRENT_TOKEN}` } : {})
-    },
-    body: JSON.stringify({ brand_id, title, slug, content_json, html_snapshot: content_json?.htmlSnapshot || '' })
+    headers: boltHeaders(),
+    body: JSON.stringify(payload)
   });
   if (!res.ok) throw new Error(`saveDraft failed: ${res.status}`);
-  return await res.json(); // expect { id/page_id, slug, ... }
+  const data = await res.json(); // { page_id, slug, version }
+  // Normalize for callers
+  return { id: data.page_id || data.id, slug: data.slug, version: data.version, _raw: data };
 }
 
 async function publishPageBolt(pageId, htmlString) {
   const base = window.BOLT_API.baseUrl.replace(/\/$/, '');
-  const res = await fetch(`${base}/api/pages/${encodeURIComponent(pageId)}/publish`, {
+  const res = await fetch(`${base}/functions/v1/pages-api/${encodeURIComponent(pageId)}/publish`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(window.CURRENT_TOKEN ? { Authorization: `Bearer ${window.CURRENT_TOKEN}` } : {})
-    },
+    headers: boltHeaders(),
     body: JSON.stringify({ body_html: htmlString })
   });
   if (!res.ok) throw new Error(`publish failed: ${res.status}`);
-  return await res.json();
+  return await res.json(); // { ok: true, url }
 }
 
 async function saveDraftSupabase({ brand_id, title, slug, content_json }) {
