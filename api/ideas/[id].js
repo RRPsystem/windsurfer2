@@ -1,12 +1,15 @@
 // Vercel Serverless Function: GET /api/ideas/[id]
-// Proxies Travel Compositor idea detail using env credentials.
+// Detail per TC docs:
+//   POST /resources/authentication/authenticate -> token (Bearer)
+//   GET  /resources/travelidea/{micrositeId}/{ideaId}
+//   Optional info: /resources/travelidea/{micrositeId}/info/{ideaId}?info=1
 
 export default async function handler(req, res) {
   try {
     const {
       TC_BASE_URL = '',
       TC_MICROSITE_ID = '',
-      TC_TOKEN = '',
+      TC_TOKEN = '', // optional static token
       TC_USERNAME = '',
       TC_PASSWORD = '',
       TC_TENANT_ID = ''
@@ -18,23 +21,57 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Missing TC_BASE_URL or TC_MICROSITE_ID' });
     }
 
-    const url = `${TC_BASE_URL.replace(/\/$/, '')}/travelidea/${encodeURIComponent(TC_MICROSITE_ID)}/${encodeURIComponent(id)}`;
+    const micrositeId = String(req.query?.micrositeId || TC_MICROSITE_ID);
+    const base = TC_BASE_URL.replace(/\/$/, '');
+    const AUTH_PATH = (process.env.TC_AUTH_PATH || '/resources/authentication/authenticate');
+    const IDEAS_PATH = (process.env.TC_TRAVELIDEA_PATH || '/resources/travelidea');
 
+    const {
+      language = 'NL',
+      currency = 'EUR',
+      adults = '2',
+      info
+    } = req.query || {};
+    const params = new URLSearchParams();
+    params.set('language', String(language));
+    params.set('currency', String(currency));
+    if (adults) params.set('adults', String(adults));
+
+    // Acquire Bearer token
     const headers = { Accept: 'application/json' };
     if (TC_TENANT_ID) headers['X-Tenant-Id'] = String(TC_TENANT_ID);
-    headers['X-Microsite-Id'] = String(TC_MICROSITE_ID);
-
-    if (TC_TOKEN) {
-      headers.Authorization = `Bearer ${TC_TOKEN}`;
-    } else if (TC_USERNAME && TC_PASSWORD) {
-      const basic = Buffer.from(`${TC_USERNAME}:${TC_PASSWORD}`).toString('base64');
-      headers.Authorization = `Basic ${basic}`;
+    let bearer = TC_TOKEN;
+    if (!bearer) {
+      if (!TC_USERNAME || !TC_PASSWORD || !micrositeId) {
+        return res.status(500).json({ error: 'Missing TC credentials to authenticate' });
+      }
+      const authRes = await fetch(`${base}${AUTH_PATH}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ username: TC_USERNAME, password: TC_PASSWORD, micrositeId })
+      });
+      const authText = await authRes.text();
+      let authJson; try { authJson = JSON.parse(authText); } catch { authJson = null; }
+      if (!authRes.ok || !authJson?.token) {
+        return res.status(authRes.status || 500).json({ error: 'Auth failed', detail: authJson || authText });
+      }
+      bearer = authJson.token;
     }
+    headers.Authorization = `Bearer ${bearer}`;
 
-    const r = await fetch(url, { headers });
+    // Build detail or info URL
+    const path = info
+      ? `${IDEAS_PATH}/${encodeURIComponent(micrositeId)}/info/${encodeURIComponent(id)}`
+      : `${IDEAS_PATH}/${encodeURIComponent(micrositeId)}/${encodeURIComponent(id)}`;
+    const upstreamUrl = `${base}${path}?${params.toString()}`;
+
+    const r = await fetch(upstreamUrl, { headers });
     const status = r.status;
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) return res.status(status).json({ error: 'Upstream error', detail: data });
+    const text = await r.text();
+    let data; try { data = JSON.parse(text); } catch { data = null; }
+    if (!r.ok) {
+      return res.status(status).json({ error: 'Upstream error', status, upstreamUrl, authMode: 'bearer', detail: data || text || null });
+    }
 
     res.setHeader('Cache-Control', 'public, max-age=60');
     return res.status(200).json(data);
