@@ -1,7 +1,6 @@
 // Vercel Serverless Function: GET /api/ideas
 // Proxies Travel Compositor ideas list using env credentials.
-// Auth: POST /resources/authentication/authenticate -> Bearer token
-// List: GET  /resources/travelidea/{micrositeId}
+// Updated to match TC docs: authenticate to get Bearer token, then call /resources/travelidea/{micrositeId}
 
 export default async function handler(req, res) {
   try {
@@ -24,9 +23,9 @@ export default async function handler(req, res) {
     const IDEAS_PATH = (process.env.TC_TRAVELIDEA_PATH || '/resources/travelidea');
     const ideasUrl = `${base}${IDEAS_PATH}/${encodeURIComponent(micrositeId)}`;
 
-    // Query mapping per TC docs
+    // Pass-through selected query params with safe defaults
     const {
-      first = '0',          // maps to firstResult
+      first = '0', // TC uses firstResult
       limit = '20',
       language = 'NL',
       currency = 'EUR',
@@ -70,7 +69,7 @@ export default async function handler(req, res) {
     }
     headers.Authorization = `Bearer ${bearer}`;
 
-    // Quick debug (no upstream call)
+    // Optional debug to verify auth and target URL without relying on upstream
     if (String(req.query?.debug) === '1') {
       return res.status(200).json({
         ok: true,
@@ -81,12 +80,14 @@ export default async function handler(req, res) {
       });
     }
 
-    // Call list
-    const upstreamUrl = `${ideasUrl}?${params.toString()}`;
-    const r = await fetch(upstreamUrl, { headers });
-    const status = r.status;
-    const text = await r.text();
+    // Call /resources/travelidea/{micrositeId}
+    let upstreamUrl = `${ideasUrl}?${params.toString()}`;
+    let r = await fetch(upstreamUrl, { headers });
+    let status = r.status;
+    let text = await r.text();
     let data; try { data = JSON.parse(text); } catch { data = null; }
+
+    // No fallback needed per docs, but keep diagnostics detailed
 
     if (!r.ok) {
       return res.status(status).json({
@@ -101,7 +102,10 @@ export default async function handler(req, res) {
     // Optional: field projection
     let items = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : data?.ideas || [];
     if (fields) {
-      const list = String(fields).split(',').map(s => s.trim()).filter(Boolean);
+      const list = String(fields)
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
       items = items.map(it => {
         const out = {}; list.forEach(k => { if (k in it) out[k] = it[k]; }); return out;
       });

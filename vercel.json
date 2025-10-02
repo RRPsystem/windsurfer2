@@ -2,12 +2,7 @@
   "rewrites": [
     { "source": "/:brandSlug/:pageSlug", "destination": "/api/pages/:brandSlug/:pageSlug" }
   ],
-  "build": {
-    "env": {
-      "NODE_VERSION": "18"
-    }
-  },
-  "installCommand": "echo Skip install on Vercel (no build step)",
-  "buildCommand": "echo Skip build (static + serverless)",
+  "installCommand": "echo Skip install",
+  "buildCommand": "echo Skip build",
   "outputDirectory": "."
 }

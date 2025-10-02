@@ -1,13 +1,14 @@
 // Vercel Serverless Function: GET /api/ideas/[id]
-// Detail per TC docs:
-//   POST /resources/authentication/authenticate -> token (Bearer)
-//   GET  /resources/travelidea/{micrositeId}/{ideaId}
-//   Optional info: /resources/travelidea/{micrositeId}/info/{ideaId}?info=1
+// Proxies Travel Compositor idea detail using env credentials (Bearer auth).
+// Matches TC docs:
+//   POST /resources/authentication/authenticate  -> token
+//   GET  /resources/travelidea/{micrositeId}/{ideaId}  (with language/currency/adults)
+//   Optional info endpoint via ?info=1 -> /resources/travelidea/{micrositeId}/info/{ideaId}
 
 export default async function handler(req, res) {
   try {
     const {
-      TC_BASE_URL = '',
+      TC_BASE_URL = '', // e.g. https://online.travelcompositor.com
       TC_MICROSITE_ID = '',
       TC_TOKEN = '', // optional static token
       TC_USERNAME = '',
@@ -26,6 +27,7 @@ export default async function handler(req, res) {
     const AUTH_PATH = (process.env.TC_AUTH_PATH || '/resources/authentication/authenticate');
     const IDEAS_PATH = (process.env.TC_TRAVELIDEA_PATH || '/resources/travelidea');
 
+    // Query params
     const {
       language = 'NL',
       currency = 'EUR',
@@ -60,9 +62,8 @@ export default async function handler(req, res) {
     headers.Authorization = `Bearer ${bearer}`;
 
     // Build detail or info URL
-    const path = info
-      ? `${IDEAS_PATH}/${encodeURIComponent(micrositeId)}/info/${encodeURIComponent(id)}`
-      : `${IDEAS_PATH}/${encodeURIComponent(micrositeId)}/${encodeURIComponent(id)}`;
+    const path = info ? `${IDEAS_PATH}/${encodeURIComponent(micrositeId)}/info/${encodeURIComponent(id)}`
+                      : `${IDEAS_PATH}/${encodeURIComponent(micrositeId)}/${encodeURIComponent(id)}`;
     const upstreamUrl = `${base}${path}?${params.toString()}`;
 
     const r = await fetch(upstreamUrl, { headers });
