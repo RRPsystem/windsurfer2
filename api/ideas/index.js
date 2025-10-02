@@ -68,6 +68,10 @@ export default async function handler(req, res) {
       bearer = authJson.token;
     }
     headers.Authorization = `Bearer ${bearer}`;
+    // Some TC tenants expect custom token headers as well
+    headers['auth-token'] = bearer;      // lowercase
+    headers['Auth-Token'] = bearer;      // capitalized variant
+    headers['X-Auth-Token'] = bearer;    // common alt
 
     // Optional debug to verify auth and target URL without relying on upstream
     if (String(req.query?.debug) === '1') {
