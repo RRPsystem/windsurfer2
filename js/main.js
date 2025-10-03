@@ -165,7 +165,6 @@ class WebsiteBuilder {
             'openProjectBtn',
             'saveProjectBtn',
             'exportBtn',
-            'publishBtn',
             'gitPushBtn',
             'pagesBtn',
             'layoutBtn',
