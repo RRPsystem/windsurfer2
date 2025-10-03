@@ -188,25 +188,27 @@ class WebsiteBuilder {
             modalContent.style.maxWidth = '640px';
             modalContent.innerHTML = `
                 <div class="modal-header">
-                    <h3><i class="fas fa-cloud-upload-alt"></i> Publish naar GitHub</h3>
+                    <h3><i class="fas fa-cloud-upload-alt"></i> Publish</h3>
                     <button class="modal-close"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="modal-body">
-                    <p style="color:#555; margin-bottom:10px;">Gebruik onderstaand PowerShell-commando om alle wijzigingen te committen en te pushen naar <code>origin main</code>:</p>
-                    <div style="display:flex; gap:8px; align-items:flex-start;">
-                        <textarea id="publishCmd" class="form-control" style="height:90px; flex:1; font-family: Consolas, monospace;">
+                    <div id="gitSection">
+                      <p style="color:#555; margin-bottom:10px;">Gebruik onderstaand PowerShell-commando om alle wijzigingen te committen en te pushen naar <code>origin main</code>:</p>
+                      <div style="display:flex; gap:8px; align-items:flex-start;">
+                          <textarea id="publishCmd" class="form-control" style="height:90px; flex:1; font-family: Consolas, monospace;">
 ./publish.ps1 -Message "chore: update"
-                        </textarea>
-                        <button id="copyPublish" class="btn btn-primary" style="white-space:nowrap;">
-                            <i class="fas fa-copy"></i> Kopieer
-                        </button>
-                    </div>
-                    <div style="font-size:12px; color:#6b7280; margin-top:10px;">
-                        Tip: Voer dit uit in PowerShell in de map <code>C:\\Users\\info\\CascadeProjects\\website-builder</code>. Zorg dat de remote <code>origin</code> staat op jouw repo.
-                    </div>
-                    <div style="margin-top:12px; background:#f8fafc; padding:10px; border-radius:8px; font-size:12px; color:#374151;">
-                        Als pushen faalt door ontbrekende remote, voer eerst uit:<br/>
-                        <code>git remote add origin https://github.com/RRPsystem/windsurfer.git</code>
+                          </textarea>
+                          <button id="copyPublish" class="btn btn-primary" style="white-space:nowrap;">
+                              <i class="fas fa-copy"></i> Kopieer
+                          </button>
+                      </div>
+                      <div style="font-size:12px; color:#6b7280; margin-top:10px;">
+                          Tip: Voer dit uit in PowerShell in de map <code>C:\\Users\\info\\CascadeProjects\\website-builder</code>. Zorg dat de remote <code>origin</code> staat op jouw repo.
+                      </div>
+                      <div style="margin-top:12px; background:#f8fafc; padding:10px; border-radius:8px; font-size:12px; color:#374151;">
+                          Als pushen faalt door ontbrekende remote, voer eerst uit:<br/>
+                          <code>git remote add origin https://github.com/RRPsystem/windsurfer.git</code>
+                      </div>
                     </div>
                 </div>
             `;
@@ -354,6 +356,17 @@ class WebsiteBuilder {
                     });
                 }
             } catch (e) { /* stil */ }
+
+            // In Bolt-context: verberg GitHub/PowerShell sectie en zet header
+            try {
+                const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl);
+                if (isBolt) {
+                    const gitSection = modalContent.querySelector('#gitSection');
+                    if (gitSection) gitSection.style.display = 'none';
+                    const h3 = modalContent.querySelector('.modal-header h3');
+                    if (h3) h3.textContent = 'Publiceren';
+                }
+            } catch (_) {}
 
             const closeModal = () => { document.body.removeChild(modal); };
             closeBtn.onclick = closeModal;
