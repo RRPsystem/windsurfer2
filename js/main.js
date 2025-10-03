@@ -255,6 +255,7 @@ class WebsiteBuilder {
                     pubBtn && (pubBtn.onclick = async () => {
                         try {
                             pubStatus.textContent = 'Bezig met publiceren…';
+                            pubBtn.disabled = true; if (pubAndReturnBtn) pubAndReturnBtn.disabled = true;
                             // Sync huidige canvas naar state
                             if (typeof this.captureCurrentCanvasToPage === 'function') this.captureCurrentCanvasToPage();
 
@@ -287,15 +288,33 @@ class WebsiteBuilder {
                             });
 
                             const htmlString = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '<h1>Pagina</h1>';
-                            await window.BuilderPublishAPI.publishPage(page.id, htmlString);
+                            const pubRes = await window.BuilderPublishAPI.publishPage(page.id, htmlString);
                             pubStatus.textContent = '';
                             this.showNotification('✅ Gepubliceerd naar Bolt Database', 'success');
-                            // Optioneel: modal sluiten na succes
-                            // closeModal();
+                            // Toon duidelijke succes-UI met links
+                            const apiBase = (window.BOLT_API && window.BOLT_API.baseUrl) || '';
+                            const brandId = window.CURRENT_BRAND_ID || '';
+                            const beheerUrl = apiBase ? `${apiBase.replace(/\/$/, '')}/admin/website/pages?brand_id=${encodeURIComponent(brandId)}` : '';
+                            const previewUrl = pubRes && pubRes.url ? pubRes.url : '';
+                            const successHtml = `
+                              <div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:10px;background:#f8fafc;">
+                                <div style="font-weight:700;color:#16a34a;margin-bottom:8px;">✅ Publicatie geslaagd</div>
+                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                  ${beheerUrl?`<a class="btn btn-secondary" href="${beheerUrl}">↩️ Terug naar Pagina Beheer</a>`:''}
+                                  ${previewUrl?`<a class="btn btn-primary" target="_blank" rel="noopener" href="${previewUrl}">👁️ Bekijk Pagina</a>`:''}
+                                  <button id="stayEditing" class="btn">Blijf bewerken</button>
+                                </div>
+                              </div>`;
+                            bodyEl.insertAdjacentHTML('afterbegin', successHtml);
+                            const stayBtn = bodyEl.querySelector('#stayEditing');
+                            if (stayBtn) stayBtn.onclick = () => { try { closeModal(); } catch {} };
                         } catch (err) {
                             console.error(err);
                             pubStatus.textContent = '';
                             this.showErrorMessage('Publiceren mislukt (zie console)');
+                        }
+                        finally {
+                            pubBtn.disabled = false; if (pubAndReturnBtn) pubAndReturnBtn.disabled = false;
                         }
                     });
 
