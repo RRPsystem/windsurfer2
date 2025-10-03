@@ -235,6 +235,7 @@ class WebsiteBuilder {
                         </div>
                         <div style="display:flex; gap:8px; margin-top:10px;">
                           <button id="pubToDb" class="btn btn-primary"><i class="fas fa-cloud-upload-alt"></i> Publiceer</button>
+                          <button id="pubAndReturn" class="btn btn-secondary"><i class="fas fa-check"></i> Opslaan & Terug</button>
                           <div id="pubStatus" style="font-size:12px; color:#6b7280; align-self:center;"></div>
                         </div>`;
                     bodyEl.insertBefore(dbBox, bodyEl.firstChild);
@@ -250,6 +251,7 @@ class WebsiteBuilder {
 
                     // Publish handler
                     const pubBtn = dbBox.querySelector('#pubToDb');
+                    const pubAndReturnBtn = dbBox.querySelector('#pubAndReturn');
                     const pubStatus = dbBox.querySelector('#pubStatus');
                     pubBtn && (pubBtn.onclick = async () => {
                         try {
@@ -295,6 +297,41 @@ class WebsiteBuilder {
                             console.error(err);
                             pubStatus.textContent = '';
                             this.showErrorMessage('Publiceren mislukt (zie console)');
+                        }
+                    });
+
+                    // Opslaan & Terug: zelfde flow, daarna redirect naar Bolt dashboard
+                    pubAndReturnBtn && (pubAndReturnBtn.onclick = async () => {
+                        try {
+                            pubStatus.textContent = 'Bezig met publiceren…';
+                            if (typeof this.captureCurrentCanvasToPage === 'function') this.captureCurrentCanvasToPage();
+
+                            const pubTitle = dbBox.querySelector('#pubTitle');
+                            const pubSlug = dbBox.querySelector('#pubSlug');
+                            const contentJson = (typeof window.exportBuilderAsJSON === 'function') ? window.exportBuilderAsJSON() : { title: pubTitle?.value || 'Pagina', slug: pubSlug?.value || `pagina-${Date.now()}` };
+                            if (pubTitle) contentJson.title = pubTitle.value || contentJson.title;
+                            if (pubSlug) contentJson.slug = (pubSlug.value || contentJson.slug).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+
+                            const brand_id = window.CURRENT_BRAND_ID;
+                            if (!brand_id) { pubStatus.textContent=''; this.showErrorMessage('Geen brand_id ingesteld.'); return; }
+                            if (!window.BuilderPublishAPI) { pubStatus.textContent=''; this.showErrorMessage('Publish helpers niet geladen'); return; }
+
+                            const page = await window.BuilderPublishAPI.saveDraft({ brand_id, title: contentJson.title, slug: contentJson.slug, content_json: contentJson });
+                            const htmlString = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '<h1>Pagina</h1>';
+                            await window.BuilderPublishAPI.publishPage(page.id, htmlString);
+
+                            // Redirect
+                            const apiBase = (window.BOLT_API && window.BOLT_API.baseUrl) || '';
+                            if (apiBase) {
+                                const url = `${apiBase.replace(/\/$/, '')}/admin/website/pages?brand_id=${encodeURIComponent(brand_id)}`;
+                                window.location.href = url;
+                            } else {
+                                this.showNotification('✅ Gepubliceerd. Geen API-base gevonden voor redirect.', 'success');
+                            }
+                        } catch (err) {
+                            console.error(err);
+                            pubStatus.textContent = '';
+                            this.showErrorMessage('Opslaan & Terug mislukt (zie console)');
                         }
                     });
                 }
