@@ -1,3 +1,7 @@
+/* Utility: force zero spacing between blocks when desired */
+.wb-block.no-gap { margin: 0 !important; }
+.wb-block.no-gap + .wb-block.no-gap { margin-top: 0 !important; }
+
 /* Component styling voor de website builder */
 
 /* Basis component styling */

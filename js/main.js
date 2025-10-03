@@ -50,7 +50,7 @@ class WebsiteBuilder {
 
         // Hero block (simple)
         const heroHtml = `
-          <section class="wb-block hero" style="padding:48px 16px;background:linear-gradient(135deg,#eef2ff,#ecfeff);border-radius:14px;margin:18px 0;">
+          <section class="wb-block hero" style="padding:48px 16px;background:linear-gradient(135deg,#eef2ff,#ecfeff);border-radius:14px;">
             <div style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1.2fr 1fr;gap:18px;align-items:center;">
               <div>
                 <h1 style="font-size:36px;margin:0 0 10px;">${title}</h1>
@@ -63,7 +63,7 @@ class WebsiteBuilder {
         // Gallery block (up to 6)
         const gal = (gallery || images).slice(0, 6);
         const galleryHtml = gal.length ? `
-          <section class="wb-block gallery" style="margin:18px 0;">
+          <section class="wb-block gallery">
             <div style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
               ${gal.map(u=>`<img src="${u}" style="width:100%;height:180px;object-fit:cover;border-radius:10px;"/>`).join('')}
             </div>
@@ -71,7 +71,7 @@ class WebsiteBuilder {
 
         // Itinerary block (accordion)
         const itHtml = days.length ? `
-          <section class="wb-block itinerary" style="margin:18px 0;">
+          <section class="wb-block itinerary">
             <div style="max-width:900px;margin:0 auto;">
               <h2 style="font-size:24px;">Dag-tot-dag</h2>
               <div class="wb-accordion">
@@ -161,6 +161,7 @@ class WebsiteBuilder {
     adjustToolbarForBoltContext() {
         const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl);
         if (!isBolt) return;
+        try { document.body.classList.add('bolt-context'); } catch {}
         const hideIds = [
             'openProjectBtn',
             'saveProjectBtn',
