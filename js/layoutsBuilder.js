@@ -109,7 +109,8 @@ ${body}
     return {
       preset: form.preset?.value || 'compact',
       accent: form.accent?.value || '#16a34a',
-      columns: Array.isArray(cols) ? cols : []
+      columns: Array.isArray(cols) ? cols : [],
+      menu_binding: form.menuKey?.value || 'footer'
     };
   }
   function exportFooterAsHTML(cfg){
@@ -138,15 +139,18 @@ ${body}
   }
 
   function exportMenuAsJSON(form){
-    // prefer visual state if present
+    // Prefer map format if available
+    if (form.__menuMap) return JSON.parse(JSON.stringify(form.__menuMap));
     if (form.__menuState) return JSON.parse(JSON.stringify(form.__menuState));
     try { return JSON.parse(form.menu?.value || '[]'); } catch { return []; }
   }
 
-  function renderMenuTree(container, form){
+  function renderMenuTree(container, form, key){
     container.innerHTML = '';
     const list = document.createElement('div');
     list.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+
+    const stateArr = key ? (form.__menuMap[key] = form.__menuMap[key] || []) : (form.__menuState = form.__menuState || []);
 
     const makeNode = (item, path=[]) => {
       const row = document.createElement('div');
@@ -171,12 +175,12 @@ ${body}
       label.oninput = () => { item.label = label.value; };
       href.oninput = () => { item.href = href.value; };
 
-      addBtn.onclick = () => { item.children.push({ label:'Nieuw', href:'#', children:[] }); form.__menuState = form.__menuState; renderMenuTree(container, form); };
-      upBtn.onclick = () => { moveItem(form.__menuState, path, -1); renderMenuTree(container, form); };
-      downBtn.onclick = () => { moveItem(form.__menuState, path, +1); renderMenuTree(container, form); };
-      indentBtn.onclick = () => { indentItem(form.__menuState, path); renderMenuTree(container, form); };
-      outdentBtn.onclick = () => { outdentItem(form.__menuState, path); renderMenuTree(container, form); };
-      delBtn.onclick = () => { deleteAt(form.__menuState, path); renderMenuTree(container, form); };
+      addBtn.onclick = () => { item.children.push({ label:'Nieuw', href:'#', children:[] }); renderMenuTree(container, form, key); };
+      upBtn.onclick = () => { moveItem(stateArr, path, -1); renderMenuTree(container, form, key); };
+      downBtn.onclick = () => { moveItem(stateArr, path, +1); renderMenuTree(container, form, key); };
+      indentBtn.onclick = () => { indentItem(stateArr, path); renderMenuTree(container, form, key); };
+      outdentBtn.onclick = () => { outdentItem(stateArr, path); renderMenuTree(container, form, key); };
+      delBtn.onclick = () => { deleteAt(stateArr, path); renderMenuTree(container, form, key); };
 
       row.appendChild(label);
       row.appendChild(href);
@@ -194,14 +198,14 @@ ${body}
       return wrap;
     };
 
-    (form.__menuState||[]).forEach((it, idx)=>{
+    (stateArr||[]).forEach((it, idx)=>{
       list.appendChild(makeNode(it, [idx]));
     });
     container.appendChild(list);
 
     const addRoot = btn('Nieuw hoofditem', 'Add root', 'btn btn-secondary');
     addRoot.style.marginTop = '8px';
-    addRoot.onclick = () => { form.__menuState.push({ label:'Nieuw', href:'#', children:[] }); renderMenuTree(container, form); };
+    addRoot.onclick = () => { stateArr.push({ label:'Nieuw', href:'#', children:[] }); renderMenuTree(container, form, key); };
     container.appendChild(addRoot);
   }
 
@@ -317,15 +321,18 @@ ${body}
   async function doMenuSavePublish(form, action){
     const brand_id = window.CURRENT_BRAND_ID;
     if (!brand_id) { window.websiteBuilder?.showErrorMessage('Geen brand_id'); return; }
-    const menu_json = exportMenuAsJSON(form);
+    const menuData = exportMenuAsJSON(form); // can be array (legacy) or map { key: [] }
     try {
       toggleBusy(form, true);
       if (action === 'save') {
-        const r = await window.BuilderPublishAPI.saveMenuDraft({ brand_id, menu_json });
+        const payload = Array.isArray(menuData) ? { brand_id, menu_json: menuData } : { brand_id, menu_map: menuData };
+        const r = await window.BuilderPublishAPI.saveMenuDraft(payload);
         window.websiteBuilder?.showNotification(`✅ Menu concept opgeslagen (v${r.version ?? '-'})`, 'success');
+        try { window.MenuPreview?.render(menuData); } catch {}
       } else if (action === 'publish') {
         const r = await window.BuilderPublishAPI.publishMenu({ brand_id });
         window.websiteBuilder?.showNotification(`🚀 Menu gepubliceerd (v${r.version ?? '-'})`, 'success');
+        try { window.MenuPreview?.render(menuData); } catch {}
       }
     } catch (e) {
       console.error('Menu publish error', e);
@@ -390,6 +397,7 @@ ${body}
       '<div style="font-weight:700;color:#374151;">Instellingen</div>',
       '<label>Preset</label>', h('select', { name:'preset', class:'form-control' }, ['<option value="compact">compact</option><option value="columns">columns</option><option value="legal">legal</option>']),
       '<label>Accent kleur</label>', h('input', { name:'accent', class:'form-control', type:'color', value:'#16a34a' }),
+      '<label>Menu key (binding voor footer navigatie)</label>', h('input', { name:'menuKey', class:'form-control', type:'text', value:'footer' }),
       '<label>Kolommen JSON</label>', h('textarea', { name:'cols', class:'form-control', style:'height:140px;' }, [
         `[
   { "title": "Contact", "links": [ { "label":"Bel ons", "href":"tel:+310000000" } ] },
@@ -412,25 +420,92 @@ ${body}
     const form = h('form', { style:'display:grid;gap:10px;' }, []);
 
     // initial from JSON default
-    const defaultJson = [
+    const defaultMain = [
       { label: 'Home', href: '/' },
       { label: 'Reizen', href: '/reizen', children: [ { label:'Rondreizen', href:'/reizen/rondreizen' } ] }
     ];
-    form.__menuState = normalizeMenu(defaultJson);
+    form.__menuMap = { main: normalizeMenu(defaultMain), footer: [] };
+
+    // Menu key selector
+    const keyWrap = document.createElement('div');
+    keyWrap.style.cssText = 'display:flex;gap:8px;align-items:center;';
+    keyWrap.innerHTML = '<label style="font-weight:700;color:#374151;">Menu key</label>';
+    const sel = document.createElement('select'); sel.name = 'menuKey'; sel.className = 'form-control';
+    sel.innerHTML = '<option value="main">main</option><option value="footer">footer</option><option value="custom">custom…</option>';
+    const customInput = document.createElement('input'); customInput.className='form-control'; customInput.placeholder='custom key'; customInput.style.display='none';
+    keyWrap.appendChild(sel); keyWrap.appendChild(customInput);
 
     const treeWrap = document.createElement('div');
-    renderMenuTree(treeWrap, form);
+    const currentKey = () => (sel.value === 'custom' ? (customInput.value || 'custom') : sel.value);
+    const updateView = () => renderMenuTree(treeWrap, form, currentKey());
+    updateView();
 
-    const actions = h('div', { style:'display:flex;gap:8px;margin-top:8px;' }, [
+    const actions = h('div', { style:'display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;' }, [
+      h('button', { type:'button', class:'btn', id:'mnuImport' }, ['Importeer uit Bolt']),
       h('button', { type:'button', class:'btn btn-secondary', id:'mnuSave' }, ['Opslaan (concept)']),
       h('button', { type:'button', class:'btn btn-primary', id:'mnuPublish' }, ['Publiceer'])
     ]);
 
+    body.appendChild(keyWrap);
     body.appendChild(treeWrap);
     body.appendChild(actions);
 
+    sel.onchange = () => { customInput.style.display = sel.value==='custom' ? '' : 'none'; updateView(); };
+    customInput.oninput = () => updateView();
+
+    body.querySelector('#mnuImport').onclick = async (e)=>{ e.preventDefault(); await importPagesFromBoltIntoForm(form, treeWrap, currentKey()); };
     body.querySelector('#mnuSave').onclick = (e)=>{ e.preventDefault(); doMenuSavePublish(form, 'save'); };
     body.querySelector('#mnuPublish').onclick = (e)=>{ e.preventDefault(); doMenuSavePublish(form, 'publish'); };
+  }
+
+  async function importPagesFromBoltIntoForm(form, treeWrap, menuKey){
+    try {
+      const apiBase = (window.BOLT_API && window.BOLT_API.baseUrl) || '';
+      const brand_id = window.CURRENT_BRAND_ID;
+      if (!apiBase || !brand_id) throw new Error('Bolt API of brand_id ontbreekt');
+      const url = `${apiBase.replace(/\/$/, '')}/functions/v1/pages-api/list?brand_id=${encodeURIComponent(brand_id)}${menuKey?`&menu_key=${encodeURIComponent(menuKey)}`:''}`;
+      const headers = buildBoltHeaders();
+      const res = await fetch(url, { headers });
+      if (!res.ok) throw new Error(`Import failed: ${res.status}`);
+      const data = await res.json();
+      const pages = Array.isArray(data.pages) ? data.pages : [];
+      // filter show_in_menu
+      const shown = pages.filter(p => !!p.show_in_menu);
+      // map by slug
+      const bySlug = new Map();
+      shown.forEach(p => {
+        bySlug.set(p.slug, { label: p.title || p.slug, href: p.url || `/${p.slug}`, children: [], _order: p.menu_order ?? p.order ?? 0, _parent: p.parent_slug || null });
+      });
+      // build hierarchy
+      const roots = [];
+      bySlug.forEach((node, slug) => {
+        if (node._parent && bySlug.has(node._parent)) {
+          bySlug.get(node._parent).children.push(node);
+        } else {
+          roots.push(node);
+        }
+      });
+      const sortTree = (arr) => { arr.sort((a,b)=> (a._order||0)-(b._order||0)); arr.forEach(n => n.children && sortTree(n.children)); };
+      sortTree(roots);
+      // cleanup temp keys
+      const clean = (arr) => arr.map(({label, href, children}) => ({ label, href, children: clean(children||[]) }));
+      form.__menuMap = form.__menuMap || {};
+      const key = menuKey || 'main';
+      form.__menuMap[key] = clean(roots);
+      renderMenuTree(treeWrap, form, key);
+      window.websiteBuilder?.showNotification('✅ Menu geïmporteerd uit Bolt', 'success');
+    } catch (e) {
+      console.error('Import pages failed', e);
+      window.websiteBuilder?.showErrorMessage(`Import mislukt: ${e?.message||e}`);
+    }
+  }
+
+  function buildBoltHeaders(){
+    const h = { 'Content-Type': 'application/json' };
+    if (window.CURRENT_TOKEN) h.Authorization = `Bearer ${window.CURRENT_TOKEN}`;
+    const apiKey = (window.BOLT_API && window.BOLT_API.apiKey) || (window.BOLT_DB && window.BOLT_DB.anonKey);
+    if (apiKey) h.apikey = apiKey;
+    return h;
   }
 
   window.LayoutsBuilder = {
