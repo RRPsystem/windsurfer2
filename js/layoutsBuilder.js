@@ -439,6 +439,10 @@ ${body}
     const currentKey = () => (sel.value === 'custom' ? (customInput.value || 'custom') : sel.value);
     const updateView = () => renderMenuTree(treeWrap, form, currentKey());
     updateView();
+    // Auto-import once on first open for convenience
+    (async () => {
+      try { await importPagesFromBoltIntoForm(form, treeWrap, currentKey()); } catch {}
+    })();
 
     const actions = h('div', { style:'display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;' }, [
       h('button', { type:'button', class:'btn', id:'mnuImport' }, ['Importeer uit Bolt']),
@@ -471,6 +475,9 @@ ${body}
       const pages = Array.isArray(data.pages) ? data.pages : [];
       // filter show_in_menu
       const shown = pages.filter(p => !!p.show_in_menu);
+      if (!shown.length) {
+        window.websiteBuilder?.showNotification('Geen pagina\'s gevonden met show_in_menu voor deze key.', 'info');
+      }
       // map by slug
       const bySlug = new Map();
       shown.forEach(p => {
