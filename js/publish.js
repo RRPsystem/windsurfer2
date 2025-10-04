@@ -5,6 +5,22 @@ function hasBoltApi() {
   return !!(window.BOLT_API && window.BOLT_API.baseUrl);
 }
 
+function boltFunctionsBase() {
+  if (!hasBoltApi()) return null;
+  const base = window.BOLT_API.baseUrl.replace(/\/$/, '');
+  try {
+    const u = new URL(base);
+    // If given project base like xxxx.supabase.co, convert to functions domain
+    if (u.hostname.endsWith('.supabase.co') && !u.hostname.includes('.functions.')) {
+      const fnHost = u.hostname.replace('.supabase.co', '.functions.supabase.co');
+      return `${u.protocol}//${fnHost}`;
+    }
+    return `${u.protocol}//${u.hostname}`;
+  } catch {
+    return base;
+  }
+}
+
 function boltHeaders() {
   const h = { 'Content-Type': 'application/json' };
   if (window.CURRENT_TOKEN) h.Authorization = `Bearer ${window.CURRENT_TOKEN}`;
@@ -16,23 +32,22 @@ function boltHeaders() {
 }
 
 async function saveDraftBolt({ brand_id, page_id, title, slug, content_json }) {
-  const base = window.BOLT_API.baseUrl.replace(/\/$/, '');
+  const base = boltFunctionsBase();
   const payload = { brand_id, title, slug, content_json };
   if (page_id) payload.page_id = page_id;
-  const res = await fetch(`${base}/functions/v1/pages-api/saveDraft`, {
+  const res = await fetch(`${base}/v1/pages-api/saveDraft`, {
     method: 'POST',
     headers: boltHeaders(),
     body: JSON.stringify(payload)
   });
   if (!res.ok) throw new Error(`saveDraft failed: ${res.status}`);
-  const data = await res.json(); // { page_id, slug, version }
   // Normalize for callers
   return { id: data.page_id || data.id, slug: data.slug, version: data.version, _raw: data };
 }
 
 async function publishPageBolt(pageId, htmlString) {
-  const base = window.BOLT_API.baseUrl.replace(/\/$/, '');
-  const res = await fetch(`${base}/functions/v1/pages-api/${encodeURIComponent(pageId)}/publish`, {
+  const base = boltFunctionsBase();
+  const res = await fetch(`${base}/v1/pages-api/${encodeURIComponent(pageId)}/publish`, {
     method: 'POST',
     headers: boltHeaders(),
     body: JSON.stringify({ body_html: htmlString })
@@ -41,7 +56,7 @@ async function publishPageBolt(pageId, htmlString) {
   return await res.json(); // { ok: true, url }
 }
 
-async function saveDraftSupabase({ brand_id, title, slug, content_json }) {
+{{ ... }}
   const { data, error } = await window.db
     .from('pages')
     .upsert(

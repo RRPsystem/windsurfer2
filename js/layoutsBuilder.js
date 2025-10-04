@@ -464,10 +464,12 @@ ${body}
 
   async function importPagesFromBoltIntoForm(form, treeWrap, menuKey){
     try {
-      const apiBase = (window.BOLT_API && window.BOLT_API.baseUrl) || '';
+      // Normalize to Supabase functions domain if needed
+      const fnBase = (typeof window.boltFunctionsBase === 'function' ? window.boltFunctionsBase() : (typeof boltFunctionsBase === 'function' ? boltFunctionsBase() : null));
+      const apiBase = fnBase || ((window.BOLT_API && window.BOLT_API.baseUrl) || '');
       const brand_id = window.CURRENT_BRAND_ID;
       if (!apiBase || !brand_id) throw new Error('Bolt API of brand_id ontbreekt');
-      const url = `${apiBase.replace(/\/$/, '')}/functions/v1/pages-api/list?brand_id=${encodeURIComponent(brand_id)}${menuKey?`&menu_key=${encodeURIComponent(menuKey)}`:''}`;
+      const url = `${apiBase.replace(/\/$/, '')}/v1/pages-api/list?brand_id=${encodeURIComponent(brand_id)}${menuKey?`&menu_key=${encodeURIComponent(menuKey)}`:''}`;
       const headers = buildBoltHeaders();
       const res = await fetch(url, { headers });
       if (!res.ok) throw new Error(`Import failed: ${res.status}`);
