@@ -127,21 +127,168 @@ ${body}
 </footer>`;
   }
 
+  // ======= MENU STATE / HELPERS (visual builder) =======
+  function normalizeMenu(arr){
+    return (Array.isArray(arr)?arr:[]).map(it=>({
+      label: it.label || 'Item',
+      href: it.href || '#',
+      target: it.target || '_self',
+      children: normalizeMenu(it.children||[])
+    }));
+  }
+
   function exportMenuAsJSON(form){
+    // prefer visual state if present
+    if (form.__menuState) return JSON.parse(JSON.stringify(form.__menuState));
     try { return JSON.parse(form.menu?.value || '[]'); } catch { return []; }
+  }
+
+  function renderMenuTree(container, form){
+    container.innerHTML = '';
+    const list = document.createElement('div');
+    list.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+
+    const makeNode = (item, path=[]) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;';
+      const label = document.createElement('input');
+      label.className = 'form-control';
+      label.placeholder = 'Label';
+      label.style.width = '30%';
+      label.value = item.label || '';
+      const href = document.createElement('input');
+      href.className = 'form-control';
+      href.placeholder = '/pad-of-url';
+      href.style.width = '40%';
+      href.value = item.href || '';
+      const addBtn = btn('➕', 'Add child');
+      const upBtn = btn('⬆️', 'Move up');
+      const downBtn = btn('⬇️', 'Move down');
+      const indentBtn = btn('↳', 'Indent');
+      const outdentBtn = btn('↰', 'Outdent');
+      const delBtn = btn('🗑️', 'Delete');
+
+      label.oninput = () => { item.label = label.value; };
+      href.oninput = () => { item.href = href.value; };
+
+      addBtn.onclick = () => { item.children.push({ label:'Nieuw', href:'#', children:[] }); form.__menuState = form.__menuState; renderMenuTree(container, form); };
+      upBtn.onclick = () => { moveItem(form.__menuState, path, -1); renderMenuTree(container, form); };
+      downBtn.onclick = () => { moveItem(form.__menuState, path, +1); renderMenuTree(container, form); };
+      indentBtn.onclick = () => { indentItem(form.__menuState, path); renderMenuTree(container, form); };
+      outdentBtn.onclick = () => { outdentItem(form.__menuState, path); renderMenuTree(container, form); };
+      delBtn.onclick = () => { deleteAt(form.__menuState, path); renderMenuTree(container, form); };
+
+      row.appendChild(label);
+      row.appendChild(href);
+      [addBtn, upBtn, downBtn, indentBtn, outdentBtn, delBtn].forEach(b=>row.appendChild(b));
+
+      const childrenWrap = document.createElement('div');
+      childrenWrap.style.cssText = 'margin-left:22px;display:flex;flex-direction:column;gap:6px;';
+      (item.children||[]).forEach((ch, idx)=>{
+        childrenWrap.appendChild(makeNode(ch, path.concat(['children', idx])));
+      });
+
+      const wrap = document.createElement('div');
+      wrap.appendChild(row);
+      if ((item.children||[]).length) wrap.appendChild(childrenWrap);
+      return wrap;
+    };
+
+    (form.__menuState||[]).forEach((it, idx)=>{
+      list.appendChild(makeNode(it, [idx]));
+    });
+    container.appendChild(list);
+
+    const addRoot = btn('Nieuw hoofditem', 'Add root', 'btn btn-secondary');
+    addRoot.style.marginTop = '8px';
+    addRoot.onclick = () => { form.__menuState.push({ label:'Nieuw', href:'#', children:[] }); renderMenuTree(container, form); };
+    container.appendChild(addRoot);
+  }
+
+  function btn(text, title, cls='btn'){
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = cls; b.textContent = text; b.title = title || '';
+    return b;
+  }
+
+  function getParentAndIndex(root, path){
+    if (!path.length) return { parent: null, index: -1 };
+    const last = path[path.length-1];
+    if (typeof last === 'number') {
+      return { parent: root, index: last };
+    }
+    // when path ends with ['children', idx]
+    const idx = path[path.length-1];
+    const arr = path.slice(0,-2).reduce((acc, key)=> key==='children'? acc.children : acc[key], root);
+    return { parent: arr, index: idx };
+  }
+
+  function deleteAt(root, path){
+    if (!path.length) return;
+    if (typeof path[path.length-1] === 'number') {
+      root.splice(path[path.length-1], 1);
+      return;
+    }
+    const { parent, index } = getParentAndIndex(root, path);
+    parent.splice(index,1);
+  }
+
+  function moveItem(root, path, dir){
+    const { parent, index } = getParentAndIndex(root, path);
+    if (!parent) return;
+    const ni = index + dir;
+    if (ni < 0 || ni >= parent.length) return;
+    const [it] = parent.splice(index,1);
+    parent.splice(ni,0,it);
+  }
+
+  function indentItem(root, path){
+    const { parent, index } = getParentAndIndex(root, path);
+    if (!parent || index<=0) return;
+    const prev = parent[index-1];
+    prev.children = prev.children || [];
+    const [it] = parent.splice(index,1);
+    prev.children.push(it);
+  }
+
+  function outdentItem(root, path){
+    // move item one level up (after its parent)
+    if (typeof path[path.length-1] === 'number') return; // already root
+    const idx = path[path.length-1]; // child index
+    const parentPath = path.slice(0,-2); // up to parent
+    const gp = parentPath.length? parentPath.reduce((acc, key)=> typeof key==='number'? acc[key] : acc[key], root) : root;
+    const parentArr = parentPath.length? (parentPath.length===1? root : parentPath.slice(0,-1).reduce((acc, key)=> typeof key==='number'? acc[key] : acc[key], root)).children : root;
+    const parent = parentPath.length? parentArr : root;
+    const fromArr = parentPath.length? gp.children : root;
+    const [it] = fromArr.splice(idx,1);
+    if (parent === root) {
+      // insert after original parent in root array
+      const parentIndex = root.indexOf(gp);
+      root.splice(parentIndex+1, 0, it);
+    } else {
+      parent.push(it);
+    }
   }
 
   async function doHeaderSavePublish(form, action){
     const brand_id = window.CURRENT_BRAND_ID;
     if (!brand_id) { window.websiteBuilder?.showErrorMessage('Geen brand_id'); return; }
     const json = exportHeaderAsJSON(form);
-    if (action === 'save') {
-      const r = await window.BuilderPublishAPI.saveHeaderDraft({ brand_id, content_json: json });
-      window.websiteBuilder?.showNotification(`✅ Header concept opgeslagen (v${r.version ?? '-'})`, 'success');
-    } else if (action === 'publish') {
-      const html = exportHeaderAsHTML(json);
-      const r = await window.BuilderPublishAPI.publishHeader({ brand_id, body_html: html });
-      window.websiteBuilder?.showNotification(`🚀 Header gepubliceerd (v${r.version ?? '-'})`, 'success');
+    try {
+      toggleBusy(form, true);
+      if (action === 'save') {
+        const r = await window.BuilderPublishAPI.saveHeaderDraft({ brand_id, content_json: json });
+        window.websiteBuilder?.showNotification(`✅ Header concept opgeslagen (v${r.version ?? '-'})`, 'success');
+      } else if (action === 'publish') {
+        const html = exportHeaderAsHTML(json);
+        const r = await window.BuilderPublishAPI.publishHeader({ brand_id, body_html: html });
+        window.websiteBuilder?.showNotification(`🚀 Header gepubliceerd (v${r.version ?? '-'})`, 'success');
+      }
+    } catch (e) {
+      console.error('Header publish error', e);
+      window.websiteBuilder?.showErrorMessage(`Header actie mislukt: ${e?.message || e}`);
+    } finally {
+      toggleBusy(form, false);
     }
   }
 
@@ -149,13 +296,21 @@ ${body}
     const brand_id = window.CURRENT_BRAND_ID;
     if (!brand_id) { window.websiteBuilder?.showErrorMessage('Geen brand_id'); return; }
     const json = exportFooterAsJSON(form);
-    if (action === 'save') {
-      const r = await window.BuilderPublishAPI.saveFooterDraft({ brand_id, content_json: json });
-      window.websiteBuilder?.showNotification(`✅ Footer concept opgeslagen (v${r.version ?? '-'})`, 'success');
-    } else if (action === 'publish') {
-      const html = exportFooterAsHTML(json);
-      const r = await window.BuilderPublishAPI.publishFooter({ brand_id, body_html: html });
-      window.websiteBuilder?.showNotification(`🚀 Footer gepubliceerd (v${r.version ?? '-'})`, 'success');
+    try {
+      toggleBusy(form, true);
+      if (action === 'save') {
+        const r = await window.BuilderPublishAPI.saveFooterDraft({ brand_id, content_json: json });
+        window.websiteBuilder?.showNotification(`✅ Footer concept opgeslagen (v${r.version ?? '-'})`, 'success');
+      } else if (action === 'publish') {
+        const html = exportFooterAsHTML(json);
+        const r = await window.BuilderPublishAPI.publishFooter({ brand_id, body_html: html });
+        window.websiteBuilder?.showNotification(`🚀 Footer gepubliceerd (v${r.version ?? '-'})`, 'success');
+      }
+    } catch (e) {
+      console.error('Footer publish error', e);
+      window.websiteBuilder?.showErrorMessage(`Footer actie mislukt: ${e?.message || e}`);
+    } finally {
+      toggleBusy(form, false);
     }
   }
 
@@ -163,12 +318,35 @@ ${body}
     const brand_id = window.CURRENT_BRAND_ID;
     if (!brand_id) { window.websiteBuilder?.showErrorMessage('Geen brand_id'); return; }
     const menu_json = exportMenuAsJSON(form);
-    if (action === 'save') {
-      const r = await window.BuilderPublishAPI.saveMenuDraft({ brand_id, menu_json });
-      window.websiteBuilder?.showNotification(`✅ Menu concept opgeslagen (v${r.version ?? '-'})`, 'success');
-    } else if (action === 'publish') {
-      const r = await window.BuilderPublishAPI.publishMenu({ brand_id });
-      window.websiteBuilder?.showNotification(`🚀 Menu gepubliceerd (v${r.version ?? '-'})`, 'success');
+    try {
+      toggleBusy(form, true);
+      if (action === 'save') {
+        const r = await window.BuilderPublishAPI.saveMenuDraft({ brand_id, menu_json });
+        window.websiteBuilder?.showNotification(`✅ Menu concept opgeslagen (v${r.version ?? '-'})`, 'success');
+      } else if (action === 'publish') {
+        const r = await window.BuilderPublishAPI.publishMenu({ brand_id });
+        window.websiteBuilder?.showNotification(`🚀 Menu gepubliceerd (v${r.version ?? '-'})`, 'success');
+      }
+    } catch (e) {
+      console.error('Menu publish error', e);
+      window.websiteBuilder?.showErrorMessage(`Menu actie mislukt: ${e?.message || e}`);
+    } finally {
+      toggleBusy(form, false);
+    }
+  }
+
+  function toggleBusy(form, on){
+    const btns = form.querySelectorAll('button');
+    btns.forEach(b => b.disabled = !!on);
+    if (on) {
+      if (!form.__status) {
+        form.__status = document.createElement('div');
+        form.__status.style.cssText = 'font-size:12px;color:#6b7280;margin-top:6px;';
+        form.appendChild(form.__status);
+      }
+      form.__status.textContent = 'Bezig...';
+    } else if (form.__status) {
+      form.__status.textContent = '';
     }
   }
 
@@ -231,22 +409,26 @@ ${body}
   function openMenuBuilder(){
     const { inner } = makeModal('<i class="fas fa-bars"></i> Menu Builder');
     const body = inner.querySelector('.modal-body');
-    const form = h('form', { style:'display:grid;gap:10px;' }, [
-      '<div style="font-weight:700;color:#374151;">Menu JSON</div>',
-      h('textarea', { name:'menu', class:'form-control', style:'height:220px;' }, [
-        `[
-  { "label": "Home", "href": "/" },
-  { "label": "Reizen", "href": "/reizen", "children": [
-    { "label": "Rondreizen", "href": "/reizen/rondreizen" }
-  ]}
-]`
-      ]),
-      h('div', { style:'display:flex;gap:8px;margin-top:8px;' }, [
-        h('button', { type:'button', class:'btn btn-secondary', id:'mnuSave' }, ['Opslaan (concept)']),
-        h('button', { type:'button', class:'btn btn-primary', id:'mnuPublish' }, ['Publiceer'])
-      ])
+    const form = h('form', { style:'display:grid;gap:10px;' }, []);
+
+    // initial from JSON default
+    const defaultJson = [
+      { label: 'Home', href: '/' },
+      { label: 'Reizen', href: '/reizen', children: [ { label:'Rondreizen', href:'/reizen/rondreizen' } ] }
+    ];
+    form.__menuState = normalizeMenu(defaultJson);
+
+    const treeWrap = document.createElement('div');
+    renderMenuTree(treeWrap, form);
+
+    const actions = h('div', { style:'display:flex;gap:8px;margin-top:8px;' }, [
+      h('button', { type:'button', class:'btn btn-secondary', id:'mnuSave' }, ['Opslaan (concept)']),
+      h('button', { type:'button', class:'btn btn-primary', id:'mnuPublish' }, ['Publiceer'])
     ]);
-    body.appendChild(form);
+
+    body.appendChild(treeWrap);
+    body.appendChild(actions);
+
     body.querySelector('#mnuSave').onclick = (e)=>{ e.preventDefault(); doMenuSavePublish(form, 'save'); };
     body.querySelector('#mnuPublish').onclick = (e)=>{ e.preventDefault(); doMenuSavePublish(form, 'publish'); };
   }

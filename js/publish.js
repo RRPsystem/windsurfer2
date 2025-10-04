@@ -8,6 +8,10 @@ function hasBoltApi() {
 function boltHeaders() {
   const h = { 'Content-Type': 'application/json' };
   if (window.CURRENT_TOKEN) h.Authorization = `Bearer ${window.CURRENT_TOKEN}`;
+  // Supabase Edge Functions typically require an apikey header.
+  // Prefer an explicit API key if provided, else fall back to Supabase anon key.
+  const apiKey = (window.BOLT_API && window.BOLT_API.apiKey) || (window.BOLT_DB && window.BOLT_DB.anonKey);
+  if (apiKey) h.apikey = apiKey;
   return h;
 }
 
