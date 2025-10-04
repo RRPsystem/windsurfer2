@@ -1278,32 +1278,41 @@ class WebsiteBuilder {
         if (el) el.classList.add('selected');
     }
 
-    // ---------- Header/Footer Builder deeplinks ----------
+    // ---------- Header/Footer/Menu Builder buttons ----------
     setupHeaderFooterBuilderLinks() {
         const headerBtn = document.getElementById('headerBuilderBtn');
         const footerBtn = document.getElementById('footerBuilderBtn');
+        const menuBtn = document.getElementById('menuBuilderBtn');
         const brandId = window.CURRENT_BRAND_ID || '';
         const token = window.CURRENT_TOKEN || '';
         const apiBase = (window.BOLT_API && window.BOLT_API.baseUrl) || '';
-        const buildQS = () => {
+
+        const openDeeplink = (path) => {
             const qs = new URLSearchParams();
             if (brandId) qs.set('brand_id', brandId);
             if (token) qs.set('token', token);
-            // provide a back-api param so the target can call back into this builder if needed
             qs.set('api', apiBase || '');
-            return qs.toString();
-        };
-        const openTarget = (path) => {
-            const qs = buildQS();
             if (apiBase) {
-                window.open(`${apiBase.replace(/\/$/, '')}${path}?${qs}`, '_blank');
+                window.open(`${apiBase.replace(/\/$/, '')}${path}?${qs.toString()}`, '_blank');
             } else {
-                // Fallback: open a placeholder route in this app (not yet implemented)
-                this.showNotification('Header/Footer builder opent in Bolt.new zodra API baseUrl is gezet.', 'info');
+                this.showNotification('Geen API baseUrl. Gebruik interne builder-modals.', 'info');
             }
         };
-        if (headerBtn) headerBtn.addEventListener('click', () => openTarget('/builder/header'));
-        if (footerBtn) footerBtn.addEventListener('click', () => openTarget('/builder/footer'));
+
+        const wire = (btn, openModalFn, deeplinkPath) => {
+            if (!btn) return;
+            btn.addEventListener('click', () => {
+                if (window.LayoutsBuilder && typeof openModalFn === 'function') {
+                    openModalFn();
+                } else {
+                    openDeeplink(deeplinkPath);
+                }
+            });
+        };
+
+        wire(headerBtn, window.LayoutsBuilder?.openHeaderBuilder, '/builder/header');
+        wire(footerBtn, window.LayoutsBuilder?.openFooterBuilder, '/builder/footer');
+        wire(menuBtn, window.LayoutsBuilder?.openMenuBuilder, '/builder/menu');
     }
 
     // ---------- Git Push Button ----------
