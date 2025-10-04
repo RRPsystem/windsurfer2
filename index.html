@@ -212,10 +212,15 @@
         const brandId = qp.get('brand_id');
         const token = qp.get('token');
         const api = qp.get('api'); // optional: base URL for Bolt.new API
+        const apiKey = qp.get('api_key'); // optional: Edge Functions API key
         const tcApi = qp.get('tc_api'); // optional: force TC proxy base (use your Vercel host)
         if (brandId) window.CURRENT_BRAND_ID = brandId;
         if (token) window.CURRENT_TOKEN = token;
         if (api) window.BOLT_API = { baseUrl: api };
+        if (apiKey) {
+          window.BOLT_API = window.BOLT_API || {};
+          window.BOLT_API.apiKey = apiKey;
+        }
         if (tcApi) window.TC_API_BASE = tcApi.replace(/\/$/, '');
         // Also allow config.local.js to set BOLT_API
         window.BOLT_API = window.BOLT_API || (window.BOLT && window.BOLT.API) || null;
