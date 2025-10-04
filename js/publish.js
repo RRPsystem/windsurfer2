@@ -147,18 +147,19 @@ async function publishFooter({ brand_id, body_html }) {
 }
 
 // ---------- MENU ----------
-async function saveMenuDraft({ brand_id, menu_json }) {
+async function saveMenuDraft({ brand_id, menu_json, menu_map }) {
   const base = layoutsApiBase();
   if (base) {
     const res = await fetch(`${base}/menu/saveDraft`, {
       method: 'POST',
       headers: boltHeaders(),
-      body: JSON.stringify({ brand_id, menu_json })
+      body: JSON.stringify(menu_map ? { brand_id, menu_map } : { brand_id, menu_json })
     });
     if (!res.ok) throw new Error(`menu saveDraft failed: ${res.status}`);
     return await res.json();
   }
-  localStorage.setItem(`wb_menu_${brand_id}`, JSON.stringify({ menu_json, ts: Date.now() }));
+  const payload = menu_map ? { menu_map } : { menu_json };
+  localStorage.setItem(`wb_menu_${brand_id}`, JSON.stringify({ ...payload, ts: Date.now() }));
   return { ok: true, version: 0, updated_at: new Date().toISOString() };
 }
 
