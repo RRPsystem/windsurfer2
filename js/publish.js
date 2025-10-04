@@ -24,6 +24,11 @@ function boltFunctionsBase() {
 // expose for other modules (e.g., layoutsBuilder.js)
 try { window.boltFunctionsBase = boltFunctionsBase; } catch {}
 
+function boltProjectBase() {
+  if (!hasBoltApi()) return null;
+  return window.BOLT_API.baseUrl.replace(/\/$/, '');
+}
+
 function boltHeaders() {
   const h = { 'Content-Type': 'application/json' };
   if (window.CURRENT_TOKEN) h.Authorization = `Bearer ${window.CURRENT_TOKEN}`;
@@ -35,10 +40,10 @@ function boltHeaders() {
 }
 
 async function saveDraftBolt({ brand_id, page_id, title, slug, content_json }) {
-  const base = boltFunctionsBase();
+  const base = boltProjectBase();
   const payload = { brand_id, title, slug, content_json };
   if (page_id) payload.page_id = page_id;
-  const res = await fetch(`${base}/v1/pages-api/saveDraft`, {
+  const res = await fetch(`${base}/functions/v1/pages-api/saveDraft`, {
     method: 'POST',
     headers: boltHeaders(),
     body: JSON.stringify(payload)
@@ -50,8 +55,8 @@ async function saveDraftBolt({ brand_id, page_id, title, slug, content_json }) {
 }
 
 async function publishPageBolt(pageId, htmlString) {
-  const base = boltFunctionsBase();
-  const res = await fetch(`${base}/v1/pages-api/${encodeURIComponent(pageId)}/publish`, {
+  const base = boltProjectBase();
+  const res = await fetch(`${base}/functions/v1/pages-api/${encodeURIComponent(pageId)}/publish`, {
     method: 'POST',
     headers: boltHeaders(),
     body: JSON.stringify({ body_html: htmlString })
@@ -60,12 +65,12 @@ async function publishPageBolt(pageId, htmlString) {
   return await res.json(); // { ok: true, url }
 }
 
-{{ ... }}
+async function saveDraftSupabase({ brand_id, page_id, title, slug, content_json }) {
   const { data, error } = await window.db
     .from('pages')
     .upsert(
-      { brand_id, title, slug, content_json, status: 'draft' },
-      { onConflict: 'brand_id,slug' }
+      { id: page_id, brand_id, title, slug, content_json, status: 'draft' },
+      { onConflict: 'id' }
     )
     .select()
     .single();
