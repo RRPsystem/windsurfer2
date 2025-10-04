@@ -21,6 +21,9 @@ function boltFunctionsBase() {
   }
 }
 
+// expose for other modules (e.g., layoutsBuilder.js)
+try { window.boltFunctionsBase = boltFunctionsBase; } catch {}
+
 function boltHeaders() {
   const h = { 'Content-Type': 'application/json' };
   if (window.CURRENT_TOKEN) h.Authorization = `Bearer ${window.CURRENT_TOKEN}`;
@@ -41,6 +44,7 @@ async function saveDraftBolt({ brand_id, page_id, title, slug, content_json }) {
     body: JSON.stringify(payload)
   });
   if (!res.ok) throw new Error(`saveDraft failed: ${res.status}`);
+  const data = await res.json();
   // Normalize for callers
   return { id: data.page_id || data.id, slug: data.slug, version: data.version, _raw: data };
 }
