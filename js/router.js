@@ -42,7 +42,6 @@
 
     const right = document.createElement('div');
     right.style.cssText = 'margin-left:auto;display:flex;gap:8px;';
-    right.innerHTML = '<span style="font-size:12px;color:#64748b;">Kies een bouwtype om te starten</span>';
 
     bar.appendChild(label);
     bar.appendChild(sel);
@@ -147,6 +146,8 @@
     // Update dropdown
     const sel = document.getElementById('modeSelect');
     if (sel) sel.value = mode;
+    const topSel = document.getElementById('topModeSelect');
+    if (topSel) topSel.value = mode;
 
     if (mode === 'page'){
       showPageWorkspace(true);
@@ -166,6 +167,8 @@
     ensureMiniMenu();
     const sel = document.getElementById('modeSelect');
     if (sel){ sel.onchange = () => setMode(sel.value); }
+    const topSel = document.getElementById('topModeSelect');
+    if (topSel){ topSel.onchange = () => setMode(topSel.value); }
 
     const hashMode = readModeFromHash();
     const storedMode = readModeFromStorage();
