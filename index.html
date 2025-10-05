@@ -43,9 +43,6 @@
                 <button class="btn btn-secondary" id="footerBuilderBtn" aria-label="Footer Builder" title="Bewerk Footer (vol scherm)">
                     <i class="fas fa-window-maximize"></i> Footer Builder
                 </button>
-                <button class="btn btn-secondary" id="menuBuilderBtn" aria-label="Menu Builder" title="Bewerk Menu (vol scherm)">
-                    <i class="fas fa-bars"></i> Menu Builder
-                </button>
                 <button class="btn btn-secondary" id="backToDashboardBtn" aria-label="Terug naar Dashboard" title="Ga terug naar Bolt Dashboard">
                     <i class="fas fa-arrow-left"></i> Terug naar Dashboard
                 </button>
@@ -250,6 +247,7 @@
     <script src="js/export.js"></script>
     <script src="js/publish.js"></script>
     <script src="js/router.js"></script>
+    <script src="js/views/menuFooterView.js"></script>
     <script src="js/fnClient.js"></script>
     <script src="js/menuRender.js"></script>
     <script src="js/layoutsBuilder.js"></script>
@@ -322,10 +320,10 @@
             headerRight.insertBefore(wrap, headerRight.firstChild);
           }
 
-          // Save button behavior: prompt for title/slug (once) and save
+          // Save button behavior: prompt for title/slug (once) and save (lokaal + draft naar Bolt)
           const saveBtn = document.getElementById('saveProjectBtn');
           if (saveBtn){
-            saveBtn.onclick = () => {
+            saveBtn.onclick = async () => {
               try {
                 // Try to derive current meta; fallback to prompts
                 const saved = localStorage.getItem('wb_project');
@@ -354,9 +352,22 @@
                     wb.persistPagesToLocalStorage();
                   })();
                 } catch {}
-                // Force a save
+                // Force a local save
                 try { window.websiteBuilder?.saveProject(true); } catch {}
-                try { window.websiteBuilder?.showNotification('💾 Concept opgeslagen', 'success'); } catch {}
+
+                // Save as draft to Bolt (met titel/slug gegarandeerd)
+                try {
+                  const brand_id = window.CURRENT_BRAND_ID;
+                  if (!brand_id) throw new Error('brand_id ontbreekt');
+                  const contentJson = (typeof window.exportBuilderAsJSON === 'function') ? window.exportBuilderAsJSON() : { title, slug };
+                  contentJson.title = title; contentJson.slug = slug;
+                  if (!window.BuilderPublishAPI) throw new Error('Publish helpers niet geladen');
+                  await window.BuilderPublishAPI.saveDraft({ brand_id, title, slug, content_json: contentJson });
+                } catch (e) {
+                  console.warn('Draft naar Bolt mislukt:', e?.message||e);
+                }
+
+                try { window.websiteBuilder?.showNotification('💾 Concept opgeslagen (lokaal + Bolt-draft)', 'success'); } catch {}
               } catch (e) { console.warn(e); }
             };
           }

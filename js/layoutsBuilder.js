@@ -535,6 +535,10 @@ ${body}
     openMenuBuilder,
     exportHeaderAsJSON, exportHeaderAsHTML,
     exportFooterAsJSON, exportFooterAsHTML,
-    exportMenuAsJSON
+    exportMenuAsJSON,
+    // expose for dedicated view
+    renderMenuTree,
+    importPagesFromBoltIntoForm,
+    doMenuSavePublish
   };
 })();

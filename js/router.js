@@ -25,6 +25,11 @@
 
   function ensureMiniMenu(){
     if (document.getElementById('miniMenuBar')) return document.getElementById('miniMenuBar');
+    // In Bolt deeplink context gebruiken we de dropdown in de header (#topModeSelect)
+    // en maken we GEEN extra mini-balk aan.
+    try {
+      if ((window.BOLT_API && window.BOLT_API.baseUrl) || document.getElementById('topModeSelect')) return null;
+    } catch {}
     const header = document.querySelector('.app-header');
     const bar = document.createElement('div');
     bar.id = 'miniMenuBar';
@@ -101,28 +106,13 @@
     if (!info){ view.style.display = 'none'; return; }
 
     if (mode === 'menu'){
-      view.innerHTML = `
-        <div style="display:grid;grid-template-columns:380px 1fr;gap:16px;align-items:start;">
-          <div style="border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:14px;">
-            <div style="font-weight:700;font-size:18px;margin-bottom:6px;">${info.title}</div>
-            <div style="color:#475569;margin-bottom:12px;">${info.body}</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
-              <button id="openMenuEditor" class="btn btn-primary"><i class="fas fa-bars"></i> Open volledige editor</button>
-              <button id="refreshMenuPreview" class="btn"><i class="fas fa-rotate"></i> Ververs preview</button>
-            </div>
-            <div style="font-size:12px;color:#64748b;">Tip: Gebruik de volledige editor voor importeren en geavanceerde bewerkingen. De preview aan de rechterkant wordt direct uit je laatste concept geladen.</div>
-          </div>
-          <div style="border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:14px;min-height:280px;">
-            <div style="font-weight:700;margin-bottom:10px;">Live preview</div>
-            <nav data-menu-key="main"></nav>
-            <hr style="margin:16px 0;opacity:.2;"/>
-            <nav data-menu-key="footer"></nav>
-          </div>
-        </div>`;
-      const openBtn = view.querySelector('#openMenuEditor');
-      if (openBtn){ openBtn.onclick = () => { try { document.getElementById('menuBuilderBtn')?.click(); } catch {} }; }
-      const refreshBtn = view.querySelector('#refreshMenuPreview');
-      if (refreshBtn){ refreshBtn.onclick = () => { try { window.MenuPreview?.render(); } catch {} }; }
+      // If dedicated view exists, mount it; else show basic info
+      if (window.MenuFooterView && typeof window.MenuFooterView.mount === 'function') {
+        window.MenuFooterView.mount(view);
+      } else {
+        view.innerHTML = `
+          <div style=\"border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:16px;\">Menu-view wordt geladen...</div>`;
+      }
     } else {
       view.innerHTML = `
         <div style="border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:16px;max-width:980px;">
