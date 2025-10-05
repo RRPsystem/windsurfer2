@@ -464,16 +464,28 @@ ${body}
 
   async function importPagesFromBoltIntoForm(form, treeWrap, menuKey){
     try {
-      // Normalize to Supabase functions domain if needed
-      const fnBase = (typeof window.boltFunctionsBase === 'function' ? window.boltFunctionsBase() : (typeof boltFunctionsBase === 'function' ? boltFunctionsBase() : null));
-      const apiBase = fnBase || ((window.BOLT_API && window.BOLT_API.baseUrl) || '');
+      // Central fetch helper (adds headers + base /functions/v1)
+      const callFn = (window.FnClient && window.FnClient.callFn) || null;
+      const apiBase = (window.FnClient && window.FnClient.functionsBase && window.FnClient.functionsBase()) || ((window.BOLT_API && window.BOLT_API.baseUrl && (window.BOLT_API.baseUrl.replace(/\/$/, '') + '/functions/v1')) || '');
       const brand_id = window.CURRENT_BRAND_ID;
       if (!apiBase || !brand_id) throw new Error('Bolt API of brand_id ontbreekt');
-      const url = `${apiBase.replace(/\/$/, '')}/v1/pages-api/list?brand_id=${encodeURIComponent(brand_id)}${menuKey?`&menu_key=${encodeURIComponent(menuKey)}`:''}`;
-      const headers = buildBoltHeaders();
-      const res = await fetch(url, { headers });
-      if (!res.ok) throw new Error(`Import failed: ${res.status}`);
-      const data = await res.json();
+      const pathList = `/pages-api/list?brand_id=${encodeURIComponent(brand_id)}${menuKey?`&menu_key=${encodeURIComponent(menuKey)}`:''}`;
+      let data;
+      const doFetch = async (fullUrl) => {
+        const headers = buildBoltHeaders();
+        const res = await fetch(fullUrl, { headers });
+        const ct = res.headers.get('content-type')||'';
+        const body = ct.includes('application/json') ? await res.json() : await res.text();
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${typeof body==='string'? body : JSON.stringify(body)}`);
+        return body;
+      };
+      try {
+        if (callFn) data = await callFn(pathList); else data = await doFetch(`${apiBase}${pathList}`);
+      } catch (err) {
+        // Fallback to legacy endpoint without /list
+        const altPath = `/pages-api?brand_id=${encodeURIComponent(brand_id)}${menuKey?`&menu_key=${encodeURIComponent(menuKey)}`:''}`;
+        if (callFn) data = await callFn(altPath); else data = await doFetch(`${apiBase}${altPath}`);
+      }
       const pages = Array.isArray(data.pages) ? data.pages : [];
       // filter show_in_menu
       const shown = pages.filter(p => !!p.show_in_menu);

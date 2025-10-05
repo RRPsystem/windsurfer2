@@ -8,12 +8,17 @@ class ExportManager {
         const exportBtn = document.getElementById('exportBtn');
         const previewBtn = document.getElementById('previewBtn');
         
-        exportBtn.addEventListener('click', () => {
-            this.showExportModal();
-        });
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                this.showExportModal();
+            });
+        }
         
-        previewBtn.addEventListener('click', () => {
-            this.showPreview();
+        if (previewBtn) {
+            previewBtn.addEventListener('click', () => {
+                this.showPreview();
+            });
+        }
     }
 
     showPreview() {
@@ -126,6 +131,7 @@ class ExportManager {
         closeBtn2.onclick = closeModal2;
         modal.onclick = (e) => { if (e.target === modal) closeModal2(); };
         
+        const exportOptions = modalBody.querySelectorAll('.export-option');
         exportOptions.forEach(btn => {
             btn.addEventListener('click', () => {
                 const type = btn.getAttribute('data-type');
