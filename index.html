@@ -318,6 +318,15 @@
             wrap.appendChild(lbl);
             wrap.appendChild(sel);
             headerRight.insertBefore(wrap, headerRight.firstChild);
+
+            // Sync initial value to current mode (hash or stored), and update router on change
+            try {
+              const hashMode = (location.hash.match(/#\/mode\/([a-z]+)/i)||[])[1];
+              const storedMode = localStorage.getItem('wb_mode');
+              const mode = hashMode || storedMode || 'page';
+              sel.value = mode;
+            } catch {}
+            sel.onchange = () => { try { location.hash = `#/mode/${sel.value}`; } catch {} };
           }
 
           // Save button behavior: prompt for title/slug (once) and save (lokaal + draft naar Bolt)
