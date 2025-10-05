@@ -249,9 +249,33 @@
     <script src="js/properties.js"></script>
     <script src="js/export.js"></script>
     <script src="js/publish.js"></script>
+    <script src="js/router.js"></script>
     <script src="js/fnClient.js"></script>
     <script src="js/menuRender.js"></script>
     <script src="js/layoutsBuilder.js"></script>
     <script src="js/main.js"></script>
+    <script>
+      // Ensure "Terug naar Dashboard" preserves auth query params
+      document.addEventListener('DOMContentLoaded', () => {
+        try {
+          const btn = document.getElementById('backToDashboardBtn');
+          if (!btn) return;
+          btn.onclick = (e) => {
+            try { e.preventDefault(); } catch {}
+            const apiBase = (window.BOLT_API && window.BOLT_API.baseUrl) || '';
+            if (!apiBase) {
+              try { window.websiteBuilder?.showNotification('Geen Bolt API baseUrl gevonden. Stel ?api= in de URL.', 'info'); } catch {}
+              return;
+            }
+            const qp = new URLSearchParams();
+            if (window.CURRENT_BRAND_ID) qp.set('brand_id', window.CURRENT_BRAND_ID);
+            if (window.CURRENT_TOKEN) qp.set('token', window.CURRENT_TOKEN);
+            if (window.BOLT_API && window.BOLT_API.apiKey) qp.set('apikey', window.BOLT_API.apiKey);
+            const url = `${apiBase.replace(/\/$/, '')}/admin/website/pages${qp.toString() ? `?${qp.toString()}` : ''}`;
+            window.location.href = url;
+          };
+        } catch {}
+      });
+    </script>
   </body>
 </html>
