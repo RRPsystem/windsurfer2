@@ -213,25 +213,57 @@
     <script src="js/config.prod.js?v=2"></script>
     <script src="js/config.local.js"></script>
     <script>
-      // Step 1: Read brand_id and token from URL so Bolt.new can deep-link into the builder
-      try {
-        const qp = new URLSearchParams(location.search);
-        const brandId = qp.get('brand_id');
-        const token = qp.get('token');
-        const api = qp.get('api'); // optional: base URL for Bolt.new API
-        const apiKey = qp.get('api_key'); // optional: Edge Functions API key
-        const tcApi = qp.get('tc_api'); // optional: force TC proxy base (use your Vercel host)
-        if (brandId) window.CURRENT_BRAND_ID = brandId;
-        if (token) window.CURRENT_TOKEN = token;
-        if (api) window.BOLT_API = { baseUrl: api };
-        if (apiKey) {
-          window.BOLT_API = window.BOLT_API || {};
-          window.BOLT_API.apiKey = apiKey;
+      // Step 1: Read params from both search and hash (?a=b after #) so deeplinks work
+      (function initDeepLinkParams(){
+        function parseHashQuery() {
+          try {
+            const h = location.hash || '';
+            const qIndex = h.indexOf('?');
+            if (qIndex === -1) return new URLSearchParams('');
+            return new URLSearchParams(h.slice(qIndex + 1));
+          } catch { return new URLSearchParams(''); }
         }
-        if (tcApi) window.TC_API_BASE = tcApi.replace(/\/$/, '');
-        // Also allow config.local.js to set BOLT_API
-        window.BOLT_API = window.BOLT_API || (window.BOLT && window.BOLT.API) || null;
-      } catch (e) { console.warn('Query parsing failed', e); }
+        function getParam(name) {
+          const fromSearch = new URLSearchParams(location.search).get(name);
+          if (fromSearch) return fromSearch;
+          return parseHashQuery().get(name);
+        }
+        try {
+          const brandId = getParam('brand_id');
+          const token   = getParam('token');
+          const api     = getParam('api');     // Edge Functions base
+          const apiKey  = getParam('api_key'); // Edge Functions API key
+          const tcApi   = getParam('tc_api');  // Travel Compositor proxy base
+
+          if (brandId) window.CURRENT_BRAND_ID = brandId;
+          if (token)   window.CURRENT_TOKEN = token;
+          if (api)     window.BOLT_API = { baseUrl: api };
+          if (apiKey) {
+            window.BOLT_API = window.BOLT_API || {};
+            window.BOLT_API.apiKey = apiKey;
+          }
+          if (tcApi)   window.TC_API_BASE = tcApi.replace(/\/$/, '');
+
+          // Also allow config.local.js to set BOLT_API if not provided in URL
+          window.BOLT_API = window.BOLT_API || (window.BOLT && window.BOLT.API) || null;
+        } catch (e) { console.warn('Query parsing failed', e); }
+
+        // Keep globals in sync if router changes the hash
+        window.addEventListener('hashchange', () => {
+          try {
+            const brandId = getParam('brand_id');
+            const token   = getParam('token');
+            const api     = getParam('api');
+            const apiKey  = getParam('api_key');
+            const tcApi   = getParam('tc_api');
+            if (brandId) window.CURRENT_BRAND_ID = brandId;
+            if (token)   window.CURRENT_TOKEN = token;
+            if (api)     { window.BOLT_API = window.BOLT_API || {}; window.BOLT_API.baseUrl = api; }
+            if (apiKey)  { window.BOLT_API = window.BOLT_API || {}; window.BOLT_API.apiKey = apiKey; }
+            if (tcApi)   window.TC_API_BASE = tcApi.replace(/\/$/, '');
+          } catch {}
+        });
+      })();
     </script>
     <script>
         if (!window.BOLT_DB) {
