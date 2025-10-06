@@ -77,7 +77,8 @@
     const els = [
       document.querySelector('.sidebar'),
       document.querySelector('.canvas-area'),
-      document.querySelector('.properties-panel')
+      document.querySelector('.properties-panel'),
+      document.querySelector('.app-body') // hide full builder grid to remove empty gray area
     ];
     els.forEach(el => { if (!el) return; el.style.display = show ? '' : 'none'; });
   }
