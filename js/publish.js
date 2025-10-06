@@ -50,11 +50,21 @@ function boltHeaders() {
   return h;
 }
 
+function withApiKey(url) {
+  try {
+    const apiKey = (window.BOLT_API && window.BOLT_API.apiKey) || '';
+    if (!apiKey) return url;
+    const hasQuery = url.includes('?');
+    return url + (hasQuery ? '&' : '?') + 'apikey=' + encodeURIComponent(apiKey);
+  } catch { return url; }
+}
+
 async function saveDraftBolt({ brand_id, page_id, title, slug, content_json }) {
   const base = boltProjectBase();
   const payload = { brand_id, title, slug, content_json };
   if (page_id) payload.page_id = page_id;
-  const url = `${base}/functions/v1/pages-api/saveDraft`;
+  let url = `${base}/functions/v1/pages-api/saveDraft`;
+  url = withApiKey(url);
   const res = await fetch(url, {
     method: 'POST',
     headers: boltHeaders(),
@@ -81,7 +91,8 @@ async function saveDraftBolt({ brand_id, page_id, title, slug, content_json }) {
 
 async function publishPageBolt(pageId, htmlString) {
   const base = boltProjectBase();
-  const url = `${base}/functions/v1/pages-api/${encodeURIComponent(pageId)}/publish`;
+  let url = `${base}/functions/v1/pages-api/${encodeURIComponent(pageId)}/publish`;
+  url = withApiKey(url);
   const res = await fetch(url, {
     method: 'POST',
     headers: boltHeaders(),
@@ -157,7 +168,7 @@ function layoutsApiBase() {
 async function saveHeaderDraft({ brand_id, content_json }) {
   const base = layoutsApiBase();
   if (base) {
-    const res = await fetch(`${base}/header/saveDraft`, {
+    const res = await fetch(withApiKey(`${base}/header/saveDraft`), {
       method: 'POST',
       headers: boltHeaders(),
       body: JSON.stringify({ brand_id, content_json })
@@ -173,7 +184,7 @@ async function saveHeaderDraft({ brand_id, content_json }) {
 async function publishHeader({ brand_id, body_html }) {
   const base = layoutsApiBase();
   if (base) {
-    const res = await fetch(`${base}/header/publish`, {
+    const res = await fetch(withApiKey(`${base}/header/publish`), {
       method: 'POST',
       headers: boltHeaders(),
       body: JSON.stringify({ brand_id, body_html })
@@ -188,7 +199,7 @@ async function publishHeader({ brand_id, body_html }) {
 async function saveFooterDraft({ brand_id, content_json }) {
   const base = layoutsApiBase();
   if (base) {
-    const res = await fetch(`${base}/footer/saveDraft`, {
+    const res = await fetch(withApiKey(`${base}/footer/saveDraft`), {
       method: 'POST',
       headers: boltHeaders(),
       body: JSON.stringify({ brand_id, content_json })
@@ -203,7 +214,7 @@ async function saveFooterDraft({ brand_id, content_json }) {
 async function publishFooter({ brand_id, body_html }) {
   const base = layoutsApiBase();
   if (base) {
-    const res = await fetch(`${base}/footer/publish`, {
+    const res = await fetch(withApiKey(`${base}/footer/publish`), {
       method: 'POST',
       headers: boltHeaders(),
       body: JSON.stringify({ brand_id, body_html })
@@ -218,7 +229,7 @@ async function publishFooter({ brand_id, body_html }) {
 async function saveMenuDraft({ brand_id, menu_json, menu_map }) {
   const base = layoutsApiBase();
   if (base) {
-    const res = await fetch(`${base}/menu/saveDraft`, {
+    const res = await fetch(withApiKey(`${base}/menu/saveDraft`), {
       method: 'POST',
       headers: boltHeaders(),
       body: JSON.stringify(menu_map ? { brand_id, menu_map } : { brand_id, menu_json })
@@ -234,7 +245,7 @@ async function saveMenuDraft({ brand_id, menu_json, menu_map }) {
 async function publishMenu({ brand_id }) {
   const base = layoutsApiBase();
   if (base) {
-    const res = await fetch(`${base}/menu/publish`, {
+    const res = await fetch(withApiKey(`${base}/menu/publish`), {
       method: 'POST',
       headers: boltHeaders(),
       body: JSON.stringify({ brand_id })
