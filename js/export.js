@@ -43,11 +43,15 @@ class ExportManager {
             // Cache bust for dev
             params.set('v', 'preview-' + Date.now());
             const previewUrl = `preview.html?${params.toString()}`;
-            const w = window.open(previewUrl, '_blank', 'noopener');
-            if (!w) {
-                // Popup blocked or failed
-                this.showNotification('Kon preview-tab niet openen (popup geblokkeerd?)', 'info');
-            }
+            // Prefer anchor click over window.open to reduce popup blocking
+            const a = document.createElement('a');
+            a.href = previewUrl;
+            a.target = '_blank';
+            a.rel = 'noopener';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { try { document.body.removeChild(a); } catch {} }, 1000);
             return;
         } catch (e) {
             console.warn('Fallback inline preview due to error:', e);
