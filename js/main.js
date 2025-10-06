@@ -595,17 +595,19 @@ class WebsiteBuilder {
         const target = this.pages.find(p => p.id === pageId);
         if (!target) return;
         const canvas = document.getElementById('canvas');
-        canvas.innerHTML = target.html;
+        canvas.innerHTML = target.html || this.blankCanvasHtml();
         this.currentPageId = pageId;
         this.reattachEventListeners();
         this.persistPagesToLocalStorage();
+        // Sync page title/slug inputs with the newly active page
+        try { if (typeof this._applyPageMetaToInputs === 'function') this._applyPageMetaToInputs(); } catch {}
         this.showNotification(`📄 Gewisseld naar: ${target.name}`, 'success');
     }
 
     captureCurrentCanvasToPage() {
         const canvas = document.getElementById('canvas');
         const current = this.pages.find(p => p.id === this.currentPageId);
-        if (current) current.html = canvas.innerHTML;
+        if (current && canvas) current.html = canvas.innerHTML;
     }
 
     persistPagesToLocalStorage(silent = false) {
