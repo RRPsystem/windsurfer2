@@ -22,22 +22,40 @@ class ExportManager {
     }
 
     showPreview() {
+        // Open full web-based preview in a new tab using preview.html
+        try {
+            const meta = getCurrentPageMeta();
+            const slug = meta.slug || '';
+            const params = new URLSearchParams();
+            // Prefer existing globals set by index.html/router
+            if (window.CURRENT_BRAND_ID) params.set('brand_id', window.CURRENT_BRAND_ID);
+            // API base (Supabase project URL)
+            const apiBase = (window.BOLT_API && window.BOLT_API.baseUrl) || '';
+            if (apiBase) params.set('api', apiBase);
+            // Bearer token to read brand resources
+            if (window.CURRENT_TOKEN) params.set('token', window.CURRENT_TOKEN);
+            // Default: preview selected page; omit to get homepage default
+            if (slug) params.set('page', slug);
+            // Cache bust for dev
+            params.set('v', 'preview-' + Date.now());
+            const url = `preview.html?${params.toString()}`;
+            window.open(url, '_blank', 'noopener');
+            return;
+        } catch (e) {
+            console.warn('Fallback inline preview due to error:', e);
+        }
+        // Fallback to inline iframe preview if something above fails
         const modal = document.getElementById('previewModal');
         const iframe = document.getElementById('previewFrame');
-        // Generate HTML for preview (include builder CSS for faithful rendering)
         const html = this.generateHTML({ title: 'Preview', useBuilderCss: true, wrapWithLayout: true });
-        // Use srcdoc so we can include absolute CSS from current origin
         iframe.removeAttribute('src');
         iframe.srcdoc = html;
         modal.style.display = 'block';
-        // Close modal wiring
         const closeBtn = modal.querySelector('.modal-close');
         const closeModal = () => { modal.style.display = 'none'; };
         closeBtn.onclick = closeModal;
         modal.onclick = (e) => { if (e.target === modal) closeModal(); };
-        const handleEsc = (e) => {
-            if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', handleEsc); }
-        };
+        const handleEsc = (e) => { if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', handleEsc); } };
         document.addEventListener('keydown', handleEsc);
     }
     showExportModal() {
