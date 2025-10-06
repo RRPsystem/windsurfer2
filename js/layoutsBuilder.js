@@ -32,8 +32,8 @@
 
   // ========== EXPORT HELPERS ==========
   function exportHeaderAsJSON(form){
-    let topbarLinks = [];
-    try { topbarLinks = JSON.parse(form.topbarLinks?.value || '[]'); } catch { topbarLinks = []; }
+    let topbarSocials = [];
+    try { topbarSocials = JSON.parse(form.topbarSocials?.value || '[]'); } catch { topbarSocials = []; }
     return {
       preset: form.preset?.value || 'minimal',
       logo_url: form.logo?.value || '',
@@ -44,8 +44,9 @@
       header_bg: form.headerBg?.value || '',
       topbar: {
         enabled: !!form.topbarEnabled?.checked,
-        leftText: form.topbarLeft?.value || '',
-        links: Array.isArray(topbarLinks) ? topbarLinks : [],
+        address: form.topbarAddress?.value || '',
+        phone: form.topbarPhone?.value || '',
+        socials: Array.isArray(topbarSocials) ? topbarSocials : [],
         bg: form.topbarBg?.value || ''
       }
     };
@@ -58,8 +59,10 @@
 
     const renderTopbar = () => {
       if (!cfg.topbar || !cfg.topbar.enabled) return '';
-      const left = cfg.topbar.leftText ? `<div>${cfg.topbar.leftText}</div>` : '<div></div>';
-      const right = (cfg.topbar.links||[]).map(l => `<a href="${l.href||'#'}" style="color:#0f172a;text-decoration:none;margin-left:14px;">${l.label||'Link'}</a>`).join('');
+      const left = cfg.topbar.address ? `<div>${cfg.topbar.address}</div>` : '<div></div>';
+      const phone = cfg.topbar.phone ? `<a href="tel:${cfg.topbar.phone}" style="color:#0f172a;text-decoration:none;margin-left:14px;">${cfg.topbar.phone}</a>` : '';
+      const socials = (cfg.topbar.socials||[]).map(s => `<a href="${s.href||'#'}" style="color:#0f172a;text-decoration:none;margin-left:10px;"><i class="${s.icon||'fa-brands fa-circle'}"></i></a>`).join('');
+      const right = `<div>${phone}${socials ? `<span style=\"margin-left:10px;\"></span>${socials}` : ''}</div>`;
       const topBg = cfg.topbar.bg || '#f1f5f9';
       return `
   <div class="wb-topbar" style="background:${topBg};color:#0f172a;font-size:12px;border-bottom:1px solid #e2e8f0;">
