@@ -232,7 +232,7 @@
           const brandId = getParam('brand_id');
           const token   = getParam('token');
           const api     = getParam('api');     // Edge Functions base
-          const apiKey  = getParam('api_key'); // Edge Functions API key
+          const apiKey  = getParam('api_key') || getParam('apikey'); // Edge Functions API key (support both)
           const tcApi   = getParam('tc_api');  // Travel Compositor proxy base
 
           if (brandId) window.CURRENT_BRAND_ID = brandId;
@@ -254,7 +254,7 @@
             const brandId = getParam('brand_id');
             const token   = getParam('token');
             const api     = getParam('api');
-            const apiKey  = getParam('api_key');
+            const apiKey  = getParam('api_key') || getParam('apikey');
             const tcApi   = getParam('tc_api');
             if (brandId) window.CURRENT_BRAND_ID = brandId;
             if (token)   window.CURRENT_TOKEN = token;
