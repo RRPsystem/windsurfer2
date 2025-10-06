@@ -164,14 +164,13 @@ class WebsiteBuilder {
         try { document.body.classList.add('bolt-context'); } catch {}
         const hideIds = [
             'openProjectBtn',
-            'saveProjectBtn',
             'exportBtn',
             'gitPushBtn',
             'pagesBtn',
             'layoutBtn',
             'headerBuilderBtn',
             'footerBuilderBtn',
-            'previewBtn'
+            // Keep preview/save visible in Bolt context
         ];
         hideIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     }
