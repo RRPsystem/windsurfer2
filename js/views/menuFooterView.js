@@ -55,7 +55,7 @@
   function mount(container){
     container.innerHTML = '';
 
-    // Top preview (full width): renders Header (with menu binding) + Footer
+    // Top preview (full width): renders Header (with menu binding)
     const topPreview = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:0;margin-bottom:16px;overflow:hidden;' });
     const topTitle = el('div', { style:'font-weight:700;margin:10px 14px;' }, 'Live preview');
     const topInner = el('div');
@@ -67,7 +67,7 @@
     const grid = el('div', { style: 'display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start;' });
 
     // Left: compact controls panel
-    const panel = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:14px;' });
+    const panel = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:14px;max-height:calc(100vh - 220px);overflow:auto;' });
     panel.appendChild(el('div', { style:'font-weight:700;font-size:16px;margin-bottom:6px;' }, 'Menu & Footer'));
 
     // Key selector
@@ -113,24 +113,39 @@
     headerBox.appendChild(el('div', { style:'font-weight:700;margin-bottom:6px;color:#374151;' }, 'Header'));
     const hdrForm = el('form', { style:'display:grid;gap:8px;' });
     const hdrBrand = el('input', { class:'form-control', placeholder:'Brand naam', name:'brand', value:'Test Brand' });
-    const hdrLogo = el('input', { class:'form-control', placeholder:'Logo URL (optioneel)', name:'logo' });
+    const logoRow = el('div', { style:'display:flex;gap:8px;align-items:center;' });
+    const hdrLogo = el('input', { class:'form-control', placeholder:'Logo URL (optioneel)', name:'logo', style:'flex:1;' });
+    const hdrLogoUpload = el('input', { type:'file', accept:'image/*', style:'display:none' });
+    const hdrLogoBtn = el('button', { type:'button', class:'btn' }, 'Upload logo');
+    hdrLogoBtn.onclick = () => hdrLogoUpload.click();
+    hdrLogoUpload.onchange = () => {
+      const file = hdrLogoUpload.files && hdrLogoUpload.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      hdrLogo.value = url; renderTop();
+    };
+    logoRow.appendChild(hdrLogo); logoRow.appendChild(hdrLogoBtn); logoRow.appendChild(hdrLogoUpload);
     const hdrAccent = el('input', { class:'form-control', type:'color', name:'accent', value:'#16a34a', style:'height:32px;padding:0 4px;' });
+    const hdrHeaderBg = el('input', { class:'form-control', type:'color', name:'headerBg', value:'#ffffff', style:'height:32px;padding:0 4px;' });
     const hdrStickyWrap = el('label', { style:'display:flex;align-items:center;gap:6px;' });
     const hdrSticky = el('input', { type:'checkbox', name:'sticky' }); hdrStickyWrap.appendChild(hdrSticky); hdrStickyWrap.appendChild(el('span', {}, 'Sticky top'));
     const hdrTopbarWrap = el('label', { style:'display:flex;align-items:center;gap:6px;' });
     const hdrTopbar = el('input', { type:'checkbox', name:'topbarEnabled' }); hdrTopbarWrap.appendChild(hdrTopbar); hdrTopbarWrap.appendChild(el('span', {}, 'Top bar aan'));
     const hdrTopbarLeft = el('input', { class:'form-control', placeholder:'Top bar links tekst', name:'topbarLeft', value:'' });
+    const hdrTopbarBg = el('input', { class:'form-control', type:'color', name:'topbarBg', value:'#f1f5f9', style:'height:32px;padding:0 4px;' });
     const hdrTopbarLinks = el('textarea', { class:'form-control', name:'topbarLinks', style:'height:70px;' }, '[\n  { "label": "Bel ons", "href":"tel:+310000000" }\n]');
     const headerActions = el('div', { style:'display:flex;gap:8px;flex-wrap:wrap;' });
     const hdrSave = el('button', { type:'button', class:'btn btn-secondary' }, 'Opslaan header');
     const hdrPub = el('button', { type:'button', class:'btn btn-primary' }, 'Publiceer header');
     headerActions.appendChild(hdrSave); headerActions.appendChild(hdrPub);
     hdrForm.appendChild(hdrBrand);
-    hdrForm.appendChild(hdrLogo);
+    hdrForm.appendChild(logoRow);
     hdrForm.appendChild(hdrAccent);
+    hdrForm.appendChild(hdrHeaderBg);
     hdrForm.appendChild(hdrStickyWrap);
     hdrForm.appendChild(hdrTopbarWrap);
     hdrForm.appendChild(hdrTopbarLeft);
+    hdrForm.appendChild(hdrTopbarBg);
     hdrForm.appendChild(hdrTopbarLinks);
     hdrForm.appendChild(headerActions);
     headerBox.appendChild(hdrForm);
@@ -141,6 +156,8 @@
     footerBox.appendChild(el('div', { style:'font-weight:700;margin-bottom:6px;color:#374151;' }, 'Footer'));
     const ftrForm = el('form', { style:'display:grid;gap:8px;' });
     const ftrAccent = el('input', { class:'form-control', type:'color', name:'accent', value:'#16a34a', style:'height:32px;padding:0 4px;' });
+    const ftrBgFrom = el('input', { class:'form-control', type:'color', name:'bgFrom', value:'#f8fafc', style:'height:32px;padding:0 4px;' });
+    const ftrBgTo = el('input', { class:'form-control', type:'color', name:'bgTo', value:'#ffffff', style:'height:32px;padding:0 4px;' });
     const ftrMenuKey = el('input', { class:'form-control', name:'menuKey', value:'footer' });
     const ftrCols = el('textarea', { class:'form-control', name:'cols', style:'height:100px;' }, '[\n  { "title": "Contact", "links": [ { "label": "Bel ons", "href": "tel:+310000000" } ] }\n]');
     const footerActions = el('div', { style:'display:flex;gap:8px;flex-wrap:wrap;' });
@@ -148,6 +165,8 @@
     const ftrPub = el('button', { type:'button', class:'btn btn-primary' }, 'Publiceer footer');
     footerActions.appendChild(ftrSave); footerActions.appendChild(ftrPub);
     ftrForm.appendChild(ftrAccent);
+    ftrForm.appendChild(ftrBgFrom);
+    ftrForm.appendChild(ftrBgTo);
     ftrForm.appendChild(ftrMenuKey);
     ftrForm.appendChild(ftrCols);
     ftrForm.appendChild(footerActions);
@@ -172,13 +191,11 @@
     const currentKey = () => sel.value==='custom' ? (customInput.value || 'custom') : sel.value;
     const updateView = () => window.LayoutsBuilder.renderMenuTree(treeWrap, form, currentKey());
     const renderTop = () => {
-      // Render Header HTML + Footer HTML using current forms
+      // Render Header HTML using current forms (footer los onderaan)
       try {
         const headerJson = window.LayoutsBuilder.exportHeaderAsJSON(hdrForm);
         const headerHtml = window.LayoutsBuilder.exportHeaderAsHTML(headerJson);
-        const footerJson = window.LayoutsBuilder.exportFooterAsJSON(ftrForm);
-        const footerHtml = window.LayoutsBuilder.exportFooterAsHTML(footerJson);
-        topInner.innerHTML = headerHtml + footerHtml;
+        topInner.innerHTML = headerHtml;
         // Populate menus inside header navs after injecting HTML
         try { window.MenuPreview?.render(form.__menuMap); } catch {}
       } catch (e) { console.warn('Preview render failed', e); }
@@ -206,7 +223,26 @@
     ftrPub.onclick = async (e) => { e.preventDefault(); await window.LayoutsBuilder.doFooterSavePublish(ftrForm, 'publish'); renderTop(); };
     ;['input','change'].forEach(ev => ftrForm.addEventListener(ev, () => renderTop()));
 
-    // First render of preview from cache
+    // Footer preview separate (bottom)
+    const bottomPreview = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:0;margin-top:16px;overflow:hidden;' });
+    const btmTitle = el('div', { style:'font-weight:700;margin:10px 14px;' }, 'Footer preview');
+    const btmInner = el('div');
+    bottomPreview.appendChild(btmTitle);
+    bottomPreview.appendChild(btmInner);
+    container.appendChild(bottomPreview);
+
+    const renderFooter = () => {
+      try {
+        const footerJson = window.LayoutsBuilder.exportFooterAsJSON(ftrForm);
+        const footerHtml = window.LayoutsBuilder.exportFooterAsHTML(footerJson);
+        btmInner.innerHTML = footerHtml;
+        try { window.MenuPreview?.render(form.__menuMap); } catch {}
+      } catch (e) { console.warn('Footer render failed', e); }
+    };
+    renderFooter();
+    ;['input','change'].forEach(ev => ftrForm.addEventListener(ev, () => renderFooter()));
+
+    // First render of preview from cache (header)
     try { window.MenuPreview?.render(); } catch {}
   }
 
