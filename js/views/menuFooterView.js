@@ -55,12 +55,12 @@
   function mount(container){
     container.innerHTML = '';
 
-    // Top preview (full width)
-    const topPreview = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:14px;min-height:140px;margin-bottom:16px;' });
-    topPreview.appendChild(el('div', { style:'font-weight:700;margin-bottom:10px;' }, 'Live preview'));
-    topPreview.appendChild(el('nav', { 'data-menu-key':'main' }));
-    topPreview.appendChild(el('hr', { style:'margin:12px 0;opacity:.2;' }));
-    topPreview.appendChild(el('nav', { 'data-menu-key':'footer' }));
+    // Top preview (full width): renders Header (with menu binding) + Footer
+    const topPreview = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:0;margin-bottom:16px;overflow:hidden;' });
+    const topTitle = el('div', { style:'font-weight:700;margin:10px 14px;' }, 'Live preview');
+    const topInner = el('div');
+    topPreview.appendChild(topTitle);
+    topPreview.appendChild(topInner);
     container.appendChild(topPreview);
 
     // Grid for sidebar (left) and editor canvas (right)
@@ -108,6 +108,52 @@
     presetBox.appendChild(list);
     panel.appendChild(presetBox);
 
+    // Header controls
+    const headerBox = el('div', { style:'border-top:1px solid #e5e7eb;margin-top:12px;padding-top:12px;' });
+    headerBox.appendChild(el('div', { style:'font-weight:700;margin-bottom:6px;color:#374151;' }, 'Header'));
+    const hdrForm = el('form', { style:'display:grid;gap:8px;' });
+    const hdrBrand = el('input', { class:'form-control', placeholder:'Brand naam', name:'brand', value:'Test Brand' });
+    const hdrLogo = el('input', { class:'form-control', placeholder:'Logo URL (optioneel)', name:'logo' });
+    const hdrAccent = el('input', { class:'form-control', type:'color', name:'accent', value:'#16a34a', style:'height:32px;padding:0 4px;' });
+    const hdrStickyWrap = el('label', { style:'display:flex;align-items:center;gap:6px;' });
+    const hdrSticky = el('input', { type:'checkbox', name:'sticky' }); hdrStickyWrap.appendChild(hdrSticky); hdrStickyWrap.appendChild(el('span', {}, 'Sticky top'));
+    const hdrTopbarWrap = el('label', { style:'display:flex;align-items:center;gap:6px;' });
+    const hdrTopbar = el('input', { type:'checkbox', name:'topbarEnabled' }); hdrTopbarWrap.appendChild(hdrTopbar); hdrTopbarWrap.appendChild(el('span', {}, 'Top bar aan'));
+    const hdrTopbarLeft = el('input', { class:'form-control', placeholder:'Top bar links tekst', name:'topbarLeft', value:'' });
+    const hdrTopbarLinks = el('textarea', { class:'form-control', name:'topbarLinks', style:'height:70px;' }, '[\n  { "label": "Bel ons", "href":"tel:+310000000" }\n]');
+    const headerActions = el('div', { style:'display:flex;gap:8px;flex-wrap:wrap;' });
+    const hdrSave = el('button', { type:'button', class:'btn btn-secondary' }, 'Opslaan header');
+    const hdrPub = el('button', { type:'button', class:'btn btn-primary' }, 'Publiceer header');
+    headerActions.appendChild(hdrSave); headerActions.appendChild(hdrPub);
+    hdrForm.appendChild(hdrBrand);
+    hdrForm.appendChild(hdrLogo);
+    hdrForm.appendChild(hdrAccent);
+    hdrForm.appendChild(hdrStickyWrap);
+    hdrForm.appendChild(hdrTopbarWrap);
+    hdrForm.appendChild(hdrTopbarLeft);
+    hdrForm.appendChild(hdrTopbarLinks);
+    hdrForm.appendChild(headerActions);
+    headerBox.appendChild(hdrForm);
+    panel.appendChild(headerBox);
+
+    // Footer controls (basic)
+    const footerBox = el('div', { style:'border-top:1px solid #e5e7eb;margin-top:12px;padding-top:12px;' });
+    footerBox.appendChild(el('div', { style:'font-weight:700;margin-bottom:6px;color:#374151;' }, 'Footer'));
+    const ftrForm = el('form', { style:'display:grid;gap:8px;' });
+    const ftrAccent = el('input', { class:'form-control', type:'color', name:'accent', value:'#16a34a', style:'height:32px;padding:0 4px;' });
+    const ftrMenuKey = el('input', { class:'form-control', name:'menuKey', value:'footer' });
+    const ftrCols = el('textarea', { class:'form-control', name:'cols', style:'height:100px;' }, '[\n  { "title": "Contact", "links": [ { "label": "Bel ons", "href": "tel:+310000000" } ] }\n]');
+    const footerActions = el('div', { style:'display:flex;gap:8px;flex-wrap:wrap;' });
+    const ftrSave = el('button', { type:'button', class:'btn btn-secondary' }, 'Opslaan footer');
+    const ftrPub = el('button', { type:'button', class:'btn btn-primary' }, 'Publiceer footer');
+    footerActions.appendChild(ftrSave); footerActions.appendChild(ftrPub);
+    ftrForm.appendChild(ftrAccent);
+    ftrForm.appendChild(ftrMenuKey);
+    ftrForm.appendChild(ftrCols);
+    ftrForm.appendChild(footerActions);
+    footerBox.appendChild(ftrForm);
+    panel.appendChild(footerBox);
+
     // Right: large canvas with tree editor
     const canvas = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:14px;min-height:420px;' });
     canvas.appendChild(el('div', { style:'font-weight:700;margin-bottom:10px;' }, 'Bewerk menu-structuur'));
@@ -125,17 +171,40 @@
     // Helpers
     const currentKey = () => sel.value==='custom' ? (customInput.value || 'custom') : sel.value;
     const updateView = () => window.LayoutsBuilder.renderMenuTree(treeWrap, form, currentKey());
+    const renderTop = () => {
+      // Render Header HTML + Footer HTML using current forms
+      try {
+        const headerJson = window.LayoutsBuilder.exportHeaderAsJSON(hdrForm);
+        const headerHtml = window.LayoutsBuilder.exportHeaderAsHTML(headerJson);
+        const footerJson = window.LayoutsBuilder.exportFooterAsJSON(ftrForm);
+        const footerHtml = window.LayoutsBuilder.exportFooterAsHTML(footerJson);
+        topInner.innerHTML = headerHtml + footerHtml;
+        // Populate menus inside header navs after injecting HTML
+        try { window.MenuPreview?.render(form.__menuMap); } catch {}
+      } catch (e) { console.warn('Preview render failed', e); }
+    };
 
     // Initialize
     updateView();
+    renderTop();
     // Auto-import (once)
     (async () => { try { await window.LayoutsBuilder.importPagesFromBoltIntoForm(form, treeWrap, currentKey()); } catch (e) {} })();
 
     // Wire controls
-    sel.onchange = () => { customInput.style.display = sel.value==='custom' ? '' : 'none'; updateView(); };
+    sel.onchange = () => { customInput.style.display = sel.value==='custom' ? '' : 'none'; updateView(); renderTop(); };
     customInput.oninput = () => updateView();
-    btnImport.onclick = async (e) => { e.preventDefault(); await window.LayoutsBuilder.importPagesFromBoltIntoForm(form, treeWrap, currentKey()); try { window.MenuPreview?.render(form.__menuMap); } catch {} };
-    btnPublish.onclick = (e) => { e.preventDefault(); window.LayoutsBuilder.doMenuSavePublish(form, 'publish'); try { window.MenuPreview?.render(form.__menuMap); } catch {} };
+    btnImport.onclick = async (e) => { e.preventDefault(); await window.LayoutsBuilder.importPagesFromBoltIntoForm(form, treeWrap, currentKey()); try { window.MenuPreview?.render(form.__menuMap); } catch {}; renderTop(); };
+    btnPublish.onclick = (e) => { e.preventDefault(); window.LayoutsBuilder.doMenuSavePublish(form, 'publish'); try { window.MenuPreview?.render(form.__menuMap); } catch {}; renderTop(); };
+
+    // Header actions
+    hdrSave.onclick = async (e) => { e.preventDefault(); await window.LayoutsBuilder.doHeaderSavePublish(hdrForm, 'save'); renderTop(); };
+    hdrPub.onclick = async (e) => { e.preventDefault(); await window.LayoutsBuilder.doHeaderSavePublish(hdrForm, 'publish'); renderTop(); };
+    ;['input','change'].forEach(ev => hdrForm.addEventListener(ev, () => renderTop()));
+
+    // Footer actions
+    ftrSave.onclick = async (e) => { e.preventDefault(); await window.LayoutsBuilder.doFooterSavePublish(ftrForm, 'save'); renderTop(); };
+    ftrPub.onclick = async (e) => { e.preventDefault(); await window.LayoutsBuilder.doFooterSavePublish(ftrForm, 'publish'); renderTop(); };
+    ;['input','change'].forEach(ev => ftrForm.addEventListener(ev, () => renderTop()));
 
     // First render of preview from cache
     try { window.MenuPreview?.render(); } catch {}
