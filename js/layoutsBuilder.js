@@ -37,6 +37,7 @@
     return {
       preset: form.preset?.value || 'minimal',
       logo_url: form.logo?.value || '',
+      logo_h: parseInt(form.headerLogoH?.value || '40', 10) || 40,
       brand_name: form.brand?.value || '',
       accent: form.accent?.value || '#16a34a',
       sticky: !!form.sticky?.checked,
@@ -53,7 +54,8 @@
   }
   function exportHeaderAsHTML(cfg){
     const brand = (cfg.brand_name||'Brand');
-    const logo = cfg.logo_url ? `<img src="${cfg.logo_url}" alt="${brand}" style="height:28px;">` : `<span style="font-weight:800;">${brand}</span>`;
+    const logoH = parseInt(cfg.logo_h || 40, 10);
+    const logo = cfg.logo_url ? `<img src="${cfg.logo_url}" alt="${brand}" style="height:${logoH}px;">` : `<span style="font-weight:800;">${brand}</span>`;
     const sticky = cfg.sticky ? 'position:sticky;top:0;z-index:50;' : '';
     const accent = cfg.accent || '#16a34a';
 
@@ -123,6 +125,7 @@ ${body}
       bg_to: form.bgTo?.value || '',
       bg_image: form.bgImage?.value || '',
       logo_url: form.logo?.value || '',
+      logo_h: parseInt(form.footerLogoH?.value || '48', 10) || 48,
       address_html: form.address?.value || ''
     };
   }
@@ -138,7 +141,8 @@ ${body}
     const bgImage = cfg.bg_image ? `background-image:url('${cfg.bg_image}');background-size:cover;background-position:center;` : '';
     const bindKey = cfg.menu_binding || 'footer';
     const secondKey = cfg.second_menu_key || '';
-    const logo = cfg.logo_url ? `<img src="${cfg.logo_url}" alt="logo" style="max-height:36px;">` : '';
+    const fLogoH = parseInt(cfg.logo_h || 48, 10);
+    const logo = cfg.logo_url ? `<img src="${cfg.logo_url}" alt="logo" style="max-height:${fLogoH}px;">` : '';
     const address = cfg.address_html ? `<div style=\"color:#334155;\">${cfg.address_html}</div>` : '';
     const secondMenuHtml = secondKey ? `<nav data-menu-key="${secondKey}" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;"></nav>` : '';
     return `

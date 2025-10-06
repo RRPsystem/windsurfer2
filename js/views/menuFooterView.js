@@ -133,6 +133,7 @@
       hdrLogo.value = url; renderTop();
     };
     logoRow.appendChild(hdrLogo); logoRow.appendChild(hdrLogoBtn); logoRow.appendChild(hdrLogoUpload);
+    const hdrLogoH = el('input', { class:'form-control', type:'number', name:'headerLogoH', value:'40', min:'16', max:'160', placeholder:'Logo hoogte (px)' });
     const hdrAccent = el('input', { class:'form-control', type:'color', name:'accent', value:'#16a34a', style:'height:32px;padding:0 4px;' });
     const hdrHeaderBg = el('input', { class:'form-control', type:'color', name:'headerBg', value:'#ffffff', style:'height:32px;padding:0 4px;' });
     const hdrStickyWrap = el('label', { style:'display:flex;align-items:center;gap:6px;' });
@@ -177,6 +178,7 @@
     headerActions.appendChild(hdrSave); headerActions.appendChild(hdrPub);
     hdrForm.appendChild(hdrBrand);
     hdrForm.appendChild(logoRow);
+    hdrForm.appendChild(hdrLogoH);
     hdrForm.appendChild(hdrAccent);
     hdrForm.appendChild(hdrHeaderBg);
     hdrForm.appendChild(hdrStickyWrap);
@@ -213,6 +215,7 @@
     ftrLogoBtn.onclick = () => ftrLogoUpload.click();
     ftrLogoUpload.onchange = () => { const f = ftrLogoUpload.files && ftrLogoUpload.files[0]; if (f){ ftrLogo.value = URL.createObjectURL(f); renderFooter(); }};
     ftrLogoRow.appendChild(ftrLogo); ftrLogoRow.appendChild(ftrLogoBtn); ftrLogoRow.appendChild(ftrLogoUpload);
+    const ftrLogoH = el('input', { class:'form-control', type:'number', name:'footerLogoH', value:'48', min:'16', max:'200', placeholder:'Footer logo hoogte (px)' });
     const ftrAddress = el('textarea', { class:'form-control', name:'address', placeholder:'Adresgegevens (HTML toegestaan)', style:'height:80px;' });
     const ftrCols = el('textarea', { class:'form-control', name:'cols', style:'height:100px;' }, '[\n  { "title": "Contact", "links": [ { "label": "Bel ons", "href": "tel:+310000000" } ] }\n]');
     const footerActions = el('div', { style:'display:flex;gap:8px;flex-wrap:wrap;' });
@@ -225,6 +228,7 @@
     ftrForm.appendChild(ftrBgImageRow);
     ftrForm.appendChild(ftrMenuKey);
     ftrForm.appendChild(ftrSecondMenu);
+    ftrForm.appendChild(ftrLogoH);
     ftrForm.appendChild(ftrLogoRow);
     ftrForm.appendChild(ftrAddress);
     ftrForm.appendChild(colsWrap);
