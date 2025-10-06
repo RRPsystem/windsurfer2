@@ -41,10 +41,12 @@
       accent: form.accent?.value || '#16a34a',
       sticky: !!form.sticky?.checked,
       menu_binding: form.menuKey?.value || 'main',
+      header_bg: form.headerBg?.value || '',
       topbar: {
         enabled: !!form.topbarEnabled?.checked,
         leftText: form.topbarLeft?.value || '',
-        links: Array.isArray(topbarLinks) ? topbarLinks : []
+        links: Array.isArray(topbarLinks) ? topbarLinks : [],
+        bg: form.topbarBg?.value || ''
       }
     };
   }
@@ -58,8 +60,9 @@
       if (!cfg.topbar || !cfg.topbar.enabled) return '';
       const left = cfg.topbar.leftText ? `<div>${cfg.topbar.leftText}</div>` : '<div></div>';
       const right = (cfg.topbar.links||[]).map(l => `<a href="${l.href||'#'}" style="color:#0f172a;text-decoration:none;margin-left:14px;">${l.label||'Link'}</a>`).join('');
+      const topBg = cfg.topbar.bg || '#f1f5f9';
       return `
-  <div class="wb-topbar" style="background:#f1f5f9;color:#0f172a;font-size:12px;border-bottom:1px solid #e2e8f0;">
+  <div class="wb-topbar" style="background:${topBg};color:#0f172a;font-size:12px;border-bottom:1px solid #e2e8f0;">
     <div style="max-width:1100px;margin:0 auto;padding:6px 16px;display:flex;align-items:center;justify-content:space-between;">${left}<div>${right}</div></div>
   </div>`;
     };
@@ -96,9 +99,10 @@
 
     const body = (layouts[cfg.preset] || layouts.minimal)();
 
+    const headerBg = cfg.header_bg || '#fff';
     return `
 ${renderTopbar()}
-<header class="wb-header" style="${sticky}background:#fff;border-bottom:1px solid #e5e7eb;">
+<header class="wb-header" style="${sticky}background:${headerBg};border-bottom:1px solid #e5e7eb;">
 ${body}
 </header>`;
   }
@@ -110,7 +114,9 @@ ${body}
       preset: form.preset?.value || 'compact',
       accent: form.accent?.value || '#16a34a',
       columns: Array.isArray(cols) ? cols : [],
-      menu_binding: form.menuKey?.value || 'footer'
+      menu_binding: form.menuKey?.value || 'footer',
+      bg_from: form.bgFrom?.value || '',
+      bg_to: form.bgTo?.value || ''
     };
   }
   function exportFooterAsHTML(cfg){
@@ -119,10 +125,17 @@ ${body}
       const links = Array.isArray(col.links) ? col.links.map(l => `<a href="${l.href||'#'}" style="color:#334155;text-decoration:none;display:block;margin:6px 0;">${l.label||'Link'}</a>`).join('') : '';
       return `<div><div style=\"font-weight:800;margin-bottom:8px;\">${col.title||''}</div>${links}</div>`;
     }).join('');
+    const bgFrom = cfg.bg_from || '';
+    const bgTo = cfg.bg_to || '';
+    const footerBg = bgFrom && bgTo ? `linear-gradient(90deg, ${bgFrom}, ${bgTo})` : '#f8fafc';
+    const bindKey = cfg.menu_binding || 'footer';
     return `
-<footer class="wb-footer" style="background:#f8fafc;border-top:1px solid #e5e7eb;">
-  <div style="max-width:1100px;margin:0 auto;padding:24px 16px;display:grid;grid-template-columns:repeat(${Math.max(cols.length,1)},1fr);gap:16px;">
-    ${colsHtml}
+<footer class="wb-footer" style="background:${footerBg};border-top:1px solid #e5e7eb;">
+  <div style="max-width:1100px;margin:0 auto;padding:24px 16px;">
+    <nav data-menu-key="${bindKey}" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px;"></nav>
+    <div style="display:grid;grid-template-columns:repeat(${Math.max(cols.length,1)},1fr);gap:16px;">
+      ${colsHtml}
+    </div>
   </div>
   <div style="text-align:center;color:#6b7280;font-size:12px;padding:10px;">\u00a9 ${new Date().getFullYear()} ${cfg.brand_name||'Brand'}</div>
 </footer>`;
