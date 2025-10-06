@@ -1100,8 +1100,10 @@ class WebsiteBuilder {
         const saveBtn = document.getElementById('saveProjectBtn');
         const openBtn = document.getElementById('openProjectBtn');
         const fileInput = document.getElementById('projectFileInput');
+        const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl);
 
-        if (saveBtn) {
+        // In Bolt context we don't want .wbproj download; Save is handled elsewhere (prompt + saveDraft)
+        if (saveBtn && !isBolt) {
             saveBtn.addEventListener('click', () => {
                 try {
                     const data = this.getProjectData();
