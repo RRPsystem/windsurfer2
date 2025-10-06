@@ -78,6 +78,27 @@
       const items = map[key] || [];
       nav.innerHTML = ''; nav.appendChild(buildMenuHtml(items));
     });
+
+    // Also hydrate dynamic page title placeholders in the header/footer
+    try {
+      // Prefer explicit [data-page-title-source] if provided; else use document.title
+      let pageTitle = '';
+      const src = document.querySelector('[data-page-title-source]');
+      if (src && src.textContent && src.textContent.trim()) {
+        pageTitle = src.textContent.trim();
+      } else {
+        pageTitle = (document.title || '').trim();
+      }
+      if (!pageTitle) {
+        // Fallback: try URL slug
+        try {
+          const sp = new URL(location.href).searchParams;
+          const slug = sp.get('page') || sp.get('slug') || '';
+          pageTitle = slug ? slug.replace(/-/g,' ') : 'Pagina';
+        } catch { pageTitle = 'Pagina'; }
+      }
+      document.querySelectorAll('[data-page-title]').forEach(el => { el.textContent = pageTitle; });
+    } catch (e) { console.warn('[BrandHydrator] page title hydrate failed', e); }
   }
 
   window.BrandHydrator = { hydrate };
