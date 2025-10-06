@@ -18,7 +18,8 @@ class ComponentFactory {
             'travel-types': this.createTravelTypes,
             'contact-info': this.createContactInfo,
             'contact-map-cta': this.createContactMapCta,
-            'media-row': this.createMediaRow
+            'media-row': this.createMediaRow,
+            'jotform-embed': this.createJotformEmbed
         };
 
         
@@ -134,6 +135,74 @@ class ComponentFactory {
             setShadow: (on)=>{ section._shadow = !!on; applyStyles(); },
             pickLeft: async ()=>{ try{ if(!window.MediaPicker) return; const r=await window.MediaPicker.openImage(); const u=r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if(u) leftImg.src=u; }catch{} },
             pickRight: async ()=>{ try{ if(!window.MediaPicker) return; const r=await window.MediaPicker.openImage(); const u=r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if(u) rightImg.src=u; }catch{} },
+        };
+
+        return section;
+    }
+
+    // FORMS: Jotform Embed (inline iframe or popup later)
+    static createJotformEmbed(options = {}) {
+        const section = document.createElement('section');
+        section.className = 'wb-component wb-jotform';
+        section.setAttribute('data-component', 'jotform-embed');
+        section.id = this.generateId('jotform');
+
+        const toolbar = this.createToolbar();
+        section.appendChild(toolbar);
+        this.addTypeBadge(section);
+
+        // Defaults
+        section._formId = String(options.formId || '233194240465353');
+        section._height = parseInt(options.height, 10) || 1200;
+        section._borderRadius = parseInt(options.radius, 10) || 12;
+        section._shadow = options.shadow !== false; // true by default
+
+        // Wrapper
+        const wrap = document.createElement('div');
+        wrap.style.maxWidth = '1100px';
+        wrap.style.margin = '0 auto';
+        wrap.style.background = '#ffffff';
+        wrap.style.border = '1px solid #e5e7eb';
+        wrap.style.borderRadius = section._borderRadius + 'px';
+        wrap.style.overflow = 'hidden';
+        wrap.style.boxShadow = section._shadow ? '0 6px 20px rgba(0,0,0,0.06)' : 'none';
+
+        const iframe = document.createElement('iframe');
+        iframe.title = 'Jotform';
+        iframe.style.width = '100%';
+        iframe.style.height = section._height + 'px';
+        iframe.style.border = '0';
+        // Use generic domain; Jotform will route as needed
+        iframe.src = `https://form.jotform.com/${encodeURIComponent(section._formId)}`;
+
+        wrap.appendChild(iframe);
+        section.appendChild(wrap);
+
+        // Interactions
+        this.makeSelectable(section);
+
+        // API for properties panel
+        section.__jotformApi = {
+            setFormId: (id) => {
+                const val = String(id || '').trim();
+                if (!val) return;
+                section._formId = val;
+                iframe.src = `https://form.jotform.com/${encodeURIComponent(val)}`;
+            },
+            setHeight: (px) => {
+                const h = Math.max(400, parseInt(px, 10) || section._height);
+                section._height = h;
+                iframe.style.height = h + 'px';
+            },
+            setRadius: (px) => {
+                const r = Math.max(0, parseInt(px,10) || 0);
+                section._borderRadius = r;
+                wrap.style.borderRadius = r + 'px';
+            },
+            setShadow: (on) => {
+                section._shadow = !!on;
+                wrap.style.boxShadow = on ? '0 6px 20px rgba(0,0,0,0.06)' : 'none';
+            }
         };
 
         return section;

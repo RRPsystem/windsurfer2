@@ -5,6 +5,40 @@ class PropertiesPanel {
         this.currentComponent = null;
     }
 
+    createJotformEmbedProperties(component) {
+        const api = component.__jotformApi || {};
+
+        // Provider info
+        const help = document.createElement('div');
+        help.style.fontSize = '12px';
+        help.style.color = '#475569';
+        help.style.margin = '0 0 8px';
+        help.innerHTML = '<strong>Jotform</strong> wordt inline ingesloten. Beheer velden/e-mails in Jotform.';
+        this.panel.appendChild(help);
+
+        // Form ID
+        const idGroup = this.createTextInput('Jotform Form ID', component._formId || '', (v)=> api.setFormId && api.setFormId(v));
+        const idHint = document.createElement('div'); idHint.style.fontSize='12px'; idHint.style.color='#6b7280'; idHint.textContent = 'Voorbeeld: 233194240465353';
+        idGroup.appendChild(idHint);
+
+        // Height
+        this.createRangeInput('Iframe hoogte (px)', String(component._height || 1200), '400', '2000', '10', (v)=> api.setHeight && api.setHeight(v));
+
+        // Radius
+        this.createRangeInput('Afronding (px)', String(component._borderRadius || 12), '0', '30', '1', (v)=> api.setRadius && api.setRadius(v));
+
+        // Shadow
+        this.createSelectInput('Schaduw', (component._shadow !== false) ? 'on' : 'off', [
+            { value:'on', label:'Aan' },
+            { value:'off', label:'Uit' }
+        ], (v)=> api.setShadow && api.setShadow(v==='on'));
+
+        // Danger
+        const del = this.createButton('Blok verwijderen', ()=>{ if(confirm('Verwijderen?')){ component.remove(); this.clearProperties(); } });
+        del.style.background = '#dc2626'; del.style.borderColor = '#dc2626'; del.style.color = '#fff'; del.style.marginTop = '1rem';
+        this.panel.appendChild(del);
+    }
+
     createContentFlexProperties(component) {
         const api = component.__contentFlexApi || {};
         // Title & Subtitle
@@ -1078,6 +1112,9 @@ class PropertiesPanel {
                 break;
             case 'contact-info':
                 this.createContactInfoProperties(component);
+                break;
+            case 'jotform-embed':
+                this.createJotformEmbedProperties(component);
                 break;
             case 'contact-map-cta':
                 this.createContactMapCtaProperties(component);
