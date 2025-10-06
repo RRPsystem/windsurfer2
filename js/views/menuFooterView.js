@@ -219,7 +219,65 @@
     ftrLogoRow.appendChild(ftrLogo); ftrLogoRow.appendChild(ftrLogoBtn); ftrLogoRow.appendChild(ftrLogoUpload);
     const ftrLogoH = el('input', { class:'form-control', type:'number', name:'footerLogoH', value:'48', min:'16', max:'200', placeholder:'Footer logo hoogte (px)' });
     const ftrAddress = el('textarea', { class:'form-control', name:'address', placeholder:'Adresgegevens (HTML toegestaan)', style:'height:80px;' });
-    const ftrCols = el('textarea', { class:'form-control', name:'cols', style:'height:100px;' }, '[\n  { "title": "Contact", "links": [ { "label": "Bel ons", "href": "tel:+310000000" } ] }\n]');
+    // ----- Visual footer columns editor (defines colsWrap + ftrColsHidden) -----
+    const ftrColsHidden = el('input', { type:'hidden', name:'cols', value:'[ { "title": "Contact", "links": [ { "label": "Bel ons", "href": "tel:+310000000" } ] } ]' });
+    const colsWrap = el('div', { style:'border:1px dashed #e5e7eb;border-radius:8px;padding:10px;' });
+    const colsHead = el('div', { style:'display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;' });
+    colsHead.appendChild(el('div', { style:'font-weight:700;color:#374151;' }, 'Footer kolommen'));
+    const addColBtn = el('button', { type:'button', class:'btn' }, 'Kolom toevoegen');
+    colsHead.appendChild(addColBtn);
+    const colsList = el('div');
+    colsWrap.appendChild(colsHead);
+    colsWrap.appendChild(colsList);
+
+    function readCols(){
+      try { const arr = JSON.parse(ftrColsHidden.value||'[]'); return Array.isArray(arr)?arr:[]; } catch { return []; }
+    }
+    function writeCols(arr){ ftrColsHidden.value = JSON.stringify(arr); renderFooter(); }
+    function redrawCols(){
+      colsList.innerHTML='';
+      const arr = readCols();
+      arr.forEach((col, ci) => {
+        const card = el('div', { style:'border:1px solid #e5e7eb;border-radius:8px;padding:8px;margin:8px 0;' });
+        const row1 = el('div', { style:'display:flex;gap:8px;align-items:center;margin-bottom:6px;' });
+        const title = el('input', { class:'form-control', placeholder:'Kolomtitel', value: col.title||'' });
+        const delCol = el('button', { type:'button', class:'btn btn-secondary' }, 'Verwijder kolom');
+        delCol.onclick = () => { const a = readCols(); a.splice(ci,1); writeCols(a); redrawCols(); };
+        title.oninput = () => { const a = readCols(); a[ci].title = title.value; writeCols(a); };
+        row1.appendChild(title); row1.appendChild(delCol);
+        card.appendChild(row1);
+        const linksHead = el('div', { style:'display:flex;justify-content:space-between;align-items:center;margin:6px 0;' });
+        linksHead.appendChild(el('div', { style:'font-weight:600;color:#475569;' }, 'Links'));
+        const addLink = el('button', { type:'button', class:'btn' }, 'Link toevoegen');
+        linksHead.appendChild(addLink);
+        card.appendChild(linksHead);
+        const linksList = el('div');
+        card.appendChild(linksList);
+        function redrawLinks(){
+          linksList.innerHTML='';
+          const a = readCols();
+          const links = Array.isArray(a[ci].links)?a[ci].links:[];
+          links.forEach((lk, li) => {
+            const row = el('div', { style:'display:grid;grid-template-columns:1fr auto 1fr auto;gap:6px;align-items:center;margin:4px 0;' });
+            const lab = el('input', { class:'form-control', placeholder:'Label', value: lk.label||'' });
+            const pick = el('button', { type:'button', class:'btn' }, lk.icon ? 'Wijzig icoon' : 'Kies icoon');
+            const href = el('input', { class:'form-control', placeholder:'URL of tel:...', value: lk.href||'' });
+            const del = el('button', { type:'button', class:'btn btn-secondary' }, 'X');
+            del.onclick = () => { const b = readCols(); b[ci].links.splice(li,1); writeCols(b); redrawLinks(); };
+            lab.oninput = () => { const b = readCols(); b[ci].links[li].label = lab.value; writeCols(b); };
+            pick.onclick = async () => { try { const { icon } = await window.IconPicker.open({ current: lk.icon||'', compact:true }); if (icon){ const b = readCols(); b[ci].links[li].icon = icon; writeCols(b); redrawLinks(); } } catch {} };
+            href.oninput = () => { const b = readCols(); b[ci].links[li].href = href.value; writeCols(b); };
+            row.appendChild(lab); row.appendChild(pick); row.appendChild(href); row.appendChild(del);
+            linksList.appendChild(row);
+          });
+        }
+        addLink.onclick = () => { const a = readCols(); a[ci].links = a[ci].links||[]; a[ci].links.push({ label:'Nieuwe link', href:'#' }); writeCols(a); redrawLinks(); };
+        redrawLinks();
+        colsList.appendChild(card);
+      });
+    }
+    addColBtn.onclick = () => { const a = readCols(); a.push({ title:'Nieuwe kolom', links:[] }); writeCols(a); redrawCols(); };
+    redrawCols();
     const footerActions = el('div', { style:'display:flex;gap:8px;flex-wrap:wrap;' });
     const ftrSave = el('button', { type:'button', class:'btn btn-secondary' }, 'Opslaan footer');
     const ftrPub = el('button', { type:'button', class:'btn btn-primary' }, 'Publiceer footer');
