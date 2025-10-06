@@ -54,11 +54,21 @@
 
   function mount(container){
     container.innerHTML = '';
-    const grid = el('div', { style: 'display:grid;grid-template-columns:420px 1fr;gap:16px;align-items:start;' });
 
-    // Left: editor panel
+    // Top preview (full width)
+    const topPreview = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:14px;min-height:140px;margin-bottom:16px;' });
+    topPreview.appendChild(el('div', { style:'font-weight:700;margin-bottom:10px;' }, 'Live preview'));
+    topPreview.appendChild(el('nav', { 'data-menu-key':'main' }));
+    topPreview.appendChild(el('hr', { style:'margin:12px 0;opacity:.2;' }));
+    topPreview.appendChild(el('nav', { 'data-menu-key':'footer' }));
+    container.appendChild(topPreview);
+
+    // Grid for sidebar (left) and editor canvas (right)
+    const grid = el('div', { style: 'display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start;' });
+
+    // Left: compact controls panel
     const panel = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:14px;' });
-    panel.appendChild(el('div', { style:'font-weight:700;font-size:18px;margin-bottom:6px;' }, 'Menu & Footer'));
+    panel.appendChild(el('div', { style:'font-weight:700;font-size:16px;margin-bottom:6px;' }, 'Menu & Footer'));
 
     // Key selector
     const keyWrap = el('div', { style: 'display:flex;gap:8px;align-items:center;margin:8px 0;' });
@@ -70,16 +80,11 @@
     keyWrap.appendChild(customInput);
     panel.appendChild(keyWrap);
 
-    // Tree container
-    const treeWrap = el('div');
-    panel.appendChild(treeWrap);
-
-    // Actions
+    // Actions (Import + Publish only)
     const actions = el('div', { style:'display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;' });
-    const btnImport = el('button', { class:'btn', type:'button', id:'mnuImport' }, 'Importeer uit Bolt');
-    const btnSave = el('button', { class:'btn btn-secondary', type:'button', id:'mnuSave' }, 'Opslaan (concept)');
+    const btnImport = el('button', { class:'btn', type:'button', id:'mnuImport' }, 'Importeer mijn pagina\'s');
     const btnPublish = el('button', { class:'btn btn-primary', type:'button', id:'mnuPublish' }, 'Publiceer');
-    actions.appendChild(btnImport); actions.appendChild(btnSave); actions.appendChild(btnPublish);
+    actions.appendChild(btnImport); actions.appendChild(btnPublish);
     panel.appendChild(actions);
 
     // Presets
@@ -88,13 +93,14 @@
     const list = el('div', { style:'display:grid;grid-template-columns:1fr;gap:8px;' });
     presetsList().forEach(p => {
       const card = el('div', { class:'btn', style:'display:flex;justify-content:space-between;align-items:center;' });
-      card.innerHTML = `<span>${p.label}</span><i class="fas fa-plus"></i>`;
+      card.innerHTML = `<span>${p.label}</span><i class=\"fas fa-plus\"></i>`;
       card.onclick = () => {
         try {
           const key = sel.value==='custom' ? (customInput.value || 'custom') : sel.value;
           form.__menuMap[key] = JSON.parse(JSON.stringify(p.items || []));
           window.LayoutsBuilder.renderMenuTree(treeWrap, form, key);
           window.websiteBuilder?.showNotification('Preset toegepast', 'success');
+          try { window.MenuPreview?.render(form.__menuMap); } catch {}
         } catch (e) { console.warn(e); }
       };
       list.appendChild(card);
@@ -102,18 +108,14 @@
     presetBox.appendChild(list);
     panel.appendChild(presetBox);
 
-    // Right: preview panel
-    const preview = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:14px;min-height:280px;' });
-    preview.appendChild(el('div', { style:'font-weight:700;margin-bottom:10px;' }, 'Live preview'));
-    const navMain = el('nav', { 'data-menu-key':'main' });
-    const hr = el('hr', { style:'margin:16px 0;opacity:.2;' });
-    const navFooter = el('nav', { 'data-menu-key':'footer' });
-    preview.appendChild(navMain);
-    preview.appendChild(hr);
-    preview.appendChild(navFooter);
+    // Right: large canvas with tree editor
+    const canvas = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:14px;min-height:420px;' });
+    canvas.appendChild(el('div', { style:'font-weight:700;margin-bottom:10px;' }, 'Bewerk menu-structuur'));
+    const treeWrap = el('div');
+    canvas.appendChild(treeWrap);
 
     grid.appendChild(panel);
-    grid.appendChild(preview);
+    grid.appendChild(canvas);
     container.appendChild(grid);
 
     // Local form state compatible met LayoutsBuilder
@@ -132,8 +134,7 @@
     // Wire controls
     sel.onchange = () => { customInput.style.display = sel.value==='custom' ? '' : 'none'; updateView(); };
     customInput.oninput = () => updateView();
-    btnImport.onclick = async (e) => { e.preventDefault(); await window.LayoutsBuilder.importPagesFromBoltIntoForm(form, treeWrap, currentKey()); };
-    btnSave.onclick = (e) => { e.preventDefault(); window.LayoutsBuilder.doMenuSavePublish(form, 'save'); try { window.MenuPreview?.render(form.__menuMap); } catch {} };
+    btnImport.onclick = async (e) => { e.preventDefault(); await window.LayoutsBuilder.importPagesFromBoltIntoForm(form, treeWrap, currentKey()); try { window.MenuPreview?.render(form.__menuMap); } catch {} };
     btnPublish.onclick = (e) => { e.preventDefault(); window.LayoutsBuilder.doMenuSavePublish(form, 'publish'); try { window.MenuPreview?.render(form.__menuMap); } catch {} };
 
     // First render of preview from cache
