@@ -327,7 +327,8 @@
 
           const headerRight = document.querySelector('.app-header .header-right');
           const pageMeta = document.querySelector('.app-header .page-meta');
-          if (pageMeta) pageMeta.style.display = 'none';
+          // In Bolt-context willen we juist Titel/Slug zichtbaar hebben om pagina-naam te kunnen instellen
+          if (pageMeta) pageMeta.style.display = '';
 
           // Hide buttons we no longer want in deeplink context
           ['importTcBtn','menuBuilderBtn','publishBtn'].forEach(id => {
