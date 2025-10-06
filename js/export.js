@@ -15,31 +15,39 @@ class ExportManager {
         }
         
         if (previewBtn) {
-            previewBtn.addEventListener('click', () => {
-                this.showPreview();
+            previewBtn.addEventListener('click', (e) => {
+                this.showPreview(e);
             });
+            // Tooltip hint for users
+            try { previewBtn.title = 'Preview (klik = homepage, Shift/Alt = huidige pagina)'; } catch {}
         }
     }
 
-    showPreview() {
+    showPreview(evt) {
         // Open full web-based preview in a new tab using preview.html
         try {
             const meta = getCurrentPageMeta();
             const slug = meta.slug || '';
             const params = new URLSearchParams();
-            // Prefer existing globals set by index.html/router
-            if (window.CURRENT_BRAND_ID) params.set('brand_id', window.CURRENT_BRAND_ID);
-            // API base (Supabase project URL)
-            const apiBase = (window.BOLT_API && window.BOLT_API.baseUrl) || '';
+            // Prefer existing globals set by index.html/router; fallback to URL query
+            const curUrl = new URL(window.location.href);
+            const brandId = window.CURRENT_BRAND_ID || curUrl.searchParams.get('brand_id') || '';
+            const apiBase = (window.BOLT_API && window.BOLT_API.baseUrl) || curUrl.searchParams.get('api') || '';
+            const token = window.CURRENT_TOKEN || curUrl.searchParams.get('token') || '';
+            if (brandId) params.set('brand_id', brandId);
             if (apiBase) params.set('api', apiBase);
-            // Bearer token to read brand resources
-            if (window.CURRENT_TOKEN) params.set('token', window.CURRENT_TOKEN);
-            // Default: preview selected page; omit to get homepage default
-            if (slug) params.set('page', slug);
+            if (token) params.set('token', token);
+            // Default behavior: homepage; if user holds Shift/Alt, include current page slug
+            const wantCurrentPage = !!(evt && (evt.shiftKey || evt.altKey));
+            if (wantCurrentPage && slug) params.set('page', slug);
             // Cache bust for dev
             params.set('v', 'preview-' + Date.now());
-            const url = `preview.html?${params.toString()}`;
-            window.open(url, '_blank', 'noopener');
+            const previewUrl = `preview.html?${params.toString()}`;
+            const w = window.open(previewUrl, '_blank', 'noopener');
+            if (!w) {
+                // Popup blocked or failed
+                this.showNotification('Kon preview-tab niet openen (popup geblokkeerd?)', 'info');
+            }
             return;
         } catch (e) {
             console.warn('Fallback inline preview due to error:', e);
