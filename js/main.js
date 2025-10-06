@@ -173,6 +173,12 @@ class WebsiteBuilder {
             // Keep preview/save visible in Bolt context
         ];
         hideIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+        // Ensure Save/Preview are visible and inputs are interactive
+        ['saveProjectBtn','previewBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = ''; });
+        ['pageTitleInput','pageSlugInput'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.disabled = false; el.style.pointerEvents = 'auto'; el.style.opacity = '1'; }
+        });
     }
 
     setupPublishButton() {
