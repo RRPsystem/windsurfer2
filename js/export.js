@@ -771,6 +771,7 @@ window.exportBuilderAsHTML = function exportBuilderAsHTML(contentJson) {
   <link rel="stylesheet" href="/styles/components.css">
 </head>
 <body>
+  <span data-page-title-source style="display:none">${title}</span>
   ${bodyWrapped}
 </body>
 </html>`;
