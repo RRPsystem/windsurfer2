@@ -56,7 +56,7 @@
     container.innerHTML = '';
 
     // Top preview (full width): renders Header (with menu binding)
-    const topPreview = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:0;margin-bottom:16px;overflow:hidden;' });
+    const topPreview = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:0;margin-bottom:16px;overflow:visible;' });
     const topTitle = el('div', { style:'font-weight:700;margin:10px 14px;' }, 'Live preview');
     const topInner = el('div');
     topPreview.appendChild(topTitle);
@@ -158,7 +158,23 @@
     const ftrAccent = el('input', { class:'form-control', type:'color', name:'accent', value:'#16a34a', style:'height:32px;padding:0 4px;' });
     const ftrBgFrom = el('input', { class:'form-control', type:'color', name:'bgFrom', value:'#f8fafc', style:'height:32px;padding:0 4px;' });
     const ftrBgTo = el('input', { class:'form-control', type:'color', name:'bgTo', value:'#ffffff', style:'height:32px;padding:0 4px;' });
+    const ftrBgImageRow = el('div', { style:'display:flex;gap:8px;align-items:center;' });
+    const ftrBgImage = el('input', { class:'form-control', name:'bgImage', placeholder:'Achtergrondafbeelding URL (optioneel)', style:'flex:1;' });
+    const ftrBgUpload = el('input', { type:'file', accept:'image/*', style:'display:none' });
+    const ftrBgBtn = el('button', { type:'button', class:'btn' }, 'Upload achtergrond');
+    ftrBgBtn.onclick = () => ftrBgUpload.click();
+    ftrBgUpload.onchange = () => { const f = ftrBgUpload.files && ftrBgUpload.files[0]; if (f){ ftrBgImage.value = URL.createObjectURL(f); renderFooter(); }};
+    ftrBgImageRow.appendChild(ftrBgImage); ftrBgImageRow.appendChild(ftrBgBtn); ftrBgImageRow.appendChild(ftrBgUpload);
     const ftrMenuKey = el('input', { class:'form-control', name:'menuKey', value:'footer' });
+    const ftrSecondMenu = el('input', { class:'form-control', name:'secondMenuKey', placeholder:'Tweede menu key (optioneel)' });
+    const ftrLogoRow = el('div', { style:'display:flex;gap:8px;align-items:center;' });
+    const ftrLogo = el('input', { class:'form-control', name:'logo', placeholder:'Footer logo URL (optioneel)', style:'flex:1;' });
+    const ftrLogoUpload = el('input', { type:'file', accept:'image/*', style:'display:none' });
+    const ftrLogoBtn = el('button', { type:'button', class:'btn' }, 'Upload footer logo');
+    ftrLogoBtn.onclick = () => ftrLogoUpload.click();
+    ftrLogoUpload.onchange = () => { const f = ftrLogoUpload.files && ftrLogoUpload.files[0]; if (f){ ftrLogo.value = URL.createObjectURL(f); renderFooter(); }};
+    ftrLogoRow.appendChild(ftrLogo); ftrLogoRow.appendChild(ftrLogoBtn); ftrLogoRow.appendChild(ftrLogoUpload);
+    const ftrAddress = el('textarea', { class:'form-control', name:'address', placeholder:'Adresgegevens (HTML toegestaan)', style:'height:80px;' });
     const ftrCols = el('textarea', { class:'form-control', name:'cols', style:'height:100px;' }, '[\n  { "title": "Contact", "links": [ { "label": "Bel ons", "href": "tel:+310000000" } ] }\n]');
     const footerActions = el('div', { style:'display:flex;gap:8px;flex-wrap:wrap;' });
     const ftrSave = el('button', { type:'button', class:'btn btn-secondary' }, 'Opslaan footer');
@@ -167,7 +183,11 @@
     ftrForm.appendChild(ftrAccent);
     ftrForm.appendChild(ftrBgFrom);
     ftrForm.appendChild(ftrBgTo);
+    ftrForm.appendChild(ftrBgImageRow);
     ftrForm.appendChild(ftrMenuKey);
+    ftrForm.appendChild(ftrSecondMenu);
+    ftrForm.appendChild(ftrLogoRow);
+    ftrForm.appendChild(ftrAddress);
     ftrForm.appendChild(ftrCols);
     ftrForm.appendChild(footerActions);
     footerBox.appendChild(ftrForm);

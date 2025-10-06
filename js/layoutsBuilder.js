@@ -115,8 +115,12 @@ ${body}
       accent: form.accent?.value || '#16a34a',
       columns: Array.isArray(cols) ? cols : [],
       menu_binding: form.menuKey?.value || 'footer',
+      second_menu_key: form.secondMenuKey?.value || '',
       bg_from: form.bgFrom?.value || '',
-      bg_to: form.bgTo?.value || ''
+      bg_to: form.bgTo?.value || '',
+      bg_image: form.bgImage?.value || '',
+      logo_url: form.logo?.value || '',
+      address_html: form.address?.value || ''
     };
   }
   function exportFooterAsHTML(cfg){
@@ -128,14 +132,24 @@ ${body}
     const bgFrom = cfg.bg_from || '';
     const bgTo = cfg.bg_to || '';
     const footerBg = bgFrom && bgTo ? `linear-gradient(90deg, ${bgFrom}, ${bgTo})` : '#f8fafc';
+    const bgImage = cfg.bg_image ? `background-image:url('${cfg.bg_image}');background-size:cover;background-position:center;` : '';
     const bindKey = cfg.menu_binding || 'footer';
+    const secondKey = cfg.second_menu_key || '';
+    const logo = cfg.logo_url ? `<img src="${cfg.logo_url}" alt="logo" style="max-height:36px;">` : '';
+    const address = cfg.address_html ? `<div style=\"color:#334155;\">${cfg.address_html}</div>` : '';
+    const secondMenuHtml = secondKey ? `<nav data-menu-key="${secondKey}" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;"></nav>` : '';
     return `
-<footer class="wb-footer" style="background:${footerBg};border-top:1px solid #e5e7eb;">
+<footer class="wb-footer" style="background:${footerBg};${bgImage}border-top:1px solid #e5e7eb;">
   <div style="max-width:1100px;margin:0 auto;padding:24px 16px;">
-    <nav data-menu-key="${bindKey}" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px;"></nav>
-    <div style="display:grid;grid-template-columns:repeat(${Math.max(cols.length,1)},1fr);gap:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;">
+      <div>${logo}</div>
+      <nav data-menu-key="${bindKey}" style="display:flex;gap:14px;flex-wrap:wrap;"></nav>
+    </div>
+    ${secondMenuHtml}
+    <div style="display:grid;grid-template-columns:repeat(${Math.max(cols.length,1)},1fr);gap:16px;margin-top:12px;">
       ${colsHtml}
     </div>
+    ${address}
   </div>
   <div style="text-align:center;color:#6b7280;font-size:12px;padding:10px;">\u00a9 ${new Date().getFullYear()} ${cfg.brand_name||'Brand'}</div>
 </footer>`;
