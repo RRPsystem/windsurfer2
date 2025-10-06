@@ -132,7 +132,10 @@ ${body}
   function exportFooterAsHTML(cfg){
     const cols = Array.isArray(cfg.columns) ? cfg.columns : [];
     const colsHtml = cols.map(col => {
-      const links = Array.isArray(col.links) ? col.links.map(l => `<a href="${l.href||'#'}" style="color:#334155;text-decoration:none;display:block;margin:6px 0;">${l.label||'Link'}</a>`).join('') : '';
+      const links = Array.isArray(col.links) ? col.links.map(l => {
+        const iconHtml = l.icon ? `<i class=\"${l.icon}\" style=\"margin-right:8px;\"></i>` : '';
+        return `<a href="${l.href||'#'}" style="color:#334155;text-decoration:none;display:block;margin:6px 0;">${iconHtml}${l.label||'Link'}</a>`;
+      }).join('') : '';
       return `<div><div style=\"font-weight:800;margin-bottom:8px;\">${col.title||''}</div>${links}</div>`;
     }).join('');
     const bgFrom = cfg.bg_from || '';

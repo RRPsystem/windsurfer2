@@ -155,12 +155,14 @@
       arr.forEach((it,idx)=>{
         const row = el('div', { style:'display:flex;gap:6px;align-items:center;margin:4px 0;' });
         const icon = el('input', { class:'form-control', placeholder:'fa-brands fa-facebook', value: it.icon||'' , style:'flex:1;' });
+        const pick = el('button', { type:'button', class:'btn' }, 'Kies icoon');
         const href = el('input', { class:'form-control', placeholder:'https://...', value: it.href||'' , style:'flex:2;' });
         const del = el('button', { type:'button', class:'btn btn-secondary' }, 'X');
         del.onclick = () => { arr.splice(idx,1); socialsHidden.value = JSON.stringify(arr); redrawSocials(); renderTop(); };
         icon.oninput = () => { arr[idx].icon = icon.value; socialsHidden.value = JSON.stringify(arr); renderTop(); };
+        pick.onclick = async () => { try { const { icon: ic } = await window.IconPicker.open({ current: icon.value, compact: true }); if (ic){ icon.value = ic; arr[idx].icon = ic; socialsHidden.value = JSON.stringify(arr); renderTop(); } } catch {} };
         href.oninput = () => { arr[idx].href = href.value; socialsHidden.value = JSON.stringify(arr); renderTop(); };
-        row.appendChild(icon); row.appendChild(href); row.appendChild(del);
+        row.appendChild(icon); row.appendChild(pick); row.appendChild(href); row.appendChild(del);
         socialsList.appendChild(row);
       });
     }
