@@ -5,19 +5,30 @@ function hasBoltApi() {
   return !!(window.BOLT_API && window.BOLT_API.baseUrl);
 }
 
-function boltFunctionsBase() {
-  if (!hasBoltApi()) return null;
-  const base = window.BOLT_API.baseUrl.replace(/\/$/, '');
+function sanitizeBaseUrl(raw) {
+  if (!raw) return '';
+  const base = String(raw).replace(/\/$/, '');
   try {
     const u = new URL(base);
-    // If given project base like xxxx.supabase.co, convert to functions domain
+    return `${u.protocol}//${u.hostname}`; // strip path/query/hash
+  } catch {
+    // Fallback: strip query/hash manually
+    return base.split('#')[0].split('?')[0];
+  }
+}
+
+function boltFunctionsBase() {
+  if (!hasBoltApi()) return null;
+  const clean = sanitizeBaseUrl(window.BOLT_API.baseUrl);
+  try {
+    const u = new URL(clean);
     if (u.hostname.endsWith('.supabase.co') && !u.hostname.includes('.functions.')) {
       const fnHost = u.hostname.replace('.supabase.co', '.functions.supabase.co');
       return `${u.protocol}//${fnHost}`;
     }
     return `${u.protocol}//${u.hostname}`;
   } catch {
-    return base;
+    return clean;
   }
 }
 
@@ -26,7 +37,7 @@ try { window.boltFunctionsBase = boltFunctionsBase; } catch {}
 
 function boltProjectBase() {
   if (!hasBoltApi()) return null;
-  return window.BOLT_API.baseUrl.replace(/\/$/, '');
+  return sanitizeBaseUrl(window.BOLT_API.baseUrl);
 }
 
 function boltHeaders() {
@@ -43,26 +54,59 @@ async function saveDraftBolt({ brand_id, page_id, title, slug, content_json }) {
   const base = boltProjectBase();
   const payload = { brand_id, title, slug, content_json };
   if (page_id) payload.page_id = page_id;
-  const res = await fetch(`${base}/functions/v1/pages-api/saveDraft`, {
+  const url = `${base}/functions/v1/pages-api/saveDraft`;
+  const res = await fetch(url, {
     method: 'POST',
     headers: boltHeaders(),
     body: JSON.stringify(payload)
   });
-  if (!res.ok) throw new Error(`saveDraft failed: ${res.status}`);
-  const data = await res.json();
-  // Normalize for callers
-  return { id: data.page_id || data.id, slug: data.slug, version: data.version, _raw: data };
+  let data = null;
+  try { data = await res.json(); } catch {}
+  if (!res.ok) {
+    const msg = (data && (data.error || data.message)) || `saveDraft failed: ${res.status}`;
+    console.error('[saveDraftBolt] HTTP', res.status, msg, { url, payload, data });
+    throw new Error(msg);
+  }
+  console.debug('[saveDraftBolt] success', { url, data });
+  // Expected: { success:true, page_id, slug, version, message }
+  return {
+    id: (data && (data.page_id || data.id)) || page_id || null,
+    slug: data && data.slug,
+    version: data && data.version,
+    success: data ? !!data.success : true,
+    message: data && data.message,
+    _raw: data
+  };
 }
 
 async function publishPageBolt(pageId, htmlString) {
   const base = boltProjectBase();
-  const res = await fetch(`${base}/functions/v1/pages-api/${encodeURIComponent(pageId)}/publish`, {
+  const url = `${base}/functions/v1/pages-api/${encodeURIComponent(pageId)}/publish`;
+  const res = await fetch(url, {
     method: 'POST',
     headers: boltHeaders(),
     body: JSON.stringify({ body_html: htmlString })
   });
-  if (!res.ok) throw new Error(`publish failed: ${res.status}`);
-  return await res.json(); // { ok: true, url }
+  let data = null;
+  try { data = await res.json(); } catch {}
+  if (!res.ok) {
+    const msg = (data && (data.error || data.message)) || `publish failed: ${res.status}`;
+    console.error('[publishPageBolt] HTTP', res.status, msg, { url, data });
+    throw new Error(msg);
+  }
+  console.debug('[publishPageBolt] success', { url, data });
+  // Expected: { success:true, page_id, slug, version, status:"published", preview_url, public_url, message }
+  return {
+    id: data && (data.page_id || data.id) || pageId,
+    slug: data && data.slug,
+    version: data && data.version,
+    status: data && (data.status || (data.success ? 'published' : '')),
+    preview_url: data && (data.preview_url || data.url),
+    public_url: data && data.public_url,
+    success: data ? !!data.success : true,
+    message: data && data.message,
+    _raw: data
+  };
 }
 
 async function saveDraftSupabase({ brand_id, page_id, title, slug, content_json }) {
