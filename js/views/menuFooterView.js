@@ -63,6 +63,14 @@
     topPreview.appendChild(topInner);
     container.appendChild(topPreview);
 
+    // Footer preview directly under header preview (more visible)
+    const bottomPreview = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:0;margin:12px 0;overflow:hidden;' });
+    const btmTitle = el('div', { style:'font-weight:700;margin:10px 14px;' }, 'Footer preview');
+    const btmInner = el('div');
+    bottomPreview.appendChild(btmTitle);
+    bottomPreview.appendChild(btmInner);
+    container.appendChild(bottomPreview);
+
     // Grid for sidebar (left) and editor canvas (right)
     const grid = el('div', { style: 'display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start;' });
 
@@ -131,9 +139,38 @@
     const hdrSticky = el('input', { type:'checkbox', name:'sticky' }); hdrStickyWrap.appendChild(hdrSticky); hdrStickyWrap.appendChild(el('span', {}, 'Sticky top'));
     const hdrTopbarWrap = el('label', { style:'display:flex;align-items:center;gap:6px;' });
     const hdrTopbar = el('input', { type:'checkbox', name:'topbarEnabled' }); hdrTopbarWrap.appendChild(hdrTopbar); hdrTopbarWrap.appendChild(el('span', {}, 'Top bar aan'));
-    const hdrTopbarLeft = el('input', { class:'form-control', placeholder:'Top bar links tekst', name:'topbarLeft', value:'' });
+    // Topbar simple fields: address, phone, socials (icon + href)
     const hdrTopbarBg = el('input', { class:'form-control', type:'color', name:'topbarBg', value:'#f1f5f9', style:'height:32px;padding:0 4px;' });
-    const hdrTopbarLinks = el('textarea', { class:'form-control', name:'topbarLinks', style:'height:70px;' }, '[\n  { "label": "Bel ons", "href":"tel:+310000000" }\n]');
+    const hdrTopbarAddress = el('input', { class:'form-control', name:'topbarAddress', placeholder:'Adres (korte tekst)' });
+    const hdrTopbarPhone = el('input', { class:'form-control', name:'topbarPhone', placeholder:'Telefoon (bijv. +31...)' });
+    const socialsWrap = el('div', { style:'border:1px dashed #e5e7eb;border-radius:8px;padding:8px;' });
+    const socialsTitle = el('div', { style:'font-weight:700;color:#374151;margin-bottom:6px;' }, 'Social media');
+    const socialsList = el('div', { });
+    const socialsAdd = el('button', { type:'button', class:'btn' }, 'Voeg social toe');
+    const socialsHidden = el('input', { type:'hidden', name:'topbarSocials' });
+    function redrawSocials(){
+      socialsList.innerHTML = '';
+      let arr=[]; try { arr = JSON.parse(socialsHidden.value||'[]'); } catch { arr=[]; }
+      arr.forEach((it,idx)=>{
+        const row = el('div', { style:'display:flex;gap:6px;align-items:center;margin:4px 0;' });
+        const icon = el('input', { class:'form-control', placeholder:'fa-brands fa-facebook', value: it.icon||'' , style:'flex:1;' });
+        const href = el('input', { class:'form-control', placeholder:'https://...', value: it.href||'' , style:'flex:2;' });
+        const del = el('button', { type:'button', class:'btn btn-secondary' }, 'X');
+        del.onclick = () => { arr.splice(idx,1); socialsHidden.value = JSON.stringify(arr); redrawSocials(); renderTop(); };
+        icon.oninput = () => { arr[idx].icon = icon.value; socialsHidden.value = JSON.stringify(arr); renderTop(); };
+        href.oninput = () => { arr[idx].href = href.value; socialsHidden.value = JSON.stringify(arr); renderTop(); };
+        row.appendChild(icon); row.appendChild(href); row.appendChild(del);
+        socialsList.appendChild(row);
+      });
+    }
+    socialsAdd.onclick = () => {
+      let arr=[]; try { arr = JSON.parse(socialsHidden.value||'[]'); } catch { arr=[]; }
+      arr.push({ icon:'fa-brands fa-facebook', href:'https://facebook.com' });
+      socialsHidden.value = JSON.stringify(arr); redrawSocials(); renderTop();
+    };
+    socialsWrap.appendChild(socialsTitle);
+    socialsWrap.appendChild(socialsList);
+    socialsWrap.appendChild(socialsAdd);
     const headerActions = el('div', { style:'display:flex;gap:8px;flex-wrap:wrap;' });
     const hdrSave = el('button', { type:'button', class:'btn btn-secondary' }, 'Opslaan header');
     const hdrPub = el('button', { type:'button', class:'btn btn-primary' }, 'Publiceer header');
@@ -144,9 +181,11 @@
     hdrForm.appendChild(hdrHeaderBg);
     hdrForm.appendChild(hdrStickyWrap);
     hdrForm.appendChild(hdrTopbarWrap);
-    hdrForm.appendChild(hdrTopbarLeft);
     hdrForm.appendChild(hdrTopbarBg);
-    hdrForm.appendChild(hdrTopbarLinks);
+    hdrForm.appendChild(hdrTopbarAddress);
+    hdrForm.appendChild(hdrTopbarPhone);
+    hdrForm.appendChild(socialsWrap);
+    hdrForm.appendChild(socialsHidden);
     hdrForm.appendChild(headerActions);
     headerBox.appendChild(hdrForm);
     panel.appendChild(headerBox);
@@ -188,7 +227,8 @@
     ftrForm.appendChild(ftrSecondMenu);
     ftrForm.appendChild(ftrLogoRow);
     ftrForm.appendChild(ftrAddress);
-    ftrForm.appendChild(ftrCols);
+    ftrForm.appendChild(colsWrap);
+    ftrForm.appendChild(ftrColsHidden);
     ftrForm.appendChild(footerActions);
     footerBox.appendChild(ftrForm);
     panel.appendChild(footerBox);
@@ -242,14 +282,6 @@
     ftrSave.onclick = async (e) => { e.preventDefault(); await window.LayoutsBuilder.doFooterSavePublish(ftrForm, 'save'); renderTop(); };
     ftrPub.onclick = async (e) => { e.preventDefault(); await window.LayoutsBuilder.doFooterSavePublish(ftrForm, 'publish'); renderTop(); };
     ;['input','change'].forEach(ev => ftrForm.addEventListener(ev, () => renderTop()));
-
-    // Footer preview separate (bottom)
-    const bottomPreview = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:0;margin-top:16px;overflow:hidden;' });
-    const btmTitle = el('div', { style:'font-weight:700;margin:10px 14px;' }, 'Footer preview');
-    const btmInner = el('div');
-    bottomPreview.appendChild(btmTitle);
-    bottomPreview.appendChild(btmInner);
-    container.appendChild(bottomPreview);
 
     const renderFooter = () => {
       try {
