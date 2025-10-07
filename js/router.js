@@ -15,6 +15,17 @@
     } catch { return null; }
   }
 
+  function isCanvasEffectivelyEmpty(){
+    try {
+      const canvas = document.getElementById('canvas');
+      if (!canvas) return true;
+      const hasComp = !!canvas.querySelector('.wb-component');
+      if (hasComp) return false;
+      const html = (canvas.innerHTML || '').replace(/<!--.*?-->/g, '').trim();
+      return html.length === 0;
+    } catch { return true; }
+  }
+
   function readModeFromStorage(){
     try { return localStorage.getItem('wb_mode') || null; } catch { return null; }
   }
@@ -155,9 +166,7 @@
       history.replaceState(null, '', '#/mode/destination');
       setTimeout(() => {
         try {
-          const canvas = document.getElementById('canvas');
-          const hasComponents = !!(canvas && canvas.querySelector('.wb-component'));
-          if (!hasComponents && window.websiteBuilder && typeof window.websiteBuilder.createDestinationTemplate === 'function') {
+          if (isCanvasEffectivelyEmpty() && window.websiteBuilder && typeof window.websiteBuilder.createDestinationTemplate === 'function') {
             window.websiteBuilder.createDestinationTemplate({ title: 'Bestemming' });
           }
         } catch (e) { console.warn('Auto scaffold destination failed', e); }
@@ -172,9 +181,7 @@
       history.replaceState(null, '', '#/mode/news');
       setTimeout(() => {
         try {
-          const canvas = document.getElementById('canvas');
-          const hasComponents = !!(canvas && canvas.querySelector('.wb-component'));
-          if (!hasComponents && window.websiteBuilder && typeof window.websiteBuilder.createNewsArticleTemplate === 'function') {
+          if (isCanvasEffectivelyEmpty() && window.websiteBuilder && typeof window.websiteBuilder.createNewsArticleTemplate === 'function') {
             window.websiteBuilder.createNewsArticleTemplate();
           }
         } catch (e) { console.warn('Auto scaffold news failed', e); }
@@ -200,6 +207,15 @@
       const isPage = (mode === 'page' || mode === 'destination');
       // Always hide page management buttons to avoid confusion with Bolt-managed pages
       ['newPageQuickBtn','pagesBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+      // Also hide by label text (fallback if IDs differ)
+      try {
+        document.querySelectorAll('button, a').forEach(el => {
+          const txt = (el.textContent || '').trim().toLowerCase();
+          if (txt === "nieuwe pagina" || txt === "pagina's" || txt === 'paginas' || txt === 'pagina’s') {
+            el.style.display = 'none';
+          }
+        });
+      } catch {}
       // Layout button only in page-like modes
       const layoutBtn = document.getElementById('layoutBtn');
       if (layoutBtn) layoutBtn.style.display = isPage ? '' : 'none';
@@ -208,12 +224,33 @@
     } catch {}
   }
 
+  function setupGlobalModeClickDelegation(){
+    // Delegate clicks on elements that indicate a mode switch
+    document.addEventListener('click', (e) => {
+      try {
+        const t = e.target.closest('[data-mode], a[href*="#/mode/"]');
+        if (!t) return;
+        let m = t.getAttribute('data-mode');
+        if (!m) {
+          const href = t.getAttribute('href') || '';
+          const mm = href.match(/#\/mode\/([a-z]+)/i);
+          if (mm) m = mm[1];
+        }
+        if (m && ['page','news','destination','menu','travel'].includes(m)) {
+          e.preventDefault();
+          setMode(m);
+        }
+      } catch {}
+    }, true);
+  }
+
   function init(){
     ensureMiniMenu();
     const sel = document.getElementById('modeSelect');
     if (sel){ sel.onchange = () => setMode(sel.value); }
     const topSel = document.getElementById('topModeSelect');
     if (topSel){ topSel.onchange = () => setMode(topSel.value); }
+    setupGlobalModeClickDelegation();
 
     const hashMode = readModeFromHash();
     // Default to 'page' unless explicitly provided in hash
