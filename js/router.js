@@ -121,25 +121,11 @@
           <div style="color:#475569;margin-bottom:12px;">${info.body}</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button id="backToPageMode" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Terug naar Web pagina</button>
-            ${mode==='news' ? '<button id="startNewsArticle" class="btn btn-primary"><i class="fas fa-newspaper"></i> Start nieuwsartikel</button>' : ''}
           </div>
         </div>`;
       const back = view.querySelector('#backToPageMode');
       if (back){ back.onclick = () => setMode('page'); }
-      // When in News mode, provide action to scaffold a news article into the builder
-      if (mode === 'news'){
-        const startBtn = view.querySelector('#startNewsArticle');
-        if (startBtn){
-          startBtn.onclick = () => {
-            try {
-              if (window.websiteBuilder && typeof window.websiteBuilder.createNewsArticleTemplate === 'function') {
-                window.websiteBuilder.createNewsArticleTemplate();
-                // Stay in 'news' mode to avoid mixing page/news flows
-              }
-            } catch(e){ console.warn('startNewsArticle failed', e); }
-          };
-        }
-      }
+      // No button for news; auto scaffold happens in setMode('news')
     }
 
     view.style.display = '';
@@ -170,6 +156,19 @@
       showPageWorkspace(true);
       renderModeView('news');
       history.replaceState(null, '', `#/mode/${mode}`);
+      // Auto-scaffold a news article if canvas is empty (no components) and not already done in this session
+      setTimeout(() => {
+        try {
+          const canvas = document.getElementById('canvas');
+          const hasComponents = !!(canvas && canvas.querySelector('.wb-component'));
+          if (!hasComponents && window.websiteBuilder && typeof window.websiteBuilder.createNewsArticleTemplate === 'function') {
+            if (!window.__newsTemplateAutoDone) {
+              window.websiteBuilder.createNewsArticleTemplate();
+              window.__newsTemplateAutoDone = true;
+            }
+          }
+        } catch (e) { console.warn('Auto scaffold news failed', e); }
+      }, 0);
     } else {
       showPageWorkspace(false);
       renderModeView(mode);

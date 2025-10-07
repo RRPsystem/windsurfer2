@@ -1,0 +1,12 @@
+title = "Gitleaks Config for website-builder"
+
+[allowlist]
+  description = "Allow known public keys and files"
+  regexes = [
+    # Supabase anon JWTs are public client keys; don't fail on them
+    '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}'''
+  ]
+  files = [
+    # Allowlisted file that intentionally contains public anon key
+    "js/config.prod.js"
+  ]
