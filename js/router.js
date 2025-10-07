@@ -179,8 +179,11 @@
   function toggleHeaderForMode(mode){
     try {
       const isPage = mode === 'page';
-      const idsToToggle = ['newPageQuickBtn','pagesBtn','layoutBtn'];
-      idsToToggle.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = isPage ? '' : 'none'; });
+      // Always hide page management buttons to avoid confusion with Bolt-managed pages
+      ['newPageQuickBtn','pagesBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+      // Layout button only in page mode
+      const layoutBtn = document.getElementById('layoutBtn');
+      if (layoutBtn) layoutBtn.style.display = isPage ? '' : 'none';
       // Always keep essential buttons visible
       ['backToDashboardBtn','saveProjectBtn','previewBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = ''; });
     } catch {}

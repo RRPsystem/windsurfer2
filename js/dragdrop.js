@@ -318,6 +318,7 @@ class DragDropManager {
                 if (confirm('Weet je zeker dat je dit component wilt verwijderen?')) {
                     selected.remove();
                     this.deselectAll();
+                    try { this.saveState(); } catch {}
                 }
             }
             
@@ -331,6 +332,45 @@ class DragDropManager {
                 clone.id = ComponentFactory.generateId(clone.getAttribute('data-component'));
                 selected.parentElement.insertBefore(clone, selected.nextSibling);
                 this.makeSortable(clone);
+                try { this.saveState(); } catch {}
+            }
+
+            // Move selected component with ArrowUp / ArrowDown
+            if (selected && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+                // Avoid interfering when typing inside inputs/contenteditable
+                const tag = (document.activeElement && document.activeElement.tagName) || '';
+                const isTyping = ['INPUT','TEXTAREA','SELECT'].includes(tag) || document.activeElement?.isContentEditable;
+                if (isTyping) return; // don't hijack arrows when editing text
+
+                e.preventDefault();
+                const parent = selected.parentElement;
+                if (!parent) return;
+
+                if (e.key === 'ArrowUp') {
+                    // Find previous component sibling
+                    let prev = selected.previousElementSibling;
+                    while (prev && !prev.classList.contains('wb-component')) prev = prev.previousElementSibling;
+                    if (prev) {
+                        parent.insertBefore(selected, prev);
+                    } else {
+                        // Already at top: no-op
+                        return;
+                    }
+                } else if (e.key === 'ArrowDown') {
+                    let next = selected.nextElementSibling;
+                    while (next && !next.classList.contains('wb-component')) next = next.nextElementSibling;
+                    if (next) {
+                        parent.insertBefore(next, selected); // swap order by moving next before selected
+                    } else {
+                        // Already at bottom: no-op
+                        return;
+                    }
+                }
+
+                // Keep selection and ensure visible
+                selected.classList.add('selected');
+                try { selected.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch {}
+                try { this.saveState(); } catch {}
             }
         });
     }
