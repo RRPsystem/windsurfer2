@@ -549,15 +549,19 @@ class WebsiteBuilder {
             close();
         };
 
-        content.querySelector('#pmNew').onclick = () => {
+        content.querySelector('#pmNew').onclick = async () => {
             const id = this.generateId('page');
-            const newPage = { id, name: `Pagina ${this.pages.length+1}`, slug: `pagina-${this.pages.length+1}`, html: this.blankCanvasHtml() };
+            const newPage = { id, name: 'Nieuwe pagina', slug: 'nieuwe-pagina', html: this.blankCanvasHtml() };
             this.pages.push(newPage);
             selectedId = id;
             this.persistPagesToLocalStorage();
             renderList();
             fillDetails();
+            // Open the new page immediately with an empty canvas and sync meta inputs
+            await this.switchToPage(id);
+            try { if (typeof this._applyPageMetaToInputs === 'function') this._applyPageMetaToInputs(); } catch {}
         };
+    };
 
         content.querySelector('#pmRename').onclick = () => {
             const p = this.pages.find(x => x.id === selectedId);
