@@ -616,6 +616,7 @@ class PropertiesPanel {
 
         // Background image
         const bg = component.querySelector('.hero-bg');
+        const bgImg = component.querySelector('.hero-bg img');
         const overlay = component.querySelector('.hero-overlay');
         const badge = component.querySelector('.hero-badge');
         const title = component.querySelector('.hero-title');
@@ -623,9 +624,9 @@ class PropertiesPanel {
         const search = component.querySelector('.hero-search');
 
         // Background URL + inline Media button
-        const currentBg = (bg && bg.style.backgroundImage) ? bg.style.backgroundImage.replace(/^url\("?|"?\)$/g, '').replace(/^url\("/, '').replace(/"\)$/, '') : '';
+        const currentBg = (bgImg && bgImg.src) ? bgImg.src : '';
         const bgGroup = this.createTextInput('Achtergrond URL', currentBg, (value) => {
-            if (bg) bg.style.backgroundImage = `url("${value}")`;
+            if (bgImg) bgImg.src = value;
         });
         const inputEl = bgGroup.querySelector('input.form-control');
         if (inputEl) {
@@ -650,8 +651,8 @@ class PropertiesPanel {
                 if (!window.MediaPicker) return;
                 const res = await window.MediaPicker.openImage();
                 const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
-                if (src && bg) {
-                    bg.style.backgroundImage = `url("${src}")`;
+                if (src && bgImg) {
+                    bgImg.src = src;
                     inputEl.value = src;
                 }
             };
@@ -663,8 +664,8 @@ class PropertiesPanel {
             if (!window.MediaPicker) return;
             const res = await window.MediaPicker.openImage();
             const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
-            if (src && bg) {
-                bg.style.backgroundImage = `url("${src}")`;
+            if (src && bgImg) {
+                bgImg.src = src;
             }
         });
         this.panel.appendChild(pickBgBtn);
