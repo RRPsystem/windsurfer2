@@ -134,7 +134,7 @@
             try {
               if (window.websiteBuilder && typeof window.websiteBuilder.createNewsArticleTemplate === 'function') {
                 window.websiteBuilder.createNewsArticleTemplate();
-                setMode('page');
+                // Stay in 'news' mode to avoid mixing page/news flows
               }
             } catch(e){ console.warn('startNewsArticle failed', e); }
           };
@@ -155,6 +155,9 @@
     const topSel = document.getElementById('topModeSelect');
     if (topSel) topSel.value = mode;
 
+    // Toggle header buttons depending on mode
+    toggleHeaderForMode(mode);
+
     if (mode === 'page'){
       showPageWorkspace(true);
       const view = document.getElementById('modeView'); if (view) view.style.display = 'none';
@@ -167,6 +170,16 @@
       renderModeView(mode);
       history.replaceState(null, '', `#/mode/${mode}`);
     }
+  }
+
+  function toggleHeaderForMode(mode){
+    try {
+      const isPage = mode === 'page';
+      const idsToToggle = ['newPageQuickBtn','pagesBtn','layoutBtn'];
+      idsToToggle.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = isPage ? '' : 'none'; });
+      // Always keep essential buttons visible
+      ['backToDashboardBtn','saveProjectBtn','previewBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = ''; });
+    } catch {}
   }
 
   function init(){
