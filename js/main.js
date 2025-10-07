@@ -14,6 +14,150 @@ class WebsiteBuilder {
         this.init();
     }
 
+    // ---------- Scaffold: Bestemmingspagina template ----------
+    createDestinationTemplate(options = {}) {
+        try {
+            const canvas = document.getElementById('canvas');
+            if (!canvas) return;
+
+            const slugify = (s) => String(s || '')
+              .toLowerCase()
+              .normalize('NFD').replace(/\p{Diacritic}+/gu, '')
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-+|-+$/g, '')
+              .slice(0, 80);
+
+            const country = (options.title || 'Bestemming').toString();
+            const subtitle = (options.subtitle || 'Ontdek de hoogtepunten, activiteiten en inspiratie.').toString();
+            const intro = (options.intro || `Schrijf hier een introductie over ${country}.`).toString();
+            const extra = (options.extraText || `Plaats hier extra tekst boven de fotogalerij.`).toString();
+
+            // Default gallery placeholders
+            const images = Array.isArray(options.images) && options.images.length ? options.images : [
+                'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?q=80&w=1600&auto=format&fit=crop',
+                'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1600&auto=format&fit=crop',
+                'https://images.unsplash.com/photo-1483683804023-6ccdb62f86ef?q=80&w=1600&auto=format&fit=crop',
+                'https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1600&auto=format&fit=crop',
+                'https://images.unsplash.com/photo-1526779259212-939e64788e3c?q=80&w=1600&auto=format&fit=crop',
+                'https://images.unsplash.com/photo-1482192505345-5655af888cc4?q=80&w=1600&auto=format&fit=crop'
+            ];
+
+            // Clear canvas
+            canvas.innerHTML = '';
+
+            // 1) Hero
+            try {
+                const hero = ComponentFactory.createComponent('hero-page', {
+                    wordText: country.toUpperCase(),
+                    height: '380px',
+                    overlayOpacity: 0.4
+                });
+                if (hero) canvas.appendChild(hero);
+            } catch (e) { console.warn('Destination hero failed', e); }
+
+            // 2) Intro + right column placeholder (TC trips will be added later in a sidebar component)
+            try {
+                const content = ComponentFactory.createComponent('content-flex', {
+                    title: `Over ${country}`,
+                    subtitle,
+                    body: `<p>${intro}</p>`,
+                    layout: 'none',
+                    shadow: true,
+                    radius: 12
+                });
+                if (content) canvas.appendChild(content);
+            } catch (e) { console.warn('Destination intro failed', e); }
+
+            // 3) Highlights (2x3) simple two-column lists scaffold
+            try {
+                const highlights = document.createElement('section');
+                highlights.className = 'wb-block';
+                highlights.innerHTML = `
+                  <div style="max-width:1100px;margin:0 auto;padding:8px 16px;">
+                    <h2 style="margin:0 0 8px;">Hoogtepunten</h2>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                      <ul style="margin:0;padding-left:20px;">
+                        <li>Hoogtepunt 1</li>
+                        <li>Hoogtepunt 2</li>
+                        <li>Hoogtepunt 3</li>
+                      </ul>
+                      <ul style="margin:0;padding-left:20px;">
+                        <li>Hoogtepunt 4</li>
+                        <li>Hoogtepunt 5</li>
+                        <li>Hoogtepunt 6</li>
+                      </ul>
+                    </div>
+                  </div>`;
+                canvas.appendChild(highlights);
+            } catch (e) { console.warn('Destination highlights failed', e); }
+
+            // 4) Activities (2x3) simple cards
+            try {
+                const activities = document.createElement('section');
+                activities.className = 'wb-block';
+                activities.innerHTML = `
+                  <div style="max-width:1100px;margin:0 auto;padding:8px 16px;">
+                    <h2 style="margin:0 0 8px;">Activiteiten</h2>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+                      ${[1,2,3,4,5,6].map(i=>`
+                        <div class="card" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;box-shadow:0 6px 16px rgba(0,0,0,.04);">
+                          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;"><i class="fas fa-star" style="color:#f59e0b;"></i><strong>Activiteit ${i}</strong></div>
+                          <div style="color:#475569;font-size:14px;">Korte beschrijving van de activiteit.</div>
+                        </div>`).join('')}
+                    </div>
+                  </div>`;
+                canvas.appendChild(activities);
+            } catch (e) { console.warn('Destination activities failed', e); }
+
+            // 5) Extra text block (above gallery)
+            try {
+                const extraBlock = ComponentFactory.createComponent('content-flex', {
+                    title: '',
+                    subtitle: '',
+                    body: `<p>${extra}</p>`,
+                    layout: 'none',
+                    shadow: false,
+                    radius: 0
+                });
+                if (extraBlock) {
+                    extraBlock.classList.add('cf-plain');
+                    canvas.appendChild(extraBlock);
+                }
+            } catch (e) { console.warn('Destination extra text failed', e); }
+
+            // 6) Gallery 2x3
+            try {
+                const gallery = ComponentFactory.createComponent('media-row', {
+                    images: images.slice(0,6),
+                    height: 180,
+                    gap: 10,
+                    radius: 10,
+                    carousel: false,
+                    layout: 'uniform'
+                });
+                if (gallery) canvas.appendChild(gallery);
+            } catch (e) { console.warn('Destination gallery failed', e); }
+
+            // Update current page meta + persist
+            const cur = (this.pages || []).find(p => p.id === this.currentPageId) || (this.pages || [])[0] || null;
+            if (cur) {
+                cur.name = country;
+                cur.slug = slugify(country);
+                cur.html = canvas.innerHTML;
+            }
+
+            try { this.reattachEventListeners(); } catch {}
+            try { if (typeof this._applyPageMetaToInputs === 'function') this._applyPageMetaToInputs(); } catch {}
+            this.persistPagesToLocalStorage();
+            try { this.saveProject(true); } catch {}
+
+            this.showNotification('🗺️ Bestemmingspagina template toegevoegd. Je kunt nu verder bewerken.', 'success');
+        } catch (e) {
+            console.error('createDestinationTemplate failed', e);
+            this.showErrorMessage('Kon bestemmingspagina template niet aanmaken.');
+        }
+    }
+
     // ---------- Scaffold: Nieuwsartikel template ----------
     createNewsArticleTemplate(options = {}) {
         try {
@@ -1148,6 +1292,16 @@ class WebsiteBuilder {
                 });
                 this._lastAutoPublishAt = Date.now();
                 this.showNotification('📰 Concept opgeslagen (Nieuws)', 'success');
+            } else if ((mode === 'destination' || mode === 'destinations') && window.BuilderPublishAPI.destinations) {
+                await window.BuilderPublishAPI.destinations.saveDraft({
+                    brand_id,
+                    title: contentJson.title,
+                    slug: contentJson.slug,
+                    content: { json: contentJson, html: htmlString },
+                    status: 'draft'
+                });
+                this._lastAutoPublishAt = Date.now();
+                this.showNotification('🗺️ Concept opgeslagen (Bestemming)', 'success');
             } else {
                 // Default: pages flow (save draft + publish)
                 const page = await window.BuilderPublishAPI.saveDraft({

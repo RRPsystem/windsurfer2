@@ -415,3 +415,50 @@ window.BuilderPublishAPI.news = {
   getBySlug: newsGetBySlug,
   remove: newsDelete
 };
+
+// ==============================
+// Destinations (content-api: type=destinations)
+// ==============================
+async function destinationsSaveDraft({ brand_id, id, title, slug, content, status = 'draft' }) {
+  const base = contentApiBase();
+  if (!base) throw new Error('content-api base URL ontbreekt');
+  const url = `${base}/content-api/save?type=destinations`;
+  const body = { brand_id, title, slug, content: content || {}, status };
+  const author_type = readQueryParam('author_type') || (window.CURRENT_AUTHOR_TYPE || null);
+  const author_id = readQueryParam('author_id') || readQueryParam('user_id') || (window.CURRENT_USER_ID || null);
+  if (author_type) body.author_type = author_type;
+  if (author_id) body.author_id = author_id;
+  if (id) body.id = id;
+  // Debug
+  try {
+    const hdr = contentApiHeaders();
+    console.debug('[destinationsSaveDraft] request', {
+      url,
+      brand_id,
+      title,
+      slug,
+      hasToken: !!hdr.Authorization,
+      hasApiKey: !!hdr.apikey,
+      author_type: body.author_type || null,
+      author_id: body.author_id ? String(body.author_id).slice(0,6)+'…' : null
+    });
+  } catch {}
+  let res;
+  try {
+    res = await fetch(url, { method: 'POST', headers: contentApiHeaders(), body: JSON.stringify(body) });
+  } catch (e) { console.warn('[destinationsSaveDraft] network error', e); throw e; }
+  let data = null; try { data = await res.json(); } catch {}
+  if (!res.ok) {
+    let text = ''; try { text = await res.text(); } catch {}
+    const msg = (data && (data.error || data.message)) || text || `destinations save failed: ${res.status}`;
+    console.warn('[destinationsSaveDraft] HTTP error', { status: res.status, msg, data });
+    throw new Error(msg);
+  }
+  console.debug('[destinationsSaveDraft] success', { id: data && data.id, slug: data && data.slug, status: data && data.status });
+  return data;
+}
+
+// Expose destinations API
+window.BuilderPublishAPI.destinations = {
+  saveDraft: destinationsSaveDraft
+};
