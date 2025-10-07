@@ -315,6 +315,27 @@ class PropertiesPanel {
         this.panel.appendChild(listWrap);
         renderList();
 
+        // AI: Generate captions for images
+        const aiCap = this.createButton('Genereer captions met AI', async () => {
+            try {
+                const imgs = (api.getImages && api.getImages()) || [];
+                if (!imgs.length) { alert('Geen afbeeldingen gevonden.'); return; }
+                const country = (window.BuilderAI && window.BuilderAI.guessCountry && window.BuilderAI.guessCountry()) || '';
+                const r = await window.BuilderAI.generate('gallery_captions', { country, language: 'nl', images: imgs });
+                const caps = Array.isArray(r?.gallery_captions) ? r.gallery_captions : [];
+                if (!caps.length) { alert('Geen captions ontvangen.'); return; }
+                imgs.forEach((_, i) => {
+                    const cap = caps[i] && (caps[i].caption || '');
+                    if (cap) api.setItemMeta && api.setItemMeta(i, { label: cap });
+                });
+                renderList();
+            } catch(err) {
+                alert('AI captions genereren mislukt.');
+            }
+        });
+        aiCap.style.background = '#0ea5e9'; aiCap.style.borderColor = '#0ea5e9'; aiCap.style.color = '#fff';
+        this.panel.appendChild(aiCap);
+
         // Count control – aantal foto's bepalen
         const getCount = () => ((api.getImages && api.getImages()) || []).length;
         const initialCount = String(getCount() || 4);
@@ -1122,6 +1143,9 @@ class PropertiesPanel {
             case 'media-row':
                 this.createMediaRowProperties(component);
                 break;
+            case 'dest-tabs':
+                this.createDestTabsProperties(component);
+                break;
         }
         
         // Common properties for all components
@@ -1152,9 +1176,142 @@ class PropertiesPanel {
             'travel-types': 'Soorten Reizen',
             'contact-info': 'Contact Info',
             'contact-map-cta': 'Contact Map + CTA',
-            'media-row': 'Media Rij'
+            'media-row': 'Media Rij',
+            'dest-tabs': 'Bestemmingen Tabs'
         };
         return titles[type] || 'Component';
+    }
+
+    // Properties for Destinations Tabs (Cities/Regions/UNESCO)
+    createDestTabsProperties(component) {
+        const api = component.__destTabsApi || {};
+        const tabs = ['cities','regions','unesco'];
+        const labels = { cities: 'Steden', regions: 'Regio\'s', unesco: 'UNESCO' };
+
+        // Active tab select
+        const current = (api.getActiveTab && api.getActiveTab()) || component._activeTab || 'cities';
+        this.createSelectInput('Actieve tab', current, tabs.map(k=>({value:k,label:labels[k]})), (val)=>{
+            api.setActiveTab && api.setActiveTab(val);
+            renderList();
+        });
+
+        // Mobile slider toggle
+        const mobileOn = component._mobileSlider !== false ? 'on' : 'off';
+        this.createSelectInput('Mobiele slider', mobileOn, [
+            { value: 'on', label: 'Aan' },
+            { value: 'off', label: 'Uit' }
+        ], (v)=> api.setMobileSlider && api.setMobileSlider(v==='on'));
+
+        // Tab selector buttons for quick switch
+        const tabRow = document.createElement('div');
+        tabRow.style.display = 'flex'; tabRow.style.gap = '6px'; tabRow.style.margin = '6px 0 10px';
+        tabs.forEach(k=>{
+            const b = document.createElement('button');
+            b.className = 'btn btn-secondary btn-small';
+            b.type = 'button';
+            b.textContent = labels[k];
+            b.onclick = () => { api.setActiveTab && api.setActiveTab(k); renderList(); };
+            tabRow.appendChild(b);
+        });
+        this.panel.appendChild(tabRow);
+
+        // Items editor
+        const listWrap = document.createElement('div');
+        listWrap.style.border = '1px solid #e5e7eb';
+        listWrap.style.borderRadius = '8px';
+        listWrap.style.padding = '10px';
+        listWrap.style.background = '#fafafa';
+        this.panel.appendChild(listWrap);
+
+        const renderList = () => {
+            const active = (api.getActiveTab && api.getActiveTab()) || 'cities';
+            const items = (api.getItems && api.getItems(active)) || [];
+            listWrap.innerHTML = '';
+
+            // Header
+            const h = document.createElement('div');
+            h.style.display = 'grid'; h.style.gridTemplateColumns = '80px 1.2fr 1.8fr 1.4fr auto'; h.style.gap = '8px'; h.style.marginBottom = '6px'; h.style.color = '#6b7280'; h.style.fontSize = '12px';
+            h.innerHTML = '<div>Foto</div><div>Titel</div><div>Samenvatting</div><div>Link</div><div>Acties</div>';
+            listWrap.appendChild(h);
+
+            items.forEach((it, idx) => {
+                const row = document.createElement('div');
+                row.style.display = 'grid';
+                row.style.gridTemplateColumns = '80px 1.2fr 1.8fr 1.4fr auto';
+                row.style.gap = '8px';
+                row.style.alignItems = 'center';
+                row.style.margin = '6px 0';
+
+                // Thumb
+                const thumb = document.createElement('img');
+                thumb.src = it.img || ''; thumb.alt = it.title || ''; thumb.style.width='80px'; thumb.style.height='50px'; thumb.style.objectFit='cover'; thumb.style.borderRadius='6px';
+                thumb.style.cursor='pointer';
+                thumb.title = 'Wijzig afbeelding';
+                thumb.onclick = async () => {
+                    try {
+                        if (!window.MediaPicker) return;
+                        const r = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
+                        const u = r && (r.fullUrl || r.regularUrl || r.url || r.dataUrl);
+                        if (!u) return;
+                        api.updateItem && api.updateItem(active, idx, { img: u });
+                        renderList();
+                    } catch {}
+                };
+
+                // Title
+                const title = document.createElement('input');
+                title.type = 'text'; title.className = 'form-control'; title.value = it.title || '';
+                title.onchange = () => { api.updateItem && api.updateItem(active, idx, { title: title.value }); };
+
+                // Summary
+                const sum = document.createElement('input');
+                sum.type = 'text'; sum.className = 'form-control'; sum.value = it.summary || '';
+                sum.placeholder = '2–3 regels';
+                sum.onchange = () => { api.updateItem && api.updateItem(active, idx, { summary: sum.value }); };
+
+                // Link
+                const href = document.createElement('input');
+                href.type = 'text'; href.className = 'form-control'; href.value = it.href || '';
+                href.placeholder = '/bestemmingen/land/stad/tokio';
+                href.onchange = () => { api.updateItem && api.updateItem(active, idx, { href: href.value }); };
+
+                // Actions
+                const act = document.createElement('div'); act.style.display='flex'; act.style.gap='6px';
+                const up = document.createElement('button'); up.className='btn btn-secondary btn-small'; up.textContent='Omhoog'; up.onclick=()=>{ api.reorder && api.reorder(active, idx, Math.max(0, idx-1)); renderList(); };
+                const dn = document.createElement('button'); dn.className='btn btn-secondary btn-small'; dn.textContent='Omlaag'; dn.onclick=()=>{ api.reorder && api.reorder(active, idx, Math.min(items.length-1, idx+1)); renderList(); };
+                const rm = document.createElement('button'); rm.className='btn btn-secondary btn-small'; rm.textContent='Verwijder'; rm.onclick=()=>{
+                    const next = items.filter((_,i)=>i!==idx);
+                    api.setItems && api.setItems(active, next);
+                    renderList();
+                };
+                act.appendChild(up); act.appendChild(dn); act.appendChild(rm);
+
+                row.appendChild(thumb);
+                row.appendChild(title);
+                row.appendChild(sum);
+                row.appendChild(href);
+                row.appendChild(act);
+                listWrap.appendChild(row);
+            });
+
+            // Add button (max 12)
+            const addWrap = document.createElement('div'); addWrap.style.marginTop='10px';
+            const add = this.createButton('Item toevoegen', () => {
+                const activeTab = (api.getActiveTab && api.getActiveTab()) || 'cities';
+                const cur = (api.getItems && api.getItems(activeTab)) || [];
+                if (cur.length >= 12) { alert('Maximaal 12 items per tab.'); return; }
+                const next = cur.concat([{ img: '', title: 'Nieuw', summary: '', href: '#' }]);
+                api.setItems && api.setItems(activeTab, next);
+                renderList();
+            });
+            addWrap.appendChild(add);
+            const hint = document.createElement('div'); hint.style.fontSize='12px'; hint.style.color='#6b7280'; hint.style.marginTop='6px';
+            hint.textContent = 'Tip: Links worden later SEO-vriendelijk gegenereerd per item; je kunt ze hier overschrijven.';
+            addWrap.appendChild(hint);
+            listWrap.appendChild(addWrap);
+        };
+
+        renderList();
     }
 
     // Properties for the new Hero Banner + CTA variant

@@ -19,6 +19,7 @@ class ComponentFactory {
             'contact-info': this.createContactInfo,
             'contact-map-cta': this.createContactMapCta,
             'media-row': this.createMediaRow,
+            'dest-tabs': this.createDestTabs,
             'jotform-embed': this.createJotformEmbed
         };
 
@@ -31,6 +32,153 @@ class ComponentFactory {
             return null;
         }
 
+    // DESTINATIONS: Tabs for Cities / Regions / UNESCO (cards grid)
+    static createDestTabs(options = {}) {
+        const section = document.createElement('section');
+        section.className = 'wb-component wb-dest-tabs';
+        section.setAttribute('data-component', 'dest-tabs');
+        section.id = this.generateId('dest_tabs');
+
+        const toolbar = this.createToolbar();
+        section.appendChild(toolbar);
+        this.addTypeBadge(section);
+
+        // State
+        const defaults = (labelBase) => Array.from({ length: 5 }).map((_, i) => ({
+            img: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop',
+            title: `${labelBase} ${i + 1}`,
+            summary: 'Korte beschrijving (2–3 regels) over deze plek.',
+            href: '#'
+        }));
+        section._tabs = {
+            cities: options.cities || defaults('Stad'),
+            regions: options.regions || defaults('Regio'),
+            unesco: options.unesco || defaults('UNESCO')
+        };
+        section._activeTab = options.activeTab || 'cities';
+        section._mobileSlider = options.mobileSlider !== false; // true by default
+
+        // Header (tabs)
+        const header = document.createElement('div');
+        header.className = 'dt-header';
+        header.style.cssText = 'max-width:1100px;margin:0 auto 8px;display:flex;gap:8px;align-items:center;padding:0 16px;';
+        const mkTabBtn = (key, label) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'btn btn-secondary';
+            b.textContent = label;
+            b.setAttribute('data-tab', key);
+            b.onclick = (e) => { e.stopPropagation(); section._activeTab = key; renderCards(); highlightActive(); };
+            return b;
+        };
+        const tabCities = mkTabBtn('cities', 'Steden');
+        const tabRegions = mkTabBtn('regions', 'Regio\'s');
+        const tabUnesco = mkTabBtn('unesco', 'UNESCO');
+        header.appendChild(tabCities);
+        header.appendChild(tabRegions);
+        header.appendChild(tabUnesco);
+
+        // Body (cards container)
+        const body = document.createElement('div');
+        body.className = 'dt-body';
+        body.style.cssText = 'max-width:1100px;margin:0 auto;padding:4px 16px;';
+
+        const grid = document.createElement('div');
+        grid.className = 'dt-grid';
+        grid.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:stretch;';
+        body.appendChild(grid);
+
+        const applyMobileBehavior = () => {
+            try {
+                const isMobile = window.matchMedia && window.matchMedia('(max-width: 720px)').matches;
+                if (isMobile && section._mobileSlider) {
+                    grid.style.display = 'flex';
+                    grid.style.overflowX = 'auto';
+                    grid.style.scrollSnapType = 'x mandatory';
+                    grid.style.gap = '10px';
+                } else {
+                    grid.style.display = 'grid';
+                    grid.style.overflowX = 'hidden';
+                    grid.style.scrollSnapType = 'none';
+                    grid.style.gridTemplateColumns = 'repeat(3,1fr)';
+                    grid.style.gap = '12px';
+                }
+            } catch {}
+        };
+
+        const renderCards = () => {
+            grid.innerHTML = '';
+            const list = section._tabs[section._activeTab] || [];
+            list.forEach((item, idx) => {
+                const card = document.createElement('a');
+                card.className = 'dt-card';
+                card.href = item.href || '#';
+                card.style.cssText = 'display:block;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,0.05);text-decoration:none;color:#111827;min-width:68%;scroll-snap-align:start;';
+                const img = document.createElement('img');
+                img.src = item.img;
+                img.alt = item.title || '';
+                img.style.cssText = 'width:100%;height:160px;object-fit:cover;display:block;';
+                const wrap = document.createElement('div');
+                wrap.style.cssText = 'padding:10px;';
+                const h = document.createElement('div'); h.textContent = item.title || ''; h.style.cssText='font-weight:700;margin:0 0 4px;';
+                const p = document.createElement('div'); p.textContent = item.summary || ''; p.style.cssText='color:#475569;font-size:14px;min-height:38px;';
+                const more = document.createElement('div'); more.innerHTML = '<span style="color:#0ea5e9;font-weight:600;">Bekijk</span>'; more.style.marginTop='6px';
+                wrap.appendChild(h); wrap.appendChild(p); wrap.appendChild(more);
+                card.appendChild(img);
+                card.appendChild(wrap);
+                grid.appendChild(card);
+            });
+            applyMobileBehavior();
+        };
+
+        const highlightActive = () => {
+            [tabCities, tabRegions, tabUnesco].forEach(b => {
+                const on = b.getAttribute('data-tab') === section._activeTab;
+                b.classList.toggle('btn-primary', on);
+                b.classList.toggle('btn-secondary', !on);
+            });
+        };
+
+        renderCards();
+        highlightActive();
+
+        // Responsive re-check on resize
+        try { window.addEventListener('resize', () => applyMobileBehavior()); } catch {}
+
+        section.appendChild(header);
+        section.appendChild(body);
+
+        // Interactions
+        this.makeSelectable(section);
+
+        // API for PropertiesPanel
+        section.__destTabsApi = {
+            setActiveTab: (key) => { if (['cities','regions','unesco'].includes(key)) { section._activeTab = key; renderCards(); highlightActive(); } },
+            getActiveTab: () => section._activeTab,
+            getItems: (key) => (section._tabs[key] || []).slice(),
+            setItems: (key, items) => { if (section._tabs[key]) { section._tabs[key] = (items || []).slice(0, 12); renderCards(); } },
+            updateItem: (key, index, data) => {
+                const arr = section._tabs[key];
+                if (!arr) return;
+                const it = arr[index];
+                if (!it) return;
+                section._tabs[key][index] = { ...it, ...data };
+                renderCards();
+            },
+            reorder: (key, from, to) => {
+                const arr = section._tabs[key];
+                if (!arr) return;
+                const f = Math.max(0, Math.min(from, arr.length-1));
+                const t = Math.max(0, Math.min(to, arr.length-1));
+                if (f === t) return;
+                const moved = arr.splice(f,1)[0];
+                arr.splice(t,0,moved);
+                renderCards();
+            },
+            setMobileSlider: (on) => { section._mobileSlider = !!on; renderCards(); }
+        };
+
+        return section;
     }
 
     // CONTENT: Flexible content block with optional side images
