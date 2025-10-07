@@ -11,6 +11,8 @@ class WebsiteBuilder {
         // Auto-publish throttle state
         this._lastAutoPublishAt = 0;
         this._autoPublishTimer = null;
+        // Edge (Supabase) context
+        this._edgeCtx = null; // { api, token, kind: 'news'|'page', key: slug|id }
         this.init();
     }
 
@@ -45,6 +47,22 @@ class WebsiteBuilder {
             // Clear canvas
             canvas.innerHTML = '';
 
+            // 0) Agent notice: land-invoer + AI-knop
+            let note = null;
+            try {
+                note = document.createElement('section');
+                note.className = 'wb-admin-note';
+                note.innerHTML = `
+                  <div style="max-width:1100px;margin:0 auto;padding:10px 14px;border:1px dashed #f59e0b;border-radius:10px;background:#fff7ed;color:#7c2d12;display:flex;gap:8px;align-items:center;">
+                    <i class="fas fa-info-circle" style="color:#f59e0b;"></i>
+                    <div style="font-weight:700;">Vul het land en genereer de teksten met AI</div>
+                    <input id="destCountryInput" class="form-control" type="text" placeholder="Bijv. Japan" value="" style="max-width:220px; margin-left:8px;" />
+                    <button id="aiCountryBtn" class="btn btn-primary"><i class="fas fa-wand-magic-sparkles"></i> AI-landen teksten</button>
+                    <div style="margin-left:auto;font-size:12px;color:#9a3412;">De AI vult Intro, Hoogtepunten, Activiteiten en Extra tekst</div>
+                  </div>`;
+                canvas.appendChild(note);
+            } catch {}
+
             // 1) Hero
             try {
                 const hero = ComponentFactory.createComponent('hero-page', {
@@ -55,9 +73,12 @@ class WebsiteBuilder {
                 if (hero) canvas.appendChild(hero);
             } catch (e) { console.warn('Destination hero failed', e); }
 
+            // Prepare refs so we can wire AI after creation
+            let content = null, highlights = null, activities = null, extraBlock = null, gallery = null;
+
             // 2) Intro + right column placeholder (TC trips will be added later in a sidebar component)
             try {
-                const content = ComponentFactory.createComponent('content-flex', {
+                content = ComponentFactory.createComponent('content-flex', {
                     title: `Over ${country}`,
                     subtitle,
                     body: `<p>${intro}</p>`,
@@ -65,12 +86,12 @@ class WebsiteBuilder {
                     shadow: true,
                     radius: 12
                 });
-                if (content) canvas.appendChild(content);
+                if (content) { content.dataset.role = 'intro'; canvas.appendChild(content); }
             } catch (e) { console.warn('Destination intro failed', e); }
 
             // 3) Highlights (2x3) simple two-column lists scaffold
             try {
-                const highlights = document.createElement('section');
+                highlights = document.createElement('section');
                 highlights.className = 'wb-block';
                 highlights.innerHTML = `
                   <div style="max-width:1100px;margin:0 auto;padding:8px 16px;">
@@ -88,12 +109,13 @@ class WebsiteBuilder {
                       </ul>
                     </div>
                   </div>`;
+                highlights.dataset.role = 'highlights';
                 canvas.appendChild(highlights);
             } catch (e) { console.warn('Destination highlights failed', e); }
 
             // 4) Activities (2x3) simple cards
             try {
-                const activities = document.createElement('section');
+                activities = document.createElement('section');
                 activities.className = 'wb-block';
                 activities.innerHTML = `
                   <div style="max-width:1100px;margin:0 auto;padding:8px 16px;">
@@ -106,12 +128,13 @@ class WebsiteBuilder {
                         </div>`).join('')}
                     </div>
                   </div>`;
+                activities.dataset.role = 'activities';
                 canvas.appendChild(activities);
             } catch (e) { console.warn('Destination activities failed', e); }
 
             // 5) Extra text block (above gallery)
             try {
-                const extraBlock = ComponentFactory.createComponent('content-flex', {
+                extraBlock = ComponentFactory.createComponent('content-flex', {
                     title: '',
                     subtitle: '',
                     body: `<p>${extra}</p>`,
@@ -121,13 +144,14 @@ class WebsiteBuilder {
                 });
                 if (extraBlock) {
                     extraBlock.classList.add('cf-plain');
+                    extraBlock.dataset.role = 'extra';
                     canvas.appendChild(extraBlock);
                 }
             } catch (e) { console.warn('Destination extra text failed', e); }
 
             // 6) Gallery 2x3
             try {
-                const gallery = ComponentFactory.createComponent('media-row', {
+                gallery = ComponentFactory.createComponent('media-row', {
                     images: images.slice(0,6),
                     height: 180,
                     gap: 10,
@@ -135,7 +159,7 @@ class WebsiteBuilder {
                     carousel: false,
                     layout: 'uniform'
                 });
-                if (gallery) canvas.appendChild(gallery);
+                if (gallery) { gallery.dataset.role = 'gallery'; canvas.appendChild(gallery); }
             } catch (e) { console.warn('Destination gallery failed', e); }
 
             // 7) Sublibrary tabs (Cities / Regions / UNESCO)
@@ -157,7 +181,73 @@ class WebsiteBuilder {
             this.persistPagesToLocalStorage();
             try { this.saveProject(true); } catch {}
 
-            this.showNotification('🗺️ Bestemmingspagina template toegevoegd. Je kunt nu verder bewerken.', 'success');
+            // 8) Wire AI button after components exist
+            try {
+                const btn = note ? note.querySelector('#aiCountryBtn') : null;
+                const input = note ? note.querySelector('#destCountryInput') : null;
+                if (btn) btn.onclick = async () => {
+                    const c = (input && input.value && input.value.trim()) ? input.value.trim() : country;
+                    if (!c) { alert('Vul eerst een land in.'); return; }
+                    if (!window.BuilderAI || typeof window.BuilderAI.generate !== 'function') { alert('AI module niet geladen.'); return; }
+                    btn.disabled = true; const oldTxt = btn.innerHTML; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> AI bezig...';
+                    try {
+                        // Intro
+                        if (content) {
+                            const r = await window.BuilderAI.generate('intro', { country: c, language: 'nl' });
+                            const text = r?.intro?.text || '';
+                            const bodyEl = content.querySelector('.cf-body');
+                            if (bodyEl && text) bodyEl.innerHTML = `<p>${text.replace(/\n+/g,'</p><p>')}</p>`;
+                            const tEl = content.querySelector('.cf-title'); if (tEl) tEl.textContent = `Over ${c}`;
+                        }
+                        // Highlights (6)
+                        if (highlights) {
+                            const r = await window.BuilderAI.generate('highlights', { country: c, language: 'nl', count: 6 });
+                            const arr = Array.isArray(r?.highlights) ? r.highlights : [];
+                            const uls = highlights.querySelectorAll('ul');
+                            const a = uls[0], b = uls[1];
+                            if (a && b && arr.length) {
+                                const left = arr.slice(0,3).map(x=>`<li>${x.title || x.summary || ''}</li>`).join('');
+                                const right = arr.slice(3,6).map(x=>`<li>${x.title || x.summary || ''}</li>`).join('');
+                                a.innerHTML = left || a.innerHTML;
+                                b.innerHTML = right || b.innerHTML;
+                            }
+                        }
+                        // Activities (6)
+                        if (activities) {
+                            const r = await window.BuilderAI.generate('activities', { country: c, language: 'nl', count: 6 });
+                            const arr = Array.isArray(r?.activities) ? r.activities : [];
+                            const cardsWrap = activities.querySelector('[style*="grid-template-columns"]');
+                            if (cardsWrap && arr.length) {
+                                cardsWrap.innerHTML = arr.slice(0,6).map(it=>`
+                                  <div class="card" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;box-shadow:0 6px 16px rgba(0,0,0,.04);">
+                                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;"><i class="fas ${it.icon || 'fa-star'}" style="color:#f59e0b;"></i><strong>${it.title || ''}</strong></div>
+                                    <div style="color:#475569;font-size:14px;">${it.summary || ''}</div>
+                                  </div>`).join('');
+                            }
+                        }
+                        // Extra text
+                        if (extraBlock) {
+                            const r = await window.BuilderAI.generate('extra', { country: c, language: 'nl' });
+                            const text = r?.extra?.text || '';
+                            const bodyEl = extraBlock.querySelector('.cf-body');
+                            if (bodyEl && text) bodyEl.innerHTML = `<p>${text.replace(/\n+/g,'</p><p>')}</p>`;
+                        }
+                        // Gallery captions (best effort)
+                        if (gallery) {
+                            const imgs = gallery.querySelectorAll('img');
+                            const arrImgs = Array.from(imgs);
+                            if (arrImgs.length) {
+                                const r = await window.BuilderAI.generate('gallery_captions', { country: c, language: 'nl', images: arrImgs.map(()=>({})) });
+                                const caps = Array.isArray(r?.gallery_captions) ? r.gallery_captions : [];
+                                arrImgs.forEach((im, i) => { const cap = caps[i]?.caption || ''; if (cap) { im.alt = cap; im.title = cap; } });
+                            }
+                        }
+                    } catch (_) { alert('AI genereren mislukt.'); }
+                    finally { btn.disabled = false; btn.innerHTML = oldTxt; }
+                };
+            } catch {}
+
+            this.showNotification('🗺️ Bestemmingspagina template toegevoegd. Vul het land en klik op AI-landen teksten voor automatische vulling.', 'success');
         } catch (e) {
             console.error('createDestinationTemplate failed', e);
             this.showErrorMessage('Kon bestemmingspagina template niet aanmaken.');
@@ -685,8 +775,11 @@ class WebsiteBuilder {
             this.setupImportTcButton();
             this.setupGitPushButton();
             this.setupFileSaveLoad();
+            // Load from Supabase Edge if URL params provided; fallback to local project
+            this.loadFromEdgeIfPresent().catch(()=>{});
             this.loadSavedProject();
             this.ensurePagesInitialized();
+            this.updateEdgeBadge();
             
             this.isInitialized = true;
             console.log('✅ Website Builder succesvol geïnitialiseerd!');
@@ -1256,6 +1349,9 @@ class WebsiteBuilder {
             // Auto-publish on save (simple for users): throttle to avoid spam on autosave
             this.scheduleAutoPublish();
 
+            // If editing via Supabase Edge, PUT content back
+            try { this.saveToEdgeIfPresent().catch(()=>{}); } catch {}
+
             return true;
         } catch (error) {
             console.error('❌ Fout bij opslaan project:', error);
@@ -1264,6 +1360,119 @@ class WebsiteBuilder {
             }
             return false;
         }
+    }
+
+    // --------- Supabase Edge integration ---------
+    async loadFromEdgeIfPresent() {
+        try {
+            const url = new URL(window.location.href);
+            const api = (url.searchParams.get('api') || '').replace(/\/$/, '');
+            const token = url.searchParams.get('token') || '';
+            const news_slug = url.searchParams.get('news_slug');
+            const author_type = url.searchParams.get('author_type'); // not used yet, but reserved
+            const author_id = url.searchParams.get('author_id');     // not used yet, but reserved
+            const page_id = url.searchParams.get('page_id');
+            if (!api || !token) return; // require both for edge
+
+            if (news_slug) {
+                const apiUrl = `${api}/functions/v1/content-api/news/${encodeURIComponent(news_slug)}`;
+                const r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
+                if (!r.ok) throw new Error(await r.text());
+                const newsData = await r.json();
+                const content = newsData?.content || newsData?.content_json || null;
+                if (content) {
+                    this.loadProjectData(content);
+                    this._edgeCtx = { api, token, kind: 'news', key: news_slug };
+                    // Switch UI to news mode
+                    try { location.hash = '#/mode/news'; } catch {}
+                    this.updateEdgeBadge();
+                    // Update title/slug inputs if provided
+                    if (newsData.title || newsData.slug) {
+                        const t = document.getElementById('pageTitleInput');
+                        const s = document.getElementById('pageSlugInput');
+                        if (t && newsData.title) t.value = newsData.title;
+                        if (s && newsData.slug) s.value = newsData.slug;
+                    }
+                    this.showNotification('📥 Nieuwsartikel geladen van Supabase', 'success');
+                }
+                return;
+            }
+
+            if (page_id) {
+                const apiUrl = `${api}/functions/v1/pages-api/pages/${encodeURIComponent(page_id)}`;
+                const r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
+                if (!r.ok) throw new Error(await r.text());
+                const pageData = await r.json();
+                const content = pageData?.content || pageData?.content_json || null;
+                if (content) {
+                    this.loadProjectData(content);
+                    this._edgeCtx = { api, token, kind: 'page', key: page_id };
+                    try { location.hash = '#/mode/page'; } catch {}
+                    this.updateEdgeBadge();
+                    if (pageData.title || pageData.slug) {
+                        const t = document.getElementById('pageTitleInput');
+                        const s = document.getElementById('pageSlugInput');
+                        if (t && pageData.title) t.value = pageData.title;
+                        if (s && pageData.slug) s.value = pageData.slug;
+                    }
+                    this.showNotification('📥 Pagina geladen van Supabase', 'success');
+                }
+                return;
+            }
+        } catch (err) {
+            console.warn('Edge load failed', err);
+            this.showNotification('⚠️ Laden van Supabase mislukt (zie console)', 'error');
+        }
+    }
+
+    async saveToEdgeIfPresent() {
+        if (!this._edgeCtx) return;
+        const { api, token, kind, key } = this._edgeCtx;
+        try {
+            // Build content JSON of current state
+            const contentJson = (typeof window.exportBuilderAsJSON === 'function') ? window.exportBuilderAsJSON() : this.getProjectData();
+            if (!contentJson) return;
+            let apiUrl = '';
+            if (kind === 'news') apiUrl = `${api}/functions/v1/content-api/news/${encodeURIComponent(key)}`;
+            if (kind === 'page') apiUrl = `${api}/functions/v1/pages-api/pages/${encodeURIComponent(key)}`;
+            if (!apiUrl) return;
+            const r = await fetch(apiUrl, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: contentJson })
+            });
+            if (!r.ok) throw new Error(await r.text());
+            // Optional: read response
+            await r.json().catch(()=>null);
+            this.showNotification(kind === 'news' ? '📰 Nieuws opgeslagen naar Supabase' : '📝 Pagina opgeslagen naar Supabase', 'success');
+        } catch (err) {
+            console.warn('Edge save failed', err);
+        }
+    }
+
+    updateEdgeBadge() {
+        try {
+            const headerRight = document.querySelector('.app-header .header-right');
+            if (!headerRight) return;
+            let badge = document.getElementById('edgeStatusBadge');
+            if (!this._edgeCtx) { if (badge) badge.remove(); return; }
+            const { api, kind, key } = this._edgeCtx;
+            const host = (()=>{ try { return new URL(api).host; } catch { return api; } })();
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.id = 'edgeStatusBadge';
+                badge.style.cssText = 'display:flex;align-items:center;gap:8px;background:#0f766e;color:#e7fff9;border:1px solid #0d9488;border-radius:8px;padding:4px 8px;margin-left:8px;font-size:12px;';
+                headerRight.insertBefore(badge, headerRight.firstChild);
+            }
+            badge.innerHTML = `
+                <i class="fas fa-link"></i>
+                <span style="white-space:nowrap;">Supabase: ${host}</span>
+                <span style="opacity:.9;">(${kind}: ${key})</span>
+                <button id="edgeSyncBtn" class="btn btn-secondary" style="height:22px;line-height:20px;padding:0 8px;">Sync</button>
+            `;
+            const btn = badge.querySelector('#edgeSyncBtn');
+            if (btn) btn.onclick = () => this.saveToEdgeIfPresent();
+        } catch {}
     }
 
     scheduleAutoPublish() {
