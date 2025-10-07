@@ -775,11 +775,15 @@ class WebsiteBuilder {
             this.setupImportTcButton();
             this.setupGitPushButton();
             this.setupFileSaveLoad();
-            // Load from Supabase Edge if URL params provided; fallback to local project
-            this.loadFromEdgeIfPresent().catch(()=>{});
-            this.loadSavedProject();
-            this.ensurePagesInitialized();
-            this.updateEdgeBadge();
+            // Load from Supabase Edge first; only fallback to local if no Edge ctx
+            (async () => {
+                try { await this.loadFromEdgeIfPresent(); } catch {}
+                if (!this._edgeCtx) {
+                    this.loadSavedProject();
+                }
+                this.ensurePagesInitialized();
+                this.updateEdgeBadge();
+            })();
             
             this.isInitialized = true;
             console.log('✅ Website Builder succesvol geïnitialiseerd!');
@@ -1393,6 +1397,16 @@ class WebsiteBuilder {
                         if (t && newsData.title) t.value = newsData.title;
                         if (s && newsData.slug) s.value = newsData.slug;
                     }
+                    // If loaded content is effectively empty, scaffold default news template
+                    try {
+                        setTimeout(() => {
+                            const canvas = document.getElementById('canvas');
+                            const hasComponents = !!(canvas && canvas.querySelector('.wb-component'));
+                            if (!hasComponents && window.websiteBuilder && typeof window.websiteBuilder.createNewsArticleTemplate === 'function') {
+                                window.websiteBuilder.createNewsArticleTemplate();
+                            }
+                        }, 0);
+                    } catch {}
                     this.showNotification('📥 Nieuwsartikel geladen van Supabase', 'success');
                 }
                 return;
@@ -1407,7 +1421,6 @@ class WebsiteBuilder {
                 if (content) {
                     this.loadProjectData(content);
                     this._edgeCtx = { api, token, kind: 'page', key: page_id };
-                    try { location.hash = '#/mode/page'; } catch {}
                     this.updateEdgeBadge();
                     if (pageData.title || pageData.slug) {
                         const t = document.getElementById('pageTitleInput');
@@ -1415,6 +1428,17 @@ class WebsiteBuilder {
                         if (t && pageData.title) t.value = pageData.title;
                         if (s && pageData.slug) s.value = pageData.slug;
                     }
+                    // If user is in destination mode and canvas is empty, scaffold destination
+                    try {
+                        setTimeout(() => {
+                            const isDest = /#\/mode\/destination/i.test(location.hash || '');
+                            const canvas = document.getElementById('canvas');
+                            const hasComponents = !!(canvas && canvas.querySelector('.wb-component'));
+                            if (isDest && !hasComponents && window.websiteBuilder && typeof window.websiteBuilder.createDestinationTemplate === 'function') {
+                                window.websiteBuilder.createDestinationTemplate({ title: 'Bestemming' });
+                            }
+                        }, 0);
+                    } catch {}
                     this.showNotification('📥 Pagina geladen van Supabase', 'success');
                 }
                 return;
