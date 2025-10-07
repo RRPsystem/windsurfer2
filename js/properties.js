@@ -1160,9 +1160,22 @@ class PropertiesPanel {
                     const btn = self.createButton('Achtergrond kiezen (Media)', async () => {
                         if (!window.MediaPicker) return;
                         const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
-                        const src = res?.dataUrl || res?.url;
+                        const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
                         const bg = comp.querySelector('.hero-bg');
-                        if (src && bg) bg.style.backgroundImage = `url("${src}")`;
+                        let bgImg = comp.querySelector('.hero-bg img');
+                        // If img missing (older markup), create it
+                        if (bg && !bgImg) {
+                            bgImg = document.createElement('img');
+                            bgImg.className = 'hero-bg-img';
+                            bgImg.alt = 'Hero background';
+                            bgImg.decoding = 'async';
+                            bgImg.loading = 'eager';
+                            bg.insertBefore(bgImg, bg.firstChild || null);
+                        }
+                        if (src) {
+                            if (bgImg) bgImg.src = src;
+                            if (bg) try { bg.style.backgroundImage = `url("${src}")`; } catch {}
+                        }
                     });
                     // Emphasize button visually
                     btn.style.backgroundColor = '#ff7700';
