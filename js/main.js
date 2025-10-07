@@ -488,12 +488,42 @@ class WebsiteBuilder {
         }
     }
 
+    // ---------- Helpers ----------
+    getCurrentMode() {
+        try {
+            const m = (location.hash.match(/#\/mode\/([a-z]+)/i) || [])[1];
+            if (m) return m;
+        } catch {}
+        try { return localStorage.getItem('wb_mode') || 'page'; } catch { return 'page'; }
+    }
+
+    // ---------- Preview button binding ----------
+    setupPreviewButton() {
+        const btn = document.getElementById('previewBtn');
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+            try {
+                // Sync canvas to page state before preview
+                if (typeof this.captureCurrentCanvasToPage === 'function') this.captureCurrentCanvasToPage();
+                if (window.ExportManager && typeof window.ExportManager.showPreview === 'function') {
+                    window.ExportManager.showPreview();
+                } else {
+                    this.showNotification('Preview module niet geladen', 'error');
+                }
+            } catch (e) {
+                console.error('Preview error', e);
+                this.showErrorMessage('Kon preview niet openen');
+            }
+        });
+    }
+
     setup() {
         try {
             this.setupDeviceSelector();
             this.setupKeyboardShortcuts();
             this.setupAutoSave();
             this.setupWelcomeMessage();
+            this.setupPreviewButton();
             this.setupPublishButton();
             this.setupPagesButton();
             this.setupNewPageQuickButton();

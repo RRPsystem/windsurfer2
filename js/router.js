@@ -152,9 +152,9 @@
       renderModeView('menu');
       history.replaceState(null, '', '#/mode/menu');
     } else if (mode === 'news'){
-      // For news we keep the builder visible but also show the info bar with actions
+      // For news we keep only the builder visible (no info panel)
       showPageWorkspace(true);
-      renderModeView('news');
+      const view = document.getElementById('modeView'); if (view) view.style.display = 'none';
       history.replaceState(null, '', `#/mode/${mode}`);
       // Auto-scaffold a news article if canvas is empty (no components) and not already done in this session
       setTimeout(() => {
