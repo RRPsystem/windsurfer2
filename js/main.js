@@ -14,6 +14,96 @@ class WebsiteBuilder {
         this.init();
     }
 
+    // ---------- Scaffold: Nieuwsartikel template ----------
+    createNewsArticleTemplate(options = {}) {
+        try {
+            const canvas = document.getElementById('canvas');
+            if (!canvas) return;
+
+            // Helper: slugify
+            const slugify = (s) => String(s || '')
+              .toLowerCase()
+              .normalize('NFD').replace(/\p{Diacritic}+/gu, '')
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-+|-+$/g, '')
+              .slice(0, 80);
+
+            const title = (options.title || 'Nieuw artikel').toString();
+            const intro = (options.intro || 'Schrijf hier de inleiding van je nieuwsartikel.').toString();
+            const date = options.date || new Date();
+            const dateStr = (date instanceof Date)
+              ? `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
+              : String(date);
+
+            // Default gallery
+            const images = Array.isArray(options.images) && options.images.length ? options.images : [
+                'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop',
+                'https://images.unsplash.com/photo-1526772662000-3f88f10405ff?q=80&w=1600&auto=format&fit=crop',
+                'https://images.unsplash.com/photo-1519817914152-22d216bb9170?q=80&w=1600&auto=format&fit=crop'
+            ];
+
+            // Clear canvas
+            canvas.innerHTML = '';
+
+            // 1) Hero met groot woord "NIEUWS"
+            try {
+                const hero = ComponentFactory.createComponent('hero-page', {
+                    wordText: 'NIEUWS',
+                    height: '420px',
+                    overlayOpacity: 0.35
+                });
+                if (hero) canvas.appendChild(hero);
+            } catch (e) { console.warn('Hero create failed', e); }
+
+            // 2) Intro-sectie (titel + intro body)
+            try {
+                const content = ComponentFactory.createComponent('content-flex', {
+                    title,
+                    subtitle: dateStr,
+                    body: `<p>${intro}</p>`,
+                    layout: 'none',
+                    shadow: true,
+                    radius: 12
+                });
+                if (content) canvas.appendChild(content);
+            } catch (e) { console.warn('Content create failed', e); }
+
+            // 3) Gallery
+            try {
+                const gallery = ComponentFactory.createComponent('media-row', {
+                    images,
+                    height: 200,
+                    gap: 10,
+                    radius: 10,
+                    carousel: true,
+                    layout: 'uniform'
+                });
+                if (gallery) canvas.appendChild(gallery);
+            } catch (e) { console.warn('Gallery create failed', e); }
+
+            // Update current page meta + persist
+            const cur = (this.pages || []).find(p => p.id === this.currentPageId) || (this.pages || [])[0] || null;
+            if (cur) {
+                cur.name = title;
+                cur.slug = slugify(title);
+                cur.html = canvas.innerHTML;
+            }
+
+            // Re-attach event listeners for new components
+            try { this.reattachEventListeners(); } catch {}
+
+            // Sync meta inputs in header and save
+            try { if (typeof this._applyPageMetaToInputs === 'function') this._applyPageMetaToInputs(); } catch {}
+            this.persistPagesToLocalStorage();
+            try { this.saveProject(true); } catch {}
+
+            this.showNotification('📰 Nieuwsartikel template toegevoegd. Je kunt nu verder bewerken.', 'success');
+        } catch (e) {
+            console.error('createNewsArticleTemplate failed', e);
+            this.showErrorMessage('Kon nieuwsartikel template niet aanmaken.');
+        }
+    }
+
     // ---------- Importeer TC ID ----------
     setupImportTcButton() {
         const btn = document.getElementById('importTcBtn');
@@ -562,34 +652,6 @@ class WebsiteBuilder {
             try { if (typeof this._applyPageMetaToInputs === 'function') this._applyPageMetaToInputs(); } catch {}
         };
     };
-
-        content.querySelector('#pmRename').onclick = () => {
-            const p = this.pages.find(x => x.id === selectedId);
-            if (!p) return;
-            const nv = prompt('Nieuwe paginanaam:', p.name) || p.name;
-            p.name = nv.trim() || p.name;
-            this.persistPagesToLocalStorage();
-            renderList();
-            fillDetails();
-        };
-
-        content.querySelector('#pmDelete').onclick = async () => {
-            if (this.pages.length <= 1) { this.showNotification('Minimaal 1 pagina vereist', 'info'); return; }
-            if (!confirm('Deze pagina verwijderen?')) return;
-            const idx = this.pages.findIndex(x => x.id === selectedId);
-            if (idx >= 0) {
-                const removed = this.pages.splice(idx, 1)[0];
-                if (removed.id === this.currentPageId) {
-                    this.currentPageId = this.pages[0].id;
-                    await this.switchToPage(this.currentPageId);
-                }
-                selectedId = this.pages[0].id;
-                this.persistPagesToLocalStorage();
-                renderList();
-                fillDetails();
-            }
-        };
-    }
 
     async switchToPage(pageId) {
         if (pageId === this.currentPageId) return;

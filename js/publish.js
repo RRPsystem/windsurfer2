@@ -263,3 +263,107 @@ window.BuilderPublishAPI.saveFooterDraft = saveFooterDraft;
 window.BuilderPublishAPI.publishFooter = publishFooter;
 window.BuilderPublishAPI.saveMenuDraft = saveMenuDraft;
 window.BuilderPublishAPI.publishMenu = publishMenu;
+
+// ==============================
+// News (content-api: type=news_items)
+// Base: {VITE_SUPABASE_URL}/functions/v1/content-api
+// Endpoints:
+//  - POST   /content-api/save?type=news_items
+//  - POST   /content-api/publish?type=news_items
+//  - GET    /content-api/list?type=news_items&brand_id=...&status=published
+//  - GET    /content-api/{id}?type=news_items
+//  - GET    /content-api?type=news_items&brand_id=...&slug=...
+//  - DELETE /content-api/{id}?type=news_items
+// All require Authorization: Bearer <token>
+// ==============================
+
+function contentApiBase() {
+  // Prefer explicit Bolt API baseUrl when present; otherwise fall back to BOLT_DB.url
+  const supa = (hasBoltApi() ? boltProjectBase() : (window.BOLT_DB && window.BOLT_DB.url)) || '';
+  if (!supa) return '';
+  // Base should be .../functions/v1 ; endpoints will append /content-api/...
+  return `${supa.replace(/\/$/, '')}/functions/v1`;
+}
+
+function contentApiHeaders() {
+  const h = { 'Content-Type': 'application/json' };
+  const token = window.CURRENT_TOKEN || '';
+  if (token) h.Authorization = `Bearer ${token}`;
+  const apiKey = (window.BOLT_API && window.BOLT_API.apiKey) || (window.BOLT_DB && window.BOLT_DB.anonKey);
+  if (apiKey) h.apikey = apiKey;
+  return h;
+}
+
+async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, featured_image, status = 'draft' }) {
+  const base = contentApiBase();
+  if (!base) throw new Error('content-api base URL ontbreekt');
+  const url = `${base}/content-api/save?type=news_items`;
+  const body = { brand_id, title, slug, content: content || {}, excerpt: excerpt || '', featured_image: featured_image || '', status };
+  if (id) body.id = id;
+  const res = await fetch(url, { method: 'POST', headers: contentApiHeaders(), body: JSON.stringify(body) });
+  let data = null; try { data = await res.json(); } catch {}
+  if (!res.ok) { const msg = (data && (data.error || data.message)) || `news save failed: ${res.status}`; throw new Error(msg); }
+  return data; // expect { id, slug, status, ... }
+}
+
+async function newsPublish({ brand_id, id, slug }) {
+  const base = contentApiBase();
+  if (!base) throw new Error('content-api base URL ontbreekt');
+  const url = `${base}/content-api/publish?type=news_items`;
+  const body = { brand_id };
+  if (id) body.id = id; else if (slug) body.slug = slug;
+  const res = await fetch(url, { method: 'POST', headers: contentApiHeaders(), body: JSON.stringify(body) });
+  let data = null; try { data = await res.json(); } catch {}
+  if (!res.ok) { const msg = (data && (data.error || data.message)) || `news publish failed: ${res.status}`; throw new Error(msg); }
+  return data; // expect { id, slug, status: 'published', preview_url/public_url? }
+}
+
+async function newsList({ brand_id, status = 'published' }) {
+  const base = contentApiBase();
+  if (!base) throw new Error('content-api base URL ontbreekt');
+  const u = `${base}/content-api/list?type=news_items&brand_id=${encodeURIComponent(brand_id)}&status=${encodeURIComponent(status)}`;
+  const res = await fetch(u, { headers: contentApiHeaders() });
+  let data = null; try { data = await res.json(); } catch {}
+  if (!res.ok) { const msg = (data && (data.error || data.message)) || `news list failed: ${res.status}`; throw new Error(msg); }
+  return data;
+}
+
+async function newsGetById({ id }) {
+  const base = contentApiBase();
+  if (!base) throw new Error('content-api base URL ontbreekt');
+  const u = `${base}/content-api/${encodeURIComponent(id)}?type=news_items`;
+  const res = await fetch(u, { headers: contentApiHeaders() });
+  let data = null; try { data = await res.json(); } catch {}
+  if (!res.ok) { const msg = (data && (data.error || data.message)) || `news get failed: ${res.status}`; throw new Error(msg); }
+  return data;
+}
+
+async function newsGetBySlug({ brand_id, slug }) {
+  const base = contentApiBase();
+  if (!base) throw new Error('content-api base URL ontbreekt');
+  const params = new URLSearchParams({ type: 'news_items', brand_id: brand_id || '', slug: slug || '' });
+  const u = `${base}/content-api?${params.toString()}`;
+  const res = await fetch(u, { headers: contentApiHeaders() });
+  let data = null; try { data = await res.json(); } catch {}
+  if (!res.ok) { const msg = (data && (data.error || data.message)) || `news getBySlug failed: ${res.status}`; throw new Error(msg); }
+  return data;
+}
+
+async function newsDelete({ id }) {
+  const base = contentApiBase();
+  if (!base) throw new Error('content-api base URL ontbreekt');
+  const u = `${base}/content-api/${encodeURIComponent(id)}?type=news_items`;
+  const res = await fetch(u, { method: 'DELETE', headers: contentApiHeaders() });
+  if (!res.ok) { let data = null; try { data = await res.json(); } catch {}; const msg = (data && (data.error || data.message)) || `news delete failed: ${res.status}`; throw new Error(msg); }
+  return { ok: true };
+}
+
+// Expose news API
+window.BuilderPublishAPI.news = {
+  saveDraft: newsSaveDraft,
+  publish: newsPublish,
+  list: newsList,
+  getById: newsGetById,
+  getBySlug: newsGetBySlug,
+  remove: newsDelete
+};
