@@ -312,9 +312,45 @@ async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, feat
   if (author_type) body.author_type = author_type;
   if (author_id) body.author_id = author_id;
   if (id) body.id = id;
-  const res = await fetch(url, { method: 'POST', headers: contentApiHeaders(), body: JSON.stringify(body) });
-  let data = null; try { data = await res.json(); } catch {}
-  if (!res.ok) { const msg = (data && (data.error || data.message)) || `news save failed: ${res.status}`; throw new Error(msg); }
+  // Debug (mask secrets)
+  try {
+    const hdr = contentApiHeaders();
+    const masked = {
+      Authorization: hdr.Authorization ? 'Bearer ***' : undefined,
+      apikey: hdr.apikey ? '***' : undefined,
+      'Content-Type': hdr['Content-Type']
+    };
+    console.debug('[newsSaveDraft] request', {
+      base,
+      url,
+      brand_id,
+      title,
+      slug,
+      hasToken: !!hdr.Authorization,
+      hasApiKey: !!hdr.apikey,
+      author_type: body.author_type || null,
+      author_id: body.author_id ? String(body.author_id).slice(0,6) + '…' : null,
+      headers: masked
+    });
+  } catch {}
+
+  let res;
+  try {
+    res = await fetch(url, { method: 'POST', headers: contentApiHeaders(), body: JSON.stringify(body) });
+  } catch (netErr) {
+    console.warn('[newsSaveDraft] network error', netErr);
+    throw netErr;
+  }
+  let data = null;
+  try { data = await res.json(); } catch { /* keep data null for error details below */ }
+  if (!res.ok) {
+    let text = '';
+    try { text = await res.text(); } catch {}
+    const msg = (data && (data.error || data.message)) || text || `news save failed: ${res.status}`;
+    console.warn('[newsSaveDraft] HTTP error', { status: res.status, msg, data });
+    throw new Error(msg);
+  }
+  console.debug('[newsSaveDraft] success', { id: data && data.id, slug: data && data.slug, status: data && data.status });
   return data; // expect { id, slug, status, ... }
 }
 
