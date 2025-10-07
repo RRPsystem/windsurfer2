@@ -319,66 +319,77 @@
       });
     </script>
     <script>
-      // Bolt header customization: show Bouwtype + Save + Preview; hide title/slug & unused buttons
+      // Bolt header customization: keep only relevant buttons in deeplink context
+      function applyBoltHeaderVisibility(){
+        try {
+          const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl);
+          if (!isBolt) return;
+          const pageMeta = document.querySelector('.app-header .page-meta');
+          if (pageMeta) pageMeta.style.display = '';
+          // Hide legacy/buttons we don't want in Bolt
+          const hideIds = [
+            'importTcBtn',
+            'headerBuilderBtn',
+            'footerBuilderBtn',
+            'openProjectBtn',
+            'exportBtn',
+            'gitPushBtn',
+            'publishBtn',
+            'layoutBtn' // hide layout to reduce clutter; can re-enable later if needed
+          ];
+          hideIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+          // Ensure keep-visible
+          ['pagesBtn','backToDashboardBtn','saveProjectBtn','previewBtn'].forEach(id => {
+            const el = document.getElementById(id); if (el) el.style.display = '';
+          });
+        } catch {}
+      }
+
       document.addEventListener('DOMContentLoaded', () => {
         try {
           const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl);
           if (!isBolt) return;
 
           const headerRight = document.querySelector('.app-header .header-right');
-          const pageMeta = document.querySelector('.app-header .page-meta');
-          // In Bolt-context willen we juist Titel/Slug zichtbaar hebben om pagina-naam te kunnen instellen
-          if (pageMeta) pageMeta.style.display = '';
+          applyBoltHeaderVisibility();
 
-          // Hide buttons we no longer want in deeplink context
-          ['importTcBtn','menuBuilderBtn','publishBtn'].forEach(id => {
-            const el = document.getElementById(id); if (el) el.style.display = 'none';
-          });
-
-          // Ensure Save and Preview are visible
-          ['saveProjectBtn','previewBtn'].forEach(id => {
-            const el = document.getElementById(id); if (el) el.style.display = '';
-          });
-
-          // Insert Bouwtype dropdown in header (styled like existing controls)
+          // Insert Bouwtype dropdown (only once)
           if (headerRight && !document.getElementById('topModeSelect')){
             const wrap = document.createElement('div');
-            wrap.style.display = 'flex';
-            wrap.style.alignItems = 'center';
-            wrap.style.gap = '8px';
-            const lbl = document.createElement('label');
-            lbl.textContent = 'Bouwtype';
-            lbl.style.cssText = 'color:#f8fafc;font-size:12px;opacity:.9;';
-            const sel = document.createElement('select');
-            sel.id = 'topModeSelect';
-            sel.className = 'form-control';
-            sel.style.cssText = 'height:28px;padding:4px 8px;border-radius:6px;border:1px solid #cbd5e1;min-width:180px;';
+            wrap.style.display = 'flex'; wrap.style.alignItems = 'center'; wrap.style.gap = '8px';
+            const lbl = document.createElement('label'); lbl.textContent = 'Bouwtype'; lbl.style.cssText = 'color:#f8fafc;font-size:12px;opacity:.9;';
+            const sel = document.createElement('select'); sel.id = 'topModeSelect'; sel.className = 'form-control'; sel.style.cssText = 'height:28px;padding:4px 8px;border-radius:6px;border:1px solid #cbd5e1;min-width:180px;';
             sel.innerHTML = `
               <option value="page">Web pagina</option>
               <option value="travel">Reizen</option>
               <option value="news">Nieuwsartikel</option>
               <option value="destination">Bestemmingspagina</option>
               <option value="menu">Menu & footer</option>`;
-            wrap.appendChild(lbl);
-            wrap.appendChild(sel);
+            wrap.appendChild(lbl); wrap.appendChild(sel);
             headerRight.insertBefore(wrap, headerRight.firstChild);
-
-            // Sync initial value to current mode (hash or stored), and update router on change
             try {
               const hashMode = (location.hash.match(/#\/mode\/([a-z]+)/i)||[])[1];
               const storedMode = localStorage.getItem('wb_mode');
-              const mode = hashMode || storedMode || 'page';
-              sel.value = mode;
+              const mode = hashMode || storedMode || 'page'; sel.value = mode;
             } catch {}
             sel.onchange = () => { try { location.hash = `#/mode/${sel.value}`; } catch {} };
           }
 
-          // Save button behavior: prompt for title/slug (once) and save (lokaal + draft naar Bolt)
+          // Re-apply on hash changes and DOM mutations (e.g., after actions that reflow header)
+          window.addEventListener('hashchange', () => applyBoltHeaderVisibility());
+          try {
+            const header = document.querySelector('.app-header');
+            if (header) {
+              const mo = new MutationObserver(() => applyBoltHeaderVisibility());
+              mo.observe(header, { childList: true, subtree: true, attributes: true });
+            }
+          } catch {}
+
+          // Save button behavior unchanged; keep existing handler
           const saveBtn = document.getElementById('saveProjectBtn');
           if (saveBtn){
             saveBtn.onclick = async () => {
               try {
-                // Try to derive current meta; fallback to prompts
                 const saved = localStorage.getItem('wb_project');
                 let cur = null;
                 try {
@@ -396,7 +407,6 @@
                   const base = (title||'Nieuwe pagina').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
                   slug = prompt('Pagina slug', base) || base || 'pagina';
                 }
-                // Update local state so autosave/save gebruikt deze waarden
                 try {
                   window.websiteBuilder && (function(){
                     const wb = window.websiteBuilder;
@@ -405,10 +415,7 @@
                     wb.persistPagesToLocalStorage();
                   })();
                 } catch {}
-                // Force a local save
                 try { window.websiteBuilder?.saveProject(true); } catch {}
-
-                // Save as draft to Bolt (met titel/slug gegarandeerd)
                 try {
                   const brand_id = window.CURRENT_BRAND_ID;
                   if (!brand_id) throw new Error('brand_id ontbreekt');
@@ -419,7 +426,6 @@
                 } catch (e) {
                   console.warn('Draft naar Bolt mislukt:', e?.message||e);
                 }
-
                 try { window.websiteBuilder?.showNotification('💾 Concept opgeslagen (lokaal + Bolt-draft)', 'success'); } catch {}
               } catch (e) { console.warn(e); }
             };
