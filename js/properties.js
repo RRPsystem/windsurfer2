@@ -616,7 +616,23 @@ class PropertiesPanel {
 
         // Background image
         const bg = component.querySelector('.hero-bg');
-        const bgImg = component.querySelector('.hero-bg img');
+        let bgImg = component.querySelector('.hero-bg img');
+        // Robustness: if img is missing (older markup), create it and migrate CSS background-image
+        if (bg && !bgImg) {
+            bgImg = document.createElement('img');
+            bgImg.className = 'hero-bg-img';
+            // Try to migrate existing CSS background
+            try {
+                const cssBg = bg.style.backgroundImage || getComputedStyle(bg).backgroundImage || '';
+                const m = cssBg.match(/^url\("?(.+?)"?\)$/);
+                if (m && m[1]) bgImg.src = m[1];
+            } catch {}
+            bgImg.alt = 'Hero background';
+            bgImg.decoding = 'async';
+            bgImg.loading = 'eager';
+            bg.insertBefore(bgImg, bg.firstChild || null);
+            try { bg.style.backgroundImage = ''; } catch {}
+        }
         const overlay = component.querySelector('.hero-overlay');
         const badge = component.querySelector('.hero-badge');
         const title = component.querySelector('.hero-title');
