@@ -165,6 +165,11 @@
       showPageWorkspace(false);
       renderModeView('menu');
       history.replaceState(null, '', '#/mode/menu');
+    } else if (mode === 'news'){
+      // For news we keep the builder visible but also show the info bar with actions
+      showPageWorkspace(true);
+      renderModeView('news');
+      history.replaceState(null, '', `#/mode/${mode}`);
     } else {
       showPageWorkspace(false);
       renderModeView(mode);
@@ -190,8 +195,8 @@
     if (topSel){ topSel.onchange = () => setMode(topSel.value); }
 
     const hashMode = readModeFromHash();
-    const storedMode = readModeFromStorage();
-    setMode(hashMode || storedMode || 'page');
+    // Default to 'page' unless explicitly provided in hash
+    setMode(hashMode || 'page');
 
     window.addEventListener('hashchange', () => {
       const m = readModeFromHash();
