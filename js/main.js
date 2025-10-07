@@ -1376,10 +1376,16 @@ class WebsiteBuilder {
             const author_type = url.searchParams.get('author_type'); // not used yet, but reserved
             const author_id = url.searchParams.get('author_id');     // not used yet, but reserved
             const page_id = url.searchParams.get('page_id');
+            const brand_id = url.searchParams.get('brand_id') || '';
+            const content_type = url.searchParams.get('content_type') || 'news_items';
             if (!api || !token) return; // require both for edge
 
             if (news_slug) {
-                const apiUrl = `${api}/functions/v1/content-api/news/${encodeURIComponent(news_slug)}`;
+                // New shape: /content-api/{slug}?type={content_type}&brand_id={brand_id}
+                const qs = new URLSearchParams();
+                if (content_type) qs.set('type', content_type);
+                if (brand_id) qs.set('brand_id', brand_id);
+                const apiUrl = `${api}/functions/v1/content-api/${encodeURIComponent(news_slug)}?${qs.toString()}`;
                 const r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
                 if (!r.ok) throw new Error(await r.text());
                 const newsData = await r.json();
@@ -1457,7 +1463,16 @@ class WebsiteBuilder {
             const contentJson = (typeof window.exportBuilderAsJSON === 'function') ? window.exportBuilderAsJSON() : this.getProjectData();
             if (!contentJson) return;
             let apiUrl = '';
-            if (kind === 'news') apiUrl = `${api}/functions/v1/content-api/news/${encodeURIComponent(key)}`;
+            if (kind === 'news') {
+                // New shape: /content-api/{slug}?type={content_type}&brand_id={brand_id}
+                const currentUrl = new URL(window.location.href);
+                const brand_id = currentUrl.searchParams.get('brand_id') || '';
+                const content_type = currentUrl.searchParams.get('content_type') || 'news_items';
+                const qs = new URLSearchParams();
+                if (content_type) qs.set('type', content_type);
+                if (brand_id) qs.set('brand_id', brand_id);
+                apiUrl = `${api}/functions/v1/content-api/${encodeURIComponent(key)}?${qs.toString()}`;
+            }
             if (kind === 'page') apiUrl = `${api}/functions/v1/pages-api/pages/${encodeURIComponent(key)}`;
             if (!apiUrl) return;
             const r = await fetch(apiUrl, {
