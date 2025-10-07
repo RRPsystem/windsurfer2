@@ -32,6 +32,8 @@ class ComponentFactory {
             return null;
         }
 
+    }
+
     // DESTINATIONS: Tabs for Cities / Regions / UNESCO (cards grid)
     static createDestTabs(options = {}) {
         const section = document.createElement('section');
