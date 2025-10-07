@@ -44,6 +44,23 @@ class PropertiesPanel {
         // Title & Subtitle
         this.createTextInput('Titel', component.querySelector('.cf-title')?.textContent || '', (v)=> api.setTitle && api.setTitle(v));
         this.createTextInput('Subtitel', component.querySelector('.cf-subtitle')?.textContent || '', (v)=> api.setSubtitle && api.setSubtitle(v));
+        // AI: Extra tekst generator (plaatst in body)
+        try {
+            const aiRowExtra = document.createElement('div');
+            aiRowExtra.style.display='flex'; aiRowExtra.style.gap='8px'; aiRowExtra.style.margin='6px 0 8px';
+            const aiBtnExtra = this.createButton('Vul met AI (Extra tekst)', async () => {
+                try {
+                    if (!window.BuilderAI || typeof window.BuilderAI.generate !== 'function') { alert('AI module niet geladen.'); return; }
+                    const country = (window.BuilderAI.guessCountry && window.BuilderAI.guessCountry()) || '';
+                    const r = await window.BuilderAI.generate('extra', { country, language: 'nl' });
+                    const text = r?.extra?.text || '';
+                    if (text) api.setBodyHtml && api.setBodyHtml(`<p>${text.replace(/\n+/g,'</p><p>')}</p>`);
+                } catch { alert('AI genereren mislukt.'); }
+            });
+            aiBtnExtra.style.background = '#0ea5e9'; aiBtnExtra.style.borderColor = '#0ea5e9'; aiBtnExtra.style.color = '#fff';
+            aiRowExtra.appendChild(aiBtnExtra);
+            this.panel.appendChild(aiRowExtra);
+        } catch {}
         // Header alignment (left/center)
         const headerCentered = component.classList.contains('center-header') ? 'center' : 'left';
         this.createSelectInput('Titel uitlijning', headerCentered, [
@@ -383,6 +400,29 @@ class PropertiesPanel {
         const badgeIcon = component.querySelector('.fh-badge i');
         const metricNum = component.querySelector('.fh-metric .num');
         const metricLbl = component.querySelector('.fh-metric .lbl');
+
+        // AI: Highlights generator (6 items -> vult lijsttitels/ondertitels)
+        try {
+            const aiBtnHl = this.createButton('Genereer highlights (6) met AI', async () => {
+                try {
+                    if (!window.BuilderAI || typeof window.BuilderAI.generate !== 'function') { alert('AI module niet geladen.'); return; }
+                    const country = (window.BuilderAI.guessCountry && window.BuilderAI.guessCountry()) || '';
+                    const r = await window.BuilderAI.generate('highlights', { country, language: 'nl', count: 6 });
+                    const items = Array.isArray(r?.highlights) ? r.highlights : [];
+                    if (!items.length) { alert('Geen highlights ontvangen.'); return; }
+                    const nodes = component.querySelectorAll('.fh-list .fh-item');
+                    nodes.forEach((node, i) => {
+                        const d = items[i]; if (!d) return;
+                        const tEl = node.querySelector('.fh-item-title');
+                        const sEl = node.querySelector('.fh-item-sub');
+                        if (tEl) tEl.textContent = d.title || tEl.textContent;
+                        if (sEl) sEl.textContent = d.summary || sEl.textContent;
+                    });
+                } catch { alert('AI highlights genereren mislukt.'); }
+            });
+            aiBtnHl.style.background = '#0ea5e9'; aiBtnHl.style.borderColor = '#0ea5e9'; aiBtnHl.style.color = '#fff';
+            this.panel.appendChild(aiBtnHl);
+        } catch {}
 
         if (labelEl) this.createTextInput('Label', labelEl.textContent, (v) => { labelEl.textContent = v; });
         if (titleEl) this.createTextInput('Titel', titleEl.textContent, (v) => { titleEl.textContent = v; });
@@ -2089,6 +2129,30 @@ class PropertiesPanel {
         const subEl = component.querySelector('.tt-subtitle');
         if (titleEl) this.createTextInput('Sectietitel', titleEl.textContent, (v) => { titleEl.textContent = v; });
         if (subEl) this.createTextInput('Subtitel', subEl.textContent, (v) => { subEl.textContent = v; });
+        // AI: Activiteiten generator (6 kaarten -> titel, samenvatting, icoon)
+        try {
+            const aiBtnAct = this.createButton('Genereer activiteiten (6) met AI', async () => {
+                try {
+                    if (!window.BuilderAI || typeof window.BuilderAI.generate !== 'function') { alert('AI module niet geladen.'); return; }
+                    const country = (window.BuilderAI.guessCountry && window.BuilderAI.guessCountry()) || '';
+                    const r = await window.BuilderAI.generate('activities', { country, language: 'nl', count: 6 });
+                    const items = Array.isArray(r?.activities) ? r.activities : [];
+                    if (!items.length) { alert('Geen activiteiten ontvangen.'); return; }
+                    const cards = component.querySelectorAll('.tt-card');
+                    cards.forEach((card, i) => {
+                        const d = items[i]; if (!d) return;
+                        const h4 = card.querySelector('h4');
+                        const p = card.querySelector('p');
+                        const iconEl = card.querySelector('.icon i');
+                        if (h4) h4.textContent = d.title || h4.textContent;
+                        if (p) p.textContent = d.summary || p.textContent;
+                        if (iconEl && d.icon) { iconEl.className = `fas ${d.icon}`; }
+                    });
+                } catch { alert('AI activiteiten genereren mislukt.'); }
+            });
+            aiBtnAct.style.background = '#0ea5e9'; aiBtnAct.style.borderColor = '#0ea5e9'; aiBtnAct.style.color = '#fff';
+            this.panel.appendChild(aiBtnAct);
+        } catch {}
 
         // Colors: title, subtitle, and labels on cards
         if (titleEl) {
