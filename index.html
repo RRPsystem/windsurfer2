@@ -388,7 +388,7 @@
             }
           } catch {}
 
-          // Save button behavior unchanged; keep existing handler
+          // Save button: route to Pages or News depending on mode
           const saveBtn = document.getElementById('saveProjectBtn');
           if (saveBtn){
             saveBtn.onclick = async () => {
@@ -419,17 +419,31 @@
                   })();
                 } catch {}
                 try { window.websiteBuilder?.saveProject(true); } catch {}
+
                 try {
                   const brand_id = window.CURRENT_BRAND_ID;
                   if (!brand_id) throw new Error('brand_id ontbreekt');
                   const contentJson = (typeof window.exportBuilderAsJSON === 'function') ? window.exportBuilderAsJSON() : { title, slug };
                   contentJson.title = title; contentJson.slug = slug;
+                  const htmlString = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '';
                   if (!window.BuilderPublishAPI) throw new Error('Publish helpers niet geladen');
-                  await window.BuilderPublishAPI.saveDraft({ brand_id, title, slug, content_json: contentJson });
+                  const mode = (window.websiteBuilder && typeof window.websiteBuilder.getCurrentMode === 'function') ? window.websiteBuilder.getCurrentMode() : 'page';
+                  if (mode === 'news' && window.BuilderPublishAPI.news) {
+                    await window.BuilderPublishAPI.news.saveDraft({
+                      brand_id,
+                      title: contentJson.title,
+                      slug: contentJson.slug,
+                      content: { json: contentJson, html: htmlString },
+                      status: 'draft'
+                    });
+                    try { window.websiteBuilder?.showNotification('📰 Concept opgeslagen (Nieuws)', 'success'); } catch {}
+                  } else {
+                    await window.BuilderPublishAPI.saveDraft({ brand_id, title, slug, content_json: contentJson });
+                    try { window.websiteBuilder?.showNotification('💾 Concept opgeslagen (lokaal + Bolt-draft)', 'success'); } catch {}
+                  }
                 } catch (e) {
-                  console.warn('Draft naar Bolt mislukt:', e?.message||e);
+                  console.warn('Draft opslaan mislukt:', e?.message||e);
                 }
-                try { window.websiteBuilder?.showNotification('💾 Concept opgeslagen (lokaal + Bolt-draft)', 'success'); } catch {}
               } catch (e) { console.warn(e); }
             };
           }
