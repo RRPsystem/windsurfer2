@@ -1896,39 +1896,74 @@ class ComponentFactory {
     static createToolbar() {
         const toolbar = document.createElement('div');
         toolbar.className = 'component-toolbar';
-        
+
         const editBtn = document.createElement('button');
         editBtn.className = 'toolbar-btn';
         editBtn.setAttribute('data-action', 'edit');
         editBtn.innerHTML = '<i class="fas fa-edit"></i>';
         editBtn.title = 'Bewerken';
-        
+
         const copyBtn = document.createElement('button');
         copyBtn.className = 'toolbar-btn';
         copyBtn.setAttribute('data-action', 'copy');
         copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
         copyBtn.title = 'Kopiëren';
-        
-        // Let op: geen inline delete-knop meer. Verwijderen doe je via de rechterzijbalk of via de Delete-toets.
-        
+
+        // Move Up/Down buttons
+        const upBtn = document.createElement('button');
+        upBtn.className = 'toolbar-btn';
+        upBtn.setAttribute('data-action', 'move-up');
+        upBtn.title = 'Omhoog verplaatsen';
+        upBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+
+        const downBtn = document.createElement('button');
+        downBtn.className = 'toolbar-btn';
+        downBtn.setAttribute('data-action', 'move-down');
+        downBtn.title = 'Omlaag verplaatsen';
+        downBtn.innerHTML = '<i class="fas fa-arrow-down"></i>';
+
+        // Copy handler
         copyBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             const component = toolbar.parentElement;
             const clone = component.cloneNode(true);
-            clone.id = this.generateId(clone.getAttribute('data-component'));
+            clone.id = ComponentFactory.generateId(clone.getAttribute('data-component'));
             component.parentElement.insertBefore(clone, component.nextSibling);
             // Rebind toolbar events on the clone
             ComponentFactory.rebindToolbar(clone);
             ComponentFactory.makeSelectable(clone);
         });
-        
+
+        // Move handlers
+        const moveUp = (component) => {
+            const parent = component?.parentElement; if (!parent) return;
+            let prev = component.previousElementSibling;
+            while (prev && !prev.classList.contains('wb-component')) prev = prev.previousElementSibling;
+            if (prev) parent.insertBefore(component, prev);
+            try { window.dragDropManager?.saveState?.(); } catch {}
+            try { component.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch {}
+            component.classList.add('selected');
+        };
+        const moveDown = (component) => {
+            const parent = component?.parentElement; if (!parent) return;
+            let next = component.nextElementSibling;
+            while (next && !next.classList.contains('wb-component')) next = next.nextElementSibling;
+            if (next) parent.insertBefore(next, component);
+            try { window.dragDropManager?.saveState?.(); } catch {}
+            try { component.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch {}
+            component.classList.add('selected');
+        };
+        upBtn.addEventListener('click', (e) => { e.stopPropagation(); const comp = toolbar.parentElement; moveUp(comp); });
+        downBtn.addEventListener('click', (e) => { e.stopPropagation(); const comp = toolbar.parentElement; moveDown(comp); });
+
         toolbar.appendChild(editBtn);
         toolbar.appendChild(copyBtn);
+        toolbar.appendChild(upBtn);
+        toolbar.appendChild(downBtn);
         
         return toolbar;
     }
 
-    // Show a small icon badge based on data-component type (editor-only hint)
     static addTypeBadge(element) {
         try {
             const type = element.getAttribute('data-component') || '';
