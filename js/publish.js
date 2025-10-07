@@ -294,11 +294,23 @@ function contentApiHeaders() {
   return h;
 }
 
+function readQueryParam(name) {
+  try {
+    const u = new URL(window.location.href);
+    return u.searchParams.get(name);
+  } catch { return null; }
+}
+
 async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, featured_image, status = 'draft' }) {
   const base = contentApiBase();
   if (!base) throw new Error('content-api base URL ontbreekt');
   const url = `${base}/content-api/save?type=news_items`;
   const body = { brand_id, title, slug, content: content || {}, excerpt: excerpt || '', featured_image: featured_image || '', status };
+  // Attach author attribution if provided via URL or globals (for admin attribution in Bolt)
+  const author_type = readQueryParam('author_type') || (window.CURRENT_AUTHOR_TYPE || null);
+  const author_id = readQueryParam('author_id') || readQueryParam('user_id') || (window.CURRENT_USER_ID || null);
+  if (author_type) body.author_type = author_type;
+  if (author_id) body.author_id = author_id;
   if (id) body.id = id;
   const res = await fetch(url, { method: 'POST', headers: contentApiHeaders(), body: JSON.stringify(body) });
   let data = null; try { data = await res.json(); } catch {}
