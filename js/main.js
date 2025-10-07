@@ -138,6 +138,12 @@ class WebsiteBuilder {
                 if (gallery) canvas.appendChild(gallery);
             } catch (e) { console.warn('Destination gallery failed', e); }
 
+            // 7) Sublibrary tabs (Cities / Regions / UNESCO)
+            try {
+                const tabs = ComponentFactory.createComponent('dest-tabs', {});
+                if (tabs) canvas.appendChild(tabs);
+            } catch (e) { console.warn('Destination tabs failed', e); }
+
             // Update current page meta + persist
             const cur = (this.pages || []).find(p => p.id === this.currentPageId) || (this.pages || [])[0] || null;
             if (cur) {
