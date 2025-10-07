@@ -643,6 +643,7 @@ class PropertiesPanel {
         const currentBg = (bgImg && bgImg.src) ? bgImg.src : '';
         const bgGroup = this.createTextInput('Achtergrond URL', currentBg, (value) => {
             if (bgImg) bgImg.src = value;
+            if (bg && value) try { bg.style.backgroundImage = `url("${value}")`; } catch {}
         });
         const inputEl = bgGroup.querySelector('input.form-control');
         if (inputEl) {
@@ -667,8 +668,9 @@ class PropertiesPanel {
                 if (!window.MediaPicker) return;
                 const res = await window.MediaPicker.openImage();
                 const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
-                if (src && bgImg) {
-                    bgImg.src = src;
+                if (src) {
+                    if (bgImg) bgImg.src = src;
+                    if (bg) try { bg.style.backgroundImage = `url("${src}")`; } catch {}
                     inputEl.value = src;
                 }
             };
@@ -680,8 +682,9 @@ class PropertiesPanel {
             if (!window.MediaPicker) return;
             const res = await window.MediaPicker.openImage();
             const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
-            if (src && bgImg) {
-                bgImg.src = src;
+            if (src) {
+                if (bgImg) bgImg.src = src;
+                if (bg) try { bg.style.backgroundImage = `url("${src}")`; } catch {}
             }
         });
         this.panel.appendChild(pickBgBtn);

@@ -142,8 +142,6 @@
         </div>`;
       const back = view.querySelector('#backToPageMode');
       if (back){ back.onclick = () => setMode('page'); }
-      // No button for news; auto scaffold happens in setMode('news')
-    }
 
     view.style.display = '';
   }
@@ -152,28 +150,46 @@
     if (!MODES.some(x=>x.value===mode)) mode = 'page';
     saveMode(mode);
 
-    // Update dropdown
-    const sel = document.getElementById('modeSelect');
-    if (sel) sel.value = mode;
-    const topSel = document.getElementById('topModeSelect');
-    if (topSel) topSel.value = mode;
+    // Update dropdowns to reflect mode
+    const sel = document.getElementById('modeSelect'); if (sel) sel.value = mode;
+    const topSel = document.getElementById('topModeSelect'); if (topSel) topSel.value = mode;
 
-    // Toggle header buttons depending on mode
+    // Toggle header buttons
     toggleHeaderForMode(mode);
 
-    if (mode === 'page'){
+    if (mode === 'page') {
+      // Always show full builder workspace
       showPageWorkspace(true);
       const view = document.getElementById('modeView'); if (view) view.style.display = 'none';
-    } else if (mode === 'menu'){
-      showPageWorkspace(false);
-      renderModeView('menu');
-      history.replaceState(null, '', '#/mode/menu');
-    } else if (mode === 'news'){
-      // For news we keep only the builder visible (no info panel)
+      history.replaceState(null, '', '#/mode/page');
+      return;
+    }
+
+    if (mode === 'destination') {
+      // Show builder and auto-scaffold a destination template if canvas is empty
       showPageWorkspace(true);
       const view = document.getElementById('modeView'); if (view) view.style.display = 'none';
-      history.replaceState(null, '', `#/mode/${mode}`);
-      // Auto-scaffold a news article if canvas is empty (no components) and not already done in this session
+      history.replaceState(null, '', '#/mode/destination');
+      setTimeout(() => {
+        try {
+          const canvas = document.getElementById('canvas');
+          const hasComponents = !!(canvas && canvas.querySelector('.wb-component'));
+          if (!hasComponents && window.websiteBuilder && typeof window.websiteBuilder.createDestinationTemplate === 'function') {
+            if (!window.__destinationTemplateAutoDone) {
+              window.websiteBuilder.createDestinationTemplate({ title: 'Bestemming' });
+              window.__destinationTemplateAutoDone = true;
+            }
+          }
+        } catch (e) { console.warn('Auto scaffold destination failed', e); }
+      }, 0);
+      return;
+    }
+
+    if (mode === 'news') {
+      // Keep builder visible; scaffold news if empty
+      showPageWorkspace(true);
+      const view = document.getElementById('modeView'); if (view) view.style.display = 'none';
+      history.replaceState(null, '', '#/mode/news');
       setTimeout(() => {
         try {
           const canvas = document.getElementById('canvas');
@@ -186,19 +202,28 @@
           }
         } catch (e) { console.warn('Auto scaffold news failed', e); }
       }, 0);
-    } else {
-      showPageWorkspace(false);
-      renderModeView(mode);
-      history.replaceState(null, '', `#/mode/${mode}`);
+      return;
     }
+
+    if (mode === 'menu') {
+      showPageWorkspace(false);
+      renderModeView('menu');
+      history.replaceState(null, '', '#/mode/menu');
+      return;
+    }
+
+    // Fallback info view
+    showPageWorkspace(false);
+    renderModeView(mode);
+    history.replaceState(null, '', `#/mode/${mode}`);
   }
 
   function toggleHeaderForMode(mode){
     try {
-      const isPage = mode === 'page';
+      const isPage = (mode === 'page' || mode === 'destination');
       // Always hide page management buttons to avoid confusion with Bolt-managed pages
       ['newPageQuickBtn','pagesBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-      // Layout button only in page mode
+      // Layout button only in page-like modes
       const layoutBtn = document.getElementById('layoutBtn');
       if (layoutBtn) layoutBtn.style.display = isPage ? '' : 'none';
       // Always keep essential buttons visible
@@ -226,4 +251,7 @@
   if (document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', init);
   } else { init(); }
+
+  // Expose a safe global so other scripts (e.g., header UI) can force a mode
+  try { window.WB_setMode = (m) => { try { setMode(m); } catch {} }; } catch {}
 })();
