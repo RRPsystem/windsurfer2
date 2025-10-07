@@ -1136,15 +1136,30 @@ class WebsiteBuilder {
         const htmlString = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson || undefined) : null;
         if (!contentJson || !htmlString) return;
         try {
-            const page = await window.BuilderPublishAPI.saveDraft({
-                brand_id,
-                title: contentJson.title,
-                slug: contentJson.slug,
-                content_json: contentJson
-            });
-            await window.BuilderPublishAPI.publishPage(page.id, htmlString);
-            this._lastAutoPublishAt = Date.now();
-            this.showNotification('✅ Wijzigingen gepubliceerd', 'success');
+            const mode = (typeof this.getCurrentMode === 'function') ? this.getCurrentMode() : 'page';
+            if (mode === 'news' && window.BuilderPublishAPI.news) {
+                // Save only as draft to content-api; do not publish automatically
+                await window.BuilderPublishAPI.news.saveDraft({
+                    brand_id,
+                    title: contentJson.title,
+                    slug: contentJson.slug,
+                    content: { json: contentJson, html: htmlString },
+                    status: 'draft'
+                });
+                this._lastAutoPublishAt = Date.now();
+                this.showNotification('📰 Concept opgeslagen (Nieuws)', 'success');
+            } else {
+                // Default: pages flow (save draft + publish)
+                const page = await window.BuilderPublishAPI.saveDraft({
+                    brand_id,
+                    title: contentJson.title,
+                    slug: contentJson.slug,
+                    content_json: contentJson
+                });
+                await window.BuilderPublishAPI.publishPage(page.id, htmlString);
+                this._lastAutoPublishAt = Date.now();
+                this.showNotification('✅ Wijzigingen gepubliceerd', 'success');
+            }
         } catch (err) {
             console.warn('Auto-publish failed', err);
             // Keep silent to avoid noisy UX; consider a single toast if persistent
