@@ -195,10 +195,7 @@
           const canvas = document.getElementById('canvas');
           const hasComponents = !!(canvas && canvas.querySelector('.wb-component'));
           if (!hasComponents && window.websiteBuilder && typeof window.websiteBuilder.createNewsArticleTemplate === 'function') {
-            if (!window.__newsTemplateAutoDone) {
-              window.websiteBuilder.createNewsArticleTemplate();
-              window.__newsTemplateAutoDone = true;
-            }
+            window.websiteBuilder.createNewsArticleTemplate();
           }
         } catch (e) { console.warn('Auto scaffold news failed', e); }
       }, 0);
