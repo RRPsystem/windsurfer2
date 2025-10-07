@@ -66,7 +66,24 @@
       const appBody = document.querySelector('.app-body');
       if (appBody && appBody.parentNode){
         appBody.parentNode.insertBefore(v, appBody.nextSibling);
-      } else {
+      } else if (mode === 'destination') {
+      // Keep builder visible; auto-scaffold a destination page if empty
+      showPageWorkspace(true);
+      const view = document.getElementById('modeView'); if (view) view.style.display = 'none';
+      history.replaceState(null, '', `#/mode/${mode}`);
+      setTimeout(() => {
+        try {
+          const canvas = document.getElementById('canvas');
+          const hasComponents = !!(canvas && canvas.querySelector('.wb-component'));
+          if (!hasComponents && window.websiteBuilder && typeof window.websiteBuilder.createDestinationTemplate === 'function') {
+            if (!window.__destinationTemplateAutoDone) {
+              window.websiteBuilder.createDestinationTemplate({ title: 'Japan' });
+              window.__destinationTemplateAutoDone = true;
+            }
+          }
+        } catch (e) { console.warn('Auto scaffold destination failed', e); }
+      }, 0);
+    } else {
         document.body.appendChild(v);
       }
     }

@@ -240,7 +240,13 @@
 
           if (brandId) window.CURRENT_BRAND_ID = brandId;
           if (token)   window.CURRENT_TOKEN = token;
-          if (api)     window.BOLT_API = { baseUrl: api };
+          if (api) {
+            window.BOLT_API = { baseUrl: api };
+            // Ensure Supabase client uses same base domain when provided via deeplink
+            window.BOLT_DB = window.BOLT_DB || {};
+            window.BOLT_DB.url = api.replace(/\/$/, '');
+            try { console.debug('[WB] Overriding BOLT_DB.url from deeplink api =', window.BOLT_DB.url); } catch {}
+          }
           if (apiKey) {
             window.BOLT_API = window.BOLT_API || {};
             window.BOLT_API.apiKey = apiKey;
@@ -261,7 +267,11 @@
             const tcApi   = getParam('tc_api');
             if (brandId) window.CURRENT_BRAND_ID = brandId;
             if (token)   window.CURRENT_TOKEN = token;
-            if (api)     { window.BOLT_API = window.BOLT_API || {}; window.BOLT_API.baseUrl = api; }
+            if (api)     {
+              window.BOLT_API = window.BOLT_API || {}; window.BOLT_API.baseUrl = api;
+              window.BOLT_DB = window.BOLT_DB || {}; window.BOLT_DB.url = api.replace(/\/$/, '');
+              try { console.debug('[WB] (hashchange) Overriding BOLT_DB.url from api =', window.BOLT_DB.url); } catch {}
+            }
             if (apiKey)  { window.BOLT_API = window.BOLT_API || {}; window.BOLT_API.apiKey = apiKey; }
             if (tcApi)   window.TC_API_BASE = tcApi.replace(/\/$/, '');
           } catch {}
@@ -437,6 +447,15 @@
                       status: 'draft'
                     });
                     try { window.websiteBuilder?.showNotification('📰 Concept opgeslagen (Nieuws)', 'success'); } catch {}
+                  } else if ((mode === 'destination' || mode === 'destinations') && window.BuilderPublishAPI.destinations) {
+                    await window.BuilderPublishAPI.destinations.saveDraft({
+                      brand_id,
+                      title: contentJson.title,
+                      slug: contentJson.slug,
+                      content: { json: contentJson, html: htmlString },
+                      status: 'draft'
+                    });
+                    try { window.websiteBuilder?.showNotification('🗺️ Concept opgeslagen (Bestemming)', 'success'); } catch {}
                   } else {
                     await window.BuilderPublishAPI.saveDraft({ brand_id, title, slug, content_json: contentJson });
                     try { window.websiteBuilder?.showNotification('💾 Concept opgeslagen (lokaal + Bolt-draft)', 'success'); } catch {}
