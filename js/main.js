@@ -1123,6 +1123,23 @@ class WebsiteBuilder {
 
     loadSavedProject() {
         try {
+            // If running from Bolt deeplink or in 'news' mode, start fresh to avoid pulling previous local pages
+            try {
+                const hash = String(location.hash || '');
+                const isNews = /#\/mode\/news/i.test(hash);
+                const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl);
+                if (isNews || isBolt) {
+                    // Ensure there is at least one blank page and skip restoring wb_project
+                    const canvas = document.getElementById('canvas');
+                    if (canvas) canvas.innerHTML = this.blankCanvasHtml();
+                    this.pages = [];
+                    this.currentPageId = null;
+                    this.ensurePagesInitialized();
+                    this.reattachEventListeners();
+                    return;
+                }
+            } catch {}
+
             const saved = localStorage.getItem('wb_project');
             if (saved) {
                 const projectData = JSON.parse(saved);
