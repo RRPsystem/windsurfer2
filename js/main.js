@@ -496,6 +496,7 @@ class WebsiteBuilder {
             this.setupWelcomeMessage();
             this.setupPublishButton();
             this.setupPagesButton();
+            this.setupNewPageQuickButton();
             this.setupLayoutButton();
             this.setupHeaderFooterBuilderLinks();
             this.setupBackToDashboardLink();
@@ -540,6 +541,33 @@ class WebsiteBuilder {
         const btn = document.getElementById('pagesBtn');
         if (!btn) return;
         btn.addEventListener('click', () => this.openPagesModal());
+    }
+
+    // ---------- Quick New Page button in header ----------
+    setupNewPageQuickButton() {
+        const btn = document.getElementById('newPageQuickBtn');
+        if (!btn) return;
+        btn.addEventListener('click', async () => {
+            const id = this.generateId('page');
+            const headerTitle = document.getElementById('pageTitleInput')?.value || '';
+            const defaultName = headerTitle.trim() || 'Nieuwe pagina';
+            const name = (prompt('Naam van nieuwe pagina:', defaultName) || defaultName).trim() || defaultName;
+            const slugify = (s) => String(s || '')
+                .toLowerCase()
+                .normalize('NFD').replace(/\p{Diacritic}+/gu, '')
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '')
+                .slice(0, 80);
+            const slug = slugify(name) || 'nieuwe-pagina';
+
+            const newPage = { id, name, slug, html: this.blankCanvasHtml() };
+            this.pages.push(newPage);
+            this.currentPageId = id;
+            this.persistPagesToLocalStorage();
+            await this.switchToPage(id);
+            try { if (typeof this._applyPageMetaToInputs === 'function') this._applyPageMetaToInputs(); } catch {}
+            this.showNotification('🆕 Nieuwe pagina aangemaakt', 'success');
+        });
     }
 
     openPagesModal() {
@@ -641,7 +669,18 @@ class WebsiteBuilder {
 
         content.querySelector('#pmNew').onclick = async () => {
             const id = this.generateId('page');
-            const newPage = { id, name: 'Nieuwe pagina', slug: 'nieuwe-pagina', html: this.blankCanvasHtml() };
+            const headerTitle = document.getElementById('pageTitleInput')?.value || '';
+            const defaultName = headerTitle.trim() || 'Nieuwe pagina';
+            const name = (prompt('Naam van nieuwe pagina:', defaultName) || defaultName).trim() || defaultName;
+            const slugify = (s) => String(s || '')
+                .toLowerCase()
+                .normalize('NFD').replace(/\p{Diacritic}+/gu, '')
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '')
+                .slice(0, 80);
+            const slug = slugify(name) || 'nieuwe-pagina';
+
+            const newPage = { id, name, slug, html: this.blankCanvasHtml() };
             this.pages.push(newPage);
             selectedId = id;
             this.persistPagesToLocalStorage();
@@ -650,6 +689,7 @@ class WebsiteBuilder {
             // Open the new page immediately with an empty canvas and sync meta inputs
             await this.switchToPage(id);
             try { if (typeof this._applyPageMetaToInputs === 'function') this._applyPageMetaToInputs(); } catch {}
+            this.showNotification('🆕 Nieuwe pagina aangemaakt', 'success');
         };
     };
 
@@ -661,13 +701,28 @@ class WebsiteBuilder {
         const target = this.pages.find(p => p.id === pageId);
         if (!target) return;
         const canvas = document.getElementById('canvas');
-        canvas.innerHTML = target.html || this.blankCanvasHtml();
+        const html = target.html || this.blankCanvasHtml();
+        canvas.innerHTML = html;
         this.currentPageId = pageId;
         this.reattachEventListeners();
         this.persistPagesToLocalStorage();
         // Sync page title/slug inputs with the newly active page
         try { if (typeof this._applyPageMetaToInputs === 'function') this._applyPageMetaToInputs(); } catch {}
         this.showNotification(`📄 Gewisseld naar: ${target.name}`, 'success');
+
+        // If this is a blank page, make sure the editor shows a clean slate (only drop-zone)
+        try {
+            const isBlank = /class=["']drop-zone["']/.test(html);
+            if (isBlank) {
+                // Ensure drop-zone is visible and no stray selections remain
+                const dz = canvas.querySelector('.drop-zone');
+                if (dz) dz.style.display = '';
+                document.querySelectorAll('.wb-component.selected').forEach(el => el.classList.remove('selected'));
+                if (window.PropertiesPanel && typeof window.PropertiesPanel.clearProperties === 'function') {
+                    window.PropertiesPanel.clearProperties();
+                }
+            }
+        } catch {}
     }
 
     captureCurrentCanvasToPage() {
