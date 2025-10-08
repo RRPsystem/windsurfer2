@@ -1867,12 +1867,13 @@ class WebsiteBuilder {
 
     loadSavedProject() {
         try {
-            // If running from Bolt deeplink or in 'news' mode, start fresh to avoid pulling previous local pages
+            // If running from News mode, start fresh. In Bolt context without Edge content, DO NOT early-return; allow local fallback.
             try {
                 const hash = String(location.hash || '');
                 const isNews = /#\/mode\/news/i.test(hash);
                 const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl);
-                if (isNews || isBolt) {
+                const hasEdge = !!this._edgeCtx;
+                if (isNews || (isBolt && hasEdge)) {
                     // Ensure there is at least one blank page and skip restoring wb_project
                     const canvas = document.getElementById('canvas');
                     if (canvas) canvas.innerHTML = this.blankCanvasHtml();
