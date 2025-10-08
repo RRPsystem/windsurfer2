@@ -40,6 +40,30 @@ class WebsiteBuilder {
         this.init();
     }
 
+    // Minimal header visibility in Bolt/deeplink context (fallback if index.html fails)
+    applyBoltHeaderVisibilityLite() {
+        try {
+            const href = new URL(window.location.href);
+            const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl) || (!!href.searchParams.get('api') && !!href.searchParams.get('brand_id'));
+            if (!isBolt) return;
+            const hideIds = ['importTcBtn','pagesBtn','newPageQuickBtn','headerBuilderBtn','footerBuilderBtn','openProjectBtn','exportBtn','gitPushBtn','publishBtn','layoutBtn'];
+            hideIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+            // Insert mini menu if missing
+            const headerRight = document.querySelector('.app-header .header-right');
+            if (headerRight && !document.getElementById('topModeSelect')){
+                const wrap = document.createElement('div');
+                wrap.style.cssText='display:flex;align-items:center;gap:8px';
+                const lbl = document.createElement('label'); lbl.textContent = 'Bouwtype'; lbl.style.cssText='color:#f8fafc;font-size:12px;opacity:.9;';
+                const sel = document.createElement('select'); sel.id='topModeSelect'; sel.className='form-control';
+                sel.innerHTML = '<option value="page">Web pagina</option><option value="travel">Reizen</option><option value="news">Nieuwsartikel</option><option value="destination">Bestemmingspagina</option><option value="menu">Menu & footer</option>';
+                wrap.appendChild(lbl); wrap.appendChild(sel);
+                headerRight.insertBefore(wrap, headerRight.firstChild);
+                try { sel.value = 'news'; } catch {}
+                sel.onchange = () => { try { location.hash = '#/mode/' + sel.value; } catch {} };
+            }
+        } catch {}
+    }
+
     // ---------- Scaffold: Bestemmingspagina template ----------
     createDestinationTemplate(options = {}) {
         try {
@@ -391,6 +415,61 @@ class WebsiteBuilder {
         });
     }
 
+    // Attach a robust save handler that respects deeplink context
+    setupBoltDeeplinkSave() {
+        try {
+            const saveBtn = document.getElementById('saveProjectBtn');
+            if (!saveBtn) return;
+            saveBtn.onclick = async () => {
+                try {
+                    const u = new URL(window.location.href);
+                    const brand_id = u.searchParams.get('brand_id') || window.CURRENT_BRAND_ID;
+                    if (!brand_id) throw new Error('brand_id ontbreekt');
+
+                    // Build content
+                    const contentJson = (typeof window.exportBuilderAsJSON === 'function') ? window.exportBuilderAsJSON() : (this.getProjectData() || {});
+                    const htmlString = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '';
+                    if (!window.BuilderPublishAPI) throw new Error('Publish helpers niet geladen');
+
+                    // Determine effective mode from deeplink
+                    let mode = (typeof this.getCurrentMode === 'function') ? this.getCurrentMode() : 'page';
+                    try {
+                        const ct = (u.searchParams.get('content_type')||'').toLowerCase();
+                        const hasNewsSlug = !!(u.searchParams.get('news_slug') || u.searchParams.get('slug'));
+                        const hasPageId = !!u.searchParams.get('page_id');
+                        if (ct === 'news_items' || (hasNewsSlug && !hasPageId)) mode = 'news';
+                        if (ct === 'destinations') mode = 'destination';
+                    } catch {}
+
+                    if (mode === 'news' && window.BuilderPublishAPI.news) {
+                        await window.BuilderPublishAPI.news.saveDraft({
+                            brand_id,
+                            title: contentJson.title,
+                            slug: contentJson.slug,
+                            content: { json: contentJson, html: htmlString },
+                            status: 'draft'
+                        });
+                        this.showNotification('📰 Concept opgeslagen (Nieuws)', 'success');
+                    } else if ((mode === 'destination' || mode === 'destinations') && window.BuilderPublishAPI.destinations) {
+                        await window.BuilderPublishAPI.destinations.saveDraft({
+                            brand_id,
+                            title: contentJson.title,
+                            slug: contentJson.slug,
+                            content: { json: contentJson, html: htmlString },
+                            status: 'draft'
+                        });
+                        this.showNotification('🗺️ Concept opgeslagen (Bestemming)', 'success');
+                    } else {
+                        await window.BuilderPublishAPI.saveDraft({ brand_id, title: contentJson.title, slug: contentJson.slug, content_json: contentJson });
+                        this.showNotification('💾 Concept opgeslagen (lokaal + Bolt-draft)', 'success');
+                    }
+                } catch (e) {
+                    console.warn('Draft opslaan mislukt:', e?.message||e);
+                }
+            };
+        } catch {}
+    }
+
     insertTcBlocks(tc) {
         const canvas = document.getElementById('canvas');
         if (!canvas) return;
@@ -538,6 +617,15 @@ class WebsiteBuilder {
     setupPublishButton() {
         const btn = document.getElementById('publishBtn');
         if (!btn) return;
+        // In Bolt/deeplink context do not show the Publish modal; drafts are handled via saveDraft
+        try {
+            const href = new URL(window.location.href);
+            const boltLike = !!(window.BOLT_API && window.BOLT_API.baseUrl) || (!!href.searchParams.get('api') && !!href.searchParams.get('brand_id'));
+            if (boltLike) {
+                try { btn.style.display = 'none'; } catch {}
+                return;
+            }
+        } catch {}
         btn.addEventListener('click', () => {
             const modal = document.createElement('div');
             modal.className = 'modal';
