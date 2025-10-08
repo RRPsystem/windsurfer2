@@ -1,0 +1,12 @@
+{
+  "api": "https://<project>.supabase.co",
+  "token": "<JWT with edit scopes>",
+  "apikey": "<anon-key>",
+  "brand_id": "550e8400-e29b-41d4-a716-446655440001",
+  "page_id": "d2f41041-d519-498d-bd4f-9b9df46392bc",
+  "slug": "test120",
+  "ephemeral": true,
+  "exp": 1735689600,
+  "sig": "<base64url RS256 signature>",
+  "pub": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkq...\n-----END PUBLIC KEY-----"
+}
