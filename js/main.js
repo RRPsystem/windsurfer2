@@ -1775,9 +1775,17 @@ class WebsiteBuilder {
 
     updateEdgeBadge() {
         try {
+            // Allow hiding the badge via URL or localStorage
+            try {
+                const u = new URL(window.location.href);
+                const p = u.searchParams.get('edge_badge');
+                if (p === '0') localStorage.setItem('wb_hide_edge_badge', '1');
+            } catch {}
+            const hidden = (()=>{ try { return localStorage.getItem('wb_hide_edge_badge') === '1'; } catch { return false; } })();
             const headerRight = document.querySelector('.app-header .header-right');
             if (!headerRight) return;
             let badge = document.getElementById('edgeStatusBadge');
+            if (hidden) { if (badge) badge.remove(); return; }
             if (!this._edgeCtx) { if (badge) badge.remove(); return; }
             const { api, kind, key } = this._edgeCtx;
             const host = (()=>{ try { return new URL(api).host; } catch { return api; } })();
@@ -1792,9 +1800,12 @@ class WebsiteBuilder {
                 <span style="white-space:nowrap;">Supabase: ${host}</span>
                 <span style="opacity:.9;">(${kind}: ${key})</span>
                 <button id="edgeSyncBtn" class="btn btn-secondary" style="height:22px;line-height:20px;padding:0 8px;">Sync</button>
+                <button id="edgeHideBtn" class="btn btn-secondary" title="Verberg" style="height:22px;line-height:20px;padding:0 8px;">×</button>
             `;
             const btn = badge.querySelector('#edgeSyncBtn');
             if (btn) btn.onclick = () => this.saveToEdgeIfPresent();
+            const hideBtn = badge.querySelector('#edgeHideBtn');
+            if (hideBtn) hideBtn.onclick = () => { try { localStorage.setItem('wb_hide_edge_badge','1'); } catch {}; badge.remove(); };
         } catch {}
     }
 
