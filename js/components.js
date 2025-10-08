@@ -756,10 +756,20 @@ class ComponentFactory {
                 let src = '';
                 if (window.MediaPicker && typeof window.MediaPicker.openImage === 'function') {
                     const result = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
-                    src = result && (result.fullUrl || result.regularUrl || result.url || result.dataUrl) || '';
+                    src = (result && (
+                        result.fullUrl || result.regularUrl || result.url || result.dataUrl ||
+                        result.src || result.imageUrl || result.downloadUrl || ''
+                    )) || '';
+                    try { console.debug('[hero-page] media chosen src', src, result); } catch {}
                 }
                 if (!src) return;
-                __WB_applyResponsiveSrc(img, src);
+                if (typeof window.__WB_applyResponsiveSrc === 'function') {
+                    window.__WB_applyResponsiveSrc(img, src);
+                } else if (typeof __WB_applyResponsiveSrc === 'function') {
+                    __WB_applyResponsiveSrc(img, src);
+                } else {
+                    img.src = src;
+                }
             } catch (e) { console.warn('Hero image select canceled/failed', e); }
         };
 

@@ -541,8 +541,19 @@ class PropertiesPanel {
             try {
                 if (!window.MediaPicker) return;
                 const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
-                const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
-                if (src && bgImg) bgImg.src = src;
+                const src = (res && (res.fullUrl || res.regularUrl || res.url || res.dataUrl || res.src || res.imageUrl || res.downloadUrl)) || '';
+                try { console.debug('[hero-page][props] media chosen src', src, res); } catch {}
+                if (src && bgImg) {
+                    if (typeof window.__WB_applyResponsiveSrc === 'function') {
+                        window.__WB_applyResponsiveSrc(bgImg, src);
+                    } else if (typeof window.__WB_applyResponsiveSrc === 'function') {
+                        window.__WB_applyResponsiveSrc(bgImg, src);
+                    } else if (typeof __WB_applyResponsiveSrc === 'function') {
+                        __WB_applyResponsiveSrc(bgImg, src);
+                    } else {
+                        bgImg.src = src;
+                    }
+                }
             } catch(err) { console.warn('Media select canceled/failed', err); }
         });
         pickBg.style.background = '#ff7700'; pickBg.style.borderColor = '#ff7700'; pickBg.style.color = '#fff';
