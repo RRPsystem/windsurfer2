@@ -493,5 +493,12 @@
         } catch {}
       });
     </script>
+    <script>
+      // Run header adjustments as soon as DOM is ready (and once more after a short delay)
+      document.addEventListener('DOMContentLoaded', () => {
+        try { applyBoltHeaderVisibility(); } catch {}
+        setTimeout(() => { try { applyBoltHeaderVisibility(); } catch {} }, 150);
+      });
+    </script>
   </body>
 </html>
