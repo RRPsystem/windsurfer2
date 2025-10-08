@@ -1527,7 +1527,25 @@ class WebsiteBuilder {
             if (!contentJson) return;
             let apiUrl = '';
             if (kind === 'news') {
-                // New shape: /content-api/{slug}?type={content_type}&brand_id={brand_id}
+                // Try Bolt content API helper first (preferred)
+                try {
+                    const currentUrl = new URL(window.location.href);
+                    const brand_id = currentUrl.searchParams.get('brand_id') || '';
+                    if (brand_id && window.BuilderPublishAPI?.news?.saveDraft) {
+                        const htmlString = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '';
+                        await window.BuilderPublishAPI.news.saveDraft({
+                            brand_id,
+                            title: contentJson.title,
+                            slug: contentJson.slug || key,
+                            content: { json: contentJson, html: htmlString },
+                            status: 'draft'
+                        });
+                        this.showNotification('📰 Nieuws opgeslagen naar Bolt', 'success');
+                        return;
+                    }
+                } catch (_) { /* fallback to direct PUT */ }
+
+                // Fallback: direct PUT to slug endpoint
                 const currentUrl = new URL(window.location.href);
                 const brand_id = currentUrl.searchParams.get('brand_id') || '';
                 const content_type = currentUrl.searchParams.get('content_type') || 'news_items';
@@ -1547,12 +1565,17 @@ class WebsiteBuilder {
             const r = await fetch(apiUrl, {
                 method: 'PUT',
                 headers,
-                body: JSON.stringify({ content: contentJson })
+                body: JSON.stringify({
+                    title: contentJson.title,
+                    slug: contentJson.slug || key,
+                    content: contentJson,
+                    content_json: contentJson
+                })
             });
             if (!r.ok) throw new Error(await r.text());
             // Optional: read response
             await r.json().catch(()=>null);
-            this.showNotification(kind === 'news' ? '📰 Nieuws opgeslagen naar Supabase' : '📝 Pagina opgeslagen naar Supabase', 'success');
+            this.showNotification(kind === 'news' ? '📰 Nieuws opgeslagen (Edge)' : '📝 Pagina opgeslagen (Edge)', 'success');
         } catch (err) {
             console.warn('Edge save failed', err);
         }
