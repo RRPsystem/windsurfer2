@@ -141,7 +141,7 @@ class ComponentFactory {
                 card.href = item.href || '#';
                 card.style.cssText = 'display:block;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,0.05);text-decoration:none;color:#111827;min-width:68%;scroll-snap-align:start;';
                 const img = document.createElement('img');
-                img.src = item.img;
+                __WB_applyResponsiveSrc(img, item.img);
                 img.alt = item.title || '';
                 img.style.cssText = 'width:100%;height:160px;object-fit:cover;display:block;';
                 const wrap = document.createElement('div');
@@ -496,7 +496,7 @@ class ComponentFactory {
                 const img = document.createElement('img');
                 img.alt = 'Media row image';
                 img.decoding = 'async'; img.loading = 'lazy';
-                img.src = src;
+                __WB_applyResponsiveSrc(img, src);
                 item.appendChild(img);
                 // Optional meta placeholders
                 const m = meta[i] || { label: '', href: '' };
@@ -519,7 +519,7 @@ class ComponentFactory {
                         const res = await window.MediaPicker.openImage();
                         const newSrc = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
                         if (!newSrc) return;
-                        const list = Array.from(track.querySelectorAll('img')).map(n=>n.src);
+                        const list = Array.from(track.querySelectorAll('img')).map(n=>n.currentSrc || n.src);
                         list[i] = newSrc;
                         renderItems(list);
                     } catch(err) { console.warn('Media select canceled/failed', err); }
@@ -656,7 +656,7 @@ class ComponentFactory {
         const bg = document.createElement('div');
         bg.className = 'hp-bg';
         const img = document.createElement('img');
-        img.src = bgUrl;
+        __WB_applyResponsiveSrc(img, bgUrl);
         img.alt = 'Hero background';
         bg.appendChild(img);
 
@@ -730,30 +730,7 @@ class ComponentFactory {
         } catch {}
         imgA.style.willChange = 'opacity';
         imgB.style.willChange = 'opacity';
-        const applyResponsiveSrc = (imageEl, url) => {
-            // If the URL is an Unsplash image, provide a srcset for better sharpness on high-DPI screens
-            try {
-                const u = new URL(url);
-                if (u.hostname.includes('images.unsplash.com')) {
-                    const base = `${u.origin}${u.pathname}`;
-                    const params = u.searchParams;
-                    // Keep quality=80 (q=80) and format/crop flags if present
-                    const q = params.get('q') || '80';
-                    const auto = params.get('auto') || 'format';
-                    const fit = params.get('fit') || 'crop';
-                    const src1600 = `${base}?q=${q}&w=1600&auto=${auto}&fit=${fit}`;
-                    const src2400 = `${base}?q=${q}&w=2400&auto=${auto}&fit=${fit}`;
-                    const src3200 = `${base}?q=${q}&w=3200&auto=${auto}&fit=${fit}`;
-                    imageEl.src = src1600;
-                    imageEl.srcset = `${src1600} 1600w, ${src2400} 2400w, ${src3200} 3200w`;
-                    imageEl.sizes = '100vw';
-                    return;
-                }
-            } catch {}
-            // Fallback: single src
-            imageEl.src = url;
-        };
-        applyResponsiveSrc(imgA, bgUrl);
+        __WB_applyResponsiveSrc(imgA, bgUrl);
         imgA.alt = 'Hero background';
         imgA.decoding = 'async';
         imgA.loading = 'eager';
@@ -1447,13 +1424,12 @@ class ComponentFactory {
             card.setAttribute('data-index', String(i));
 
             const img = document.createElement('img');
-            img.src = c.img;
+            __WB_applyResponsiveSrc(img, c.img);
             img.alt = c.label;
 
             const overlay = document.createElement('div');
             overlay.className = 'tt-overlay';
             overlay.innerHTML = `<span class="tt-label" contenteditable="true">${c.label}</span>`;
-
             card.appendChild(img);
             card.appendChild(overlay);
             grid.appendChild(card);
