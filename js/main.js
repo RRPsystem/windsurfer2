@@ -1954,6 +1954,34 @@ class WebsiteBuilder {
 
     loadSavedProject() {
         try {
+            // If explicitly a new page (no identifiers) or forced via new=1, start with a blank page
+            try {
+                const u = new URL(window.location.href);
+                const hash = String(location.hash || '');
+                const isPageMode = /#\/mode\/page/i.test(hash);
+                const forceNew = u.searchParams.get('new') === '1';
+                const hasPageId = !!u.searchParams.get('page_id');
+                const ct = (u.searchParams.get('content_type')||'').toLowerCase();
+                const hasNewsSlug = !!(u.searchParams.get('news_slug') || (ct==='news_items' && u.searchParams.get('slug')));
+                const hasGenericSlug = !!u.searchParams.get('slug');
+                if (isPageMode && (forceNew || (!hasPageId && !hasNewsSlug && !hasGenericSlug))) {
+                    const canvas = document.getElementById('canvas');
+                    const id = this.generateId('page');
+                    const name = 'Nieuwe pagina';
+                    const slug = 'nieuwe-pagina';
+                    const html = this.blankCanvasHtml();
+                    this.pages = [{ id, name, slug, html }];
+                    this.currentPageId = id;
+                    if (canvas) canvas.innerHTML = html;
+                    try { const t = document.getElementById('pageTitleInput'); if (t) t.value = name; } catch {}
+                    try { const s = document.getElementById('pageSlugInput'); if (s) s.value = slug; } catch {}
+                    try { localStorage.setItem('wb_mode','page'); } catch {}
+                    this.persistPagesToLocalStorage(true);
+                    this.reattachEventListeners();
+                    this.showNotification('🆕 Nieuwe lege pagina', 'info');
+                    return;
+                }
+            } catch {}
             // If running from News mode, start fresh. In Bolt context without Edge content, DO NOT early-return; allow local fallback.
             try {
                 const hash = String(location.hash || '');
