@@ -1659,11 +1659,16 @@ class WebsiteBuilder {
                 const r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
                 if (!r.ok) throw new Error(await r.text());
                 const pageData = await r.json();
-                const content = pageData?.content || pageData?.content_json || null;
-                if (content) {
-                    this.loadProjectData(content);
+                let builderJson = pageData?.content_json?.json || pageData?.content_json || pageData?.content || null;
+                if (typeof builderJson === 'string') { try { builderJson = JSON.parse(builderJson); } catch {} }
+                if (!builderJson) {
+                    try { builderJson = __WB_findBuilderJson(pageData); } catch {}
+                }
+                if (builderJson) {
+                    this.loadProjectData(builderJson);
                     this._edgeCtx = { api, token, kind: 'page', key: page_id };
                     this.updateEdgeBadge();
+                    try { localStorage.setItem('wb_mode', 'page'); location.hash = '#/mode/page'; } catch {}
                     if (pageData.title || pageData.slug) {
                         const t = document.getElementById('pageTitleInput');
                         const s = document.getElementById('pageSlugInput');
