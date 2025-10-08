@@ -1372,7 +1372,7 @@ class WebsiteBuilder {
             const url = new URL(window.location.href);
             const api = (url.searchParams.get('api') || '').replace(/\/$/, '');
             const token = url.searchParams.get('token') || '';
-            const news_slug = url.searchParams.get('news_slug');
+            const news_slug = url.searchParams.get('news_slug') || url.searchParams.get('slug');
             const author_type = url.searchParams.get('author_type'); // not used yet, but reserved
             const author_id = url.searchParams.get('author_id');     // not used yet, but reserved
             const page_id = url.searchParams.get('page_id');
@@ -1391,7 +1391,14 @@ class WebsiteBuilder {
                 const newsData = await r.json();
                 const content = newsData?.content || newsData?.content_json || null;
                 if (content) {
-                    this.loadProjectData(content);
+                    // Prefer global importer if present
+                    try {
+                        if (window.importBuilderFromJSON) {
+                            window.importBuilderFromJSON(content);
+                        } else {
+                            this.loadProjectData(content);
+                        }
+                    } catch { this.loadProjectData(content); }
                     this._edgeCtx = { api, token, kind: 'news', key: news_slug };
                     // Switch UI to news mode
                     try { location.hash = '#/mode/news'; } catch {}
