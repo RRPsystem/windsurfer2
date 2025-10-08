@@ -46,21 +46,50 @@ class WebsiteBuilder {
             const href = new URL(window.location.href);
             const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl) || (!!href.searchParams.get('api') && !!href.searchParams.get('brand_id'));
             if (!isBolt) return;
-            const hideIds = ['importTcBtn','pagesBtn','newPageQuickBtn','headerBuilderBtn','footerBuilderBtn','openProjectBtn','exportBtn','gitPushBtn','publishBtn','layoutBtn'];
-            hideIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-            // Insert mini menu if missing
-            const headerRight = document.querySelector('.app-header .header-right');
-            if (headerRight && !document.getElementById('topModeSelect')){
-                const wrap = document.createElement('div');
-                wrap.style.cssText='display:flex;align-items:center;gap:8px';
-                const lbl = document.createElement('label'); lbl.textContent = 'Bouwtype'; lbl.style.cssText='color:#f8fafc;font-size:12px;opacity:.9;';
-                const sel = document.createElement('select'); sel.id='topModeSelect'; sel.className='form-control';
-                sel.innerHTML = '<option value="page">Web pagina</option><option value="travel">Reizen</option><option value="news">Nieuwsartikel</option><option value="destination">Bestemmingspagina</option><option value="menu">Menu & footer</option>';
-                wrap.appendChild(lbl); wrap.appendChild(sel);
-                headerRight.insertBefore(wrap, headerRight.firstChild);
-                try { sel.value = 'news'; } catch {}
-                sel.onchange = () => { try { location.hash = '#/mode/' + sel.value; } catch {} };
-            }
+
+            const apply = () => {
+                try {
+                    const hideIds = ['importTcBtn','pagesBtn','newPageQuickBtn','headerBuilderBtn','footerBuilderBtn','openProjectBtn','exportBtn','gitPushBtn','publishBtn','layoutBtn'];
+                    hideIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+                    // Also hide by visible text for safety
+                    try {
+                        document.querySelectorAll('.app-header button, .app-header a').forEach(el => {
+                            const t = (el.textContent || '').trim().toLowerCase();
+                            if (t === 'importeer tc' || t === "pagina's" || t === 'paginas' || t === 'nieuwe pagina' || t === 'pagina’s') {
+                                el.style.display = 'none';
+                            }
+                        });
+                    } catch {}
+
+                    // Insert mini menu if missing
+                    const headerRight = document.querySelector('.app-header .header-right');
+                    if (headerRight && !document.getElementById('topModeSelect')){
+                        const wrap = document.createElement('div');
+                        wrap.style.cssText='display:flex;align-items:center;gap:8px';
+                        const lbl = document.createElement('label'); lbl.textContent = 'Bouwtype'; lbl.style.cssText='color:#f8fafc;font-size:12px;opacity:.9;';
+                        const sel = document.createElement('select'); sel.id='topModeSelect'; sel.className='form-control';
+                        sel.innerHTML = '<option value="page">Web pagina</option><option value="travel">Reizen</option><option value="news">Nieuwsartikel</option><option value="destination">Bestemmingspagina</option><option value="menu">Menu & footer</option>';
+                        wrap.appendChild(lbl); wrap.appendChild(sel);
+                        headerRight.insertBefore(wrap, headerRight.firstChild);
+                        try { sel.value = 'news'; } catch {}
+                        sel.onchange = () => { try { location.hash = '#/mode/' + sel.value; } catch {} };
+                    }
+
+                    // Ensure save handler is bound correctly each time
+                    try { this.setupBoltDeeplinkSave(); } catch {}
+                } catch {}
+            };
+
+            apply();
+            // Observe header for changes and re-apply
+            try {
+                const header = document.querySelector('.app-header');
+                if (header) {
+                    if (this._headerMO) { try { this._headerMO.disconnect(); } catch {} }
+                    this._headerMO = new MutationObserver(() => apply());
+                    this._headerMO.observe(header, { childList: true, subtree: true, attributes: true });
+                }
+            } catch {}
         } catch {}
     }
 
@@ -2185,6 +2214,11 @@ class WebsiteBuilder {
 // Initialize Website Builder when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     window.websiteBuilder = new WebsiteBuilder();
+    // Apply header visibility and attach save handler for Bolt/deeplink context
+    try { window.websiteBuilder.applyBoltHeaderVisibilityLite(); } catch {}
+    try { window.websiteBuilder.setupBoltDeeplinkSave(); } catch {}
+    // Re-apply shortly after in case header renders late
+    setTimeout(() => { try { window.websiteBuilder.applyBoltHeaderVisibilityLite(); } catch {} }, 150);
 });
 
 // Add global error handler
