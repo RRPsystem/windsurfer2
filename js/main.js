@@ -1658,6 +1658,7 @@ class WebsiteBuilder {
                 const qs1 = new URLSearchParams();
                 if (brand_id) qs1.set('brand_id', brand_id);
                 let apiUrl = `${api}/functions/v1/pages-api/pages/${encodeURIComponent(page_id)}${qs1.toString() ? `?${qs1.toString()}` : ''}`;
+                console.info('[WB] Try load page by id', apiUrl);
                 let r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
                 // Fallback: if 404, try by slug (from URL or prompt)
                 if (!r.ok && r.status === 404) {
@@ -1666,10 +1667,30 @@ class WebsiteBuilder {
                         try { bySlug = (prompt('Pagina niet gevonden via ID. Vul de pagina slug in om te openen:','') || '').trim(); } catch {}
                     }
                     if (bySlug) {
+                        // Attempt 1: by-slug path
                         const qs2 = new URLSearchParams();
                         if (brand_id) qs2.set('brand_id', brand_id);
                         apiUrl = `${api}/functions/v1/pages-api/by-slug/${encodeURIComponent(bySlug)}${qs2.toString() ? `?${qs2.toString()}` : ''}`;
+                        console.info('[WB] Try load page by slug (path)', apiUrl);
                         r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
+                        // Attempt 2: by-slug query variant
+                        if (!r.ok) {
+                            const qs3 = new URLSearchParams();
+                            if (brand_id) qs3.set('brand_id', brand_id);
+                            qs3.set('slug', bySlug);
+                            apiUrl = `${api}/functions/v1/pages-api/by-slug?${qs3.toString()}`;
+                            console.info('[WB] Try load page by slug (query)', apiUrl);
+                            r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
+                        }
+                        // Attempt 3: pages list filtered by slug
+                        if (!r.ok) {
+                            const qs4 = new URLSearchParams();
+                            if (brand_id) qs4.set('brand_id', brand_id);
+                            qs4.set('slug', bySlug);
+                            apiUrl = `${api}/functions/v1/pages-api/pages?${qs4.toString()}`;
+                            console.info('[WB] Try load page list filter (slug)', apiUrl);
+                            r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
+                        }
                     }
                 }
                 if (!r.ok) throw new Error(await r.text());
