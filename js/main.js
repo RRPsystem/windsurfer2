@@ -36,7 +36,6 @@ class WebsiteBuilder {
         this._lastAutoPublishAt = 0;
         this._autoPublishTimer = null;
         // Edge (Supabase) context
-        this._edgeCtx = null; // { api, token, kind: 'news'|'page', key: slug|id }
         this.init();
     }
 
@@ -44,6 +43,18 @@ class WebsiteBuilder {
     applyBoltHeaderVisibilityLite() {
         try {
             const href = new URL(window.location.href);
+            // Bind auth globals from URL so downstream publish helpers always have headers
+            try {
+                const b = href.searchParams.get('brand_id');
+                const t = href.searchParams.get('token');
+                const k = href.searchParams.get('apikey') || href.searchParams.get('api_key');
+                if (b) window.CURRENT_BRAND_ID = b;
+                if (t) window.CURRENT_TOKEN = t;
+                if (k) {
+                    if (!window.BOLT_API) window.BOLT_API = { baseUrl: href.searchParams.get('api') || '' };
+                    window.BOLT_API.apiKey = k;
+                }
+            } catch {}
             const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl) || (!!href.searchParams.get('api') && !!href.searchParams.get('brand_id'));
             if (!isBolt) return;
 
@@ -86,7 +97,17 @@ class WebsiteBuilder {
                             try { localStorage.setItem('wb_mode', mode); } catch {}
                             try { if (!hashMode) location.hash = '#/mode/' + mode; } catch {}
                         } catch {}
-                        sel.onchange = () => { try { localStorage.setItem('wb_mode', sel.value); location.hash = '#/mode/' + sel.value; } catch {} };
+                        sel.onchange = () => {
+                            try {
+                                localStorage.setItem('wb_mode', sel.value);
+                                location.hash = '#/mode/' + sel.value;
+                                // If user selects Destination in the mini menu, scaffold immediately
+                                if (sel.value === 'destination' && window.websiteBuilder && typeof window.websiteBuilder.startDestinationScaffold === 'function') {
+                                    // Slight delay to let hash update propagate
+                                    setTimeout(() => { try { window.websiteBuilder.startDestinationScaffold(); } catch {} }, 50);
+                                }
+                            } catch {}
+                        };
                     }
 
                     // Ensure save handler is bound correctly each time
@@ -345,6 +366,30 @@ class WebsiteBuilder {
         }
     }
 
+    // Quick action: ensure a blank page and scaffold destination with optional prompt
+    startDestinationScaffold(initialCountry) {
+        try {
+            const canvas = document.getElementById('canvas');
+            // Ensure fresh page
+            const id = this.generateId('page');
+            const html = this.blankCanvasHtml();
+            const name = 'Bestemming';
+            const slug = 'bestemming';
+            this.pages = [{ id, name, slug, html }];
+            this.currentPageId = id;
+            if (canvas) canvas.innerHTML = html;
+            this.persistPagesToLocalStorage(true);
+            this.reattachEventListeners();
+
+            // Ask for country if not provided
+            let country = (initialCountry || '').trim();
+            if (!country) {
+                country = (prompt('Land / Bestemming:', '') || '').trim();
+            }
+            this.createDestinationTemplate({ title: country || 'Bestemming' });
+        } catch (e) { console.warn('startDestinationScaffold failed', e); }
+    }
+
     // ---------- Scaffold: Nieuwsartikel template ----------
     createNewsArticleTemplate(options = {}) {
         try {
@@ -481,15 +526,14 @@ class WebsiteBuilder {
                         .replace(/[^a-z0-9]+/g, '-')
                         .replace(/^-+|-+$/g, '')
                         .slice(0, 80);
-                    // Determine effective mode from deeplink
-                    let mode = (typeof this.getCurrentMode === 'function') ? this.getCurrentMode() : 'page';
+                    // Determine effective mode robustly: prefer Edge context kind, upgrade but never downgrade to page
+                    let mode = (this._edgeCtx && this._edgeCtx.kind) ? this._edgeCtx.kind : ((typeof this.getCurrentMode === 'function') ? this.getCurrentMode() : 'page');
                     try {
                         const ct = (u.searchParams.get('content_type')||'').toLowerCase();
-                        const hasNewsSlug = !!(u.searchParams.get('news_slug'));
+                        const hasNewsSlug = !!(u.searchParams.get('news_slug') || u.searchParams.get('slug'));
                         const hasPageId = !!u.searchParams.get('page_id');
-                        if (ct === 'news_items' || (hasNewsSlug && !hasPageId)) mode = 'news';
-                        if (ct === 'destinations') mode = 'destination';
-                        if ((hasPageId && !ct) || (!ct && !hasNewsSlug)) mode = 'page';
+                        if (mode !== 'news' && (ct === 'news_items' || (hasNewsSlug && !hasPageId))) mode = 'news';
+                        if (mode !== 'destination' && (ct === 'destinations')) mode = 'destination';
                     } catch {}
 
                     const defaultTitle = (mode === 'page') ? 'Pagina' : (mode === 'destination' ? 'Bestemming' : 'Nieuws');
@@ -1903,15 +1947,17 @@ class WebsiteBuilder {
         const htmlString = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson || undefined) : null;
         if (!contentJson || !htmlString) return;
         try {
-            // Determine effective mode: prefer deeplink params over UI state
-            let mode = (typeof this.getCurrentMode === 'function') ? this.getCurrentMode() : 'page';
+            // Determine effective mode robustly
+            // 1) If Edge context loaded, trust its kind
+            let mode = (this._edgeCtx && this._edgeCtx.kind) ? this._edgeCtx.kind : ((typeof this.getCurrentMode === 'function') ? this.getCurrentMode() : 'page');
+            // 2) Use URL hints to UPGRADE to news/destination, but never downgrade to page
             try {
                 const u = new URL(window.location.href);
                 const ct = (u.searchParams.get('content_type')||'').toLowerCase();
                 const hasNewsSlug = !!(u.searchParams.get('news_slug') || u.searchParams.get('slug'));
                 const hasPageId = !!u.searchParams.get('page_id');
-                if (ct === 'news_items' || (hasNewsSlug && !hasPageId)) mode = 'news';
-                if (ct === 'destinations') mode = 'destination';
+                if (mode !== 'news' && (ct === 'news_items' || (hasNewsSlug && !hasPageId))) mode = 'news';
+                if (mode !== 'destination' && (ct === 'destinations')) mode = 'destination';
             } catch {}
             if (mode === 'news' && window.BuilderPublishAPI.news) {
                 // Save only as draft to content-api; do not publish automatically
@@ -1980,6 +2026,25 @@ class WebsiteBuilder {
                     this.reattachEventListeners();
                     this.showNotification('🆕 Nieuwe lege pagina', 'info');
                     return;
+                }
+            } catch {}
+            // If destination mode and explicitly new or no identifiers, scaffold destination template
+            try {
+                const u = new URL(window.location.href);
+                const hash = String(location.hash || '');
+                const isDest = /#\/mode\/destination/i.test(hash);
+                const forceNew = u.searchParams.get('new') === '1';
+                const hasPageId = !!u.searchParams.get('page_id');
+                const ct = (u.searchParams.get('content_type')||'').toLowerCase();
+                const hasNewsSlug = !!(u.searchParams.get('news_slug') || (ct==='news_items' && u.searchParams.get('slug')));
+                const hasGenericSlug = !!u.searchParams.get('slug');
+                const hasDestSlug = (ct === 'destinations') && !!u.searchParams.get('slug');
+                if (isDest && (forceNew || (!hasPageId && !hasNewsSlug && !hasGenericSlug && !hasDestSlug))) {
+                    // Use prompt flow to pick country and scaffold
+                    if (typeof this.startDestinationScaffold === 'function') {
+                        this.startDestinationScaffold();
+                        return;
+                    }
                 }
             } catch {}
             // If running from News mode, start fresh. In Bolt context without Edge content, DO NOT early-return; allow local fallback.
