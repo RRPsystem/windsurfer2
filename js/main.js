@@ -1386,10 +1386,12 @@ class WebsiteBuilder {
                 if (content_type) qs.set('type', content_type);
                 if (brand_id) qs.set('brand_id', brand_id);
                 const apiUrl = `${api}/functions/v1/content-api/${encodeURIComponent(news_slug)}?${qs.toString()}`;
+                console.info('[WB] Fetch news content', { apiUrl });
                 const r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
                 if (!r.ok) throw new Error(await r.text());
                 const newsData = await r.json();
-                const content = newsData?.content || newsData?.content_json || null;
+                // Support multiple shapes: {content:{json:{...}}} or {content_json:{json:{...}}} or direct
+                const content = newsData?.content?.json || newsData?.content_json?.json || newsData?.content || newsData?.content_json || null;
                 if (content) {
                     // Prefer global importer if present
                     try {
@@ -1403,6 +1405,8 @@ class WebsiteBuilder {
                     // Switch UI to news mode
                     try { location.hash = '#/mode/news'; } catch {}
                     this.updateEdgeBadge();
+                    // Try to ensure edit mode is visible
+                    try { window.WB_setMode && window.WB_setMode('news'); } catch {}
                     // Update title/slug inputs if provided
                     if (newsData.title || newsData.slug) {
                         const t = document.getElementById('pageTitleInput');
@@ -1421,6 +1425,8 @@ class WebsiteBuilder {
                         }, 0);
                     } catch {}
                     this.showNotification('📥 Nieuwsartikel geladen van Supabase', 'success');
+                } else {
+                    console.warn('[WB] No content found in news response. Keys:', Object.keys(newsData||{}));
                 }
                 return;
             }
