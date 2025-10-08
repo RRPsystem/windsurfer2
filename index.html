@@ -413,83 +413,9 @@
             }
           } catch {}
 
-          // Save button: route to Pages or News depending on mode
+          // Save button is bound from js/main.js (setupBoltDeeplinkSave)
           const saveBtn = document.getElementById('saveProjectBtn');
-          if (saveBtn){
-            saveBtn.onclick = async () => {
-              try {
-                const saved = localStorage.getItem('wb_project');
-                let cur = null;
-                try {
-                  if (saved) {
-                    const d = JSON.parse(saved);
-                    const pages = Array.isArray(d.pages) ? d.pages : [];
-                    const currentId = d.currentPageId || (pages[0] && pages[0].id);
-                    cur = pages.find(p => p.id === currentId) || pages[0] || null;
-                  }
-                } catch {}
-                let title = (cur && cur.name) || '';
-                let slug = (cur && cur.slug) || '';
-                if (!title) title = prompt('Pagina titel', 'Nieuwe pagina') || 'Nieuwe pagina';
-                if (!slug) {
-                  const base = (title||'Nieuwe pagina').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
-                  slug = prompt('Pagina slug', base) || base || 'pagina';
-                }
-                try {
-                  window.websiteBuilder && (function(){
-                    const wb = window.websiteBuilder;
-                    const p = (wb.pages||[]).find(x=>x.id===wb.currentPageId) || (wb.pages||[])[0];
-                    if (p){ p.name = title; p.slug = slug; }
-                    wb.persistPagesToLocalStorage();
-                  })();
-                } catch {}
-                try { window.websiteBuilder?.saveProject(true); } catch {}
-
-                try {
-                  const brand_id = window.CURRENT_BRAND_ID;
-                  if (!brand_id) throw new Error('brand_id ontbreekt');
-                  const contentJson = (typeof window.exportBuilderAsJSON === 'function') ? window.exportBuilderAsJSON() : { title, slug };
-                  contentJson.title = title; contentJson.slug = slug;
-                  const htmlString = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '';
-                  if (!window.BuilderPublishAPI) throw new Error('Publish helpers niet geladen');
-                  // Determine effective mode: prefer deeplink params over UI state
-                  let mode = (window.websiteBuilder && typeof window.websiteBuilder.getCurrentMode === 'function') ? window.websiteBuilder.getCurrentMode() : 'page';
-                  try {
-                    const u = new URL(window.location.href);
-                    const ct = (u.searchParams.get('content_type')||'').toLowerCase();
-                    const hasNewsSlug = !!(u.searchParams.get('news_slug') || u.searchParams.get('slug'));
-                    const hasPageId = !!u.searchParams.get('page_id');
-                    if (ct === 'news_items' || (hasNewsSlug && !hasPageId)) mode = 'news';
-                    if (ct === 'destinations') mode = 'destination';
-                  } catch {}
-                  if (mode === 'news' && window.BuilderPublishAPI.news) {
-                    await window.BuilderPublishAPI.news.saveDraft({
-                      brand_id,
-                      title: contentJson.title,
-                      slug: contentJson.slug,
-                      content: { json: contentJson, html: htmlString },
-                      status: 'draft'
-                    });
-                    try { window.websiteBuilder?.showNotification('📰 Concept opgeslagen (Nieuws)', 'success'); } catch {}
-                  } else if ((mode === 'destination' || mode === 'destinations') && window.BuilderPublishAPI.destinations) {
-                    await window.BuilderPublishAPI.destinations.saveDraft({
-                      brand_id,
-                      title: contentJson.title,
-                      slug: contentJson.slug,
-                      content: { json: contentJson, html: htmlString },
-                      status: 'draft'
-                    });
-                    try { window.websiteBuilder?.showNotification('🗺️ Concept opgeslagen (Bestemming)', 'success'); } catch {}
-                  } else {
-                    await window.BuilderPublishAPI.saveDraft({ brand_id, title, slug, content_json: contentJson });
-                    try { window.websiteBuilder?.showNotification('💾 Concept opgeslagen (lokaal + Bolt-draft)', 'success'); } catch {}
-                  }
-                } catch (e) {
-                  console.warn('Draft opslaan mislukt:', e?.message||e);
-                }
-              } catch (e) { console.warn(e); }
-            };
-          }
+          if (saveBtn) { try { window.websiteBuilder?.setupBoltDeeplinkSave(); } catch {} }
         } catch {}
       });
     </script>

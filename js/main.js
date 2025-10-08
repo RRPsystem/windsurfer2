@@ -458,6 +458,19 @@ class WebsiteBuilder {
                     // Build content
                     const contentJson = (typeof window.exportBuilderAsJSON === 'function') ? window.exportBuilderAsJSON() : (this.getProjectData() || {});
                     const htmlString = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '';
+                    // Ensure title/slug are present
+                    const titleInput = document.getElementById('pageTitleInput');
+                    const slugInput = document.getElementById('pageSlugInput');
+                    const slugify = (s) => String(s || '')
+                        .toLowerCase()
+                        .normalize('NFD').replace(/\p{Diacritic}+/gu, '')
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/^-+|-+$/g, '')
+                        .slice(0, 80);
+                    const safeTitle = (contentJson.title || titleInput?.value || 'Nieuws').toString();
+                    const safeSlug = slugify(contentJson.slug || slugInput?.value || safeTitle);
+                    contentJson.title = safeTitle;
+                    contentJson.slug = safeSlug;
                     if (!window.BuilderPublishAPI) throw new Error('Publish helpers niet geladen');
 
                     // Determine effective mode from deeplink
@@ -473,8 +486,8 @@ class WebsiteBuilder {
                     if (mode === 'news' && window.BuilderPublishAPI.news) {
                         await window.BuilderPublishAPI.news.saveDraft({
                             brand_id,
-                            title: contentJson.title,
-                            slug: contentJson.slug,
+                            title: safeTitle,
+                            slug: safeSlug,
                             content: { json: contentJson, html: htmlString },
                             status: 'draft'
                         });
@@ -482,18 +495,40 @@ class WebsiteBuilder {
                     } else if ((mode === 'destination' || mode === 'destinations') && window.BuilderPublishAPI.destinations) {
                         await window.BuilderPublishAPI.destinations.saveDraft({
                             brand_id,
-                            title: contentJson.title,
-                            slug: contentJson.slug,
+                            title: safeTitle,
+                            slug: safeSlug,
                             content: { json: contentJson, html: htmlString },
                             status: 'draft'
                         });
                         this.showNotification('🗺️ Concept opgeslagen (Bestemming)', 'success');
                     } else {
-                        await window.BuilderPublishAPI.saveDraft({ brand_id, title: contentJson.title, slug: contentJson.slug, content_json: contentJson });
+                        await window.BuilderPublishAPI.saveDraft({ brand_id, title: safeTitle, slug: safeSlug, content_json: contentJson });
                         this.showNotification('💾 Concept opgeslagen (lokaal + Bolt-draft)', 'success');
                     }
                 } catch (e) {
                     console.warn('Draft opslaan mislukt:', e?.message||e);
+                    // Fallback: direct POST to Edge content-api save endpoint if available
+                    try {
+                        const url = new URL(window.location.href);
+                        const api = (url.searchParams.get('api') || '').replace(/\/$/, '');
+                        const token = url.searchParams.get('token') || '';
+                        const apiKeyHeader = url.searchParams.get('apikey') || url.searchParams.get('api_key') || '';
+                        if (api && token) {
+                            const qs = new URLSearchParams();
+                            qs.set('type', (url.searchParams.get('content_type')||'news_items'));
+                            const apiUrl = `${api}/functions/v1/content-api/save?${qs.toString()}`;
+                            const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+                            if (apiKeyHeader) headers['apikey'] = apiKeyHeader;
+                            const body = {
+                                brand_id: (url.searchParams.get('brand_id') || window.CURRENT_BRAND_ID),
+                                title: (contentJson.title),
+                                slug: (contentJson.slug),
+                                content: { json: contentJson, html: (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '' },
+                                status: 'draft'
+                            };
+                            await fetch(apiUrl, { method: 'POST', headers, body: JSON.stringify(body) });
+                        }
+                    } catch {}
                 }
             };
         } catch {}
