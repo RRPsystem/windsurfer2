@@ -182,6 +182,7 @@
 
     view.style.display = '';
   }
+  }
 
   function setMode(mode){
     if (!MODES.some(x=>x.value===mode)) mode = 'page';
