@@ -1567,16 +1567,90 @@ class WebsiteBuilder {
     async loadFromEdgeIfPresent() {
         try {
             const url = new URL(window.location.href);
-            const api = (url.searchParams.get('api') || '').replace(/\/$/, '');
-            const token = url.searchParams.get('token') || '';
-            const apiKeyHeader = url.searchParams.get('apikey') || url.searchParams.get('api_key') || '';
-            // Only treat explicit 'news_slug' as news. Do NOT alias generic 'slug' to news.
-            const news_slug = url.searchParams.get('news_slug');
-            const author_type = url.searchParams.get('author_type'); // not used yet, but reserved
-            const author_id = url.searchParams.get('author_id');     // not used yet, but reserved
-            const page_id = url.searchParams.get('page_id');
-            const brand_id = url.searchParams.get('brand_id') || '';
-            const content_type = url.searchParams.get('content_type') || 'news_items';
+            // Resolve compact context if present (and bootstrap from network if missing)
+            let ctx = {};
+            let ctxId = '';
+            try {
+                ctxId = url.searchParams.get('ctx') || '';
+                if (ctxId) ctx = JSON.parse(localStorage.getItem('wb_ctx_' + ctxId) || '{}');
+                // Bootstrap: fetch context if not stored locally yet
+                if (ctxId && (!ctx || !ctx.api || !ctx.token)) {
+                    const candidates = [];
+                    const base = (url.searchParams.get('ctx_base') || '').replace(/\/$/, '');
+                    if (base) candidates.push(`${base}/wbctx/${encodeURIComponent(ctxId)}`);
+                    candidates.push(`${location.origin}/wbctx/${encodeURIComponent(ctxId)}.json`);
+                    candidates.push(`${location.origin}/wbctx/${encodeURIComponent(ctxId)}`);
+                    for (const u of candidates) {
+                        try {
+                            const res = await fetch(u, { headers: { 'Content-Type': 'application/json' } });
+                            if (!res.ok) continue;
+                            const data = await res.json();
+                            if (data && data.api && (data.token || data.news_slug)) {
+                                ctx = data;
+                                // defer persistence until after validation below
+                                break;
+                            }
+                        } catch {}
+                    }
+                }
+            } catch {}
+            // Security: ephemeral (no localStorage), expiry, and optional signature verification
+            const ephemeralParam = (url.searchParams.get('ctx_ephemeral') === '1');
+            const isEphemeral = ephemeralParam || !!ctx.ephemeral;
+            try {
+                // 1) Expiry check
+                if (ctx.exp && Number.isFinite(+ctx.exp)) {
+                    const now = Math.floor(Date.now()/1000);
+                    if (now >= +ctx.exp) {
+                        this.showNotification('⚠️ Context verlopen. Vraag een nieuwe link aan.', 'error');
+                        return; // abort early
+                    }
+                }
+                // 2) Optional RS256 signature verification
+                if (ctx.sig && (ctx.pub || window.WB_CTX_PUBLIC_KEY)) {
+                    const pubPem = ctx.pub || window.WB_CTX_PUBLIC_KEY;
+                    const canonical = (o) => {
+                        const allow = ['api','token','apikey','brand_id','page_id','news_slug','slug','exp','ephemeral'];
+                        const subset = {}; allow.forEach(k=>{ if (o[k]!==undefined) subset[k]=o[k]; });
+                        return JSON.stringify(subset);
+                    };
+                    const importKey = async (pem) => {
+                        const b64 = pem.replace(/-----[^-]+-----/g,'').replace(/\s+/g,'');
+                        const raw = Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
+                        return await crypto.subtle.importKey('spki', raw.buffer, { name:'RSASSA-PKCS1-v1_5', hash:'SHA-256' }, false, ['verify']);
+                    };
+                    const key = await importKey(pubPem).catch(()=>null);
+                    const enc = new TextEncoder();
+                    const data = enc.encode(canonical(ctx));
+                    const sigRaw = Uint8Array.from(atob(String(ctx.sig).replace(/-/g,'+').replace(/_/g,'/')), c=>c.charCodeAt(0));
+                    const ok = key ? await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, sigRaw, data).catch(()=>false) : false;
+                    if (!ok) { this.showNotification('⚠️ Ongeldige context-handtekening', 'error'); return; }
+                }
+            } catch {}
+            // Persist only when NOT ephemeral and when we actually bootstrapped from network
+            try {
+                if (ctxId && ctx && ctx.api && (ctx.token || ctx.news_slug) && !isEphemeral) {
+                    localStorage.setItem('wb_ctx_' + ctxId, JSON.stringify(ctx));
+                }
+            } catch {}
+            const from = (k, def='') => (url.searchParams.get(k) || ctx[k] || def);
+            const api = (from('api', '') || '').replace(/\/$/, '');
+            const token = from('token', '');
+            const apiKeyHeader = from('apikey', from('api_key', ''));
+            // News detection: explicit news_slug OR (content_type=news_items AND slug present AND no page_id)
+            const content_type = from('content_type', 'news_items');
+            let news_slug = from('news_slug', '');
+            if (!news_slug) {
+                const maybeSlug = from('slug', '');
+                if ((content_type || '').toLowerCase() === 'news_items' && !from('page_id','') && maybeSlug) {
+                    news_slug = maybeSlug;
+                }
+            }
+            const author_type = from('author_type', ''); // reserved
+            const author_id = from('author_id', '');     // reserved
+            const page_id = from('page_id', '');
+            const brand_id = from('brand_id', '');
+            // content_type already resolved above
             if (!api || !token) return; // require both for edge
 
             if (news_slug) {
@@ -1665,7 +1739,7 @@ class WebsiteBuilder {
                 // If not found, attempt preview by slug (public) using URL param, cached mapping, or prompt
                 if (!r.ok && r.status === 404) {
                     let pageMap = {}; try { pageMap = JSON.parse(localStorage.getItem('wb_page_map') || '{}'); } catch {}
-                    let bySlug = (url.searchParams.get('slug') || pageMap[page_id] || '').trim();
+                    let bySlug = (from('slug', '') || pageMap[page_id] || '').trim();
                     if (!bySlug) { try { bySlug = (prompt('Pagina niet gevonden via ID. Vul de pagina slug in om te openen:','') || '').trim(); } catch {} }
                     if (bySlug) {
                         const qs2 = new URLSearchParams();
