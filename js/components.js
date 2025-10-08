@@ -1,4 +1,28 @@
 // Component factory voor website builder
+
+// Global helper: apply responsive src/srcset for known CDNs (e.g., Unsplash)
+function __WB_applyResponsiveSrc(imageEl, url, opts = {}) {
+    try {
+        const u = new URL(url);
+        const widths = opts.widths || [1280, 1920, 2560, 3200];
+        const quality = String(opts.quality || 80);
+        const fm = opts.format || 'webp';
+        if (u.hostname.includes('images.unsplash.com')) {
+            const base = `${u.origin}${u.pathname}`;
+            const params = u.searchParams;
+            const fit = params.get('fit') || 'crop';
+            const auto = params.get('auto') || 'format';
+            const srcs = widths.map(w => `${base}?q=${quality}&w=${w}&auto=${auto}&fit=${fit}&fm=${fm}`);
+            const defaultSrc = srcs[1] || srcs[0];
+            imageEl.src = defaultSrc;
+            imageEl.srcset = srcs.map((s, i) => `${s} ${widths[i]}w`).join(', ');
+            imageEl.sizes = opts.sizes || '100vw';
+            return;
+        }
+    } catch {}
+    // Fallback: single src
+    imageEl.src = url;
+}
 class ComponentFactory {
     static createComponent(type, options = {}) {
         const components = {
@@ -262,12 +286,12 @@ class ComponentFactory {
         left.addEventListener('click', async (e)=>{
             e.stopPropagation();
             if (!leftImg) return;
-            try { if (!window.MediaPicker) return; const r = await window.MediaPicker.openImage(); const u = r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if (u){ leftImg.src=u; } } catch {}
+            try { if (!window.MediaPicker) return; const r = await window.MediaPicker.openImage(); const u = r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if (u){ __WB_applyResponsiveSrc(leftImg, u); } } catch {}
         });
         right.addEventListener('click', async (e)=>{
             e.stopPropagation();
             if (!rightImg) return;
-            try { if (!window.MediaPicker) return; const r = await window.MediaPicker.openImage(); const u = r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if (u){ rightImg.src=u; } } catch {}
+            try { if (!window.MediaPicker) return; const r = await window.MediaPicker.openImage(); const u = r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if (u){ __WB_applyResponsiveSrc(rightImg, u); } } catch {}
         });
 
         // Interactions
@@ -283,8 +307,8 @@ class ComponentFactory {
             setImageHeight: (px)=>{ section._imgHeight = Math.max(120, parseInt(px,10)||260); applyStyles(); },
             setRadius: (px)=>{ section._radius = Math.max(0, parseInt(px,10)||0); applyStyles(); },
             setShadow: (on)=>{ section._shadow = !!on; applyStyles(); },
-            pickLeft: async ()=>{ try{ if(!window.MediaPicker) return; const r=await window.MediaPicker.openImage(); const u=r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if(u) leftImg.src=u; }catch{} },
-            pickRight: async ()=>{ try{ if(!window.MediaPicker) return; const r=await window.MediaPicker.openImage(); const u=r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if(u) rightImg.src=u; }catch{} },
+            pickLeft: async ()=>{ try{ if(!window.MediaPicker) return; const r=await window.MediaPicker.openImage(); const u=r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if(u) __WB_applyResponsiveSrc(leftImg, u); }catch{} },
+            pickRight: async ()=>{ try{ if(!window.MediaPicker) return; const r=await window.MediaPicker.openImage(); const u=r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if(u) __WB_applyResponsiveSrc(rightImg, u); }catch{} },
         };
 
         return section;
