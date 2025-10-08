@@ -1372,6 +1372,7 @@ class WebsiteBuilder {
             const url = new URL(window.location.href);
             const api = (url.searchParams.get('api') || '').replace(/\/$/, '');
             const token = url.searchParams.get('token') || '';
+            const apiKeyHeader = url.searchParams.get('apikey') || url.searchParams.get('api_key') || '';
             const news_slug = url.searchParams.get('news_slug') || url.searchParams.get('slug');
             const author_type = url.searchParams.get('author_type'); // not used yet, but reserved
             const author_id = url.searchParams.get('author_id');     // not used yet, but reserved
@@ -1387,11 +1388,16 @@ class WebsiteBuilder {
                 if (brand_id) qs.set('brand_id', brand_id);
                 const apiUrl = `${api}/functions/v1/content-api/${encodeURIComponent(news_slug)}?${qs.toString()}`;
                 console.info('[WB] Fetch news content', { apiUrl });
-                const r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
+                const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+                if (apiKeyHeader) headers['apikey'] = apiKeyHeader;
+                const r = await fetch(apiUrl, { headers });
                 if (!r.ok) throw new Error(await r.text());
                 const newsData = await r.json();
                 // Support multiple shapes: {content:{json:{...}}} or {content_json:{json:{...}}} or direct
-                const content = newsData?.content?.json || newsData?.content_json?.json || newsData?.content || newsData?.content_json || null;
+                let content = newsData?.content?.json || newsData?.content_json?.json || newsData?.content || newsData?.content_json || null;
+                if (content && typeof content === 'string') {
+                    try { content = JSON.parse(content); } catch {}
+                }
                 if (content) {
                     // Prefer global importer if present
                     try {
@@ -1488,9 +1494,15 @@ class WebsiteBuilder {
             }
             if (kind === 'page') apiUrl = `${api}/functions/v1/pages-api/pages/${encodeURIComponent(key)}`;
             if (!apiUrl) return;
+            const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+            try {
+                const u = new URL(window.location.href);
+                const k = u.searchParams.get('apikey') || u.searchParams.get('api_key');
+                if (k) headers['apikey'] = k;
+            } catch {}
             const r = await fetch(apiUrl, {
                 method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify({ content: contentJson })
             });
             if (!r.ok) throw new Error(await r.text());
