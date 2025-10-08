@@ -206,6 +206,8 @@
     const tryScaffold = (which, attempt=0) => {
       try {
         if (attempt > 100) return; // ~10s max if 100ms intervals
+        // If Edge loader is active (news/page import), postpone scaffolding to avoid overwriting imported content
+        if (window.__WB_LOADING_EDGE) return setTimeout(() => tryScaffold(which, attempt+1), 100);
         const builder = (window.websiteBuilder || window.wb);
         const ready = !!(builder && document.getElementById('canvas'));
         if (!ready) return setTimeout(() => tryScaffold(which, attempt+1), 100);
