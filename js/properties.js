@@ -74,6 +74,15 @@ class PropertiesPanel {
         const bodyEl = component.querySelector('.cf-body');
         this.createTextareaInput('Tekst', bodyEl?.innerHTML || '', (v)=> api.setBodyHtml && api.setBodyHtml(v));
 
+        // Vertical position: allow negative top offset using margin-top on the block
+        try {
+            const curTop = parseInt(component.style.marginTop || '0', 10).toString();
+            this.createRangeInput('Top offset (px)', curTop, '-80', '120', '1', (v)=>{
+                const num = parseInt(v, 10) || 0;
+                component.style.marginTop = `${num}px`;
+            });
+        } catch {}
+
         // Layout
         const curLayout = component._layout || 'none';
         this.createSelectInput('Layout', curLayout, [
@@ -1219,6 +1228,9 @@ class PropertiesPanel {
             case 'dest-tabs':
                 this.createDestTabsProperties(component);
                 break;
+            case 'news-article':
+                this.createNewsArticleProperties(component);
+                break;
         }
         
         // Common properties for all components
@@ -1250,9 +1262,69 @@ class PropertiesPanel {
             'contact-info': 'Contact Info',
             'contact-map-cta': 'Contact Map + CTA',
             'media-row': 'Media Rij',
-            'dest-tabs': 'Bestemmingen Tabs'
+            'dest-tabs': 'Bestemmingen Tabs',
+            'news-article': 'Nieuwsartikel'
         };
         return titles[type] || 'Component';
+    }
+
+    // Properties for News Article (title, date, author, tags chips, body)
+    createNewsArticleProperties(component) {
+        const titleEl = component.querySelector('.na-title');
+        const dateEl = component.querySelector('.na-date');
+        const authorEl = component.querySelector('.na-author');
+        const tagsUl = component.querySelector('.na-tags');
+        const bodyEl = component.querySelector('.na-body');
+
+        // Basic fields
+        if (titleEl) this.createTextInput('Titel', titleEl.textContent || '', (v) => { titleEl.textContent = v; });
+        if (dateEl) this.createTextInput('Datum (YYYY-MM-DD)', dateEl.textContent || '', (v) => { dateEl.textContent = v; });
+        if (authorEl) this.createTextInput('Auteur', authorEl.textContent || '', (v) => { authorEl.textContent = v; });
+
+        // Tags chips
+        const readTags = () => Array.from(tagsUl?.querySelectorAll('li.na-tag') || []).map(li => (li.textContent || '').trim()).filter(Boolean);
+        const writeTags = (arr) => {
+            if (!tagsUl) return;
+            tagsUl.innerHTML = '';
+            (arr || []).forEach(t => {
+                const li = document.createElement('li');
+                li.className = 'na-tag';
+                li.style.cssText = 'background:#eef2ff;color:#3730a3;border:1px solid #e5e7eb;border-radius:20px;padding:4px 10px;font-size:12px;display:flex;gap:6px;align-items:center;';
+                const span = document.createElement('span'); span.textContent = t;
+                const x = document.createElement('button'); x.type='button'; x.className='btn btn-secondary btn-small'; x.textContent='×'; x.style.padding='0 6px';
+                x.onclick = () => { const list = readTags().filter(v => v !== t); writeTags(list); syncGlobals(list); };
+                li.appendChild(span); li.appendChild(x);
+                tagsUl.appendChild(li);
+            });
+        };
+        const syncGlobals = (tags) => {
+            try { window.CURRENT_NEWS_TAGS = tags.slice(0, 50); } catch {}
+        };
+
+        // UI group
+        const grp = this.createFormGroup('Tags');
+        const wrap = document.createElement('div');
+        wrap.style.display = 'flex'; wrap.style.gap = '8px'; wrap.style.alignItems = 'center';
+        const input = document.createElement('input');
+        input.type = 'text'; input.className = 'form-control'; input.placeholder = 'Voeg tag toe… (Enter of ,)'; input.style.maxWidth = '220px';
+        const add = (raw) => {
+            const base = readTags();
+            const parts = String(raw||'').split(',').map(s=>s.trim()).filter(Boolean);
+            if (!parts.length) return;
+            const limited = Array.from(new Set(base.concat(parts))).slice(0, 20);
+            writeTags(limited); syncGlobals(limited); input.value = '';
+        };
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); add(input.value); }
+        });
+        const btn = document.createElement('button'); btn.type='button'; btn.className='btn btn-secondary'; btn.textContent='Toevoegen'; btn.onclick=()=>add(input.value);
+        wrap.appendChild(input); wrap.appendChild(btn); grp.appendChild(wrap); this.panel.appendChild(grp);
+
+        // Initialize chips
+        writeTags(readTags()); syncGlobals(readTags());
+
+        // Body (richtext)
+        if (bodyEl) this.createTextareaInput('Inhoud', bodyEl.innerHTML || '', (v) => { bodyEl.innerHTML = v; });
     }
 
     // Properties for Destinations Tabs (Cities/Regions/UNESCO)

@@ -306,6 +306,23 @@ async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, feat
   if (!base) throw new Error('content-api base URL ontbreekt');
   const url = `${base}/content-api/save?type=news_items`;
   const body = { brand_id, title, slug, content: content || {}, excerpt: excerpt || '', featured_image: featured_image || '', status };
+  // Tags support: from content.meta.tags (array) or URL ?tags=comma,separated
+  try {
+    const metaTags = Array.isArray(content?.meta?.tags) ? content.meta.tags : null;
+    if (metaTags && metaTags.length) body.tags = metaTags.map(String);
+    // From a UI field stored globally
+    const globalTags = (window.CURRENT_NEWS_TAGS && Array.isArray(window.CURRENT_NEWS_TAGS))
+      ? window.CURRENT_NEWS_TAGS
+      : (typeof window.CURRENT_NEWS_TAGS === 'string' ? window.CURRENT_NEWS_TAGS.split(',').map(s=>s.trim()).filter(Boolean) : null);
+    if ((!body.tags || !body.tags.length) && globalTags && globalTags.length) {
+      body.tags = globalTags.map(String);
+    }
+    const qp = readQueryParam('tags');
+    if ((!body.tags || !body.tags.length) && qp) {
+      const arr = String(qp).split(',').map(s=>s.trim()).filter(Boolean);
+      if (arr.length) body.tags = arr;
+    }
+  } catch {}
   // Attach author attribution if provided via URL or globals (for admin attribution in Bolt)
   const author_type = readQueryParam('author_type') || (window.CURRENT_AUTHOR_TYPE || null);
   const author_id = readQueryParam('author_id') || readQueryParam('user_id') || (window.CURRENT_USER_ID || null);
@@ -328,6 +345,7 @@ async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, feat
       slug,
       hasToken: !!hdr.Authorization,
       hasApiKey: !!hdr.apikey,
+      tags: (body.tags && body.tags.join(',')) || null,
       author_type: body.author_type || null,
       author_id: body.author_id ? String(body.author_id).slice(0,6) + '…' : null,
       headers: masked
