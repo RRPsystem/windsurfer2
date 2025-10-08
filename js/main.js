@@ -71,8 +71,22 @@ class WebsiteBuilder {
                         sel.innerHTML = '<option value="page">Web pagina</option><option value="travel">Reizen</option><option value="news">Nieuwsartikel</option><option value="destination">Bestemmingspagina</option><option value="menu">Menu & footer</option>';
                         wrap.appendChild(lbl); wrap.appendChild(sel);
                         headerRight.insertBefore(wrap, headerRight.firstChild);
-                        try { sel.value = 'news'; } catch {}
-                        sel.onchange = () => { try { location.hash = '#/mode/' + sel.value; } catch {} };
+                        // Determine initial mode from deeplink/hash/localStorage
+                        try {
+                            const ct = (href.searchParams.get('content_type')||'').toLowerCase();
+                            const hasNewsSlug = !!(href.searchParams.get('news_slug') || href.searchParams.get('slug'));
+                            const hasPageId = !!href.searchParams.get('page_id');
+                            let mode = 'page';
+                            if (ct === 'news_items' || (hasNewsSlug && !hasPageId)) mode = 'news';
+                            if (ct === 'destinations') mode = 'destination';
+                            // Prefer explicit hash if present
+                            const hashMode = (location.hash.match(/#\/mode\/([a-z]+)/i)||[])[1];
+                            if (hashMode) mode = hashMode;
+                            sel.value = mode;
+                            try { localStorage.setItem('wb_mode', mode); } catch {}
+                            try { if (!hashMode) location.hash = '#/mode/' + mode; } catch {}
+                        } catch {}
+                        sel.onchange = () => { try { localStorage.setItem('wb_mode', sel.value); location.hash = '#/mode/' + sel.value; } catch {} };
                     }
 
                     // Ensure save handler is bound correctly each time
@@ -467,12 +481,6 @@ class WebsiteBuilder {
                         .replace(/[^a-z0-9]+/g, '-')
                         .replace(/^-+|-+$/g, '')
                         .slice(0, 80);
-                    const safeTitle = (contentJson.title || titleInput?.value || 'Nieuws').toString();
-                    const safeSlug = slugify(contentJson.slug || slugInput?.value || safeTitle);
-                    contentJson.title = safeTitle;
-                    contentJson.slug = safeSlug;
-                    if (!window.BuilderPublishAPI) throw new Error('Publish helpers niet geladen');
-
                     // Determine effective mode from deeplink
                     let mode = (typeof this.getCurrentMode === 'function') ? this.getCurrentMode() : 'page';
                     try {
@@ -481,7 +489,15 @@ class WebsiteBuilder {
                         const hasPageId = !!u.searchParams.get('page_id');
                         if (ct === 'news_items' || (hasNewsSlug && !hasPageId)) mode = 'news';
                         if (ct === 'destinations') mode = 'destination';
+                        if (hasPageId && !ct) mode = 'page';
                     } catch {}
+
+                    const defaultTitle = (mode === 'page') ? 'Pagina' : (mode === 'destination' ? 'Bestemming' : 'Nieuws');
+                    const safeTitle = (contentJson.title || titleInput?.value || defaultTitle).toString();
+                    const safeSlug = slugify(contentJson.slug || slugInput?.value || safeTitle);
+                    contentJson.title = safeTitle;
+                    contentJson.slug = safeSlug;
+                    if (!window.BuilderPublishAPI) throw new Error('Publish helpers niet geladen');
 
                     if (mode === 'news' && window.BuilderPublishAPI.news) {
                         await window.BuilderPublishAPI.news.saveDraft({
@@ -501,6 +517,11 @@ class WebsiteBuilder {
                             status: 'draft'
                         });
                         this.showNotification('🗺️ Concept opgeslagen (Bestemming)', 'success');
+                    } else if (mode === 'page' && window.BuilderPublishAPI.saveDraft) {
+                        // Pages: save draft JSON, then publish HTML so edit opens with content
+                        const page = await window.BuilderPublishAPI.saveDraft({ brand_id, title: safeTitle, slug: safeSlug, content_json: contentJson });
+                        try { await window.BuilderPublishAPI.publishPage(page.id, htmlString); } catch {}
+                        this.showNotification('📝 Pagina opgeslagen en gepubliceerd', 'success');
                     } else {
                         await window.BuilderPublishAPI.saveDraft({ brand_id, title: safeTitle, slug: safeSlug, content_json: contentJson });
                         this.showNotification('💾 Concept opgeslagen (lokaal + Bolt-draft)', 'success');
