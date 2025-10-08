@@ -1407,6 +1407,7 @@ class WebsiteBuilder {
 
             if (news_slug) {
                 // New shape: /content-api/{slug}?type={content_type}&brand_id={brand_id}
+                try { window.__WB_LOADING_EDGE = 'news'; } catch {}
                 const qs = new URLSearchParams();
                 if (content_type) qs.set('type', content_type);
                 if (brand_id) qs.set('brand_id', brand_id);
@@ -1462,6 +1463,7 @@ class WebsiteBuilder {
                         }, 600);
                     } catch {}
                     this.showNotification('📥 Nieuwsartikel geladen van Supabase', 'success');
+                    try { window.__WB_LOADING_EDGE = false; } catch {}
                 } else {
                     console.warn('[WB] No content found in news response. Keys:', Object.keys(newsData||{}));
                     // If no content, scaffold a fresh news template so user can start
@@ -1474,6 +1476,7 @@ class WebsiteBuilder {
                             }
                         }, 0);
                     } catch {}
+                    try { window.__WB_LOADING_EDGE = false; } catch {}
                 }
                 return;
             }
