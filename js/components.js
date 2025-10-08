@@ -44,6 +44,7 @@ class ComponentFactory {
             'contact-map-cta': this.createContactMapCta,
             'media-row': this.createMediaRow,
             'dest-tabs': this.createDestTabs,
+            'news-article': this.createNewsArticle,
             'jotform-embed': this.createJotformEmbed
         };
 
@@ -204,6 +205,61 @@ class ComponentFactory {
             setMobileSlider: (on) => { section._mobileSlider = !!on; renderCards(); }
         };
 
+        return section;
+    }
+
+    // NEWS: Article block with title, meta (date, author, tags) and body
+    static createNewsArticle(options = {}) {
+        const section = document.createElement('section');
+        section.className = 'wb-component wb-news-article';
+        section.setAttribute('data-component', 'news-article');
+        section.id = this.generateId('news_article');
+
+        // Toolbar + badge
+        const toolbar = this.createToolbar();
+        section.appendChild(toolbar);
+        this.addTypeBadge(section);
+
+        // Defaults
+        const title = options.title || 'Titel van het nieuwsartikel';
+        const dateStr = options.date || new Date().toISOString().slice(0,10);
+        const author = options.author || 'Auteur';
+        const tags = Array.isArray(options.tags) ? options.tags : ['nieuws'];
+        const bodyHtml = options.bodyHtml || '<p>Schrijf hier de inhoud van je nieuwsartikel. Deze tekst is bewerkbaar.</p>';
+
+        // Header
+        const header = document.createElement('header');
+        header.className = 'na-header';
+        header.innerHTML = `
+            <h1 class="na-title" contenteditable="true">${title}</h1>
+            <div class="na-meta" style="display:flex;gap:12px;align-items:center;color:#6b7280;font-size:14px;">
+                <span class="na-date" contenteditable="true">${dateStr}</span>
+                <span class="na-dot">•</span>
+                <span class="na-author" contenteditable="true">${author}</span>
+            </div>
+            <ul class="na-tags" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0;padding:0;list-style:none;"></ul>
+        `;
+
+        const tagsUl = header.querySelector('.na-tags');
+        (tags || []).forEach(t => {
+            const li = document.createElement('li');
+            li.className = 'na-tag';
+            li.textContent = String(t);
+            li.style.cssText = 'background:#eef2ff;color:#3730a3;border:1px solid #e5e7eb;border-radius:20px;padding:4px 10px;font-size:12px;';
+            tagsUl.appendChild(li);
+        });
+
+        // Body
+        const body = document.createElement('div');
+        body.className = 'na-body';
+        body.contentEditable = true;
+        body.innerHTML = bodyHtml;
+
+        section.appendChild(header);
+        section.appendChild(body);
+
+        this.makeSelectable(section);
+        this.makeEditable(header.querySelector('.na-title'));
         return section;
     }
 
@@ -658,6 +714,8 @@ class ComponentFactory {
         const img = document.createElement('img');
         __WB_applyResponsiveSrc(img, bgUrl);
         img.alt = 'Hero background';
+        img.decoding = 'async';
+        img.loading = 'eager';
         bg.appendChild(img);
 
         // Overlay
@@ -684,6 +742,31 @@ class ComponentFactory {
 
         this.makeSelectable(section);
         this.makeEditable(word);
+
+        // --- Media chooser: behave like other media components ---
+        const mediaBtn = document.createElement('button');
+        mediaBtn.type = 'button';
+        mediaBtn.className = 'hero-media-chooser';
+        mediaBtn.title = 'Achtergrond wijzigen (afbeelding)';
+        mediaBtn.innerHTML = '<i class="fas fa-photo-video"></i>';
+        section.appendChild(mediaBtn);
+
+        const openImagePicker = async () => {
+            try {
+                let src = '';
+                if (window.MediaPicker && typeof window.MediaPicker.openImage === 'function') {
+                    const result = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
+                    src = result && (result.fullUrl || result.regularUrl || result.url || result.dataUrl) || '';
+                }
+                if (!src) return;
+                __WB_applyResponsiveSrc(img, src);
+            } catch (e) { console.warn('Hero image select canceled/failed', e); }
+        };
+
+        mediaBtn.addEventListener('click', (e) => { e.stopPropagation(); openImagePicker(); });
+        // Also allow clicking background to change when selected
+        bg.addEventListener('click', (e) => { e.stopPropagation(); openImagePicker(); });
+
         return section;
     }
 
@@ -2133,7 +2216,8 @@ class ComponentFactory {
                 'travel-types': 'fa-th-large',
                 'contact-info': 'fa-address-card',
                 'contact-map-cta': 'fa-map-location-dot',
-                'media-row': 'fa-images'
+                'media-row': 'fa-images',
+                'news-article': 'fa-newspaper'
             };
             const icon = map[type];
             if (!icon) return;
