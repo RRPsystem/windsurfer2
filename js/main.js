@@ -1570,7 +1570,8 @@ class WebsiteBuilder {
             const api = (url.searchParams.get('api') || '').replace(/\/$/, '');
             const token = url.searchParams.get('token') || '';
             const apiKeyHeader = url.searchParams.get('apikey') || url.searchParams.get('api_key') || '';
-            const news_slug = url.searchParams.get('news_slug') || url.searchParams.get('slug');
+            // Only treat explicit 'news_slug' as news. Do NOT alias generic 'slug' to news.
+            const news_slug = url.searchParams.get('news_slug');
             const author_type = url.searchParams.get('author_type'); // not used yet, but reserved
             const author_id = url.searchParams.get('author_id');     // not used yet, but reserved
             const page_id = url.searchParams.get('page_id');
