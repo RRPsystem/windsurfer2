@@ -1655,8 +1655,20 @@ class WebsiteBuilder {
             }
 
             if (page_id) {
-                const apiUrl = `${api}/functions/v1/pages-api/pages/${encodeURIComponent(page_id)}`;
-                const r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
+                const qs1 = new URLSearchParams();
+                if (brand_id) qs1.set('brand_id', brand_id);
+                let apiUrl = `${api}/functions/v1/pages-api/pages/${encodeURIComponent(page_id)}${qs1.toString() ? `?${qs1.toString()}` : ''}`;
+                let r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
+                // Fallback: if 404, try by slug (if slug present in URL)
+                if (!r.ok && r.status === 404) {
+                    const bySlug = (url.searchParams.get('slug') || '').trim();
+                    if (bySlug) {
+                        const qs2 = new URLSearchParams();
+                        if (brand_id) qs2.set('brand_id', brand_id);
+                        apiUrl = `${api}/functions/v1/pages-api/by-slug/${encodeURIComponent(bySlug)}${qs2.toString() ? `?${qs2.toString()}` : ''}`;
+                        r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
+                    }
+                }
                 if (!r.ok) throw new Error(await r.text());
                 const pageData = await r.json();
                 let builderJson = pageData?.content_json?.json || pageData?.content_json || pageData?.content || null;
