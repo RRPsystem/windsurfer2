@@ -485,11 +485,11 @@ class WebsiteBuilder {
                     let mode = (typeof this.getCurrentMode === 'function') ? this.getCurrentMode() : 'page';
                     try {
                         const ct = (u.searchParams.get('content_type')||'').toLowerCase();
-                        const hasNewsSlug = !!(u.searchParams.get('news_slug') || u.searchParams.get('slug'));
+                        const hasNewsSlug = !!(u.searchParams.get('news_slug'));
                         const hasPageId = !!u.searchParams.get('page_id');
                         if (ct === 'news_items' || (hasNewsSlug && !hasPageId)) mode = 'news';
                         if (ct === 'destinations') mode = 'destination';
-                        if (hasPageId && !ct) mode = 'page';
+                        if ((hasPageId && !ct) || (!ct && !hasNewsSlug)) mode = 'page';
                     } catch {}
 
                     const defaultTitle = (mode === 'page') ? 'Pagina' : (mode === 'destination' ? 'Bestemming' : 'Nieuws');
@@ -1659,9 +1659,12 @@ class WebsiteBuilder {
                 if (brand_id) qs1.set('brand_id', brand_id);
                 let apiUrl = `${api}/functions/v1/pages-api/pages/${encodeURIComponent(page_id)}${qs1.toString() ? `?${qs1.toString()}` : ''}`;
                 let r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
-                // Fallback: if 404, try by slug (if slug present in URL)
+                // Fallback: if 404, try by slug (from URL or prompt)
                 if (!r.ok && r.status === 404) {
-                    const bySlug = (url.searchParams.get('slug') || '').trim();
+                    let bySlug = (url.searchParams.get('slug') || '').trim();
+                    if (!bySlug) {
+                        try { bySlug = (prompt('Pagina niet gevonden via ID. Vul de pagina slug in om te openen:','') || '').trim(); } catch {}
+                    }
                     if (bySlug) {
                         const qs2 = new URLSearchParams();
                         if (brand_id) qs2.set('brand_id', brand_id);
