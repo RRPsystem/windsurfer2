@@ -333,10 +333,14 @@
       });
     </script>
     <script>
-      // Bolt header customization: keep only relevant buttons in deeplink context
+      // Bolt header customization: keep only relevant buttons in deeplink/deeplink-like context
       function applyBoltHeaderVisibility(){
         try {
-          const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl);
+          // Consider "Bolt context" if either a Bolt base is present OR the URL carries api+brand_id (deeplink)
+          const href = new URL(window.location.href);
+          const hasApiParam = !!href.searchParams.get('api');
+          const hasBrand = !!href.searchParams.get('brand_id');
+          const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl) || (hasApiParam && hasBrand);
           if (!isBolt) return;
           const pageMeta = document.querySelector('.app-header .page-meta');
           if (pageMeta) pageMeta.style.display = '';
@@ -371,7 +375,8 @@
         } catch {}
       
         try {
-          const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl);
+          const href = new URL(window.location.href);
+          const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl) || (!!href.searchParams.get('api') && !!href.searchParams.get('brand_id'));
           if (!isBolt) return;
 
           const headerRight = document.querySelector('.app-header .header-right');
