@@ -1626,7 +1626,16 @@ class WebsiteBuilder {
         const htmlString = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson || undefined) : null;
         if (!contentJson || !htmlString) return;
         try {
-            const mode = (typeof this.getCurrentMode === 'function') ? this.getCurrentMode() : 'page';
+            // Determine effective mode: prefer deeplink params over UI state
+            let mode = (typeof this.getCurrentMode === 'function') ? this.getCurrentMode() : 'page';
+            try {
+                const u = new URL(window.location.href);
+                const ct = (u.searchParams.get('content_type')||'').toLowerCase();
+                const hasNewsSlug = !!(u.searchParams.get('news_slug') || u.searchParams.get('slug'));
+                const hasPageId = !!u.searchParams.get('page_id');
+                if (ct === 'news_items' || (hasNewsSlug && !hasPageId)) mode = 'news';
+                if (ct === 'destinations') mode = 'destination';
+            } catch {}
             if (mode === 'news' && window.BuilderPublishAPI.news) {
                 // Save only as draft to content-api; do not publish automatically
                 await window.BuilderPublishAPI.news.saveDraft({
