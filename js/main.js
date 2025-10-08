@@ -1,4 +1,28 @@
 // Main JavaScript file voor Website Builder
+
+// Heuristic: find nested builder JSON (looks for pages array + currentPageId)
+function __WB_findBuilderJson(any){
+    try {
+        const seen = new Set();
+        const stack = [any];
+        let depth = 0;
+        while (stack.length && depth < 1e5){
+            const cur = stack.pop(); depth++;
+            if (!cur || typeof cur !== 'object') continue;
+            if (seen.has(cur)) continue; seen.add(cur);
+            // Candidate signature
+            if (Array.isArray(cur.pages) && cur.pages.length >= 0 && ('currentPageId' in cur || 'layout' in cur)) {
+                return cur;
+            }
+            // Push children
+            for (const k in cur){
+                try { stack.push(cur[k]); } catch {}
+            }
+        }
+    } catch {}
+    return null;
+}
+
 class WebsiteBuilder {
     constructor() {
         this.currentDevice = 'desktop';
@@ -1393,8 +1417,14 @@ class WebsiteBuilder {
                 const r = await fetch(apiUrl, { headers });
                 if (!r.ok) throw new Error(await r.text());
                 const newsData = await r.json();
-                // Support multiple shapes: {content:{json:{...}}} or {content_json:{json:{...}}} or direct
-                let content = newsData?.content?.json || newsData?.content_json?.json || newsData?.content || newsData?.content_json || null;
+                const d = newsData?.item || newsData;
+                // Support multiple shapes on root or inside .item
+                let content = d?.content?.json || d?.content_json?.json || d?.content || d?.content_json || null;
+                // Heuristic fallback: traverse to find a builder-like JSON
+                if (!content) {
+                    const found = __WB_findBuilderJson(d);
+                    if (found) content = found;
+                }
                 if (content && typeof content === 'string') {
                     try { content = JSON.parse(content); } catch {}
                 }
@@ -1420,7 +1450,21 @@ class WebsiteBuilder {
                         if (t && newsData.title) t.value = newsData.title;
                         if (s && newsData.slug) s.value = newsData.slug;
                     }
-                    // If loaded content is effectively empty, scaffold default news template
+                    // Do NOT scaffold when content existed; give renderer time to mount
+                    try {
+                        setTimeout(() => {
+                            const canvas = document.getElementById('canvas');
+                            const hasComponents = !!(canvas && canvas.querySelector('.wb-component'));
+                            // content is truthy here, so skip scaffolding even if slow to render
+                            if (!hasComponents) {
+                                // no-op; assume renderer will mount elements shortly
+                            }
+                        }, 600);
+                    } catch {}
+                    this.showNotification('📥 Nieuwsartikel geladen van Supabase', 'success');
+                } else {
+                    console.warn('[WB] No content found in news response. Keys:', Object.keys(newsData||{}));
+                    // If no content, scaffold a fresh news template so user can start
                     try {
                         setTimeout(() => {
                             const canvas = document.getElementById('canvas');
@@ -1430,9 +1474,6 @@ class WebsiteBuilder {
                             }
                         }, 0);
                     } catch {}
-                    this.showNotification('📥 Nieuwsartikel geladen van Supabase', 'success');
-                } else {
-                    console.warn('[WB] No content found in news response. Keys:', Object.keys(newsData||{}));
                 }
                 return;
             }
