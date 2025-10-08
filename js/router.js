@@ -15,6 +15,28 @@
     } catch { return null; }
   }
 
+  // Global scaffolding helper with extended retries
+  function WB_tryScaffold(which, attempt = 0) {
+    try {
+      const maxAttempts = 100; // up to ~10s if 100ms intervals
+      if (attempt > maxAttempts) return;
+      const builder = (window.websiteBuilder || window.wb);
+      const canvas = document.getElementById('canvas');
+      const ready = !!(builder && canvas);
+      if (!ready) return setTimeout(() => WB_tryScaffold(which, attempt + 1), 100);
+      if (!isCanvasEffectivelyEmpty()) return;
+      if (which === 'destination' && typeof builder.createDestinationTemplate === 'function') {
+        builder.createDestinationTemplate({ title: 'Bestemming' });
+        return;
+      }
+      if (which === 'news' && typeof builder.createNewsArticleTemplate === 'function') {
+        builder.createNewsArticleTemplate();
+        return;
+      }
+    } catch {}
+  }
+  try { window.WB_tryScaffold = WB_tryScaffold; } catch {}
+
   function hideHeaderPageButtonsNow(){
     try {
       ['newPageQuickBtn','pagesBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
@@ -182,15 +204,16 @@
 
     const tryScaffold = (which, attempt=0) => {
       try {
-        if (attempt > 20) return; // ~2s max if 100ms intervals
-        const ready = !!(window.websiteBuilder && document.getElementById('canvas'));
+        if (attempt > 100) return; // ~10s max if 100ms intervals
+        const builder = (window.websiteBuilder || window.wb);
+        const ready = !!(builder && document.getElementById('canvas'));
         if (!ready) return setTimeout(() => tryScaffold(which, attempt+1), 100);
         if (!isCanvasEffectivelyEmpty()) return;
-        if (which === 'destination' && typeof window.websiteBuilder.createDestinationTemplate === 'function') {
-          window.websiteBuilder.createDestinationTemplate({ title: 'Bestemming' });
+        if (which === 'destination' && builder && typeof builder.createDestinationTemplate === 'function') {
+          builder.createDestinationTemplate({ title: 'Bestemming' });
         }
-        if (which === 'news' && typeof window.websiteBuilder.createNewsArticleTemplate === 'function') {
-          window.websiteBuilder.createNewsArticleTemplate();
+        if (which === 'news' && builder && typeof builder.createNewsArticleTemplate === 'function') {
+          builder.createNewsArticleTemplate();
         }
       } catch {}
     };
@@ -201,6 +224,9 @@
       const view = document.getElementById('modeView'); if (view) view.style.display = 'none';
       history.replaceState(null, '', '#/mode/destination');
       tryScaffold('destination', 0);
+      // Fallback delayed attempts
+      setTimeout(() => WB_tryScaffold('destination', 0), 1000);
+      setTimeout(() => WB_tryScaffold('destination', 0), 3000);
       return;
     }
 
@@ -210,6 +236,9 @@
       const view = document.getElementById('modeView'); if (view) view.style.display = 'none';
       history.replaceState(null, '', '#/mode/news');
       tryScaffold('news', 0);
+      // Fallback delayed attempts
+      setTimeout(() => WB_tryScaffold('news', 0), 1000);
+      setTimeout(() => WB_tryScaffold('news', 0), 3000);
       return;
     }
 
@@ -272,6 +301,11 @@
     const hashMode = readModeFromHash();
     // Default to 'page' unless explicitly provided in hash
     setMode(hashMode || 'page');
+    // If landing directly on news/destination, schedule extra scaffolding attempts
+    if (hashMode === 'news' || hashMode === 'destination') {
+      setTimeout(() => WB_tryScaffold(hashMode, 0), 500);
+      setTimeout(() => WB_tryScaffold(hashMode, 0), 2500);
+    }
 
     window.addEventListener('hashchange', () => {
       const m = readModeFromHash();
