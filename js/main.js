@@ -1656,51 +1656,32 @@ class WebsiteBuilder {
             }
 
             if (page_id) {
-                const qs1 = new URLSearchParams();
-                if (brand_id) qs1.set('brand_id', brand_id);
-                let apiUrl = `${api}/functions/v1/pages-api/pages/${encodeURIComponent(page_id)}${qs1.toString() ? `?${qs1.toString()}` : ''}`;
-                console.info('[WB] Try load page by id', apiUrl);
+                // Correct endpoint: GET /functions/v1/pages-api?page_id=... (auth required)
+                const qs = new URLSearchParams();
+                qs.set('page_id', page_id);
+                let apiUrl = `${api}/functions/v1/pages-api?${qs.toString()}`;
+                console.info('[WB] Try load page by id (contract)', apiUrl);
                 let r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
-                // Fallback: if 404, try by slug (from URL or prompt)
+                // If not found, attempt preview by slug (public) using URL param, cached mapping, or prompt
                 if (!r.ok && r.status === 404) {
-                    let bySlug = (url.searchParams.get('slug') || '').trim();
-                    if (!bySlug) {
-                        try { bySlug = (prompt('Pagina niet gevonden via ID. Vul de pagina slug in om te openen:','') || '').trim(); } catch {}
-                    }
+                    let pageMap = {}; try { pageMap = JSON.parse(localStorage.getItem('wb_page_map') || '{}'); } catch {}
+                    let bySlug = (url.searchParams.get('slug') || pageMap[page_id] || '').trim();
+                    if (!bySlug) { try { bySlug = (prompt('Pagina niet gevonden via ID. Vul de pagina slug in om te openen:','') || '').trim(); } catch {} }
                     if (bySlug) {
-                        // Attempt 1: by-slug path
                         const qs2 = new URLSearchParams();
                         if (brand_id) qs2.set('brand_id', brand_id);
-                        apiUrl = `${api}/functions/v1/pages-api/by-slug/${encodeURIComponent(bySlug)}${qs2.toString() ? `?${qs2.toString()}` : ''}`;
-                        console.info('[WB] Try load page by slug (path)', apiUrl);
-                        r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
-                        // Attempt 2: by-slug query variant
-                        if (!r.ok) {
-                            const qs3 = new URLSearchParams();
-                            if (brand_id) qs3.set('brand_id', brand_id);
-                            qs3.set('slug', bySlug);
-                            apiUrl = `${api}/functions/v1/pages-api/by-slug?${qs3.toString()}`;
-                            console.info('[WB] Try load page by slug (query)', apiUrl);
-                            r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
-                        }
-                        // Attempt 3: pages list filtered by slug
-                        if (!r.ok) {
-                            const qs4 = new URLSearchParams();
-                            if (brand_id) qs4.set('brand_id', brand_id);
-                            qs4.set('slug', bySlug);
-                            apiUrl = `${api}/functions/v1/pages-api/pages?${qs4.toString()}`;
-                            console.info('[WB] Try load page list filter (slug)', apiUrl);
-                            r = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
-                        }
+                        qs2.set('slug', bySlug);
+                        apiUrl = `${api}/functions/v1/pages-api/preview?${qs2.toString()}`;
+                        console.info('[WB] Try load page by slug (preview)', apiUrl);
+                        r = await fetch(apiUrl, { headers: { 'Content-Type': 'application/json' } }); // preview is public
                     }
                 }
                 if (!r.ok) throw new Error(await r.text());
-                const pageData = await r.json();
+                const res = await r.json();
+                const pageData = res?.page || res?.item || res || {};
                 let builderJson = pageData?.content_json?.json || pageData?.content_json || pageData?.content || null;
                 if (typeof builderJson === 'string') { try { builderJson = JSON.parse(builderJson); } catch {} }
-                if (!builderJson) {
-                    try { builderJson = __WB_findBuilderJson(pageData); } catch {}
-                }
+                if (!builderJson) { try { builderJson = __WB_findBuilderJson(pageData); } catch {} }
                 if (builderJson) {
                     this.loadProjectData(builderJson);
                     this._edgeCtx = { api, token, kind: 'page', key: page_id };
@@ -1712,16 +1693,12 @@ class WebsiteBuilder {
                         if (t && pageData.title) t.value = pageData.title;
                         if (s && pageData.slug) s.value = pageData.slug;
                     }
-                    // If user is in destination mode and canvas is empty, scaffold destination
+                    // Persist mapping and update URL with slug to avoid future prompts
                     try {
-                        setTimeout(() => {
-                            const isDest = /#\/mode\/destination/i.test(location.hash || '');
-                            const canvas = document.getElementById('canvas');
-                            const hasComponents = !!(canvas && canvas.querySelector('.wb-component'));
-                            if (isDest && !hasComponents && window.websiteBuilder && typeof window.websiteBuilder.createDestinationTemplate === 'function') {
-                                window.websiteBuilder.createDestinationTemplate({ title: 'Bestemming' });
-                            }
-                        }, 0);
+                        const map = JSON.parse(localStorage.getItem('wb_page_map') || '{}');
+                        if (pageData.slug) { map[page_id] = pageData.slug; localStorage.setItem('wb_page_map', JSON.stringify(map)); }
+                        const cur = new URL(window.location.href);
+                        if (pageData.slug && !cur.searchParams.get('slug')) { cur.searchParams.set('slug', pageData.slug); history.replaceState(null, '', cur.toString()); }
                     } catch {}
                     this.showNotification('📥 Pagina geladen van Supabase', 'success');
                 }
