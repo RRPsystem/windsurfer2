@@ -293,22 +293,22 @@
           }
         }
       </script>
-    <script src="js/layouts.js?v=20251006-1735"></script>
-    <script src="js/iconPicker.js?v=20251006-1735"></script>
-    <script src="js/components.js?v=20251006-1735"></script>
-    <script src="js/dragdrop.js?v=20251006-1735"></script>
-    <script src="js/media.js?v=20251006-1735"></script>
-    <script src="js/ai.js?v=20251006-1735"></script>
-    <script src="js/properties.js?v=20251006-1735"></script>
-    <script src="js/export.js?v=20251006-1735"></script>
-    <script src="js/publish.js?v=20251006-1735"></script>
-    <script src="js/router.js?v=20251006-1735"></script>
-    <script src="js/views/menuFooterView.js?v=20251006-1735"></script>
-    <script src="js/fnClient.js?v=20251006-1735"></script>
-    <script src="js/menuRender.js?v=20251006-1735"></script>
-    <script src="js/layoutsBuilder.js?v=20251006-1735"></script>
-    <script src="js/brandHydrator.js?v=20251006-1735"></script>
-    <script src="js/main.js?v=20251006-1735"></script>
+    <script src="js/layouts.js"></script>
+    <script src="js/iconPicker.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/dragdrop.js"></script>
+    <script src="js/media.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/properties.js"></script>
+    <script src="js/export.js"></script>
+    <script src="js/publish.js"></script>
+    <script src="js/router.js"></script>
+    <script src="js/views/menuFooterView.js"></script>
+    <script src="js/fnClient.js"></script>
+    <script src="js/menuRender.js"></script>
+    <script src="js/layoutsBuilder.js"></script>
+    <script src="js/brandHydrator.js"></script>
+    <script src="js/main.js"></script>
     <script>
       // Ensure "Terug naar Dashboard" preserves auth query params
       document.addEventListener('DOMContentLoaded', () => {
@@ -349,17 +349,18 @@
             'exportBtn',
             'gitPushBtn',
             'publishBtn',
-            'layoutBtn' // hide layout to reduce clutter; can re-enable later if needed
+            'layoutBtn',
+            'pagesBtn',
+            'newPageQuickBtn'
           ];
-          hideIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-          // Ensure keep-visible
-          ['pagesBtn','backToDashboardBtn','saveProjectBtn','previewBtn'].forEach(id => {
+          // Ensure keep-visible (except pages buttons which we hide in Bolt context)
+          ['backToDashboardBtn','saveProjectBtn','previewBtn'].forEach(id => {
             const el = document.getElementById(id); if (el) el.style.display = '';
           });
         } catch {}
       }
 
-      document.addEventListener('DOMContentLoaded', () => {
+{{ ... }}
         try {
           const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl);
           if (!isBolt) return;
