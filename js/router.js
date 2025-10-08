@@ -15,14 +15,35 @@
     } catch { return null; }
   }
 
+  function hideHeaderPageButtonsNow(){
+    try {
+      ['newPageQuickBtn','pagesBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+      document.querySelectorAll('button, a').forEach(el => {
+        const txt = (el.textContent || '').trim().toLowerCase();
+        if (txt === "nieuwe pagina" || txt === "pagina's" || txt === 'paginas' || txt === 'pagina’s') {
+          el.style.display = 'none';
+        }
+      });
+    } catch {}
+  }
+
+  function observeHeaderButtons(){
+    try {
+      const header = document.querySelector('.app-header') || document.body;
+      if (!header || header.__wb_observing) return;
+      const mo = new MutationObserver(() => hideHeaderPageButtonsNow());
+      mo.observe(header, { childList: true, subtree: true });
+      header.__wb_observing = true;
+      hideHeaderPageButtonsNow();
+    } catch {}
+  }
+
   function isCanvasEffectivelyEmpty(){
     try {
       const canvas = document.getElementById('canvas');
       if (!canvas) return true;
       const hasComp = !!canvas.querySelector('.wb-component');
-      if (hasComp) return false;
-      const html = (canvas.innerHTML || '').replace(/<!--.*?-->/g, '').trim();
-      return html.length === 0;
+      return !hasComp;
     } catch { return true; }
   }
 
@@ -159,18 +180,27 @@
       return;
     }
 
+    const tryScaffold = (which, attempt=0) => {
+      try {
+        if (attempt > 20) return; // ~2s max if 100ms intervals
+        const ready = !!(window.websiteBuilder && document.getElementById('canvas'));
+        if (!ready) return setTimeout(() => tryScaffold(which, attempt+1), 100);
+        if (!isCanvasEffectivelyEmpty()) return;
+        if (which === 'destination' && typeof window.websiteBuilder.createDestinationTemplate === 'function') {
+          window.websiteBuilder.createDestinationTemplate({ title: 'Bestemming' });
+        }
+        if (which === 'news' && typeof window.websiteBuilder.createNewsArticleTemplate === 'function') {
+          window.websiteBuilder.createNewsArticleTemplate();
+        }
+      } catch {}
+    };
+
     if (mode === 'destination') {
       // Show builder and auto-scaffold a destination template if canvas is empty
       showPageWorkspace(true);
       const view = document.getElementById('modeView'); if (view) view.style.display = 'none';
       history.replaceState(null, '', '#/mode/destination');
-      setTimeout(() => {
-        try {
-          if (isCanvasEffectivelyEmpty() && window.websiteBuilder && typeof window.websiteBuilder.createDestinationTemplate === 'function') {
-            window.websiteBuilder.createDestinationTemplate({ title: 'Bestemming' });
-          }
-        } catch (e) { console.warn('Auto scaffold destination failed', e); }
-      }, 0);
+      tryScaffold('destination', 0);
       return;
     }
 
@@ -179,13 +209,7 @@
       showPageWorkspace(true);
       const view = document.getElementById('modeView'); if (view) view.style.display = 'none';
       history.replaceState(null, '', '#/mode/news');
-      setTimeout(() => {
-        try {
-          if (isCanvasEffectivelyEmpty() && window.websiteBuilder && typeof window.websiteBuilder.createNewsArticleTemplate === 'function') {
-            window.websiteBuilder.createNewsArticleTemplate();
-          }
-        } catch (e) { console.warn('Auto scaffold news failed', e); }
-      }, 0);
+      tryScaffold('news', 0);
       return;
     }
 
@@ -206,16 +230,8 @@
     try {
       const isPage = (mode === 'page' || mode === 'destination');
       // Always hide page management buttons to avoid confusion with Bolt-managed pages
-      ['newPageQuickBtn','pagesBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-      // Also hide by label text (fallback if IDs differ)
-      try {
-        document.querySelectorAll('button, a').forEach(el => {
-          const txt = (el.textContent || '').trim().toLowerCase();
-          if (txt === "nieuwe pagina" || txt === "pagina's" || txt === 'paginas' || txt === 'pagina’s') {
-            el.style.display = 'none';
-          }
-        });
-      } catch {}
+      hideHeaderPageButtonsNow();
+      observeHeaderButtons();
       // Layout button only in page-like modes
       const layoutBtn = document.getElementById('layoutBtn');
       if (layoutBtn) layoutBtn.style.display = isPage ? '' : 'none';
@@ -251,6 +267,7 @@
     const topSel = document.getElementById('topModeSelect');
     if (topSel){ topSel.onchange = () => setMode(topSel.value); }
     setupGlobalModeClickDelegation();
+    observeHeaderButtons();
 
     const hashMode = readModeFromHash();
     // Default to 'page' unless explicitly provided in hash
