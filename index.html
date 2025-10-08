@@ -452,7 +452,16 @@
                   contentJson.title = title; contentJson.slug = slug;
                   const htmlString = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '';
                   if (!window.BuilderPublishAPI) throw new Error('Publish helpers niet geladen');
-                  const mode = (window.websiteBuilder && typeof window.websiteBuilder.getCurrentMode === 'function') ? window.websiteBuilder.getCurrentMode() : 'page';
+                  // Determine effective mode: prefer deeplink params over UI state
+                  let mode = (window.websiteBuilder && typeof window.websiteBuilder.getCurrentMode === 'function') ? window.websiteBuilder.getCurrentMode() : 'page';
+                  try {
+                    const u = new URL(window.location.href);
+                    const ct = (u.searchParams.get('content_type')||'').toLowerCase();
+                    const hasNewsSlug = !!(u.searchParams.get('news_slug') || u.searchParams.get('slug'));
+                    const hasPageId = !!u.searchParams.get('page_id');
+                    if (ct === 'news_items' || (hasNewsSlug && !hasPageId)) mode = 'news';
+                    if (ct === 'destinations') mode = 'destination';
+                  } catch {}
                   if (mode === 'news' && window.BuilderPublishAPI.news) {
                     await window.BuilderPublishAPI.news.saveDraft({
                       brand_id,
