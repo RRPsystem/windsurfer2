@@ -1346,6 +1346,8 @@ class PropertiesPanel {
             li.querySelector('[data-tag-right-notch]')?.remove();
             li.querySelector('[data-tag-tail]')?.remove();
             li.querySelector('[data-tag-icon]')?.remove();
+            li.querySelector('[data-tag-perf]')?.remove();
+            li.querySelector('[data-tag-cut]')?.remove();
 
             // Ticket notches (ponsgaten)
             if (mode === 'ticket' && holes) {
@@ -1359,6 +1361,11 @@ class PropertiesPanel {
                     li.appendChild(h);
                 };
                 mkHole('left'); mkHole('right');
+                // Perforation dotted line inside
+                const perf = document.createElement('span');
+                perf.setAttribute('data-tag-perf','');
+                perf.style.cssText = `height:70%;border-left:2px dotted ${br};margin:0 6px;`;
+                li.insertBefore(perf, li.querySelector('[data-tag-text]'));
             }
 
             // Label tail (prijskaartje)
@@ -1367,11 +1374,21 @@ class PropertiesPanel {
                 tail.setAttribute('data-tag-tail','');
                 tail.style.cssText = `width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:10px solid ${bg}; margin-left:4px;`;
                 li.appendChild(tail);
+                // Left angled cut
+                const cut = document.createElement('span');
+                cut.setAttribute('data-tag-cut','');
+                cut.style.cssText = `position:absolute;left:-5px;top:50%;transform:translateY(-50%) rotate(45deg);width:10px;height:10px;background:${holeBg};box-shadow:0 0 0 1px ${br} inset;`;
+                li.appendChild(cut);
             }
 
             // Optional icon
-            if (iconCls) {
-                const ic = document.createElement('i'); ic.setAttribute('data-tag-icon',''); ic.className = `fas ${iconCls}`; ic.style.color = fg; ic.style.opacity = '.9';
+            let resolvedIcon = iconCls;
+            if (!resolvedIcon) {
+                if (mode === 'ticket') resolvedIcon = 'fa-ticket';
+                else if (mode === 'label') resolvedIcon = 'fa-tag';
+            }
+            if (resolvedIcon) {
+                const ic = document.createElement('i'); ic.setAttribute('data-tag-icon',''); ic.className = `fas ${resolvedIcon}`; ic.style.color = fg; ic.style.opacity = '.9';
                 li.appendChild(ic);
             }
 

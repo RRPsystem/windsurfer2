@@ -340,30 +340,30 @@ async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, feat
   const base = contentApiBase();
   if (!base) throw new Error('content-api base URL ontbreekt');
   const url = `${base}/content-api/save?type=news_items`;
-  const body = { brand_id, title, slug, content: content || {}, excerpt: excerpt || '', featured_image: featured_image || '', status };
+  const baseBody = { brand_id, title, slug, content: content || {}, excerpt: excerpt || '', featured_image: featured_image || '', status };
   // Tags support: from content.meta.tags (array) or URL ?tags=comma,separated
   try {
     const metaTags = Array.isArray(content?.meta?.tags) ? content.meta.tags : null;
-    if (metaTags && metaTags.length) body.tags = metaTags.map(String);
+    if (metaTags && metaTags.length) baseBody.tags = metaTags.map(String);
     // From a UI field stored globally
     const globalTags = (window.CURRENT_NEWS_TAGS && Array.isArray(window.CURRENT_NEWS_TAGS))
       ? window.CURRENT_NEWS_TAGS
       : (typeof window.CURRENT_NEWS_TAGS === 'string' ? window.CURRENT_NEWS_TAGS.split(',').map(s=>s.trim()).filter(Boolean) : null);
-    if ((!body.tags || !body.tags.length) && globalTags && globalTags.length) {
-      body.tags = globalTags.map(String);
+    if ((!baseBody.tags || !baseBody.tags.length) && globalTags && globalTags.length) {
+      baseBody.tags = globalTags.map(String);
     }
     const qp = readQueryParam('tags');
-    if ((!body.tags || !body.tags.length) && qp) {
+    if ((!baseBody.tags || !baseBody.tags.length) && qp) {
       const arr = String(qp).split(',').map(s=>s.trim()).filter(Boolean);
-      if (arr.length) body.tags = arr;
+      if (arr.length) baseBody.tags = arr;
     }
   } catch {}
   // Attach author attribution if provided via URL or globals (for admin attribution in Bolt)
   const author_type = arg_author_type || readQueryParam('author_type') || (window.CURRENT_AUTHOR_TYPE || null);
   const author_id = arg_author_id || readQueryParam('author_id') || readQueryParam('user_id') || (window.CURRENT_USER_ID || null);
-  if (author_type) body.author_type = author_type;
-  if (author_id) body.author_id = author_id;
-  if (id) body.id = id;
+  if (author_type) baseBody.author_type = author_type;
+  if (author_id) baseBody.author_id = author_id;
+  if (id) baseBody.id = id;
   // Debug (mask secrets)
   try {
     const hdr = contentApiHeaders();
@@ -387,24 +387,42 @@ async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, feat
     });
   } catch {}
 
-  let res;
+  const send = async (payload) => {
+    let res; let data = null; let rawText = '';
+    try {
+      res = await fetch(url, { method: 'POST', headers: contentApiHeaders(), body: JSON.stringify(payload) });
+    } catch (netErr) {
+      console.warn('[newsSaveDraft] network error', netErr);
+      throw netErr;
+    }
+    try { data = await res.json(); } catch { /* may not be JSON */ }
+    if (!res.ok) {
+      try { rawText = await res.text(); } catch {}
+      const msg = (data && (data.error || data.message)) || rawText || `news save failed: ${res.status}`;
+      throw new Error(msg);
+    }
+    return data;
+  };
+
+  // Try with tags first (if present); on schema error mentioning tags, retry without tags
   try {
-    res = await fetch(url, { method: 'POST', headers: contentApiHeaders(), body: JSON.stringify(body) });
-  } catch (netErr) {
-    console.warn('[newsSaveDraft] network error', netErr);
-    throw netErr;
+    const first = await send(baseBody);
+    console.debug('[newsSaveDraft] success', { id: first && first.id, slug: first && first.slug, status: first && first.status });
+    return first;
+  } catch (e) {
+    const msg = String(e && e.message || e).toLowerCase();
+    const hasTags = Array.isArray(baseBody.tags) && baseBody.tags.length > 0;
+    const tagSchemaError = hasTags && (msg.includes("tags' column") || msg.includes('column "tags"') || (msg.includes('schema') && msg.includes('tags')));
+    if (tagSchemaError) {
+      console.warn('[newsSaveDraft] retrying without tags due to schema error');
+      const fallback = { ...baseBody }; delete fallback.tags;
+      const second = await send(fallback);
+      try { window.websiteBuilder?.showNotification?.('Concept opgeslagen zonder tags (kolom ontbreekt in backend)', 'warning'); } catch {}
+      return second;
+    }
+    // Not a tags-related error: rethrow
+    throw e;
   }
-  let data = null;
-  try { data = await res.json(); } catch { /* keep data null for error details below */ }
-  if (!res.ok) {
-    let text = '';
-    try { text = await res.text(); } catch {}
-    const msg = (data && (data.error || data.message)) || text || `news save failed: ${res.status}`;
-    console.warn('[newsSaveDraft] HTTP error', { status: res.status, msg, data });
-    throw new Error(msg);
-  }
-  console.debug('[newsSaveDraft] success', { id: data && data.id, slug: data && data.slug, status: data && data.status });
-  return data; // expect { id, slug, status, ... }
 }
 
 async function newsPublish({ brand_id, id, slug }) {
