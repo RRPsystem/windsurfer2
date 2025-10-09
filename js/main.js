@@ -602,10 +602,15 @@ class WebsiteBuilder {
                         // Author attribution: required by content-api
                         const author_type = (u.searchParams.get('author_type') || window.CURRENT_AUTHOR_TYPE || '').trim();
                         const author_id = (u.searchParams.get('author_id') || u.searchParams.get('user_id') || window.CURRENT_USER_ID || '').toString();
+                        // Preserve identity to UPDATE instead of INSERT
+                        const existingId = (u.searchParams.get('news_id') || u.searchParams.get('id') || '').trim();
+                        const existingSlug = (u.searchParams.get('news_slug') || u.searchParams.get('slug') || '').trim();
                         await window.BuilderPublishAPI.news.saveDraft({
                             brand_id,
+                            id: existingId || undefined,
                             title: safeTitle,
-                            slug: safeSlug,
+                            // If we have an id, backend can match by id; otherwise prefer existingSlug>safeSlug to target the same item
+                            slug: existingId ? undefined : (existingSlug || safeSlug),
                             content: { json: contentJson, html: htmlString },
                             status: 'draft',
                             author_type: author_type || undefined,
