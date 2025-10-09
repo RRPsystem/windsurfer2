@@ -1022,10 +1022,12 @@ class ComponentFactory {
             if (!params.has('controls')) params.set('controls', '0');
             if (!params.has('loop')) params.set('loop', '1');
             // playlist param needed for loop
-            const vidIdMatch = url.pathname.match(/\/embed\/([^/?#]+)/);
+            const vidIdMatch = url.pathname.match(/\/embed\/([^\/?#]+)/);
             if (vidIdMatch && !params.has('playlist')) params.set('playlist', vidIdMatch[1]);
             url.search = params.toString();
-            iframe.src = url.toString();
+            const nextSrc = url.toString();
+            // Avoid redundant reloads
+            if (iframe.src !== nextSrc) iframe.src = nextSrc;
 
             // Fit the iframe to cover the section (16:9) without letterboxing
             const fitVideo = () => {
@@ -1048,7 +1050,8 @@ class ComponentFactory {
             // Avoid multiple listeners
             if (!section._ytResizeHandler) {
                 section._ytResizeHandler = () => fitVideo();
-                window.addEventListener('resize', section._ytResizeHandler);
+                try { window.addEventListener('resize', section._ytResizeHandler, { passive: true }); }
+                catch { window.addEventListener('resize', section._ytResizeHandler); }
             }
         };
 
@@ -1112,7 +1115,7 @@ class ComponentFactory {
         section.__heroBannerApi = {
             setImage: (url) => setImageBg(url),
             setSlideshow: (urls, ms) => setSlideshow(urls, ms || section._slideshowInterval || 3500),
-            setYouTube: (embed) => setYouTubeBg(embed),
+            setYouTube: (embed) => { section._ytEmbedBase = embed; setYouTubeBg(embed); },
             setWidget: (url, height) => setWidget(url, height),
             clearWidget: () => removeWidgetLayer(),
             updateWidgetStyle: (style, maxPx) => updateWidgetStyle(style, maxPx),
