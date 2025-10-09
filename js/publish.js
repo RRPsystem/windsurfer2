@@ -431,6 +431,11 @@ async function newsPublish({ brand_id, id, slug }) {
   const url = `${base}/content-api/publish?type=news_items`;
   const body = { brand_id };
   if (id) body.id = id; else if (slug) body.slug = slug;
+  // Provide author_type hint so backend can decide brand/admin flow
+  try {
+    const at = readQueryParam('author_type') || (window.CURRENT_AUTHOR_TYPE || null);
+    if (at) body.author_type = at;
+  } catch {}
   const res = await fetch(url, { method: 'POST', headers: contentApiHeaders(), body: JSON.stringify(body) });
   let data = null; try { data = await res.json(); } catch {}
   if (!res.ok) { const msg = (data && (data.error || data.message)) || `news publish failed: ${res.status}`; throw new Error(msg); }

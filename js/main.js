@@ -39,6 +39,58 @@ class WebsiteBuilder {
         this.init();
     }
 
+    // Ensure a 'Publiceer Nieuws' button exists in the header and is visible only in news mode
+    ensureNewsPublishButton(mode) {
+        try {
+            const headerRight = document.querySelector('.app-header .header-right');
+            if (!headerRight) return;
+            let btn = document.getElementById('newsPublishBtn');
+            if (!btn) {
+                btn = document.createElement('button');
+                btn.id = 'newsPublishBtn';
+                btn.className = 'btn btn-primary';
+                btn.innerHTML = '<i class="fas fa-bullhorn"></i> Publiceer nieuws';
+                btn.style.marginLeft = '8px';
+                btn.onclick = async () => {
+                    try {
+                        const u = new URL(window.location.href);
+                        const brand_id = u.searchParams.get('brand_id') || window.CURRENT_BRAND_ID || '';
+                        const id = (u.searchParams.get('news_id') || u.searchParams.get('id') || '').trim();
+                        const slug = (u.searchParams.get('news_slug') || u.searchParams.get('slug') || '').trim();
+                        if (!brand_id) { this.showNotification('brand_id ontbreekt', 'error'); return; }
+                        if (!window.BuilderPublishAPI || !window.BuilderPublishAPI.news || typeof window.BuilderPublishAPI.news.publish !== 'function') {
+                            this.showNotification('Publish helper niet geladen', 'error'); return;
+                        }
+                        btn.disabled = true; const prev = btn.innerHTML; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Publiceren…';
+                        try {
+                            const res = await window.BuilderPublishAPI.news.publish({ brand_id, id: id || undefined, slug: id ? undefined : (slug || undefined) });
+                            // Compact messaging per requirement
+                            let msg = '📣 Nieuws gepubliceerd';
+                            const isAdmin = (res && (res.kind === 'admin' || res.author_type === 'admin'));
+                            if (isAdmin && res && res.assignment_updated === true) {
+                                msg = '📣 Gepubliceerd en toegewezen aan brand';
+                            } else if (res && typeof res.message === 'string' && res.message.trim()) {
+                                msg = `📣 ${res.message.trim()}`;
+                            }
+                            this.showNotification(msg, 'success');
+                        } finally {
+                            btn.disabled = false; btn.innerHTML = prev;
+                        }
+                    } catch (e) {
+                        console.warn('Publish news failed', e);
+                        this.showNotification('Publiceren mislukt', 'error');
+                    }
+                };
+                // Insert near Save button if present
+                const saveBtn = document.getElementById('saveProjectBtn');
+                if (saveBtn && saveBtn.parentElement === headerRight) saveBtn.after(btn); else headerRight.appendChild(btn);
+            }
+            // Toggle visibility
+            const isNews = (mode || this.getCurrentMode()) === 'news';
+            btn.style.display = isNews ? '' : 'none';
+        } catch {}
+    }
+
     // Minimal header visibility in Bolt/deeplink context (fallback if index.html fails)
     applyBoltHeaderVisibilityLite() {
         try {
@@ -96,6 +148,8 @@ class WebsiteBuilder {
                             sel.value = mode;
                             try { localStorage.setItem('wb_mode', mode); } catch {}
                             try { if (!hashMode) location.hash = '#/mode/' + mode; } catch {}
+                            // Ensure publish button visibility according to mode
+                            try { this.ensureNewsPublishButton(mode); } catch {}
                         } catch {}
                         sel.onchange = () => {
                             try {
@@ -106,12 +160,19 @@ class WebsiteBuilder {
                                     // Slight delay to let hash update propagate
                                     setTimeout(() => { try { window.websiteBuilder.startDestinationScaffold(); } catch {} }, 50);
                                 }
+                                // Toggle publish button based on current mode
+                                try { this.ensureNewsPublishButton(sel.value); } catch {}
                             } catch {}
                         };
                     }
 
                     // Ensure save handler is bound correctly each time
                     try { this.setupBoltDeeplinkSave(); } catch {}
+                    // Ensure publish button exists/visibility updated
+                    try {
+                        const curMode = (document.getElementById('topModeSelect')||{}).value || this.getCurrentMode();
+                        this.ensureNewsPublishButton(curMode);
+                    } catch {}
                     // Diagnostics: validate runtime and surface missing params
                     try { this.showDiagnosticsBanner(); } catch {}
                 } catch {}
@@ -592,7 +653,15 @@ class WebsiteBuilder {
                     } catch {}
 
                     const defaultTitle = (mode === 'page') ? 'Pagina' : (mode === 'destination' ? 'Bestemming' : 'Nieuws');
-                    const safeTitle = (contentJson.title || titleInput?.value || defaultTitle).toString();
+                    let safeTitle = (contentJson.title || titleInput?.value || defaultTitle).toString();
+                    // Prefer the H1 from the news-article block when in news mode
+                    if (mode === 'news') {
+                        try {
+                            const h1 = document.querySelector('.na-title');
+                            const t = (h1 && h1.textContent) ? h1.textContent.trim() : '';
+                            if (t) safeTitle = t;
+                        } catch {}
+                    }
                     const safeSlug = slugify(contentJson.slug || slugInput?.value || safeTitle);
                     contentJson.title = safeTitle;
                     contentJson.slug = safeSlug;
