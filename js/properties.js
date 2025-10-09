@@ -2994,7 +2994,13 @@ class PropertiesPanel {
         input.setAttribute('aria-label', label);
         const lbl = group.querySelector('label');
         if (lbl) lbl.setAttribute('for', inputId);
-        input.addEventListener('input', (e) => onChange(e.target.value));
+        let tId = null;
+        const safeCall = (val)=>{ try { if (typeof onChange === 'function') onChange(val); } catch(err){ console.warn('text onChange failed', err); } };
+        input.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (tId) clearTimeout(tId);
+            tId = setTimeout(()=> safeCall(val), 120);
+        });
         group.appendChild(input);
         this.panel.appendChild(group);
         return group;
