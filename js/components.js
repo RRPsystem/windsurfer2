@@ -940,7 +940,7 @@ class ComponentFactory {
                 });
                 section._activeImg = section._activeImg === 'A' ? 'B' : 'A';
             };
-            applyResponsiveSrc(next, url);
+            __WB_applyResponsiveSrc(next, url);
         };
 
         // Apply slideshow from array of urls
@@ -958,7 +958,7 @@ class ComponentFactory {
             current.style.transform = 'translateX(0)';
             nextImg.style.opacity = '0';
             nextImg.style.transform = section._transitionType === 'slide' ? 'translateX(10%)' : 'translateX(0)';
-            applyResponsiveSrc(current, section._slides[0]);
+            __WB_applyResponsiveSrc(current, section._slides[0]);
             section._slideshowTimer = setInterval(() => {
                 if (!section._slides || section._slides.length === 0) return;
                 section._slideIndex = (section._slideIndex + 1) % section._slides.length;
@@ -981,7 +981,7 @@ class ComponentFactory {
                     });
                     section._activeImg = section._activeImg === 'A' ? 'B' : 'A';
                 };
-                applyResponsiveSrc(hidden, url);
+                __WB_applyResponsiveSrc(hidden, url);
             }, intervalMs);
         };
 
@@ -1910,7 +1910,7 @@ class ComponentFactory {
                 if (!src) return;
                 media.innerHTML = '';
                 const img = document.createElement('img');
-                applyResponsiveSrc(img, src);
+                __WB_applyResponsiveSrc(img, src);
                 img.alt = 'Feature media';
                 media.appendChild(img);
                 if (mediaChooser) media.appendChild(mediaChooser); // keep chooser overlay

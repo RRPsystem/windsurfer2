@@ -154,6 +154,41 @@ async function publishPage(pageId, htmlString) {
 
 window.BuilderPublishAPI = { saveDraft, publishPage };
 
+// ------------------------------
+// Health check for runtime config
+// ------------------------------
+async function healthCheck({ brand_id } = {}) {
+  const base = contentApiBase();
+  const headers = contentApiHeaders();
+  const missing = [];
+  if (!base) missing.push('api');
+  if (!headers.Authorization) missing.push('token');
+  if (!headers.apikey) missing.push('apikey');
+  if (!brand_id) {
+    try { brand_id = (new URL(window.location.href)).searchParams.get('brand_id') || window.CURRENT_BRAND_ID; } catch {}
+  }
+  if (!brand_id) missing.push('brand_id');
+  const result = { ok: missing.length === 0, missing, base, hasAuth: !!headers.Authorization, hasApiKey: !!headers.apikey };
+  // If anything missing, return early without network call
+  if (missing.length) return result;
+  // Try a lightweight call (HEAD/GET). If HEAD unsupported, fall back to GET with minimal payload.
+  try {
+    const u = `${base}/content-api/list?type=news_items&brand_id=${encodeURIComponent(brand_id)}&status=draft`;
+    const res = await fetch(u, { method: 'GET', headers });
+    result.httpOk = res.ok;
+    result.status = res.status;
+    result.ok = result.ok && res.ok;
+  } catch (e) {
+    result.httpOk = false;
+    result.status = 0;
+    result.error = String(e && e.message || e);
+    result.ok = false;
+  }
+  return result;
+}
+
+try { window.BuilderPublishAPI.healthCheck = healthCheck; } catch {}
+
 // ==============================
 // Layouts (Header/Footer/Menu)
 // Uses Bolt layouts-api when available
@@ -301,7 +336,7 @@ function readQueryParam(name) {
   } catch { return null; }
 }
 
-async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, featured_image, status = 'draft' }) {
+async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, featured_image, status = 'draft', author_type: arg_author_type, author_id: arg_author_id }) {
   const base = contentApiBase();
   if (!base) throw new Error('content-api base URL ontbreekt');
   const url = `${base}/content-api/save?type=news_items`;
@@ -324,8 +359,8 @@ async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, feat
     }
   } catch {}
   // Attach author attribution if provided via URL or globals (for admin attribution in Bolt)
-  const author_type = readQueryParam('author_type') || (window.CURRENT_AUTHOR_TYPE || null);
-  const author_id = readQueryParam('author_id') || readQueryParam('user_id') || (window.CURRENT_USER_ID || null);
+  const author_type = arg_author_type || readQueryParam('author_type') || (window.CURRENT_AUTHOR_TYPE || null);
+  const author_id = arg_author_id || readQueryParam('author_id') || readQueryParam('user_id') || (window.CURRENT_USER_ID || null);
   if (author_type) body.author_type = author_type;
   if (author_id) body.author_id = author_id;
   if (id) body.id = id;

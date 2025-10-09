@@ -112,6 +112,8 @@ class WebsiteBuilder {
 
                     // Ensure save handler is bound correctly each time
                     try { this.setupBoltDeeplinkSave(); } catch {}
+                    // Diagnostics: validate runtime and surface missing params
+                    try { this.showDiagnosticsBanner(); } catch {}
                 } catch {}
             };
 
@@ -126,6 +128,48 @@ class WebsiteBuilder {
                 }
             } catch {}
         } catch {}
+    }
+
+    // Validate that required runtime params are present for remote save/publish
+    validateRuntimeParams() {
+        const missing = [];
+        try {
+            const u = new URL(window.location.href);
+            const brandId = u.searchParams.get('brand_id') || window.CURRENT_BRAND_ID;
+            const apiBase = (window.BOLT_API && window.BOLT_API.baseUrl) || u.searchParams.get('api') || '';
+            const token = u.searchParams.get('token') || window.CURRENT_TOKEN || '';
+            const apiKey = (window.BOLT_API && window.BOLT_API.apiKey) || u.searchParams.get('apikey') || u.searchParams.get('api_key') || '';
+            if (!brandId) missing.push('brand_id');
+            if (!apiBase) missing.push('api');
+            if (!token) missing.push('token');
+            if (!apiKey) missing.push('apikey');
+        } catch {
+            missing.push('url');
+        }
+        return { ok: missing.length === 0, missing };
+    }
+
+    // Show a small banner in the UI when required params are missing; disable save button
+    showDiagnosticsBanner() {
+        const diagId = 'wb-diagnostics';
+        const res = this.validateRuntimeParams();
+        const btn = document.getElementById('saveProjectBtn');
+        if (!res.ok) {
+            try { if (btn) btn.disabled = true; } catch {}
+            let bar = document.getElementById(diagId);
+            if (!bar) {
+                bar = document.createElement('div');
+                bar.id = diagId;
+                bar.style.cssText = 'margin:10px 16px;padding:8px 12px;border:1px dashed #ef4444;background:#fef2f2;color:#991b1b;border-radius:8px;';
+                const cont = document.querySelector('#canvas')?.parentElement || document.body;
+                cont.insertBefore(bar, cont.firstChild);
+            }
+            bar.innerHTML = `⚠️ Opslaan naar server uitgeschakeld. Ontbrekende parameters: <strong>${res.missing.join(', ')}</strong>. Open de builder via een deeplink met deze query parameters.`;
+        } else {
+            try { if (btn) btn.disabled = false; } catch {}
+            const bar = document.getElementById(diagId);
+            if (bar) bar.remove();
+        }
     }
 
     // ---------- Scaffold: Bestemmingspagina template ----------
@@ -431,18 +475,22 @@ class WebsiteBuilder {
                 if (hero) canvas.appendChild(hero);
             } catch (e) { console.warn('Hero create failed', e); }
 
-            // 2) Intro-sectie (titel + intro body)
+            // 2) Nieuwsartikel blok (titel, datum, auteur, tags, body)
             try {
-                const content = ComponentFactory.createComponent('content-flex', {
+                // Prefer author from deeplink/globals if present
+                const url = new URL(window.location.href);
+                const author_type = url.searchParams.get('author_type') || window.CURRENT_AUTHOR_TYPE || '';
+                const author_id = url.searchParams.get('author_id') || url.searchParams.get('user_id') || window.CURRENT_USER_ID || '';
+                const authorName = (author_type === 'brand' && author_id) ? 'Brand' : 'Auteur';
+                const newsComp = ComponentFactory.createComponent('news-article', {
                     title,
-                    subtitle: dateStr,
-                    body: `<p>${intro}</p>`,
-                    layout: 'none',
-                    shadow: true,
-                    radius: 12
+                    date: dateStr,
+                    author: authorName,
+                    tags: Array.isArray(window.CURRENT_NEWS_TAGS) ? window.CURRENT_NEWS_TAGS : [],
+                    bodyHtml: `<p>${intro}</p>`
                 });
-                if (content) canvas.appendChild(content);
-            } catch (e) { console.warn('Content create failed', e); }
+                if (newsComp) canvas.appendChild(newsComp);
+            } catch (e) { console.warn('News-article create failed', e); }
 
             // 3) Gallery
             try {
@@ -510,6 +558,13 @@ class WebsiteBuilder {
             if (!saveBtn) return;
             saveBtn.onclick = async () => {
                 try {
+                    // Preflight: ensure required params are present
+                    const check = this.validateRuntimeParams();
+                    if (!check.ok) {
+                        this.showDiagnosticsBanner();
+                        this.showNotification(`❌ Opslaan geblokkeerd. Ontbrekende parameters: ${check.missing.join(', ')}`, 'error');
+                        return;
+                    }
                     const u = new URL(window.location.href);
                     const brand_id = u.searchParams.get('brand_id') || window.CURRENT_BRAND_ID;
                     if (!brand_id) throw new Error('brand_id ontbreekt');
@@ -544,12 +599,17 @@ class WebsiteBuilder {
                     if (!window.BuilderPublishAPI) throw new Error('Publish helpers niet geladen');
 
                     if (mode === 'news' && window.BuilderPublishAPI.news) {
+                        // Author attribution: required by content-api
+                        const author_type = (u.searchParams.get('author_type') || window.CURRENT_AUTHOR_TYPE || '').trim();
+                        const author_id = (u.searchParams.get('author_id') || u.searchParams.get('user_id') || window.CURRENT_USER_ID || '').toString();
                         await window.BuilderPublishAPI.news.saveDraft({
                             brand_id,
                             title: safeTitle,
                             slug: safeSlug,
                             content: { json: contentJson, html: htmlString },
-                            status: 'draft'
+                            status: 'draft',
+                            author_type: author_type || undefined,
+                            author_id: author_id || undefined
                         });
                         this.showNotification('📰 Concept opgeslagen (Nieuws)', 'success');
                     } else if ((mode === 'destination' || mode === 'destinations') && window.BuilderPublishAPI.destinations) {

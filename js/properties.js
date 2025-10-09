@@ -115,6 +115,34 @@ class PropertiesPanel {
         picks.appendChild(btnLeft); picks.appendChild(btnRight);
         this.panel.appendChild(picks);
 
+        // Tags (for news filtering) — chips UI stored globally for publish fallback
+        try {
+            const grp = this.createFormGroup('Tags (nieuws)');
+            const wrap = document.createElement('div');
+            wrap.style.display = 'flex'; wrap.style.gap = '8px'; wrap.style.alignItems = 'center';
+            const ul = document.createElement('ul'); ul.style.display='flex'; ul.style.flexWrap='wrap'; ul.style.gap='6px'; ul.style.listStyle='none'; ul.style.margin='6px 0 0'; ul.style.padding='0';
+            const input = document.createElement('input'); input.type='text'; input.className='form-control'; input.placeholder='Voeg tag toe… (Enter of ,)'; input.style.maxWidth='220px';
+            const read = ()=> Array.from(ul.querySelectorAll('li[data-tag]')).map(li=>li.getAttribute('data-tag')).filter(Boolean);
+            const write = (arr)=>{
+                ul.innerHTML='';
+                (arr||[]).forEach(t=>{
+                    const li=document.createElement('li'); li.setAttribute('data-tag', t);
+                    li.style.cssText='background:#eef2ff;color:#3730a3;border:1px solid #e5e7eb;border-radius:20px;padding:4px 10px;font-size:12px;display:flex;gap:6px;align-items:center;';
+                    const span=document.createElement('span'); span.textContent=t;
+                    const x=document.createElement('button'); x.type='button'; x.className='btn btn-secondary btn-small'; x.textContent='×'; x.style.padding='0 6px';
+                    x.onclick=()=>{ const next=read().filter(v=>v!==t); write(next); try{ window.CURRENT_NEWS_TAGS = next; }catch{} };
+                    li.appendChild(span); li.appendChild(x); ul.appendChild(li);
+                });
+            };
+            const add=(raw)=>{ const base=read(); const parts=String(raw||'').split(',').map(s=>s.trim()).filter(Boolean); if(!parts.length) return; const next=Array.from(new Set(base.concat(parts))).slice(0,20); write(next); input.value=''; try{ window.CURRENT_NEWS_TAGS = next; }catch{} };
+            input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===','){ e.preventDefault(); add(input.value); }});
+            const btn=document.createElement('button'); btn.type='button'; btn.className='btn btn-secondary'; btn.textContent='Toevoegen'; btn.onclick=()=>add(input.value);
+            // init from globals if present
+            let initial=[]; try{ const g=window.CURRENT_NEWS_TAGS; initial = Array.isArray(g)? g : (typeof g==='string'? g.split(',').map(s=>s.trim()).filter(Boolean): []);}catch{}
+            write(initial);
+            wrap.appendChild(input); wrap.appendChild(btn); grp.appendChild(wrap); grp.appendChild(ul); this.panel.appendChild(grp);
+        } catch {}
+
         // CTAs (default off)
         // Simple two CTA config stored in dataset on component for now
         component._ctaEnabled = component._ctaEnabled || false;

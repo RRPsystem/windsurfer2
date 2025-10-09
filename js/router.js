@@ -238,6 +238,18 @@
       showPageWorkspace(true);
       const view = document.getElementById('modeView'); if (view) view.style.display = 'none';
       history.replaceState(null, '', '#/mode/news');
+      // Ensure the dedicated news scaffold is present. If canvas has other content but no news block, replace it.
+      try {
+        const builder = (window.websiteBuilder || window.wb);
+        const canvas = document.getElementById('canvas');
+        if (builder && canvas) {
+          const hasNews = !!canvas.querySelector('.wb-news-article');
+          if (!hasNews && typeof builder.createNewsArticleTemplate === 'function') {
+            canvas.innerHTML = '';
+            builder.createNewsArticleTemplate();
+          }
+        }
+      } catch {}
       tryScaffold('news', 0);
       // Fallback delayed attempts
       setTimeout(() => WB_tryScaffold('news', 0), 1000);
