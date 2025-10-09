@@ -49,6 +49,10 @@ class WebsiteBuilder {
                 try {
                     const a = e.target && e.target.closest ? e.target.closest('a') : null;
                     if (!a) return;
+                    // Skip interception for components that implement their own handlers
+                    if (a.closest('.wb-travel-types') || a.closest('.wb-media-row') || a.closest('.wb-gallery')) {
+                        return; // let component-level listeners handle it (they call preventDefault themselves)
+                    }
                     // Allow if explicitly data-allow-nav
                     if (a.hasAttribute('data-allow-nav')) return;
                     e.preventDefault();

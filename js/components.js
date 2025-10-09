@@ -1521,12 +1521,12 @@ class ComponentFactory {
             card.href = c.href || '#';
             card.target = '_self';
             card.setAttribute('data-index', String(i));
-            // Prevent navigation while editing in the builder
-            card.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); });
 
             const img = document.createElement('img');
             __WB_applyResponsiveSrc(img, c.img);
             img.alt = c.label;
+            img.decoding = 'async';
+            img.loading = 'lazy';
             // Helper to open picker and replace image
             const pickAndReplace = async (e) => {
                 e.preventDefault();
@@ -1539,6 +1539,8 @@ class ComponentFactory {
                     if (typeof window.__WB_applyResponsiveSrc === 'function') window.__WB_applyResponsiveSrc(img, u);
                     else if (typeof __WB_applyResponsiveSrc === 'function') __WB_applyResponsiveSrc(img, u);
                     else img.src = u;
+                    // Ensure immediate visual if browser keeps old srcset
+                    try { img.src = u; img.removeAttribute('srcset'); img.removeAttribute('sizes'); } catch {}
                 } catch {}
             };
             // Allow clicking image to replace
