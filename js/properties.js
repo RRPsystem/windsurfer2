@@ -1320,19 +1320,83 @@ class PropertiesPanel {
         if (dateEl) this.createTextInput('Datum (YYYY-MM-DD)', dateEl.textContent || '', (v) => { dateEl.textContent = v; });
         if (authorEl) this.createTextInput('Auteur', authorEl.textContent || '', (v) => { authorEl.textContent = v; });
 
-        // Tags chips
-        const readTags = () => Array.from(tagsUl?.querySelectorAll('li.na-tag') || []).map(li => (li.textContent || '').trim()).filter(Boolean);
+        // Helper to apply current styling to a tag element
+        const styleTag = (li, text) => {
+            const bg = component._tagBg || '#eef2ff';
+            const fg = component._tagColor || '#3730a3';
+            const br = component._tagBorder || '#e5e7eb';
+            const mode = component._tagStyle || 'pill'; // pill | ticket | label
+            const holes = !!component._tagHoles; // ticket punch holes
+            const holeBg = component._tagHoleBg || '#ffffff';
+            const shadow = !!component._tagShadow;
+            const iconCls = component._tagIcon || '';
+
+            li.className = 'na-tag';
+            li.style.cssText = 'display:flex;gap:6px;align-items:center;position:relative;line-height:1;';
+            li.style.background = bg;
+            li.style.color = fg;
+            li.style.border = `1px solid ${br}`;
+            li.style.padding = '4px 10px';
+            li.style.fontSize = '12px';
+            li.style.borderRadius = (mode === 'pill') ? '20px' : (mode === 'ticket' ? '12px' : '6px');
+            li.style.boxShadow = shadow ? '0 2px 8px rgba(0,0,0,0.12)' : 'none';
+
+            // Clean existing adornments
+            li.querySelector('[data-tag-left-notch]')?.remove();
+            li.querySelector('[data-tag-right-notch]')?.remove();
+            li.querySelector('[data-tag-tail]')?.remove();
+            li.querySelector('[data-tag-icon]')?.remove();
+
+            // Ticket notches (ponsgaten)
+            if (mode === 'ticket' && holes) {
+                const mkHole = (side) => {
+                    const h = document.createElement('span');
+                    h.setAttribute(side === 'left' ? 'data-tag-left-notch' : 'data-tag-right-notch', '');
+                    h.style.cssText = `
+                        position:absolute;top:50%;${side}: -6px;transform:translateY(-50%);
+                        width:12px;height:12px;border-radius:50%;
+                        background:${holeBg};box-shadow:0 0 0 1px ${br} inset;`;
+                    li.appendChild(h);
+                };
+                mkHole('left'); mkHole('right');
+            }
+
+            // Label tail (prijskaartje)
+            if (mode === 'label') {
+                const tail = document.createElement('span');
+                tail.setAttribute('data-tag-tail','');
+                tail.style.cssText = `width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:10px solid ${bg}; margin-left:4px;`;
+                li.appendChild(tail);
+            }
+
+            // Optional icon
+            if (iconCls) {
+                const ic = document.createElement('i'); ic.setAttribute('data-tag-icon',''); ic.className = `fas ${iconCls}`; ic.style.color = fg; ic.style.opacity = '.9';
+                li.appendChild(ic);
+            }
+
+            // Ensure text span exists
+            let span = li.querySelector('[data-tag-text]');
+            if (!span) { span = document.createElement('span'); span.setAttribute('data-tag-text',''); li.insertBefore(span, li.firstChild); }
+            span.textContent = text;
+
+            // Visible remove button
+            let x = li.querySelector('[data-tag-del]');
+            if (!x) { x = document.createElement('button'); x.type='button'; x.setAttribute('data-tag-del',''); li.appendChild(x); }
+            x.title = 'Verwijder tag';
+            x.textContent = '×';
+            x.style.cssText = 'background:transparent;border:none;color:#111827;font-weight:700;cursor:pointer;padding:0 6px;';
+            x.onclick = () => { const list = readTags().filter(v => v !== text); writeTags(list); syncGlobals(list); };
+        };
+
+        // Tags chips (properties panel rendering and synchronization)
+        const readTags = () => Array.from(tagsUl?.querySelectorAll('li.na-tag [data-tag-text]') || []).map(span => (span.textContent || '').trim()).filter(Boolean);
         const writeTags = (arr) => {
             if (!tagsUl) return;
             tagsUl.innerHTML = '';
             (arr || []).forEach(t => {
                 const li = document.createElement('li');
-                li.className = 'na-tag';
-                li.style.cssText = 'background:#eef2ff;color:#3730a3;border:1px solid #e5e7eb;border-radius:20px;padding:4px 10px;font-size:12px;display:flex;gap:6px;align-items:center;';
-                const span = document.createElement('span'); span.textContent = t;
-                const x = document.createElement('button'); x.type='button'; x.className='btn btn-secondary btn-small'; x.textContent='×'; x.style.padding='0 6px';
-                x.onclick = () => { const list = readTags().filter(v => v !== t); writeTags(list); syncGlobals(list); };
-                li.appendChild(span); li.appendChild(x);
+                styleTag(li, String(t));
                 tagsUl.appendChild(li);
             });
         };
@@ -1358,6 +1422,25 @@ class PropertiesPanel {
         });
         const btn = document.createElement('button'); btn.type='button'; btn.className='btn btn-secondary'; btn.textContent='Toevoegen'; btn.onclick=()=>add(input.value);
         wrap.appendChild(input); wrap.appendChild(btn); grp.appendChild(wrap); this.panel.appendChild(grp);
+
+        // Appearance controls
+        this.createColorInput('Tag achtergrond', component._tagBg || '#eef2ff', (v)=>{ component._tagBg = v; writeTags(readTags()); });
+        this.createColorInput('Tag tekstkleur', component._tagColor || '#3730a3', (v)=>{ component._tagColor = v; writeTags(readTags()); });
+        this.createColorInput('Tag randkleur', component._tagBorder || '#e5e7eb', (v)=>{ component._tagBorder = v; writeTags(readTags()); });
+        this.createColorInput('Gaatjeskleur (ticket)', component._tagHoleBg || '#ffffff', (v)=>{ component._tagHoleBg = v; writeTags(readTags()); });
+        this.createSelectInput('Tag stijl', component._tagStyle || 'pill', [
+            { value:'pill', label:'Pil' },
+            { value:'ticket', label:'Ticket' },
+            { value:'label', label:'Prijskaartje' }
+        ], (v)=>{ component._tagStyle = v; writeTags(readTags()); });
+        this.createSelectInput('Tag schaduw', component._tagShadow ? 'on' : 'off', [
+            { value:'on', label:'Aan' },
+            { value:'off', label:'Uit' }
+        ], (v)=>{ component._tagShadow = (v==='on'); writeTags(readTags()); });
+        // Optional icon per tag set (globaal voor weergave)
+        if (typeof this.createIconPickerInput === 'function') {
+            this.createIconPickerInput('Tag icoon (optioneel)', component._tagIcon || '', (val)=>{ component._tagIcon = val || ''; writeTags(readTags()); });
+        }
 
         // Initialize chips
         writeTags(readTags()); syncGlobals(readTags());

@@ -255,8 +255,14 @@ class ComponentFactory {
         body.contentEditable = true;
         body.innerHTML = bodyHtml;
 
-        section.appendChild(header);
-        section.appendChild(body);
+        // Align like Content Flex: wrap inner content to limit width and add side padding
+        const wrap = document.createElement('div');
+        wrap.className = 'na-wrap';
+        wrap.style.cssText = 'max-width:1100px;margin:0 auto;padding:8px 16px;';
+        wrap.appendChild(header);
+        wrap.appendChild(body);
+
+        section.appendChild(wrap);
 
         this.makeSelectable(section);
         this.makeEditable(header.querySelector('.na-title'));
