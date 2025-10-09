@@ -1521,6 +1521,8 @@ class ComponentFactory {
             card.href = c.href || '#';
             card.target = '_self';
             card.setAttribute('data-index', String(i));
+            // Prevent navigation while editing in the builder
+            card.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); });
 
             const img = document.createElement('img');
             __WB_applyResponsiveSrc(img, c.img);
