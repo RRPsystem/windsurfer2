@@ -237,7 +237,7 @@ class ComponentFactory {
                 <span class="na-dot">•</span>
                 <span class="na-author" contenteditable="true">${author}</span>
             </div>
-            <ul class="na-tags" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0;padding:0;list-style:none;"></ul>
+            <ul class="na-tags" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px;padding:0;list-style:none;"></ul>
         `;
 
         const tagsUl = header.querySelector('.na-tags');
