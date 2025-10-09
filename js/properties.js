@@ -1432,7 +1432,23 @@ class PropertiesPanel {
             { value:'pill', label:'Pil' },
             { value:'ticket', label:'Ticket' },
             { value:'label', label:'Prijskaartje' }
-        ], (v)=>{ component._tagStyle = v; writeTags(readTags()); });
+        ], (v)=>{
+            const m = String(v||'pill').toLowerCase();
+            let norm = m;
+            if (!['pill','ticket','label'].includes(m)) {
+                if (m.includes('prijs')) norm = 'label';
+                else if (m.includes('ticket')) norm = 'ticket';
+                else norm = 'pill';
+            }
+            component._tagStyle = norm;
+            if (norm === 'ticket' && typeof component._tagHoles === 'undefined') component._tagHoles = true;
+            writeTags(readTags());
+        });
+        // Ticket ponsgaten
+        this.createSelectInput('Ticket ponsgaten', component._tagHoles ? 'on' : 'off', [
+            { value:'on', label:'Aan' },
+            { value:'off', label:'Uit' }
+        ], (v)=>{ component._tagHoles = (v==='on'); writeTags(readTags()); });
         this.createSelectInput('Tag schaduw', component._tagShadow ? 'on' : 'off', [
             { value:'on', label:'Aan' },
             { value:'off', label:'Uit' }
