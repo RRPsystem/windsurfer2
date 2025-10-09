@@ -408,7 +408,10 @@
           }
 
           // Re-apply on hash changes and DOM mutations (e.g., after actions that reflow header)
-          window.addEventListener('hashchange', () => applyBoltHeaderVisibility());
+          if (!window.__WB_hashApplied) {
+            window.__WB_hashApplied = true;
+            window.addEventListener('hashchange', () => applyBoltHeaderVisibility());
+          }
           try {
             const header = document.querySelector('.app-header');
             if (header) {
