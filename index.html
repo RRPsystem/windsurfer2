@@ -5,6 +5,42 @@
     <meta charset="UTF-8">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
+    <script>
+      // Quiet noisy external errors that can flood the console and degrade responsiveness
+      (function installErrorFilters(){
+        try {
+          const isExt = (src) => typeof src === 'string' && src.indexOf('chrome-extension://') === 0;
+          const ignoreMsg = (msg='') => {
+            const s = String(msg);
+            return (
+              s.includes('attribute viewBox: Expected number') ||
+              s.includes("'[object Object]' is not valid JSON")
+            );
+          };
+          window.addEventListener('error', (e) => {
+            try {
+              const src = (e && e.filename) || (e && e.target && e.target.src) || '';
+              if (isExt(src) || ignoreMsg(e && e.message)) {
+                e.stopImmediatePropagation();
+              }
+            } catch {}
+          }, true);
+          window.addEventListener('unhandledrejection', (e) => {
+            try {
+              const r = e && e.reason;
+              const msg = (r && (r.message || r.toString())) || '';
+              // If stack/url shows extension, suppress
+              const stack = (r && r.stack) || '';
+              if (ignoreMsg(msg) || stack.indexOf('chrome-extension://') === 0) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+              }
+            } catch {}
+          });
+        } catch {}
+      })();
+    </script>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Website Builder</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' ry='18' fill='%234CAF50'/%3E%3Ctext x='50' y='62' font-size='60' text-anchor='middle' fill='white'%3EW%3C/text%3E%3C/svg%3E">

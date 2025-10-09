@@ -3,10 +3,17 @@
 // Global helper: apply responsive src/srcset for known CDNs (e.g., Unsplash)
 function __WB_applyResponsiveSrc(imageEl, url, opts = {}) {
     try {
+        // Basic perf hints
+        try { imageEl.decoding = 'async'; } catch {}
+        try { if (!imageEl.loading) imageEl.loading = 'lazy'; } catch {}
+
         const u = new URL(url);
         const widths = opts.widths || [1280, 1920, 2560, 3200];
         const quality = String(opts.quality || 80);
         const fm = opts.format || 'webp';
+        const currentSrc = imageEl.currentSrc || imageEl.src || '';
+        const currentHost = (()=>{ try { return new URL(currentSrc).host; } catch { return ''; } })();
+
         if (u.hostname.includes('images.unsplash.com')) {
             const base = `${u.origin}${u.pathname}`;
             const params = u.searchParams;
@@ -14,14 +21,24 @@ function __WB_applyResponsiveSrc(imageEl, url, opts = {}) {
             const auto = params.get('auto') || 'format';
             const srcs = widths.map(w => `${base}?q=${quality}&w=${w}&auto=${auto}&fit=${fit}&fm=${fm}`);
             const defaultSrc = srcs[1] || srcs[0];
-            imageEl.src = defaultSrc;
-            imageEl.srcset = srcs.map((s, i) => `${s} ${widths[i]}w`).join(', ');
-            imageEl.sizes = opts.sizes || '100vw';
-            return;
+            // Avoid unnecessary work if defaultSrc already set
+            if (currentSrc === defaultSrc) return;
+            const apply = () => {
+                imageEl.src = defaultSrc;
+                imageEl.srcset = srcs.map((s, i) => `${s} ${widths[i]}w`).join(', ');
+                imageEl.sizes = opts.sizes || '100vw';
+            };
+            return (typeof requestAnimationFrame === 'function') ? requestAnimationFrame(apply) : apply();
+        }
+
+        // If switching CDN/host, drop previous srcset/sizes to prevent the browser from sticking to cached candidates
+        if (currentHost && currentHost !== u.host) {
+            try { imageEl.removeAttribute('srcset'); imageEl.removeAttribute('sizes'); } catch {}
         }
     } catch {}
-    // Fallback: single src
-    imageEl.src = url;
+    // Fallback: single src (batched)
+    const setSingle = () => { imageEl.src = url; };
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(setSingle); else setSingle();
 }
 class ComponentFactory {
     static createComponent(type, options = {}) {
