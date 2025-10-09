@@ -3003,61 +3003,66 @@ class PropertiesPanel {
     createColorInput(label, value, onChange) {
         const group = this.createFormGroup(label);
         const inputId = `prop_${label.toLowerCase().replace(/[^a-z0-9]+/g,'_')}_${Date.now()}`;
-        const input = document.createElement('input');
-        input.type = 'color';
-        input.value = value;
-        input.className = 'form-control color-input';
-        input.id = inputId;
-        input.setAttribute('aria-label', label);
-        const lbl = group.querySelector('label');
-        if (lbl) lbl.setAttribute('for', inputId);
-        input.addEventListener('change', (e) => onChange(e.target.value));
-        group.appendChild(input);
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = value;
+        colorInput.className = 'form-control color-input';
+        colorInput.id = inputId;
+        colorInput.setAttribute('aria-label', label);
+        const lbl2 = group.querySelector('label');
+        if (lbl2) lbl2.setAttribute('for', inputId);
+        const safeCall = (val) => { try { if (typeof onChange === 'function') onChange(val); } catch (err) { console.warn('color onChange failed', err); } };
+        colorInput.addEventListener('input', (e) => { const val = e.target.value; requestAnimationFrame(()=> safeCall(val)); });
+        colorInput.addEventListener('change', (e) => { const val = e.target.value; safeCall(val); });
+        group.appendChild(colorInput);
         this.panel.appendChild(group);
         return group;
     }
 
-    createRangeInput(label, value, min, max, step, onChange) {
+    createRangeInput(label, value, min, max, step, onChange, container) {
         const group = this.createFormGroup(label);
         const inputId = `prop_${label.toLowerCase().replace(/[^a-z0-9]+/g,'_')}_${Date.now()}`;
         const wrapper = document.createElement('div');
         wrapper.className = 'range-wrapper';
-        const input = document.createElement('input');
-        input.type = 'range';
-        input.min = min;
-        input.max = max;
-        input.step = step;
-        input.value = value;
-        input.className = 'form-control range-input';
-        input.id = inputId;
-        input.setAttribute('aria-label', label);
-        const lbl = group.querySelector('label');
-        if (lbl) lbl.setAttribute('for', inputId);
+        const rangeInput = document.createElement('input');
+        rangeInput.type = 'range';
+        rangeInput.min = min;
+        rangeInput.max = max;
+        rangeInput.step = step;
+        rangeInput.value = value;
+        rangeInput.className = 'form-control range-input';
+        rangeInput.id = inputId;
+        rangeInput.setAttribute('aria-label', label);
+        const lbl3 = group.querySelector('label');
+        if (lbl3) lbl3.setAttribute('for', inputId);
         const valueDisplay = document.createElement('span');
         valueDisplay.className = 'range-value';
         valueDisplay.textContent = value;
-        input.addEventListener('input', (e) => {
-            const newValue = e.target.value + (step.includes('rem') ? 'rem' : step.includes('px') ? 'px' : '');
+        const safeRange = (newValueRaw) => {
+            try { if (typeof onChange === 'function') onChange(newValueRaw); } catch (err) { console.warn('range onChange failed', err); }
+        };
+        rangeInput.addEventListener('input', (e) => {
+            const v = e.target.value;
+            const newValue = v + (String(step).includes('rem') ? 'rem' : String(step).includes('px') ? 'px' : '');
             valueDisplay.textContent = newValue;
-            onChange(newValue);
+            safeRange(newValue);
         });
-        
-        wrapper.appendChild(input);
+        wrapper.appendChild(rangeInput);
         wrapper.appendChild(valueDisplay);
         group.appendChild(wrapper);
-        this.panel.appendChild(group);
+        (container || this.panel).appendChild(group);
         return group;
     }
 
-    createSelectInput(label, value, options, onChange) {
+    createSelectInput(label, value, options, onChange, container) {
         const group = this.createFormGroup(label);
         const inputId = `prop_${label.toLowerCase().replace(/[^a-z0-9]+/g,'_')}_${Date.now()}`;
         const select = document.createElement('select');
         select.className = 'form-control';
         select.id = inputId;
         select.setAttribute('aria-label', label);
-        const lbl = group.querySelector('label');
-        if (lbl) lbl.setAttribute('for', inputId);
+        const lbl4 = group.querySelector('label');
+        if (lbl4) lbl4.setAttribute('for', inputId);
         options.forEach(option => {
             const optionEl = document.createElement('option');
             optionEl.value = option.value;
@@ -3065,9 +3070,9 @@ class PropertiesPanel {
             optionEl.selected = option.value === value;
             select.appendChild(optionEl);
         });
-        select.addEventListener('change', (e) => onChange(e.target.value));
+        select.addEventListener('change', (e) => { try { onChange(e.target.value); } catch (err) { console.warn('select onChange failed', err); } });
         group.appendChild(select);
-        this.panel.appendChild(group);
+        (container || this.panel).appendChild(group);
         return group;
     }
 
