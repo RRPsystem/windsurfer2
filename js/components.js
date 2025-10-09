@@ -1525,6 +1525,19 @@ class ComponentFactory {
             const img = document.createElement('img');
             __WB_applyResponsiveSrc(img, c.img);
             img.alt = c.label;
+            // Allow clicking the image to replace via MediaPicker
+            img.style.cursor = 'pointer';
+            img.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                try {
+                    if (!window.MediaPicker || typeof window.MediaPicker.openImage !== 'function') return;
+                    const r = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
+                    const u = r?.fullUrl || r?.regularUrl || r?.url || r?.dataUrl;
+                    if (!u) return;
+                    __WB_applyResponsiveSrc(img, u);
+                } catch {}
+            });
 
             const overlay = document.createElement('div');
             overlay.className = 'tt-overlay';
