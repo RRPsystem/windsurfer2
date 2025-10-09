@@ -39,6 +39,31 @@ class WebsiteBuilder {
         this.init();
     }
 
+    // Prevent navigation inside the builder canvas (anchors inside content)
+    interceptCanvasLinks() {
+        try {
+            const canvas = document.getElementById('canvas');
+            if (!canvas || canvas.__wb_linkIntercept) return;
+            canvas.__wb_linkIntercept = true;
+            canvas.addEventListener('click', (e) => {
+                try {
+                    const a = e.target && e.target.closest ? e.target.closest('a') : null;
+                    if (!a) return;
+                    // Allow if explicitly data-allow-nav
+                    if (a.hasAttribute('data-allow-nav')) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Optional: small hint once
+                    if (!canvas.__wb_linkHintShown) {
+                        canvas.__wb_linkHintShown = true;
+                        this.showNotification('🔗 Navigeren is uitgeschakeld in de editor (gebruik Preview).', 'info');
+                        setTimeout(() => { canvas.__wb_linkHintShown = false; }, 4000);
+                    }
+                } catch {}
+            }, true);
+        } catch {}
+    }
+
     // Ensure a 'Publiceer Nieuws' button exists in the header and is visible only in news mode
     ensureNewsPublishButton(mode) {
         try {
@@ -1138,6 +1163,7 @@ class WebsiteBuilder {
             this.setupKeyboardShortcuts();
             this.setupAutoSave();
             this.setupWelcomeMessage();
+            this.interceptCanvasLinks();
             this.setupPreviewButton();
             this.setupPublishButton();
             this.setupPagesButton();
@@ -1357,6 +1383,7 @@ class WebsiteBuilder {
         canvas.innerHTML = html;
         this.currentPageId = pageId;
         this.reattachEventListeners();
+        this.interceptCanvasLinks();
         this.persistPagesToLocalStorage();
         // Sync page title/slug inputs with the newly active page
         try { if (typeof this._applyPageMetaToInputs === 'function') this._applyPageMetaToInputs(); } catch {}
@@ -2588,6 +2615,7 @@ class WebsiteBuilder {
             this.currentPageId = id;
             canvas.innerHTML = data.html;
         }
+        this.interceptCanvasLinks();
         if (data.device) {
             this.currentDevice = data.device;
             const deviceBtn = document.querySelector(`[data-device="${data.device}"]`);
