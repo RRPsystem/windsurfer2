@@ -824,45 +824,80 @@ class WebsiteBuilder {
         if (!titleEl || !slugEl) return;
 
         this._slugTouched = false;
-        const slugify = (s) => String(s || '')
-            .toLowerCase()
-            .normalize('NFD').replace(/\p{Diacritic}+/gu, '')
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '')
-            .slice(0, 80);
+        this._metaApplying = false; // guard against feedback loops
+        const slugify = (s) => {
+            try {
+                return String(s || '')
+                    .toLowerCase()
+                    .normalize('NFD').replace(/\p{Diacritic}+/gu, '')
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '')
+                    .slice(0, 80);
+            } catch {
+                // Fallback without Unicode property escapes
+                return String(s || '')
+                    .toLowerCase()
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '')
+                    .slice(0, 80);
+            }
+        };
 
         // Change handlers
+        let _ttlDeb = null;
         titleEl.addEventListener('input', () => {
-            if (!this._slugTouched) slugEl.value = slugify(titleEl.value);
+            if (this._metaApplying) return;
+            if (!_ttlDeb) {
+                _ttlDeb = setTimeout(() => { _ttlDeb = null; }, 0);
+            }
+            // Debounce slug sync to avoid heavy updates each keystroke
+            if (_ttlDeb) clearTimeout(_ttlDeb);
+            _ttlDeb = setTimeout(() => {
+                if (!this._slugTouched) {
+                    try { slugEl.value = slugify(titleEl.value); } catch {}
+                }
+            }, 150);
             const s = document.getElementById('pageSaveStatus');
             if (s) s.textContent = 'Wijzigingen…';
         });
-        slugEl.addEventListener('input', () => { this._slugTouched = true; const s = document.getElementById('pageSaveStatus'); if (s) s.textContent = 'Wijzigingen…'; });
+        slugEl.addEventListener('input', () => {
+            this._slugTouched = true;
+            try { slugEl.value = slugify(slugEl.value); } catch {}
+            const s = document.getElementById('pageSaveStatus');
+            if (s) s.textContent = 'Wijzigingen…';
+        });
 
         const persistMeta = () => {
-            const title = titleEl.value && titleEl.value.trim() ? titleEl.value.trim() : 'Nieuwe pagina';
-            const slug = slugEl.value && slugEl.value.trim() ? slugEl.value.trim() : slugify(title);
-            // Update current page record
-            if (this.pages && this.pages.length) {
-                const cur = this.pages.find(p => p.id === this.currentPageId) || this.pages[0];
-                if (cur) { cur.name = title; cur.slug = slug; }
-            }
-            // Save + auto-publish
-            this.saveProject(true);
+            try {
+                const title = titleEl.value && titleEl.value.trim() ? titleEl.value.trim() : 'Nieuwe pagina';
+                const slug = slugEl.value && slugEl.value.trim() ? slugEl.value.trim() : slugify(title);
+                // Update current page record
+                if (this.pages && this.pages.length) {
+                    const cur = this.pages.find(p => p.id === this.currentPageId) || this.pages[0];
+                    if (cur) { cur.name = title; cur.slug = slug; }
+                }
+                // Non-blocking save to avoid UI stutter
+                setTimeout(() => { try { this.saveProject(true); } catch {} }, 50);
+            } catch (e) { console.warn('persistMeta failed', e); }
         };
         titleEl.addEventListener('blur', persistMeta);
         slugEl.addEventListener('blur', persistMeta);
 
         // Populate on init or after page switch
         this._applyPageMetaToInputs = () => {
-            const cur = (this.pages || []).find(p => p.id === this.currentPageId) || (this.pages || [])[0] || {};
-            const title = cur.name || 'Nieuwe pagina';
-            const slug = cur.slug || slugify(title);
-            titleEl.value = title;
-            slugEl.value = slug;
-            this._slugTouched = false;
-            const s = document.getElementById('pageSaveStatus');
-            if (s) s.textContent = 'Opgeslagen';
+            try {
+                this._metaApplying = true;
+                const cur = (this.pages || []).find(p => p.id === this.currentPageId) || (this.pages || [])[0] || {};
+                const title = cur.name || 'Nieuwe pagina';
+                const slug = cur.slug || slugify(title);
+                titleEl.value = title;
+                slugEl.value = slug;
+                this._slugTouched = false;
+                const s = document.getElementById('pageSaveStatus');
+                if (s) s.textContent = 'Opgeslagen';
+            } catch {}
+            finally { this._metaApplying = false; }
         };
     }
 
