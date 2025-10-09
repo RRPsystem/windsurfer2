@@ -1527,9 +1527,8 @@ class ComponentFactory {
             const img = document.createElement('img');
             __WB_applyResponsiveSrc(img, c.img);
             img.alt = c.label;
-            // Allow clicking the image to replace via MediaPicker
-            img.style.cursor = 'pointer';
-            img.addEventListener('click', async (e) => {
+            // Helper to open picker and replace image
+            const pickAndReplace = async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 try {
@@ -1537,15 +1536,32 @@ class ComponentFactory {
                     const r = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
                     const u = r?.fullUrl || r?.regularUrl || r?.url || r?.dataUrl;
                     if (!u) return;
-                    __WB_applyResponsiveSrc(img, u);
+                    if (typeof window.__WB_applyResponsiveSrc === 'function') window.__WB_applyResponsiveSrc(img, u);
+                    else if (typeof __WB_applyResponsiveSrc === 'function') __WB_applyResponsiveSrc(img, u);
+                    else img.src = u;
                 } catch {}
-            });
+            };
+            // Allow clicking image to replace
+            img.style.cursor = 'pointer';
+            img.addEventListener('click', pickAndReplace);
 
             const overlay = document.createElement('div');
             overlay.className = 'tt-overlay';
             overlay.innerHTML = `<span class="tt-label" contenteditable="true">${c.label}</span>`;
+            // Clicking overlay opens picker unless label text is targeted
+            overlay.addEventListener('click', (e) => {
+                const onLabel = e.target && (e.target.closest && e.target.closest('.tt-label'));
+                if (onLabel) return; // allow editing label
+                return pickAndReplace(e);
+            });
             card.appendChild(img);
             card.appendChild(overlay);
+            // Fallback: clicking card opens picker (except label)
+            card.addEventListener('click', (e) => {
+                const onLabel = e.target && (e.target.closest && e.target.closest('.tt-label'));
+                if (onLabel) return; 
+                return pickAndReplace(e);
+            });
             grid.appendChild(card);
         });
 
