@@ -319,19 +319,33 @@
       })();
     </script>
     <script>
-        if (!window.BOLT_DB) {
-          console.error('BOLT_DB niet geladen. Controleer js/config.local.js');
-        } else {
-          window.db = window.supabase.createClient(window.BOLT_DB.url, window.BOLT_DB.anonKey);
-          // Health check: log DB reachability in console
+        (function(){
+          // Only initialize Supabase if config is present
+          if (!window.BOLT_DB || !window.BOLT_DB.url || !window.BOLT_DB.anonKey) {
+            // Quiet in local dev to avoid red console noise
+            console.info('[WB] BOLT_DB niet geconfigureerd (sla DB init/health over).');
+            return;
+          }
           try {
-            fetch(window.BOLT_DB.url + '/auth/v1/health')
-              .then(r => console.log('DB health status:', r.status))
-              .catch(e => console.warn('DB health check failed:', e.message || e));
+            window.db = window.supabase.createClient(window.BOLT_DB.url, window.BOLT_DB.anonKey);
+          } catch (e) {
+            console.warn('[WB] Supabase init mislukt:', e);
+            return;
+          }
+          // Health check only when same-origin to avoid 401 noise in local/offline
+          try {
+            var apiOrigin = new URL(window.BOLT_DB.url).origin;
+            if (apiOrigin === location.origin) {
+              fetch(window.BOLT_DB.url.replace(/\/$/,'') + '/auth/v1/health')
+                .then(r => console.log('DB health status:', r.status))
+                .catch(e => console.warn('DB health check failed:', e && (e.message||e)));
+            } else {
+              console.info('[WB] DB health check overgeslagen (cross-origin).');
+            }
           } catch (e) {
             console.warn('DB health check error:', e);
           }
-        }
+        })();
       </script>
     <script src="js/layouts.js"></script>
     <script src="js/iconPicker.js"></script>
