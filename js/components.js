@@ -1035,16 +1035,23 @@ class ComponentFactory {
             const url = new URL(embedUrl);
             const params = url.searchParams;
             if (!params.has('autoplay')) params.set('autoplay', '1');
-            if (!params.has('mute')) params.set('mute', '1');
+            // Apply options from properties (mute/start)
+            const opts = section._ytOptions || { mute: true, start: 0 };
+            if (opts.mute === false) { params.delete('mute'); } else { params.set('mute', '1'); }
             if (!params.has('controls')) params.set('controls', '0');
             if (!params.has('loop')) params.set('loop', '1');
             // playlist param needed for loop
             const vidIdMatch = url.pathname.match(/\/embed\/([^\/?#]+)/);
             if (vidIdMatch && !params.has('playlist')) params.set('playlist', vidIdMatch[1]);
+            const startSec = Math.max(0, parseInt(opts.start, 10) || 0);
+            if (startSec > 0) params.set('start', String(startSec)); else params.delete('start');
             url.search = params.toString();
             const nextSrc = url.toString();
             // Avoid redundant reloads
-            if (iframe.src !== nextSrc) iframe.src = nextSrc;
+            if (iframe.src !== nextSrc && section._ytLastSrc !== nextSrc) {
+                section._ytLastSrc = nextSrc;
+                iframe.src = nextSrc;
+            }
 
             // Fit the iframe to cover the section (16:9) without letterboxing
             const fitVideo = () => {
@@ -1140,8 +1147,14 @@ class ComponentFactory {
             isSlideshow: () => Array.isArray(section._slides) && section._slides.length > 1,
             updateYouTubeOptions: (updates = {}) => {
                 section._ytOptions = Object.assign({}, section._ytOptions || { mute: true, start: 0 }, updates);
-                if (section._ytEmbedBase) setYouTubeBg(section._ytEmbedBase);
+                // Apply strategy: if caller sets apply:true, apply quickly; otherwise debounce.
+                clearTimeout(section._ytOptTimer);
+                const delay = (updates && updates.apply === true) ? 60 : 350;
+                section._ytOptTimer = setTimeout(() => {
+                    if (section._ytEmbedBase) setYouTubeBg(section._ytEmbedBase);
+                }, delay);
             },
+            applyYouTube: () => { if (section._ytEmbedBase) setYouTubeBg(section._ytEmbedBase); },
             getYouTubeOptions: () => Object.assign({}, section._ytOptions || { mute: true, start: 0 })
         };
 
