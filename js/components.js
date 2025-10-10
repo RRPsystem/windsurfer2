@@ -1563,6 +1563,9 @@ class ComponentFactory {
         const grid = document.createElement('div');
         grid.className = 'tt-grid';
 
+        // Simple guard to avoid overlapping pickers/updates
+        section._ttPickLock = false;
+
         defaults.forEach((c, i) => {
             const card = document.createElement('a');
             card.className = 'tt-card';
@@ -1579,17 +1582,23 @@ class ComponentFactory {
             const pickAndReplace = async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                if (section._ttPickLock) return;
+                section._ttPickLock = true;
                 try {
                     if (!window.MediaPicker || typeof window.MediaPicker.openImage !== 'function') return;
                     const r = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
                     const u = r?.fullUrl || r?.regularUrl || r?.url || r?.dataUrl;
                     if (!u) return;
+                    // Apply responsively; avoid double-setting where possible
                     if (typeof window.__WB_applyResponsiveSrc === 'function') window.__WB_applyResponsiveSrc(img, u);
                     else if (typeof __WB_applyResponsiveSrc === 'function') __WB_applyResponsiveSrc(img, u);
                     else img.src = u;
                     // Ensure immediate visual if browser keeps old srcset
                     try { img.src = u; img.removeAttribute('srcset'); img.removeAttribute('sizes'); } catch {}
+                    // Yield a frame to keep UI responsive after heavy image decode
+                    try { await new Promise(requestAnimationFrame); } catch {}
                 } catch {}
+                finally { section._ttPickLock = false; }
             };
             // Allow clicking image to replace
             img.style.cursor = 'pointer';
@@ -2375,6 +2384,7 @@ class ComponentFactory {
             
             // Update properties panel
             if (window.PropertiesPanel) {
+                try { ComponentFactory.ensureApiFor(element); } catch {}
                 window.PropertiesPanel.showProperties(element);
             }
         });
@@ -2469,6 +2479,57 @@ class ComponentFactory {
         } else {
             element.insertBefore(newTb, element.firstChild);
         }
+    }
+
+    // Ensure legacy/loaded elements have their API attached for Properties panel
+    static ensureApiFor(el) {
+        try {
+            if (!el || !el.getAttribute) return;
+            const type = el.getAttribute('data-component');
+            if (type === 'content-flex' && !el.__contentFlexApi) {
+                const section = el;
+                const h1 = section.querySelector('.cf-title') || section.querySelector('h1, .wb-heading, .cf-header h1');
+                const h2 = section.querySelector('.cf-subtitle') || section.querySelector('h2, .cf-header h2');
+                const body = section.querySelector('.cf-body') || section.querySelector('.cf-text, .cf-content');
+                const applyLayout = () => {
+                    section.classList.toggle('layout-none', section._layout === 'none');
+                    section.classList.toggle('layout-left', section._layout === 'left');
+                    section.classList.toggle('layout-right', section._layout === 'right');
+                    section.classList.toggle('layout-both', section._layout === 'both');
+                };
+                const applyStyles = () => {
+                    if (section._imgHeight != null) section.style.setProperty('--cf-img-height', section._imgHeight + 'px');
+                    if (section._radius != null) section.style.setProperty('--cf-radius', section._radius + 'px');
+                    section.classList.toggle('cf-shadow', !!section._shadow);
+                };
+                const findLeftImg = () => section.querySelector('.cf-left img') || section.querySelector('.cf-media-left img') || section.querySelector('img');
+                const findRightImg = () => section.querySelector('.cf-right img') || section.querySelector('.cf-media-right img') || (section.querySelectorAll('img')[1] || section.querySelector('img'));
+                el.__contentFlexApi = {
+                    setTitle: (t) => { if (h1) h1.textContent = t || ''; },
+                    setSubtitle: (t) => { if (h2) h2.textContent = t || ''; },
+                    setBodyHtml: (html) => { if (body) body.innerHTML = html || ''; },
+                    setLayout: (mode) => { section._layout = ['none','left','right','both'].includes(mode) ? mode : 'none'; applyLayout(); },
+                    setEdgeToEdge: (on) => { section.classList.toggle('edge-to-edge', !!on); },
+                    setImageHeight: (px) => { section._imgHeight = Math.max(120, parseInt(px,10) || 260); applyStyles(); },
+                    setRadius: (px) => { section._radius = Math.max(0, parseInt(px,10) || 0); applyStyles(); },
+                    setShadow: (on) => { section._shadow = !!on; applyStyles(); },
+                    pickLeft: async () => {
+                        try { if (!window.MediaPicker) return; const r = await window.MediaPicker.openImage({ defaultTab: 'unsplash' }); const u = r?.fullUrl || r?.regularUrl || r?.url || r?.dataUrl; const img = findLeftImg(); if (u && img) { if (typeof window.__WB_applyResponsiveSrc === 'function') window.__WB_applyResponsiveSrc(img, u); else img.src = u; } } catch {}
+                    },
+                    pickRight: async () => {
+                        try { if (!window.MediaPicker) return; const r = await window.MediaPicker.openImage({ defaultTab: 'unsplash' }); const u = r?.fullUrl || r?.regularUrl || r?.url || r?.dataUrl; const img = findRightImg(); if (u && img) { if (typeof window.__WB_applyResponsiveSrc === 'function') window.__WB_applyResponsiveSrc(img, u); else img.src = u; } } catch {}
+                    }
+                };
+                // Best effort: infer current state for layout/styles
+                if (!section._layout) {
+                    if (section.classList.contains('layout-left')) section._layout = 'left';
+                    else if (section.classList.contains('layout-right')) section._layout = 'right';
+                    else if (section.classList.contains('layout-both')) section._layout = 'both';
+                    else section._layout = 'none';
+                }
+                try { applyLayout(); applyStyles(); } catch {}
+            }
+        } catch {}
     }
 }
 
