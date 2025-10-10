@@ -1559,9 +1559,13 @@ class ComponentFactory {
             <h2 class="tt-title" contenteditable="true">${title}</h2>
             <p class="tt-subtitle" contenteditable="true">${subtitle}</p>
         `;
+        // Isolate header layout/paint to avoid impacting grid while typing
+        try { header.style.contain = 'layout paint style'; } catch {}
 
         const grid = document.createElement('div');
         grid.className = 'tt-grid';
+        // Contain grid to limit reflow scope when text above changes
+        try { grid.style.contain = 'layout paint style'; } catch {}
 
         // Simple guard to avoid overlapping pickers/updates
         section._ttPickLock = false;
@@ -1578,6 +1582,8 @@ class ComponentFactory {
             img.alt = c.label;
             img.decoding = 'async';
             img.loading = 'lazy';
+            // Avoid layout thrash during decode
+            try { img.style.contentVisibility = 'auto'; img.style.containIntrinsicSize = '320px 200px'; } catch {}
             // Helper to open picker and replace image
             const pickAndReplace = async (e) => {
                 e.preventDefault();
@@ -1589,6 +1595,8 @@ class ComponentFactory {
                     const r = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
                     const u = r?.fullUrl || r?.regularUrl || r?.url || r?.dataUrl;
                     if (!u) return;
+                    // Hint the browser to decode off main thread and avoid eager work
+                    try { img.decoding = 'async'; img.loading = 'lazy'; } catch {}
                     // Apply responsively; avoid double-setting where possible
                     if (typeof window.__WB_applyResponsiveSrc === 'function') window.__WB_applyResponsiveSrc(img, u);
                     else if (typeof __WB_applyResponsiveSrc === 'function') __WB_applyResponsiveSrc(img, u);
