@@ -354,7 +354,21 @@
     <script src="js/media.js"></script>
     <script src="js/ai.js"></script>
     <script src="js/properties.js"></script>
-    <script src="js/export.js"></script>
+    <script>
+      (function(){
+        try {
+          const u = new URL(window.location.href);
+          const isDeeplink = !!(u.searchParams.get('api') && u.searchParams.get('brand_id'));
+          if (!isDeeplink) {
+            var s = document.createElement('script'); s.src = 'js/export.js'; s.defer = true; document.head.appendChild(s);
+          } else {
+            console.info('[WB] export.js overgeslagen in deeplink modus');
+          }
+        } catch (e) {
+          var s = document.createElement('script'); s.src = 'js/export.js'; s.defer = true; document.head.appendChild(s);
+        }
+      })();
+    </script>
     <script src="js/publish.js"></script>
     <script src="js/router.js"></script>
     <script src="js/views/menuFooterView.js"></script>

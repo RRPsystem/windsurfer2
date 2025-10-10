@@ -775,3 +775,5 @@ window.exportBuilderAsHTML = function exportBuilderAsHTML(contentJson) {
   ${bodyWrapped}
 </body>
 </html>`;
+
+};
