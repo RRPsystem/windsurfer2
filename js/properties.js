@@ -2997,10 +2997,12 @@ class PropertiesPanel {
         let tId = null;
         const safeCall = (val)=>{ try { if (typeof onChange === 'function') onChange(val); } catch(err){ console.warn('text onChange failed', err); } };
         input.addEventListener('input', (e) => {
+            try { e.stopPropagation(); } catch {}
+            try { window.websiteBuilder && typeof window.websiteBuilder.markTyping==='function' && window.websiteBuilder.markTyping(900); } catch {}
             const val = e.target.value;
             if (tId) clearTimeout(tId);
-            tId = setTimeout(()=> safeCall(val), 120);
-        });
+            tId = setTimeout(()=> { try { requestAnimationFrame(()=> safeCall(val)); } catch { safeCall(val); } }, 220);
+        }, { passive: true });
         group.appendChild(input);
         this.panel.appendChild(group);
         return group;
