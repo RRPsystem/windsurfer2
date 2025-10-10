@@ -1330,7 +1330,8 @@ class WebsiteBuilder {
                     const t = e.target;
                     const inCanvas = !!(t && t.closest && t.closest('#canvas'));
                     const inProps = !!(t && t.closest && t.closest('.properties-panel'));
-                    if (inCanvas || inProps) this.markTyping(800);
+                    const inHeaderMeta = !!(t && t.closest && t.closest('.page-meta')) || (t && (t.id === 'pageTitleInput' || t.id === 'pageSlugInput'));
+                    if (inCanvas || inProps || inHeaderMeta) this.markTyping(800);
                 };
                 document.addEventListener('input', typingHandler, { passive: true });
             } catch {}
