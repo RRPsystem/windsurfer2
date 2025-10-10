@@ -35,6 +35,9 @@ class WebsiteBuilder {
         // Auto-publish throttle state
         this._lastAutoPublishAt = 0;
         this._autoPublishTimer = null;
+        // Typing + autosave throttle state
+        this._typingUntil = 0;
+        this._saveDebTimer = null;
         // Edge (Supabase) context
         this.init();
     }
@@ -877,8 +880,8 @@ class WebsiteBuilder {
                     const cur = this.pages.find(p => p.id === this.currentPageId) || this.pages[0];
                     if (cur) { cur.name = title; cur.slug = slug; }
                 }
-                // Non-blocking save to avoid UI stutter
-                setTimeout(() => { try { this.saveProject(true); } catch {} }, 50);
+                // Schedule a throttled, idle-friendly save
+                this.scheduleSaveSilent(300);
             } catch (e) { console.warn('persistMeta failed', e); }
         };
         titleEl.addEventListener('blur', persistMeta);
@@ -1215,6 +1218,16 @@ class WebsiteBuilder {
             this.setupImportTcButton();
             this.setupGitPushButton();
             this.setupFileSaveLoad();
+            // Global typing detector to ease saves while user is editing
+            try {
+                const typingHandler = (e) => {
+                    const t = e.target;
+                    const inCanvas = !!(t && t.closest && t.closest('#canvas'));
+                    const inProps = !!(t && t.closest && t.closest('.properties-panel'));
+                    if (inCanvas || inProps) this.markTyping(800);
+                };
+                document.addEventListener('input', typingHandler, { passive: true });
+            } catch {}
             // Load from Supabase Edge first; only fallback to local if no Edge ctx
             (async () => {
                 try { await this.loadFromEdgeIfPresent(); } catch {}
