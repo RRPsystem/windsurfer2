@@ -1624,7 +1624,8 @@ class WebsiteBuilder {
     setupAutoSave() {
         // Auto-save every 30 seconds
         setInterval(() => {
-            this.saveProject(true); // Silent save
+            // Respect typing; schedule throttled idle save
+            this.scheduleSaveSilent(800);
         }, 30000);
         
         // Save before page unload
@@ -1804,11 +1805,19 @@ class WebsiteBuilder {
                 s.textContent = `Opgeslagen • ${hh}:${mm}:${ss}`;
             }
             
-            // Auto-publish on save (simple for users): throttle to avoid spam on autosave
-            this.scheduleAutoPublish();
+            // Auto-publish on save (simple for users), but skip while typing
+            if (!this.isTyping || !this.isTyping()) {
+                this.scheduleAutoPublish();
+            }
 
-            // If editing via Supabase Edge, PUT content back
-            try { this.saveToEdgeIfPresent().catch(()=>{}); } catch {}
+            // If editing via Supabase Edge, avoid network work during typing; defer until idle
+            try {
+                if (!this.isTyping || !this.isTyping()) {
+                    this.saveToEdgeIfPresent().catch(()=>{});
+                } else {
+                    setTimeout(() => { if (!this.isTyping || !this.isTyping()) this.saveToEdgeIfPresent().catch(()=>{}); }, 1000);
+                }
+            } catch {}
 
             return true;
         } catch (error) {

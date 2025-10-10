@@ -1561,6 +1561,23 @@ class ComponentFactory {
         `;
         // Isolate header layout/paint to avoid impacting grid while typing
         try { header.style.contain = 'layout paint style'; } catch {}
+        try { header.style.contentVisibility = 'auto'; header.style.containIntrinsicSize = '600px 120px'; } catch {}
+        // Batch inline title typing to once-per-frame and signal builder to pause saves
+        try {
+            const titleEl = header.querySelector('.tt-title');
+            let _raf = null;
+            if (titleEl) {
+                titleEl.addEventListener('input', (e) => {
+                    // Prevent any global input listeners doing heavy work per keystroke
+                    try { e.stopPropagation(); } catch {}
+                    if (_raf) return;
+                    _raf = requestAnimationFrame(() => {
+                        _raf = null;
+                        try { window.websiteBuilder && typeof window.websiteBuilder.markTyping === 'function' && window.websiteBuilder.markTyping(800); } catch {}
+                    });
+                });
+            }
+        } catch {}
 
         const grid = document.createElement('div');
         grid.className = 'tt-grid';
