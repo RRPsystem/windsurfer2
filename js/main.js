@@ -2043,6 +2043,16 @@ class WebsiteBuilder {
             // content_type already resolved above
             if (!api || !token) return; // require both for edge
 
+            // Early guard: no specific target -> skip remote load fully
+            try {
+                const hasSlug = !!from('slug','');
+                const hasIdentifiers = !!(news_slug || page_id || hasSlug);
+                if (!hasIdentifiers) {
+                    console.info('[WB] Geen doel-id/slug in deeplink; Edge-load overslaan.');
+                    return;
+                }
+            } catch {}
+
             if (news_slug) {
                 // New shape: /content-api/{slug}?type={content_type}&brand_id={brand_id}
                 try { window.__WB_LOADING_EDGE = 'news'; } catch {}
