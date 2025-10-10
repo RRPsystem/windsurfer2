@@ -249,7 +249,8 @@ class WebsiteBuilder {
         const res = this.validateRuntimeParams();
         const btn = document.getElementById('saveProjectBtn');
         if (!res.ok) {
-            try { if (btn) btn.disabled = true; } catch {}
+            // Keep Save button enabled; we'll fallback to local save in handler
+            try { if (btn) btn.disabled = false; } catch {}
             let bar = document.getElementById(diagId);
             if (!bar) {
                 bar = document.createElement('div');
@@ -698,7 +699,14 @@ class WebsiteBuilder {
                     const safeSlug = slugify(contentJson.slug || slugInput?.value || safeTitle);
                     contentJson.title = safeTitle;
                     contentJson.slug = safeSlug;
-                    if (!window.BuilderPublishAPI) throw new Error('Publish helpers niet geladen');
+                    // Always save locally as baseline (even when remote is available)
+                    try { this.saveProject(true); } catch {}
+                    // If remote helper is missing or Edge disabled, fallback to local save
+                    if (this._edgeDisabled || !window.BuilderPublishAPI) {
+                        this.saveProject(true);
+                        this.showNotification('💾 Lokaal opgeslagen (remote helper uitgeschakeld/niet geladen)', 'info');
+                        return;
+                    }
 
                     if (mode === 'news' && window.BuilderPublishAPI.news) {
                         // Author attribution: required by content-api
@@ -734,12 +742,18 @@ class WebsiteBuilder {
                         try { await window.BuilderPublishAPI.publishPage(page.id, htmlString); } catch {}
                         this.showNotification('📝 Pagina opgeslagen en gepubliceerd', 'success');
                     } else {
-                        await window.BuilderPublishAPI.saveDraft({ brand_id, title: safeTitle, slug: safeSlug, content_json: contentJson });
-                        this.showNotification('💾 Concept opgeslagen (lokaal + Bolt-draft)', 'success');
+                        // Fallback: if pages helper exists use it; otherwise local save
+                        if (window.BuilderPublishAPI && typeof window.BuilderPublishAPI.saveDraft === 'function') {
+                            await window.BuilderPublishAPI.saveDraft({ brand_id, title: safeTitle, slug: safeSlug, content_json: contentJson });
+                            this.showNotification('💾 Concept opgeslagen (Bolt-draft)', 'success');
+                        } else {
+                            this.saveProject(true);
+                            this.showNotification('💾 Lokaal opgeslagen (geen remote helper)', 'info');
+                        }
                     }
                 } catch (e) {
                     console.warn('Draft opslaan mislukt:', e?.message||e);
-                    // Fallback: direct POST to Edge content-api save endpoint if available
+                    // Fallbacks: try direct POST; if that fails, ensure local save
                     try {
                         const url = new URL(window.location.href);
                         const api = (url.searchParams.get('api') || '').replace(/\/$/, '');
@@ -759,8 +773,13 @@ class WebsiteBuilder {
                                 status: 'draft'
                             };
                             await fetch(apiUrl, { method: 'POST', headers, body: JSON.stringify(body) });
+                            this.showNotification('💾 Concept opgeslagen (Edge fallback)', 'success');
+                            return;
                         }
                     } catch {}
+                    // Final fallback: local save
+                    try { this.saveProject(true); } catch {}
+                    this.showNotification('💾 Lokaal opgeslagen (remote opslaan mislukt)', 'warning');
                 }
             };
         } catch {}
