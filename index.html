@@ -357,11 +357,11 @@
       (function(){
         try {
           const u = new URL(window.location.href);
-          const isDeeplink = !!(u.searchParams.get('api') && u.searchParams.get('brand_id'));
-          if (!isDeeplink) {
+          const forceSafe = u.searchParams.get('safe') === '1';
+          if (!forceSafe) {
             var s = document.createElement('script'); s.src = 'js/export.js'; s.defer = true; document.head.appendChild(s);
           } else {
-            console.info('[WB] export.js overgeslagen in deeplink modus');
+            console.info('[WB] export.js overgeslagen (Safe Mode)');
           }
         } catch (e) {
           var s = document.createElement('script'); s.src = 'js/export.js'; s.defer = true; document.head.appendChild(s);
@@ -394,6 +394,7 @@
       })();
     </script>
     <script src="js/main.js"></script>
+    <script src="js/deeplink.js"></script>
     <script>
       // Ensure "Terug naar Dashboard" preserves auth query params
       document.addEventListener('DOMContentLoaded', () => {

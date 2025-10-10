@@ -1,0 +1,164 @@
+// Deeplink v2 – Non-blocking, local-first context and background sync
+(function(){
+  'use strict';
+  const log = (...a)=>{ try { console.log('[DeeplinkV2]', ...a); } catch {} };
+  const warn = (...a)=>{ try { console.warn('[DeeplinkV2]', ...a); } catch {} };
+
+  const parseUrl = () => {
+    try { return new URL(window.location.href); } catch { return null; }
+  };
+  const getParam = (u, k) => {
+    try { return (u && (u.searchParams.get(k) || '')) || ''; } catch { return ''; }
+  };
+
+  function canonicalSubset(ctx){
+    const allow = ['api','token','apikey','brand_id','page_id','news_slug','slug','exp','ephemeral','content_type'];
+    const o = {}; allow.forEach(k=>{ if (ctx[k]!==undefined) o[k]=ctx[k]; });
+    return JSON.stringify(o);
+  }
+
+  async function verifySigIfPresent(ctx){
+    try {
+      if (!ctx.sig) return true;
+      const pubPem = ctx.pub || window.WB_CTX_PUBLIC_KEY;
+      if (!pubPem) return true;
+      const b64 = pubPem.replace(/-----[^-]+-----/g,'').replace(/\s+/g,'');
+      const raw = Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
+      const key = await crypto.subtle.importKey('spki', raw.buffer, { name:'RSASSA-PKCS1-v1_5', hash:'SHA-256' }, false, ['verify']);
+      const enc = new TextEncoder();
+      const data = enc.encode(canonicalSubset(ctx));
+      const sigRaw = Uint8Array.from(atob(String(ctx.sig).replace(/-/g,'+').replace(/_/g,'/')), c=>c.charCodeAt(0));
+      const ok = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, sigRaw, data);
+      return !!ok;
+    } catch { return false; }
+  }
+
+  async function bootstrapCtx(){
+    const u = parseUrl(); if (!u) return {};
+    let ctx = {};
+    // Load compact ctx if provided and not locally cached
+    let ctxId = getParam(u,'ctx');
+    if (ctxId){
+      try { ctx = JSON.parse(localStorage.getItem('wb_ctx_'+ctxId) || '{}'); } catch {}
+      if (!ctx || !ctx.api || !(ctx.token || ctx.news_slug)){
+        const base = (getParam(u,'ctx_base')||'').replace(/\/$/, '');
+        const candidates = [];
+        if (base) candidates.push(`${base}/wbctx/${encodeURIComponent(ctxId)}`);
+        candidates.push(`${location.origin}/wbctx/${encodeURIComponent(ctxId)}.json`);
+        candidates.push(`${location.origin}/wbctx/${encodeURIComponent(ctxId)}`);
+        for (const url of candidates){
+          try {
+            const r = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
+            if (!r.ok) continue;
+            const t = await r.text();
+            if (!t) continue;
+            let data = null; try { data = JSON.parse(t); } catch { continue; }
+            if (data && data.api && (data.token || data.news_slug)) { ctx = data; break; }
+          } catch {}
+        }
+      }
+    }
+    // Merge URL params over ctx to allow overrides
+    ['api','token','apikey','api_key','brand_id','page_id','news_slug','slug','content_type','exp','ephemeral'].forEach(k=>{
+      const v = getParam(u,k); if (v) ctx[k] = v;
+    });
+    if (ctx.api_key && !ctx.apikey) ctx.apikey = ctx.api_key;
+
+    // Expiry check
+    try { if (ctx.exp && Number.isFinite(+ctx.exp) && Math.floor(Date.now()/1000) >= +ctx.exp) { warn('ctx expired'); return {}; } } catch {}
+    // Signature check
+    const sigOk = await verifySigIfPresent(ctx); if (!sigOk) { warn('invalid ctx signature'); return {}; }
+
+    // Persist non-ephemeral ctx
+    const isEphemeral = (String(ctx.ephemeral)==='1') || (getParam(u,'ctx_ephemeral')==='1');
+    if (ctxId && ctx.api && (ctx.token || ctx.news_slug) && !isEphemeral){
+      try { localStorage.setItem('wb_ctx_'+ctxId, JSON.stringify(ctx)); } catch {}
+    }
+    return ctx;
+  }
+
+  function determineKind(ctx){
+    const ct = (ctx.content_type||'').toLowerCase();
+    if (ct === 'news_items' || ctx.news_slug || (ctx.slug && !ctx.page_id)) return 'news';
+    if (ct === 'destinations') return 'destination';
+    return 'page';
+  }
+
+  function computeEdgeCtx(ctx){
+    const api = (ctx.api||'').replace(/\/$/, '');
+    const token = ctx.token || '';
+    const key = ctx.page_id || ctx.news_slug || ctx.slug || '';
+    const kind = determineKind(ctx);
+    if (!api || !token || !key) return null;
+    return { api, token, kind, key };
+  }
+
+  function installEdgeCtx(edgeCtx){
+    try { window.websiteBuilder = window.websiteBuilder || null; } catch {}
+    if (!window.websiteBuilder) {
+      // Wait until main.js initializes
+      document.addEventListener('DOMContentLoaded', () => {
+        if (window.websiteBuilder) {
+          window.websiteBuilder._edgeCtx = edgeCtx;
+          try { window.websiteBuilder.updateEdgeBadge && window.websiteBuilder.updateEdgeBadge(); } catch {}
+        }
+      });
+      return;
+    }
+    window.websiteBuilder._edgeCtx = edgeCtx;
+    try { window.websiteBuilder.updateEdgeBadge && window.websiteBuilder.updateEdgeBadge(); } catch {}
+  }
+
+  function setModeHash(kind){
+    try {
+      const map = { page: '#/mode/page', news: '#/mode/news', destination: '#/mode/destination' };
+      if (!map[kind]) return;
+      if (String(location.hash||'') !== map[kind]) { location.hash = map[kind]; }
+    } catch {}
+  }
+
+  function installSaveMonkeyPatch(){
+    // Local-first save on button; background sync if edgeCtx available
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        const btn = document.getElementById('saveProjectBtn');
+        if (!btn) return;
+        const orig = btn.onclick;
+        btn.onclick = async (e) => {
+          try { if (e && e.preventDefault) e.preventDefault(); } catch {}
+          try { window.websiteBuilder && window.websiteBuilder.saveProject && window.websiteBuilder.saveProject(true); } catch {}
+          try {
+            if (window.websiteBuilder && typeof window.websiteBuilder.saveToEdgeIfPresent === 'function') {
+              await window.websiteBuilder.saveToEdgeIfPresent();
+            }
+          } catch {}
+          // Call original as a no-op fallback
+          try { if (typeof orig === 'function') orig.call(btn, e); } catch {}
+        };
+      } catch {}
+    });
+  }
+
+  (async function init(){
+    const ctx = await bootstrapCtx();
+    // In Safe Mode (?safe=1) disable remote syncs
+    const u = parseUrl();
+    const safeMode = !!(u && u.searchParams.get('safe') === '1');
+
+    const edgeCtx = computeEdgeCtx(ctx);
+    if (edgeCtx && !safeMode) {
+      log('edgeCtx installed', edgeCtx);
+      installEdgeCtx(edgeCtx);
+      setModeHash(edgeCtx.kind);
+    } else {
+      log('no edgeCtx (or safe mode) – working local-only');
+      try { if (window.websiteBuilder) window.websiteBuilder._edgeDisabled = true; } catch {}
+      document.addEventListener('DOMContentLoaded', () => {
+        try { if (window.websiteBuilder) window.websiteBuilder._edgeDisabled = true; } catch {}
+      });
+    }
+
+    // Always local-first save behavior
+    installSaveMonkeyPatch();
+  })();
+})();
