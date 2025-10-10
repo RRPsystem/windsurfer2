@@ -1202,6 +1202,86 @@ class WebsiteBuilder {
         }, Math.max(0, delay|0));
     }
 
+    // ---------- Performance Debugging ----------
+    setupPerfDebug() {
+        let enabled = false;
+        try {
+            const u = new URL(window.location.href);
+            enabled = (u.searchParams.get('debug') === '1');
+        } catch {}
+        try { if (!enabled) enabled = (localStorage.getItem('wb_debug') === '1'); } catch {}
+        if (!enabled) return;
+
+        console.info('[WB][debug] Performance debug enabled');
+        window.__WB_DEBUG = true;
+
+        // 1) Long task observer
+        try {
+            if ('PerformanceObserver' in window && 'PerformanceLongTaskTiming' in window) {
+                const po = new PerformanceObserver((list) => {
+                    list.getEntries().forEach((e) => {
+                        console.warn('[WB][longtask]', { duration: Math.round(e.duration), name: e.name || 'task', start: Math.round(e.startTime) });
+                    });
+                });
+                po.observe({ entryTypes: ['longtask'] });
+            }
+        } catch {}
+
+        // 2) Wrap saveProject to measure duration
+        try {
+            const origSave = this.saveProject.bind(this);
+            this.saveProject = (silent=false) => {
+                const t0 = performance.now();
+                const res = origSave(silent);
+                const done = () => {
+                    const dt = Math.round(performance.now() - t0);
+                    if (dt > 50) console.debug('[WB][perf] saveProject ms=', dt, 'silent=', silent, 'typing=', (this.isTyping && this.isTyping()));
+                };
+                try { Promise.resolve(res).finally(done); } catch { done(); }
+                return res;
+            };
+        } catch {}
+
+        // 3) Input/keydown timeline
+        try {
+            const logEvt = (type, e) => {
+                const tgt = e.target && (e.target.className || e.target.id || e.target.tagName);
+                console.debug('[WB][evt]', type, { tgt: String(tgt).slice(0,80) });
+            };
+            document.addEventListener('keydown', (e) => logEvt('keydown', e), true);
+            document.addEventListener('input', (e) => logEvt('input', e), true);
+        } catch {}
+
+        // 4) Canvas mutation rate monitor
+        try {
+            const canvas = document.getElementById('canvas');
+            if (canvas && window.MutationObserver) {
+                let count = 0; let last = performance.now();
+                const mo = new MutationObserver(() => {
+                    count++;
+                    const now = performance.now();
+                    if (now - last > 1000) { console.debug('[WB][mut]', count, '/s'); count = 0; last = now; }
+                });
+                mo.observe(canvas, { childList: true, subtree: true, attributes: true });
+            }
+        } catch {}
+
+        // 5) MediaPicker activity logs (if present)
+        try {
+            if (window.MediaPicker && !window.MediaPicker.__wb_debugWrapped) {
+                const origOpen = window.MediaPicker.openImage?.bind(window.MediaPicker);
+                if (origOpen) {
+                    window.MediaPicker.openImage = async (...args) => {
+                        console.debug('[WB][mp] openImage', args[0] || {});
+                        try { const r = await origOpen(...args); console.debug('[WB][mp] result', !!r); return r; }
+                        catch (e) { console.warn('[WB][mp] error', e); throw e; }
+                    };
+                }
+                window.MediaPicker.__wb_debugWrapped = true;
+            }
+        } catch {}
+    }
+
     // ---------- Preview button binding ----------
     setupPreviewButton() {
         const btn = document.getElementById('previewBtn');
@@ -1241,6 +1321,8 @@ class WebsiteBuilder {
             this.setupImportTcButton();
             this.setupGitPushButton();
             this.setupFileSaveLoad();
+            // Optional performance debugging (enable with ?debug=1 or localStorage wb_debug=1)
+            try { this.setupPerfDebug(); } catch {}
             // Global typing detector to ease saves while user is editing
             try {
                 const typingHandler = (e) => {
