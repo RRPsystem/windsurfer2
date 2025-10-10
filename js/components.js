@@ -1073,7 +1073,11 @@ class ComponentFactory {
             fitVideo();
             // Avoid multiple listeners
             if (!section._ytResizeHandler) {
-                section._ytResizeHandler = () => fitVideo();
+                section._ytRafId = null;
+                section._ytResizeHandler = () => {
+                    if (section._ytRafId) cancelAnimationFrame(section._ytRafId);
+                    section._ytRafId = requestAnimationFrame(() => { section._ytRafId = null; fitVideo(); });
+                };
                 try { window.addEventListener('resize', section._ytResizeHandler, { passive: true }); }
                 catch { window.addEventListener('resize', section._ytResizeHandler); }
             }
