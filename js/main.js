@@ -1179,6 +1179,29 @@ class WebsiteBuilder {
         try { return localStorage.getItem('wb_mode') || 'page'; } catch { return 'page'; }
     }
 
+    // ---------- Typing + Autosave helpers (class methods) ----------
+    markTyping(ms = 600) {
+        try { this._typingUntil = performance.now() + Math.max(0, ms|0); }
+        catch { this._typingUntil = Date.now() + Math.max(0, ms|0); }
+    }
+    isTyping() {
+        try { return performance.now() < (this._typingUntil || 0); }
+        catch { return Date.now() < (this._typingUntil || 0); }
+    }
+    scheduleSaveSilent(delay = 800) {
+        try { clearTimeout(this._saveDebTimer); } catch {}
+        this._saveDebTimer = setTimeout(() => {
+            if (this.isTyping()) { this.scheduleSaveSilent(400); return; }
+            try {
+                if (typeof window.requestIdleCallback === 'function') {
+                    window.requestIdleCallback(() => this.saveProject(true), { timeout: 1000 });
+                } else {
+                    setTimeout(() => this.saveProject(true), 0);
+                }
+            } catch { this.saveProject(true); }
+        }, Math.max(0, delay|0));
+    }
+
     // ---------- Preview button binding ----------
     setupPreviewButton() {
         const btn = document.getElementById('previewBtn');
