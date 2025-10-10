@@ -1150,10 +1150,21 @@ class ComponentFactory {
             stopSlideshow: () => stopSlideshow(),
             isSlideshow: () => Array.isArray(section._slides) && section._slides.length > 1,
             updateYouTubeOptions: (updates = {}) => {
-                section._ytOptions = Object.assign({}, section._ytOptions || { mute: true, start: 0 }, updates);
+                const prev = Object.assign({}, section._ytOptions || { mute: true, start: 0 });
+                section._ytOptions = Object.assign({}, prev, updates);
+                const onlyStartChanged = ('start' in updates) && Object.keys(updates).every(k => k === 'start' || k === 'apply');
+                const explicitApply = updates && updates.apply === true;
+                if (onlyStartChanged && !explicitApply) {
+                    // Do not reload iframe for start typing; wait for explicit apply or other option changes
+                    clearTimeout(section._ytOptTimer);
+                    section._ytOptTimer = setTimeout(() => {
+                        // If user stops typing for a while, still avoid reload unless apply:true later
+                    }, 500);
+                    return;
+                }
                 // Apply strategy: if caller sets apply:true, apply quickly; otherwise debounce.
                 clearTimeout(section._ytOptTimer);
-                const delay = (updates && updates.apply === true) ? 60 : 350;
+                const delay = explicitApply ? 60 : 350;
                 section._ytOptTimer = setTimeout(() => {
                     if (section._ytEmbedBase) setYouTubeBg(section._ytEmbedBase);
                 }, delay);
