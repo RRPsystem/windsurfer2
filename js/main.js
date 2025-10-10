@@ -35,6 +35,7 @@ class WebsiteBuilder {
         // Auto-publish throttle state
         this._lastAutoPublishAt = 0;
         this._autoPublishTimer = null;
+        this._edgeDisabled = false; // disable Edge calls if ctx invalid/used
         // Typing + autosave throttle state
         this._typingUntil = 0;
         this._saveDebTimer = null;
@@ -2156,7 +2157,7 @@ class WebsiteBuilder {
     }
 
     async saveToEdgeIfPresent() {
-        if (!this._edgeCtx) return;
+        if (!this._edgeCtx || this._edgeDisabled) return;
         const { api, token, kind, key } = this._edgeCtx;
         try {
             // Build content JSON of current state
@@ -2209,12 +2210,22 @@ class WebsiteBuilder {
                     content_json: contentJson
                 })
             });
-            if (!r.ok) throw new Error(await r.text());
+            if (!r.ok) {
+                const txt = await r.text().catch(()=>String(r.status||'fail'));
+                throw new Error(txt || ('HTTP '+r.status));
+            }
             // Optional: read response
             await r.json().catch(()=>null);
             this.showNotification(kind === 'news' ? '📰 Nieuws opgeslagen (Edge)' : '📝 Pagina opgeslagen (Edge)', 'success');
         } catch (err) {
             console.warn('Edge save failed', err);
+            try {
+                const msg = String(err && (err.message||err)).toLowerCase();
+                if (msg.includes('context already used') || msg.includes('used') || msg.includes('401')) {
+                    this._edgeDisabled = true;
+                    console.warn('[WB] Edge disabled for this session due to context issue. Working locally only.');
+                }
+            } catch {}
         }
     }
 
@@ -2257,6 +2268,7 @@ class WebsiteBuilder {
     scheduleAutoPublish() {
         try {
             const brand_id = window.CURRENT_BRAND_ID;
+            if (this._edgeDisabled) return;
             if (!brand_id || !window.BuilderPublishAPI) return; // no-op if not configured
             const now = Date.now();
             const since = now - (this._lastAutoPublishAt || 0);
