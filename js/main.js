@@ -850,8 +850,10 @@ class WebsiteBuilder {
 
         // Change handlers
         let _ttlDeb = null;
-        titleEl.addEventListener('input', () => {
+        titleEl.addEventListener('input', (e) => {
             if (this._metaApplying) return;
+            try { e.stopPropagation(); } catch {}
+            try { this.markTyping && this.markTyping(900); } catch {}
             if (!_ttlDeb) {
                 _ttlDeb = setTimeout(() => { _ttlDeb = null; }, 0);
             }
@@ -859,18 +861,23 @@ class WebsiteBuilder {
             if (_ttlDeb) clearTimeout(_ttlDeb);
             _ttlDeb = setTimeout(() => {
                 if (!this._slugTouched) {
-                    try { slugEl.value = slugify(titleEl.value); } catch {}
+                    try {
+                        const v = titleEl.value;
+                        requestAnimationFrame(() => { try { slugEl.value = slugify(v); } catch {} });
+                    } catch { try { slugEl.value = slugify(titleEl.value); } catch {} }
                 }
             }, 150);
             const s = document.getElementById('pageSaveStatus');
             if (s) s.textContent = 'Wijzigingen…';
-        });
-        slugEl.addEventListener('input', () => {
+        }, { passive: true });
+        slugEl.addEventListener('input', (e) => {
             this._slugTouched = true;
+            try { e.stopPropagation(); } catch {}
+            try { this.markTyping && this.markTyping(900); } catch {}
             try { slugEl.value = slugify(slugEl.value); } catch {}
             const s = document.getElementById('pageSaveStatus');
             if (s) s.textContent = 'Wijzigingen…';
-        });
+        }, { passive: true });
 
         const persistMeta = () => {
             try {
@@ -882,7 +889,7 @@ class WebsiteBuilder {
                     if (cur) { cur.name = title; cur.slug = slug; }
                 }
                 // Schedule a throttled, idle-friendly save
-                this.scheduleSaveSilent(300);
+                this.scheduleSaveSilent(700);
             } catch (e) { console.warn('persistMeta failed', e); }
         };
         titleEl.addEventListener('blur', persistMeta);
@@ -1324,6 +1331,16 @@ class WebsiteBuilder {
             this.setupFileSaveLoad();
             // Optional performance debugging (enable with ?debug=1 or localStorage wb_debug=1)
             try { this.setupPerfDebug(); } catch {}
+            // Force local-only saves in deeplink or when ?safe=1
+            try {
+                const u = new URL(window.location.href);
+                const isDeeplink = !!(u.searchParams.get('api') && u.searchParams.get('brand_id'));
+                const forceSafe = (u.searchParams.get('safe') === '1');
+                if (isDeeplink || forceSafe) {
+                    this._edgeDisabled = true;
+                    console.info('[WB] Edge disabled (safe/deeplink: local-only opslaan)');
+                }
+            } catch {}
             // Global typing detector to ease saves while user is editing
             try {
                 const typingHandler = (e) => {
@@ -2280,6 +2297,7 @@ class WebsiteBuilder {
     }
 
     async autoPublishCurrentPage() {
+        if (this._edgeDisabled) return;
         const brand_id = window.CURRENT_BRAND_ID;
         if (!brand_id || !window.BuilderPublishAPI) return;
         // Build content JSON and HTML (with layout)
