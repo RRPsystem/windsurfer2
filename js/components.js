@@ -1570,6 +1570,28 @@ class ComponentFactory {
         // Simple guard to avoid overlapping pickers/updates
         section._ttPickLock = false;
 
+        // Shared replacer using card element (event delegation compatible)
+        const pickAndReplaceSafe = async (cardEl) => {
+            if (!cardEl) return;
+            if (section._ttPickLock) return;
+            section._ttPickLock = true;
+            try {
+                if (!window.MediaPicker || typeof window.MediaPicker.openImage !== 'function') return;
+                const r = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
+                const u = r?.fullUrl || r?.regularUrl || r?.url || r?.dataUrl;
+                if (!u) return;
+                const targetImg = cardEl.querySelector('img');
+                if (!targetImg) return;
+                try { targetImg.decoding = 'async'; targetImg.loading = 'lazy'; } catch {}
+                if (typeof window.__WB_applyResponsiveSrc === 'function') window.__WB_applyResponsiveSrc(targetImg, u);
+                else if (typeof __WB_applyResponsiveSrc === 'function') __WB_applyResponsiveSrc(targetImg, u);
+                else targetImg.src = u;
+                try { targetImg.src = u; targetImg.removeAttribute('srcset'); targetImg.removeAttribute('sizes'); } catch {}
+                try { await new Promise(requestAnimationFrame); } catch {}
+            } catch {}
+            finally { section._ttPickLock = false; }
+        };
+
         defaults.forEach((c, i) => {
             const card = document.createElement('a');
             card.className = 'tt-card';
@@ -1626,11 +1648,34 @@ class ComponentFactory {
             // Fallback: clicking card opens picker (except label)
             card.addEventListener('click', (e) => {
                 const onLabel = e.target && (e.target.closest && e.target.closest('.tt-label'));
-                if (onLabel) return; 
+                if (onLabel) return;
                 return pickAndReplace(e);
             });
             grid.appendChild(card);
         });
+
+        // Event delegation: one handler for the whole grid
+        try {
+            grid.addEventListener('click', (e) => {
+                const label = e.target && e.target.closest && e.target.closest('.tt-label');
+                if (label) return; // allow label editing
+                const card = e.target && e.target.closest && e.target.closest('.tt-card');
+                if (!card) return;
+                e.preventDefault();
+                e.stopPropagation();
+                pickAndReplaceSafe(card);
+            }, { passive: true });
+        } catch {
+            grid.addEventListener('click', (e) => {
+                const label = e.target && e.target.closest && e.target.closest('.tt-label');
+                if (label) return;
+                const card = e.target && e.target.closest && e.target.closest('.tt-card');
+                if (!card) return;
+                e.preventDefault();
+                e.stopPropagation();
+                pickAndReplaceSafe(card);
+            });
+        }
 
         section.appendChild(header);
         section.appendChild(grid);
