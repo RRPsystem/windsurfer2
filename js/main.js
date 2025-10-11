@@ -760,10 +760,25 @@ class WebsiteBuilder {
                         });
                         this.showNotification('🗺️ Concept opgeslagen (Bestemming)', 'success');
                     } else if (mode === 'page' && window.BuilderPublishAPI.saveDraft) {
-                        // Pages: save draft JSON, then publish HTML so edit opens with content
+                        // Pages: save draft JSON; publish HTML only if allowed
                         const page = await window.BuilderPublishAPI.saveDraft({ brand_id, title: safeTitle, slug: safeSlug, content_json: contentJson });
-                        try { await window.BuilderPublishAPI.publishPage(page.id, htmlString); } catch {}
-                        this.showNotification('📝 Pagina opgeslagen en gepubliceerd', 'success');
+                        let published = false;
+                        if (!this._disablePublish) {
+                            try {
+                                await window.BuilderPublishAPI.publishPage(page.id, htmlString);
+                                published = true;
+                            } catch (ePublish) {
+                                const em = String(ePublish && ePublish.message || ePublish || '').toLowerCase();
+                                // On 403, disable further publish attempts for this session
+                                if (em.includes('403')) {
+                                    this._disablePublish = true;
+                                    this.showNotification('⚠️ Geen rechten om te publiceren. Concept is opgeslagen.', 'warning');
+                                } else {
+                                    this.showNotification('⚠️ Publiceren mislukt; concept opgeslagen.', 'warning');
+                                }
+                            }
+                        }
+                        this.showNotification(published ? '📝 Pagina opgeslagen en gepubliceerd' : '💾 Concept opgeslagen (Pagina)', 'success');
                     } else {
                         // Fallback: if pages helper exists use it; otherwise local save
                         if (window.BuilderPublishAPI && typeof window.BuilderPublishAPI.saveDraft === 'function') {
