@@ -654,27 +654,34 @@ class WebsiteBuilder {
         });
     }
 
-    // Attach a robust save handler that respects deeplink context
     setupBoltDeeplinkSave() {
         try {
             const saveBtn = document.getElementById('saveProjectBtn');
             if (!saveBtn) return;
-            saveBtn.onclick = async () => {
+            saveBtn.onclick = async (ev) => {
+                try { ev.preventDefault(); } catch {}
+                try { this.markTyping && this.markTyping(600); } catch {}
+                const s = document.getElementById('pageSaveStatus'); if (s) s.textContent = 'Opslaan…';
+                // UI: disable button and show spinner so user sees progress
+                let prevHTML = null; let prevDisabled = false;
+                try { prevHTML = saveBtn.innerHTML; prevDisabled = saveBtn.disabled; saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Opslaan…'; } catch {}
                 try {
-                    // Preflight: ensure required params are present
-                    const check = this.validateRuntimeParams();
-                    if (!check.ok) {
-                        this.showDiagnosticsBanner();
-                        this.showNotification(`❌ Opslaan geblokkeerd. Ontbrekende parameters: ${check.missing.join(', ')}`, 'error');
-                        return;
-                    }
                     const u = new URL(window.location.href);
                     const brand_id = u.searchParams.get('brand_id') || window.CURRENT_BRAND_ID;
                     if (!brand_id) throw new Error('brand_id ontbreekt');
 
-                    // Build content
-                    const contentJson = (typeof window.exportBuilderAsJSON === 'function') ? window.exportBuilderAsJSON() : (this.getProjectData() || {});
-                    const htmlString = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '';
+                    // Build content (on idle to avoid UI jank)
+                    const awaitIdle = (cb, timeout=800) => new Promise((resolve) => {
+                        try {
+                            if (typeof window.requestIdleCallback === 'function') {
+                                window.requestIdleCallback(() => resolve(cb()), { timeout });
+                            } else {
+                                setTimeout(() => resolve(cb()), 0);
+                            }
+                        } catch { setTimeout(() => resolve(cb()), 0); }
+                    });
+                    const contentJson = await awaitIdle(() => (typeof window.exportBuilderAsJSON === 'function') ? window.exportBuilderAsJSON() : (this.getProjectData() || {}));
+                    const htmlString = await awaitIdle(() => (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '');
                     // Ensure title/slug are present
                     const titleInput = document.getElementById('pageTitleInput');
                     const slugInput = document.getElementById('pageSlugInput');
@@ -709,12 +716,19 @@ class WebsiteBuilder {
                     contentJson.slug = safeSlug;
                     // Always save locally as baseline (even when remote is available)
                     try { this.saveProject(true); } catch {}
-                    // If remote helper is missing, fallback to local save.
-                    // Note: Edge may be disabled for auto-sync in deeplink, but manual Save should still publish via BuilderPublishAPI.
+                    // If remote helper is not ready yet (publish.js still loading), wait briefly and retry
                     if (!window.BuilderPublishAPI) {
-                        this.saveProject(true);
-                        this.showNotification('💾 Lokaal opgeslagen (remote helper niet geladen)', 'info');
-                        return;
+                        const waitFor = async (ms) => new Promise(r=>setTimeout(r, ms));
+                        let ready = false;
+                        for (let i=0;i<10;i++) { // up to ~2s
+                            if (window.BuilderPublishAPI) { ready = true; break; }
+                            await waitFor(200);
+                        }
+                        if (!ready) {
+                            this.saveProject(true);
+                            this.showNotification('💾 Lokaal opgeslagen (publish helper nog niet geladen)', 'info');
+                            return;
+                        }
                     }
 
                     if (mode === 'news' && window.BuilderPublishAPI.news) {
@@ -789,6 +803,9 @@ class WebsiteBuilder {
                     // Final fallback: local save
                     try { this.saveProject(true); } catch {}
                     this.showNotification('💾 Lokaal opgeslagen (remote opslaan mislukt)', 'warning');
+                } finally {
+                    try { if (s) s.textContent = 'Opgeslagen'; } catch {}
+                    try { saveBtn.disabled = prevDisabled; if (prevHTML != null) saveBtn.innerHTML = prevHTML; } catch {}
                 }
             };
         } catch {}

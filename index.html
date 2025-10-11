@@ -32,8 +32,25 @@
           };
           window.addEventListener('error', (e) => {
             try {
+              const isElemError = e && e.target && e.target !== window;
+              if (isElemError) {
+                const tag = (e.target.tagName || '').toUpperCase();
+                const srcAttr = e.target.currentSrc || e.target.src || e.target.href || '';
+                // Ignore broken image/CSS loads; show only in console as debug
+                if (tag === 'IMG' || tag === 'LINK') {
+                  try { console.debug('[WB][img/link error]', tag, srcAttr); } catch {}
+                  return; // do not show fatal banner for media/link errors
+                }
+              }
               const src = (e && e.filename) || (e && e.target && e.target.src) || '';
               const msg = e && e.message;
+              // Ignore generic script errors or empty messages (no actionable info)
+              if (!msg || msg === 'Script error.') {
+                try { console.debug('[WB][window error suppressed]', msg || '(empty)', src); } catch {}
+                return;
+              }
+              // If the only info is the page URL itself, suppress
+              try { if (!msg && src && src.split('#')[0] === location.href.split('#')[0]) return; } catch {}
               if (isExt(src) || ignoreMsg(msg)) {
                 // ignore benign noise
                 e.stopImmediatePropagation();
@@ -47,6 +64,7 @@
               const r = e && e.reason;
               const msg = (r && (r.message || r.toString())) || '';
               const stack = (r && r.stack) || '';
+              if (!msg) { try { console.debug('[WB][promise rejection suppressed] (empty message)'); } catch {} return; }
               if (ignoreMsg(msg) || stack.indexOf('chrome-extension://') === 0) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
@@ -406,7 +424,9 @@
             load('js/layoutsBuilder.js');
             load('js/brandHydrator.js');
           } else {
-            console.info('[WB] Safe Mode actief: optionele scripts overgeslagen');
+            // Deeplink Safe Mode: still load publish.js so manual Save to BOLT works
+            try { load('js/publish.js'); } catch {}
+            console.info('[WB] Safe Mode: alleen publish.js ingeladen voor BOLT-save; overige optionele scripts overgeslagen');
           }
         } catch(e) { /* noop */ }
       })();
