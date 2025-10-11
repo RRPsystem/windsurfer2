@@ -105,16 +105,28 @@
 
   function determineKind(ctx){
     const ct = (ctx.content_type||'').toLowerCase();
-    if (ct === 'news_items' || ctx.news_slug || (ctx.slug && !ctx.page_id)) return 'news';
+    // Only classify as news when explicitly indicated by content_type or news_slug
+    if (ct === 'news_items' || ctx.news_slug) return 'news';
     if (ct === 'destinations') return 'destination';
+    // Default to page. Presence of a generic slug alone should NOT switch to news.
     return 'page';
   }
 
   function computeEdgeCtx(ctx){
     const api = (ctx.api||'').replace(/\/$/, '');
     const token = ctx.token || '';
-    const key = ctx.page_id || ctx.news_slug || ctx.slug || '';
     const kind = determineKind(ctx);
+    let key = '';
+    if (kind === 'news') {
+      // For news, prefer news_slug; fall back to slug if provided
+      key = ctx.news_slug || ctx.slug || '';
+    } else if (kind === 'destination') {
+      // For destinations, the canonical key is the slug
+      key = ctx.slug || '';
+    } else {
+      // For pages, require a stable page_id for Edge save operations
+      key = ctx.page_id || '';
+    }
     if (!api || !token || !key) return null;
     return { api, token, kind, key };
   }
