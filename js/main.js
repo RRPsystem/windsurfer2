@@ -670,6 +670,11 @@ class WebsiteBuilder {
                 try { prevHTML = saveBtn.innerHTML; prevDisabled = saveBtn.disabled; saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Opslaan…'; } catch {}
                 // Watchdog: if something hangs, auto-clear state after 12s
                 let wd; try { wd = setTimeout(() => { try { this._savingInFlight = false; } catch {} try { saveBtn.disabled = prevDisabled; if (prevHTML != null) saveBtn.innerHTML = prevHTML; } catch {} try { if (s) s.textContent = 'Opgeslagen'; } catch {} }, 12000); } catch {}
+                // Helper: enforce a hard timeout on any promise
+                const withTimeout = (p, ms, label) => new Promise((resolve, reject) => {
+                    let to = setTimeout(() => reject(new Error((label||'opdracht') + ' timeout')), ms);
+                    Promise.resolve().then(() => p).then(v => { clearTimeout(to); resolve(v); }, e => { clearTimeout(to); reject(e); });
+                });
                 try {
                     const u = new URL(window.location.href);
                     const brand_id = u.searchParams.get('brand_id') || window.CURRENT_BRAND_ID;
@@ -766,18 +771,26 @@ class WebsiteBuilder {
                         this.showNotification('🗺️ Concept opgeslagen (Bestemming)', 'success');
                     } else if (mode === 'page' && window.BuilderPublishAPI.saveDraft) {
                         // Pages: save draft JSON; publish HTML only if allowed
-                        const page = await window.BuilderPublishAPI.saveDraft({ brand_id, title: safeTitle, slug: safeSlug, content_json: contentJson });
+                        let page = null;
+                        try {
+                            page = await withTimeout(window.BuilderPublishAPI.saveDraft({ brand_id, title: safeTitle, slug: safeSlug, content_json: contentJson }), 8000, 'saveDraft');
+                        } catch (eSD) {
+                            this.showNotification('⚠️ Concept opslaan duurde te lang of faalde; lokaal opgeslagen', 'warning');
+                            try { this.saveProject(true); } catch {}
+                            page = null;
+                        }
                         let published = false;
-                        if (!this._disablePublish) {
+                        if (page && !this._disablePublish) {
                             try {
-                                await window.BuilderPublishAPI.publishPage(page.id, htmlString);
+                                await withTimeout(window.BuilderPublishAPI.publishPage(page.id, htmlString), 8000, 'publish');
                                 published = true;
                             } catch (ePublish) {
                                 const em = String(ePublish && ePublish.message || ePublish || '').toLowerCase();
-                                // On 403, disable further publish attempts for this session
                                 if (em.includes('403')) {
                                     this._disablePublish = true;
                                     this.showNotification('⚠️ Geen rechten om te publiceren. Concept is opgeslagen.', 'warning');
+                                } else if (em.includes('timeout')) {
+                                    this.showNotification('⚠️ Publiceren timeout; concept staat wel opgeslagen.', 'warning');
                                 } else {
                                     this.showNotification('⚠️ Publiceren mislukt; concept opgeslagen.', 'warning');
                                 }
@@ -827,6 +840,11 @@ class WebsiteBuilder {
                     try { if (wd) clearTimeout(wd); } catch {}
                     try { if (s) s.textContent = 'Opgeslagen'; } catch {}
                     try { saveBtn.disabled = prevDisabled; if (prevHTML != null) saveBtn.innerHTML = prevHTML; } catch {}
+                    // Fallback: if header re-rendered the button, re-query and reset
+                    try {
+                        const curBtn = document.getElementById('saveProjectBtn');
+                        if (curBtn) { curBtn.disabled = false; if (!prevHTML) curBtn.textContent = 'Opslaan'; }
+                    } catch {}
                     try { this._savingInFlight = false; } catch {}
                 }
             };
