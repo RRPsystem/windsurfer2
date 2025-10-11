@@ -11,10 +11,28 @@
     try { return (u && (u.searchParams.get(k) || '')) || ''; } catch { return ''; }
   };
 
+  // UPDATED: canonicalSubset now includes all expected fields with ?? null (alphabetical keys)
   function canonicalSubset(ctx){
-    const allow = ['api','token','apikey','brand_id','page_id','news_slug','slug','exp','ephemeral','content_type'];
-    const o = {}; allow.forEach(k=>{ if (ctx[k]!==undefined) o[k]=ctx[k]; });
-    return JSON.stringify(o);
+    // Must match exactly what wbctx-mint signs (alphabetically sorted)
+    const canonical = {
+      api: ctx.api ?? null,
+      apikey: ctx.apikey ?? null,
+      author_id: ctx.author_id ?? null,
+      author_type: ctx.author_type ?? null,
+      brand_id: ctx.brand_id ?? null,
+      content_type: ctx.content_type ?? null,
+      ephemeral: ctx.ephemeral ?? null,
+      exp: ctx.exp ?? null,
+      footer_id: ctx.footer_id ?? null,
+      menu_id: ctx.menu_id ?? null,
+      mode: ctx.mode ?? null,
+      news_slug: ctx.news_slug ?? null,
+      page_id: ctx.page_id ?? null,
+      slug: ctx.slug ?? null,
+      template_id: ctx.template_id ?? null,
+      token: ctx.token ?? null,
+    };
+    return JSON.stringify(canonical);
   }
 
   async function verifySigIfPresent(ctx){
