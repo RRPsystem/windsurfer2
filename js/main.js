@@ -826,6 +826,44 @@ class WebsiteBuilder {
         } catch {}
     }
 
+    // Pause heavy observers/timers when tab is hidden; resume cleanly on focus
+    setupVisibilityGuards() {
+        try {
+            if (this._visGuardsInstalled) return; this._visGuardsInstalled = true;
+            const resume = () => {
+                try {
+                    // Debounce resume to avoid bursts right after tab becomes visible
+                    clearTimeout(this._resumeTimer);
+                } catch {}
+                this._resumeTimer = setTimeout(() => {
+                    try { this._suspendHeaderMO = false; } catch {}
+                    // Re-apply header visibility and rebind save button
+                    try { this.applyBoltHeaderVisibilityLite && this.applyBoltHeaderVisibilityLite(); } catch {}
+                    try {
+                        if (this._headerMO && this._headerTarget) {
+                            this._headerMO.observe(this._headerTarget, { childList: true, subtree: true, attributes: false });
+                        }
+                    } catch {}
+                    try { this.setupBoltDeeplinkSave && this.setupBoltDeeplinkSave(); } catch {}
+                    try { const s = document.getElementById('pageSaveStatus'); if (s) s.textContent = 'Opgeslagen'; } catch {}
+                }, 300);
+            };
+            const suspend = () => {
+                try { this._suspendHeaderMO = true; } catch {}
+                try { if (this._headerMO) this._headerMO.disconnect(); } catch {}
+                // Best-effort: clear lightweight timers we control
+                try { clearTimeout(this._saveTimer); } catch {}
+                try { clearTimeout(this._headerDebounceTimer); } catch {}
+            };
+            document.addEventListener('visibilitychange', () => {
+                try {
+                    if (document.hidden) suspend(); else resume();
+                } catch {}
+            });
+            window.addEventListener('beforeunload', () => { try { if (this._headerMO) this._headerMO.disconnect(); } catch {} });
+        } catch {}
+    }
+
     insertTcBlocks(tc) {
         const canvas = document.getElementById('canvas');
         if (!canvas) return;
@@ -2940,6 +2978,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Apply header visibility and attach save handler for Bolt/deeplink context
     try { window.websiteBuilder.applyBoltHeaderVisibilityLite(); } catch {}
     try { window.websiteBuilder.setupBoltDeeplinkSave(); } catch {}
+    try { window.websiteBuilder.setupVisibilityGuards(); } catch {}
     // Re-apply shortly after in case header renders late
     setTimeout(() => { try { window.websiteBuilder.applyBoltHeaderVisibilityLite(); } catch {} }, 150);
 });
