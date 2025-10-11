@@ -1,7 +1,7 @@
 // Deeplink v2 – Non-blocking, local-first context and background sync
 (function(){
   'use strict';
-  const log = (...a)=>{ try { console.log('[DeeplinkV2]', ...a); } catch {} };
+  const log  = (...a)=>{ try { console.log('[DeeplinkV2]', ...a); } catch {} };
   const warn = (...a)=>{ try { console.warn('[DeeplinkV2]', ...a); } catch {} };
 
   const parseUrl = () => {
@@ -51,9 +51,11 @@
     } catch { return false; }
   }
 
+  // REORDERED: validate server ctx first, then (optionally) apply URL overrides
   async function bootstrapCtx(){
     const u = parseUrl(); if (!u) return {};
     let ctx = {};
+
     // Load compact ctx if provided and not locally cached
     let ctxId = getParam(u,'ctx');
     if (ctxId){
@@ -76,16 +78,23 @@
         }
       }
     }
-    // Merge URL params over ctx to allow overrides
+
+    // 1) Expiry check on server-provided ctx
+    try {
+      if (ctx.exp && Number.isFinite(+ctx.exp) && Math.floor(Date.now()/1000) >= +ctx.exp) {
+        warn('ctx expired'); return {};
+      }
+    } catch {}
+
+    // 2) Signature check BEFORE any URL overrides
+    const sigOk = await verifySigIfPresent(ctx);
+    if (!sigOk) { warn('invalid ctx signature'); return {}; }
+
+    // 3) Only AFTER validation, allow URL overrides for convenience (do NOT re-verify)
     ['api','token','apikey','api_key','brand_id','page_id','news_slug','slug','content_type','exp','ephemeral'].forEach(k=>{
       const v = getParam(u,k); if (v) ctx[k] = v;
     });
     if (ctx.api_key && !ctx.apikey) ctx.apikey = ctx.api_key;
-
-    // Expiry check
-    try { if (ctx.exp && Number.isFinite(+ctx.exp) && Math.floor(Date.now()/1000) >= +ctx.exp) { warn('ctx expired'); return {}; } } catch {}
-    // Signature check
-    const sigOk = await verifySigIfPresent(ctx); if (!sigOk) { warn('invalid ctx signature'); return {}; }
 
     // Persist non-ephemeral ctx
     const isEphemeral = (String(ctx.ephemeral)==='1') || (getParam(u,'ctx_ephemeral')==='1');
@@ -115,68 +124,4 @@
     try { window.websiteBuilder = window.websiteBuilder || null; } catch {}
     if (!window.websiteBuilder) {
       // Wait until main.js initializes
-      document.addEventListener('DOMContentLoaded', () => {
-        if (window.websiteBuilder) {
-          window.websiteBuilder._edgeCtx = edgeCtx;
-          try { window.websiteBuilder.updateEdgeBadge && window.websiteBuilder.updateEdgeBadge(); } catch {}
-        }
-      });
-      return;
-    }
-    window.websiteBuilder._edgeCtx = edgeCtx;
-    try { window.websiteBuilder.updateEdgeBadge && window.websiteBuilder.updateEdgeBadge(); } catch {}
-  }
-
-  function setModeHash(kind){
-    try {
-      const map = { page: '#/mode/page', news: '#/mode/news', destination: '#/mode/destination' };
-      if (!map[kind]) return;
-      if (String(location.hash||'') !== map[kind]) { location.hash = map[kind]; }
-    } catch {}
-  }
-
-  function installSaveMonkeyPatch(){
-    // Local-first save on button; background sync if edgeCtx available
-    document.addEventListener('DOMContentLoaded', () => {
-      try {
-        const btn = document.getElementById('saveProjectBtn');
-        if (!btn) return;
-        const orig = btn.onclick;
-        btn.onclick = async (e) => {
-          try { if (e && e.preventDefault) e.preventDefault(); } catch {}
-          try { window.websiteBuilder && window.websiteBuilder.saveProject && window.websiteBuilder.saveProject(true); } catch {}
-          try {
-            if (window.websiteBuilder && typeof window.websiteBuilder.saveToEdgeIfPresent === 'function') {
-              await window.websiteBuilder.saveToEdgeIfPresent();
-            }
-          } catch {}
-          // Call original as a no-op fallback
-          try { if (typeof orig === 'function') orig.call(btn, e); } catch {}
-        };
-      } catch {}
-    });
-  }
-
-  (async function init(){
-    const ctx = await bootstrapCtx();
-    // In Safe Mode (?safe=1) disable remote syncs
-    const u = parseUrl();
-    const safeMode = !!(u && u.searchParams.get('safe') === '1');
-
-    const edgeCtx = computeEdgeCtx(ctx);
-    if (edgeCtx && !safeMode) {
-      log('edgeCtx installed', edgeCtx);
-      installEdgeCtx(edgeCtx);
-      setModeHash(edgeCtx.kind);
-    } else {
-      log('no edgeCtx (or safe mode) – working local-only');
-      try { if (window.websiteBuilder) window.websiteBuilder._edgeDisabled = true; } catch {}
-      document.addEventListener('DOMContentLoaded', () => {
-        try { if (window.websiteBuilder) window.websiteBuilder._edgeDisabled = true; } catch {}
-      });
-    }
-
-    // Always local-first save behavior
-    installSaveMonkeyPatch();
-  })();
-})();
+      document.addEventLis
