@@ -1915,6 +1915,16 @@ class WebsiteBuilder {
 
     saveProject(silent = false) {
         try {
+            // Throttle heavy silent saves during active editing sessions
+            if (silent) {
+                const now = Date.now();
+                try {
+                    if (this.isTyping && this.isTyping()) { this.scheduleSaveSilent(700); return false; }
+                } catch {}
+                try {
+                    if ((now - (this._lastLocalSaveAt || 0)) < 1200) { this.scheduleSaveSilent(900); return false; }
+                } catch {}
+            }
             // Sync current canvas to current page (safe if method missing)
             if (typeof this.captureCurrentCanvasToPage === 'function') {
                 this.captureCurrentCanvasToPage();
@@ -1934,6 +1944,7 @@ class WebsiteBuilder {
                 version: '1.1'
             };
             localStorage.setItem('wb_project', JSON.stringify(projectData));
+            try { this._lastLocalSaveAt = Date.now(); } catch {}
             
             if (!silent) {
                 console.log('💾 Project opgeslagen:', projectData);
