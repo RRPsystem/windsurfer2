@@ -660,11 +660,16 @@ class WebsiteBuilder {
             if (!saveBtn) return;
             saveBtn.onclick = async (ev) => {
                 try { ev.preventDefault(); } catch {}
+                // Re-entrancy guard: if previous save still running, ignore
+                if (this._savingInFlight) { try { this.showNotification && this.showNotification('⏳ Bezig met opslaan…', 'info'); } catch {} return; }
+                this._savingInFlight = true;
                 try { this.markTyping && this.markTyping(600); } catch {}
                 const s = document.getElementById('pageSaveStatus'); if (s) s.textContent = 'Opslaan…';
                 // UI: disable button and show spinner so user sees progress
                 let prevHTML = null; let prevDisabled = false;
                 try { prevHTML = saveBtn.innerHTML; prevDisabled = saveBtn.disabled; saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Opslaan…'; } catch {}
+                // Watchdog: if something hangs, auto-clear state after 12s
+                let wd; try { wd = setTimeout(() => { try { this._savingInFlight = false; } catch {} try { saveBtn.disabled = prevDisabled; if (prevHTML != null) saveBtn.innerHTML = prevHTML; } catch {} try { if (s) s.textContent = 'Opgeslagen'; } catch {} }, 12000); } catch {}
                 try {
                     const u = new URL(window.location.href);
                     const brand_id = u.searchParams.get('brand_id') || window.CURRENT_BRAND_ID;
@@ -819,8 +824,10 @@ class WebsiteBuilder {
                     try { this.saveProject(true); } catch {}
                     this.showNotification('💾 Lokaal opgeslagen (remote opslaan mislukt)', 'warning');
                 } finally {
+                    try { if (wd) clearTimeout(wd); } catch {}
                     try { if (s) s.textContent = 'Opgeslagen'; } catch {}
                     try { saveBtn.disabled = prevDisabled; if (prevHTML != null) saveBtn.innerHTML = prevHTML; } catch {}
+                    try { this._savingInFlight = false; } catch {}
                 }
             };
         } catch {}
