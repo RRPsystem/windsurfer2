@@ -6,35 +6,53 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
     <script>
-      // Quiet noisy external errors that can flood the console and degrade responsiveness
+      // Controlled error handler: show real fatals, ignore only known benign noise.
       (function installErrorFilters(){
         try {
           const isExt = (src) => typeof src === 'string' && src.indexOf('chrome-extension://') === 0;
           const ignoreMsg = (msg='') => {
-            const s = String(msg);
+            const s = String(msg||'');
             return (
               s.includes('attribute viewBox: Expected number') ||
               s.includes("'[object Object]' is not valid JSON")
             );
           };
+          const showFatal = (msg, src) => {
+            try {
+              console.error('[WB][fatal]', msg, src||'');
+              let el = document.getElementById('wb-fatal');
+              if (!el) {
+                el = document.createElement('div');
+                el.id = 'wb-fatal';
+                el.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#b91c1c;color:#fff;padding:8px 12px;font:12px system-ui,Segoe UI,Roboto,Arial;z-index:2147483647;box-shadow:0 2px 6px rgba(0,0,0,.2)';
+                document.body.appendChild(el);
+              }
+              el.textContent = 'Fout tijdens laden: ' + String(msg||'') + (src? (' ('+src+')') : '');
+            } catch {}
+          };
           window.addEventListener('error', (e) => {
             try {
               const src = (e && e.filename) || (e && e.target && e.target.src) || '';
-              if (isExt(src) || ignoreMsg(e && e.message)) {
+              const msg = e && e.message;
+              if (isExt(src) || ignoreMsg(msg)) {
+                // ignore benign noise
                 e.stopImmediatePropagation();
+                return;
               }
+              showFatal(msg, src);
             } catch {}
           }, true);
           window.addEventListener('unhandledrejection', (e) => {
             try {
               const r = e && e.reason;
               const msg = (r && (r.message || r.toString())) || '';
-              // If stack/url shows extension, suppress
               const stack = (r && r.stack) || '';
               if (ignoreMsg(msg) || stack.indexOf('chrome-extension://') === 0) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
+                return;
               }
+              showFatal(msg);
             } catch {}
           });
         } catch {}
