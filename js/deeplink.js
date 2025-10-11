@@ -143,4 +143,47 @@
   }
 
   function installSaveMonkeyPatch(){
+  document.addEventListener('DOMContentLoaded', () => {
+    try {
+      const btn = document.getElementById('saveProjectBtn');
+      if (!btn) return;
+      const orig = btn.onclick;
+      btn.onclick = async (e) => {
+        try { if (e && e.preventDefault) e.preventDefault(); } catch {}
+        try { window.websiteBuilder && window.websiteBuilder.saveProject && window.websiteBuilder.saveProject(true); } catch {}
+        try {
+          if (window.websiteBuilder && typeof window.websiteBuilder.saveToEdgeIfPresent === 'function') {
+            await window.websiteBuilder.saveToEdgeIfPresent();
+          }
+        } catch {}
+        // Call original as a no-op fallback
+        try { if (typeof orig === 'function') orig.call(btn, e); } catch {}
+      };
+    } catch {}
+  });
+}
+
+(async function init(){
+  const ctx = await bootstrapCtx();
+  const u = parseUrl();
+  const safeMode = !!(u && u.searchParams.get('safe') === '1');
+
+  const edgeCtx = computeEdgeCtx(ctx);
+  if (edgeCtx && !safeMode) {
+    log('edgeCtx installed', edgeCtx);
+    installEdgeCtx(edgeCtx);
+    setModeHash(edgeCtx.kind);
+  } else {
+    log('no edgeCtx (or safe mode) – working local-only');
+    try { if (window.websiteBuilder) window.websiteBuilder._edgeDisabled = true; } catch {}
+    document.addEventListener('DOMContentLoaded', () => {
+      try { if (window.websiteBuilder) window.websiteBuilder._edgeDisabled = true; } catch {}
+    });
+  }
+
+  // Always local-first save behavior
+  installSaveMonkeyPatch();
+})();
+})();
+
 
