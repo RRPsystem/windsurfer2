@@ -840,11 +840,18 @@ class WebsiteBuilder {
                     try { if (wd) clearTimeout(wd); } catch {}
                     try { if (s) s.textContent = 'Opgeslagen'; } catch {}
                     try { saveBtn.disabled = prevDisabled; if (prevHTML != null) saveBtn.innerHTML = prevHTML; } catch {}
+                    // Emergency unlock: force UI to be interactive again
+                    try { document.body.style.pointerEvents = 'auto'; } catch {}
+                    try { const cvs = document.getElementById('canvas'); if (cvs) cvs.style.pointerEvents = 'auto'; } catch {}
+                    try { ['fatalOverlay','wbOverlay','errorOverlay'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; }); } catch {}
+                    try { document.querySelectorAll('.wb-overlay,.wb-busy,.wb-blocker,.modal,.modal-backdrop').forEach(el => { el.style.pointerEvents = 'none'; el.classList.remove('show'); el.style.display = 'none'; }); } catch {}
                     // Fallback: if header re-rendered the button, re-query and reset
                     try {
                         const curBtn = document.getElementById('saveProjectBtn');
                         if (curBtn) { curBtn.disabled = false; if (!prevHTML) curBtn.textContent = 'Opslaan'; }
                     } catch {}
+                    // Rebind save handler in case node was replaced
+                    try { this.setupBoltDeeplinkSave && this.setupBoltDeeplinkSave(); } catch {}
                     try { this._savingInFlight = false; } catch {}
                 }
             };
