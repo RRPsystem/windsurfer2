@@ -212,17 +212,20 @@ class WebsiteBuilder {
             };
 
             apply();
-            // Observe header for changes and re-apply (debounced to prevent loops while typing)
+            // Observe header for changes and re-apply (debounced; suspended while typing)
             try {
                 const header = document.querySelector('.app-header');
                 if (header) {
                     if (this._headerMO) { try { this._headerMO.disconnect(); } catch {} }
                     let t = null;
                     this._headerMO = new MutationObserver(() => {
+                        // Skip while typing title/slug to avoid feedback loops
+                        if (this._suspendHeaderMO) return;
                         try { if (t) clearTimeout(t); } catch {}
                         t = setTimeout(() => { try { apply(); } catch {} }, 150);
                     });
                     // Keep subtree true but avoid attribute storm; childList changes are enough
+                    this._headerTarget = header;
                     this._headerMO.observe(header, { childList: true, subtree: true, attributes: false });
                 }
             } catch {}
@@ -878,15 +881,20 @@ class WebsiteBuilder {
             if (this._metaApplying) return;
             try { e.stopPropagation(); } catch {}
             try { this.markTyping && this.markTyping(900); } catch {}
-            const s = document.getElementById('pageSaveStatus');
-            if (s) s.textContent = 'Wijzigingen…';
+            // Suspend header MO while typing to avoid apply() loops
+            try {
+                this._suspendHeaderMO = true;
+                if (this._headerMO && this._headerTarget) this._headerMO.disconnect();
+            } catch {}
         }, { passive: true });
         slugEl.addEventListener('input', (e) => {
             this._slugTouched = true;
             try { e.stopPropagation(); } catch {}
             try { this.markTyping && this.markTyping(900); } catch {}
-            const s = document.getElementById('pageSaveStatus');
-            if (s) s.textContent = 'Wijzigingen…';
+            try {
+                this._suspendHeaderMO = true;
+                if (this._headerMO && this._headerTarget) this._headerMO.disconnect();
+            } catch {}
         }, { passive: true });
 
         const persistMeta = () => {
@@ -909,10 +917,23 @@ class WebsiteBuilder {
                 }
             } catch {}
             persistMeta();
+            // Resume header MO after brief delay
+            setTimeout(() => {
+                try {
+                    this._suspendHeaderMO = false;
+                    if (this._headerMO && this._headerTarget) this._headerMO.observe(this._headerTarget, { childList: true, subtree: true, attributes: false });
+                } catch {}
+            }, 150);
         });
         slugEl.addEventListener('blur', () => {
             try { slugEl.value = slugify(slugEl.value); } catch {}
             persistMeta();
+            setTimeout(() => {
+                try {
+                    this._suspendHeaderMO = false;
+                    if (this._headerMO && this._headerTarget) this._headerMO.observe(this._headerTarget, { childList: true, subtree: true, attributes: false });
+                } catch {}
+            }, 150);
         });
 
         // Populate on init or after page switch
