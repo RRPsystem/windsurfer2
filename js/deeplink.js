@@ -11,26 +11,25 @@
     try { return (u && (u.searchParams.get(k) || '')) || ''; } catch { return ''; }
   };
 
-  // UPDATED: canonicalSubset now includes all expected fields with ?? null (alphabetical keys)
+  // --- canonicalSubset (keys alfabetisch, met ?? null) ---
   function canonicalSubset(ctx){
-    // Must match exactly what wbctx-mint signs (alphabetically sorted)
     const canonical = {
-      api: ctx.api ?? null,
-      apikey: ctx.apikey ?? null,
-      author_id: ctx.author_id ?? null,
+      api:         ctx.api ?? null,
+      apikey:      ctx.apikey ?? null,
+      author_id:   ctx.author_id ?? null,
       author_type: ctx.author_type ?? null,
-      brand_id: ctx.brand_id ?? null,
-      content_type: ctx.content_type ?? null,
-      ephemeral: ctx.ephemeral ?? null,
-      exp: ctx.exp ?? null,
-      footer_id: ctx.footer_id ?? null,
-      menu_id: ctx.menu_id ?? null,
-      mode: ctx.mode ?? null,
-      news_slug: ctx.news_slug ?? null,
-      page_id: ctx.page_id ?? null,
-      slug: ctx.slug ?? null,
+      brand_id:    ctx.brand_id ?? null,
+      content_type:ctx.content_type ?? null,
+      ephemeral:   ctx.ephemeral ?? null,
+      exp:         ctx.exp ?? null,
+      footer_id:   ctx.footer_id ?? null,
+      menu_id:     ctx.menu_id ?? null,
+      mode:        ctx.mode ?? null,
+      news_slug:   ctx.news_slug ?? null,
+      page_id:     ctx.page_id ?? null,
+      slug:        ctx.slug ?? null,
       template_id: ctx.template_id ?? null,
-      token: ctx.token ?? null,
+      token:       ctx.token ?? null,
     };
     return JSON.stringify(canonical);
   }
@@ -51,13 +50,13 @@
     } catch { return false; }
   }
 
-  // REORDERED: validate server ctx first, then (optionally) apply URL overrides
+  // --- bootstrapCtx: eerst valideren, daarna pas URL-overrides toepassen ---
   async function bootstrapCtx(){
     const u = parseUrl(); if (!u) return {};
     let ctx = {};
 
-    // Load compact ctx if provided and not locally cached
-    let ctxId = getParam(u,'ctx');
+    // Load compact ctx from cache/fetch
+    const ctxId = getParam(u,'ctx');
     if (ctxId){
       try { ctx = JSON.parse(localStorage.getItem('wb_ctx_'+ctxId) || '{}'); } catch {}
       if (!ctx || !ctx.api || !(ctx.token || ctx.news_slug)){
@@ -79,18 +78,18 @@
       }
     }
 
-    // 1) Expiry check on server-provided ctx
+    // 1) Expiry check op server-ctx
     try {
       if (ctx.exp && Number.isFinite(+ctx.exp) && Math.floor(Date.now()/1000) >= +ctx.exp) {
         warn('ctx expired'); return {};
       }
     } catch {}
 
-    // 2) Signature check BEFORE any URL overrides
+    // 2) Signature check VOOR overrides
     const sigOk = await verifySigIfPresent(ctx);
     if (!sigOk) { warn('invalid ctx signature'); return {}; }
 
-    // 3) Only AFTER validation, allow URL overrides for convenience (do NOT re-verify)
+    // 3) Pas HIERNA URL-overrides toe (niet opnieuw verifiëren)
     ['api','token','apikey','api_key','brand_id','page_id','news_slug','slug','content_type','exp','ephemeral'].forEach(k=>{
       const v = getParam(u,k); if (v) ctx[k] = v;
     });
@@ -123,5 +122,25 @@
   function installEdgeCtx(edgeCtx){
     try { window.websiteBuilder = window.websiteBuilder || null; } catch {}
     if (!window.websiteBuilder) {
-      // Wait until main.js initializes
-      document.addEventLis
+      document.addEventListener('DOMContentLoaded', () => {
+        if (window.websiteBuilder) {
+          window.websiteBuilder._edgeCtx = edgeCtx;
+          try { window.websiteBuilder.updateEdgeBadge && window.websiteBuilder.updateEdgeBadge(); } catch {}
+        }
+      });
+      return;
+    }
+    window.websiteBuilder._edgeCtx = edgeCtx;
+    try { window.websiteBuilder.updateEdgeBadge && window.websiteBuilder.updateEdgeBadge(); } catch {}
+  }
+
+  function setModeHash(kind){
+    try {
+      const map = { page: '#/mode/page', news: '#/mode/news', destination: '#/mode/destination' };
+      if (!map[kind]) return;
+      if (String(location.hash||'') !== map[kind]) { location.hash = map[kind]; }
+    } catch {}
+  }
+
+  function installSaveMonkeyPatch(){
+
