@@ -786,7 +786,7 @@ class WebsiteBuilder {
                                 published = true;
                             } catch (ePublish) {
                                 const em = String(ePublish && ePublish.message || ePublish || '').toLowerCase();
-                                if (em.includes('403')) {
+                                if (em.includes('403') || em.includes('unauthorized') || em.includes('forbidden')) {
                                     this._disablePublish = true;
                                     this.showNotification('⚠️ Geen rechten om te publiceren. Concept is opgeslagen.', 'warning');
                                 } else if (em.includes('timeout')) {

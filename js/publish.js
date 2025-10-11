@@ -75,7 +75,9 @@ async function saveDraftBolt({ brand_id, page_id, title, slug, content_json }) {
   if (!res.ok) {
     const msg = (data && (data.error || data.message)) || `saveDraft failed: ${res.status}`;
     console.error('[saveDraftBolt] HTTP', res.status, msg, { url, payload, data });
-    throw new Error(msg);
+    const err = new Error(`${msg} (${res.status})`);
+    try { err.status = res.status; } catch {}
+    throw err;
   }
   console.debug('[saveDraftBolt] success', { url, data });
   // Expected: { success:true, page_id, slug, version, message }
@@ -103,7 +105,9 @@ async function publishPageBolt(pageId, htmlString) {
   if (!res.ok) {
     const msg = (data && (data.error || data.message)) || `publish failed: ${res.status}`;
     console.error('[publishPageBolt] HTTP', res.status, msg, { url, data });
-    throw new Error(msg);
+    const err = new Error(`${msg} (${res.status})`);
+    try { err.status = res.status; } catch {}
+    throw err;
   }
   console.debug('[publishPageBolt] success', { url, data });
   // Expected: { success:true, page_id, slug, version, status:"published", preview_url, public_url, message }
