@@ -163,6 +163,14 @@ class DragDropManager {
             }, 100);
             // Make the new component sortable
             this.makeSortable(component);
+            // Defer saves to avoid heavy work right after DOM mutations (deeplink stability)
+            try {
+                if (window.websiteBuilder) {
+                    // Briefly mark typing to pause auto-save/edge until idle
+                    if (typeof window.websiteBuilder.markTyping === 'function') window.websiteBuilder.markTyping(900);
+                    if (typeof window.websiteBuilder.scheduleSaveSilent === 'function') window.websiteBuilder.scheduleSaveSilent(1000);
+                }
+            } catch {}
         };
 
         proceed();
