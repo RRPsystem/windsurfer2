@@ -701,10 +701,11 @@ class WebsiteBuilder {
                     contentJson.slug = safeSlug;
                     // Always save locally as baseline (even when remote is available)
                     try { this.saveProject(true); } catch {}
-                    // If remote helper is missing or Edge disabled, fallback to local save
-                    if (this._edgeDisabled || !window.BuilderPublishAPI) {
+                    // If remote helper is missing, fallback to local save.
+                    // Note: Edge may be disabled for auto-sync in deeplink, but manual Save should still publish via BuilderPublishAPI.
+                    if (!window.BuilderPublishAPI) {
                         this.saveProject(true);
-                        this.showNotification('💾 Lokaal opgeslagen (remote helper uitgeschakeld/niet geladen)', 'info');
+                        this.showNotification('💾 Lokaal opgeslagen (remote helper niet geladen)', 'info');
                         return;
                     }
 
@@ -867,25 +868,11 @@ class WebsiteBuilder {
             }
         };
 
-        // Change handlers
-        let _ttlDeb = null;
+        // Change handlers (no live slug updates; only on blur)
         titleEl.addEventListener('input', (e) => {
             if (this._metaApplying) return;
             try { e.stopPropagation(); } catch {}
             try { this.markTyping && this.markTyping(900); } catch {}
-            if (!_ttlDeb) {
-                _ttlDeb = setTimeout(() => { _ttlDeb = null; }, 0);
-            }
-            // Debounce slug sync to avoid heavy updates each keystroke
-            if (_ttlDeb) clearTimeout(_ttlDeb);
-            _ttlDeb = setTimeout(() => {
-                if (!this._slugTouched) {
-                    try {
-                        const v = titleEl.value;
-                        requestAnimationFrame(() => { try { slugEl.value = slugify(v); } catch {} });
-                    } catch { try { slugEl.value = slugify(titleEl.value); } catch {} }
-                }
-            }, 150);
             const s = document.getElementById('pageSaveStatus');
             if (s) s.textContent = 'Wijzigingen…';
         }, { passive: true });
@@ -893,7 +880,6 @@ class WebsiteBuilder {
             this._slugTouched = true;
             try { e.stopPropagation(); } catch {}
             try { this.markTyping && this.markTyping(900); } catch {}
-            try { slugEl.value = slugify(slugEl.value); } catch {}
             const s = document.getElementById('pageSaveStatus');
             if (s) s.textContent = 'Wijzigingen…';
         }, { passive: true });
@@ -911,8 +897,18 @@ class WebsiteBuilder {
                 this.scheduleSaveSilent(700);
             } catch (e) { console.warn('persistMeta failed', e); }
         };
-        titleEl.addEventListener('blur', persistMeta);
-        slugEl.addEventListener('blur', persistMeta);
+        titleEl.addEventListener('blur', () => {
+            try {
+                if (!this._slugTouched) {
+                    slugEl.value = slugify(titleEl.value);
+                }
+            } catch {}
+            persistMeta();
+        });
+        slugEl.addEventListener('blur', () => {
+            try { slugEl.value = slugify(slugEl.value); } catch {}
+            persistMeta();
+        });
 
         // Populate on init or after page switch
         this._applyPageMetaToInputs = () => {
@@ -1943,20 +1939,36 @@ class WebsiteBuilder {
                 timestamp: new Date().toISOString(),
                 version: '1.1'
             };
-            localStorage.setItem('wb_project', JSON.stringify(projectData));
-            try { this._lastLocalSaveAt = Date.now(); } catch {}
-            
-            if (!silent) {
-                console.log('💾 Project opgeslagen:', projectData);
-            }
-            // Update UI save status
-            const s = document.getElementById('pageSaveStatus');
-            if (s) {
-                const d = new Date();
-                const hh = String(d.getHours()).padStart(2,'0');
-                const mm = String(d.getMinutes()).padStart(2,'0');
-                const ss = String(d.getSeconds()).padStart(2,'0');
-                s.textContent = `Opgeslagen • ${hh}:${mm}:${ss}`;
+
+            const persist = () => {
+                try {
+                    const payload = JSON.stringify(projectData);
+                    localStorage.setItem('wb_project', payload);
+                    this._lastLocalSaveAt = Date.now();
+                    // Update UI save status
+                    const s = document.getElementById('pageSaveStatus');
+                    if (s) {
+                        const d = new Date();
+                        const hh = String(d.getHours()).padStart(2,'0');
+                        const mm = String(d.getMinutes()).padStart(2,'0');
+                        const ss = String(d.getSeconds()).padStart(2,'0');
+                        s.textContent = `Opgeslagen • ${hh}:${mm}:${ss}`;
+                    }
+                    if (!silent) console.log('💾 Project opgeslagen:', projectData);
+                } catch (e) {
+                    console.error('Persist error', e);
+                    if (!silent) this.showNotification('❌ Opslaan mislukt (localStorage)', 'error');
+                }
+            };
+
+            try {
+                if (typeof window.requestIdleCallback === 'function') {
+                    window.requestIdleCallback(persist, { timeout: 800 });
+                } else {
+                    setTimeout(persist, 0);
+                }
+            } catch {
+                persist();
             }
             
             // Auto-publish on save (simple for users), but skip while typing
