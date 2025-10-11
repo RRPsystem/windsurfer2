@@ -212,13 +212,18 @@ class WebsiteBuilder {
             };
 
             apply();
-            // Observe header for changes and re-apply
+            // Observe header for changes and re-apply (debounced to prevent loops while typing)
             try {
                 const header = document.querySelector('.app-header');
                 if (header) {
                     if (this._headerMO) { try { this._headerMO.disconnect(); } catch {} }
-                    this._headerMO = new MutationObserver(() => apply());
-                    this._headerMO.observe(header, { childList: true, subtree: true, attributes: true });
+                    let t = null;
+                    this._headerMO = new MutationObserver(() => {
+                        try { if (t) clearTimeout(t); } catch {}
+                        t = setTimeout(() => { try { apply(); } catch {} }, 150);
+                    });
+                    // Keep subtree true but avoid attribute storm; childList changes are enough
+                    this._headerMO.observe(header, { childList: true, subtree: true, attributes: false });
                 }
             } catch {}
         } catch {}
