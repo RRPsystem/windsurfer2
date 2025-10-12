@@ -412,10 +412,11 @@
           const u = new URL(window.location.href);
           const isDeeplink = !!(u.searchParams.get('api') && u.searchParams.get('brand_id'));
           const forceSafe = u.searchParams.get('safe') === '1';
-          const safe = isDeeplink || forceSafe;
+          // Safe Mode is now opt-in only via ?safe=1 (deeplink laadt standaard volledige builder)
+          const safe = !!forceSafe;
           const load = (src) => { const s=document.createElement('script'); s.src=src; s.defer=true; document.head.appendChild(s); };
           if (!safe) {
-            // Only load these in normal mode
+            // Normal/Deeplink (volledige builder)
             load('js/ai.js');
             load('js/publish.js');
             load('js/views/menuFooterView.js');
@@ -423,10 +424,11 @@
             load('js/menuRender.js');
             load('js/layoutsBuilder.js');
             load('js/brandHydrator.js');
+            console.info('[WB] Full Builder mode geladen (ook in deeplink)');
           } else {
-            // Deeplink Safe Mode: still load publish.js so manual Save to BOLT works
+            // Safe Mode: minimale scripts
             try { load('js/publish.js'); } catch {}
-            console.info('[WB] Safe Mode: alleen publish.js ingeladen voor BOLT-save; overige optionele scripts overgeslagen');
+            console.info('[WB] Safe Mode actief (?safe=1): alleen publish.js ingeladen');
           }
         } catch(e) { /* noop */ }
       })();
