@@ -1014,14 +1014,82 @@ class ComponentFactory {
 
         // Apply YouTube video background
         const setYouTubeBg = (embedUrl) => {
-            // In edit mode, avoid loading/playing the YouTube iframe to prevent continuous layout work
             const isEdit = !!(document.body && document.body.dataset && document.body.dataset.wbMode === 'edit');
+            stopSlideshow();
             if (isEdit) {
-                stopSlideshow();
                 removeVideoLayer && removeVideoLayer();
+                let ph = section.querySelector('.hero-video-ph');
+                if (!ph) {
+                    ph = document.createElement('div');
+                    ph.className = 'hero-video-ph';
+                    ph.style.position = 'absolute';
+                    ph.style.top = '0';
+                    ph.style.left = '0';
+                    ph.style.right = '0';
+                    ph.style.bottom = '0';
+                    ph.style.backgroundSize = 'cover';
+                    ph.style.backgroundPosition = 'center';
+                    ph.style.cursor = 'pointer';
+                    const btn = document.createElement('div');
+                    btn.className = 'hero-video-play';
+                    btn.style.position = 'absolute';
+                    btn.style.top = '50%';
+                    btn.style.left = '50%';
+                    btn.style.transform = 'translate(-50%, -50%)';
+                    btn.style.width = '68px';
+                    btn.style.height = '48px';
+                    btn.style.borderRadius = '8px';
+                    btn.style.background = 'rgba(0,0,0,.45)';
+                    btn.style.boxShadow = '0 2px 8px rgba(0,0,0,.25)';
+                    btn.style.pointerEvents = 'none';
+                    btn.innerHTML = '<svg viewBox="0 0 68 48" style="width:100%;height:100%"><path d="M66.52 7.74a8 8 0 0 0-5.65-5.66C56.5 1 34 1 34 1S11.5 1 7.13 2.08A8 8 0 0 0 1.48 7.74 83.3 83.3 0 0 0 0 24a83.3 83.3 0 0 0 1.48 16.26 8 8 0 0 0 5.65 5.66C11.5 47 34 47 34 47s22.5 0 26.87-1.08a8 8 0 0 0 5.65-5.66A83.3 83.3 0 0 0 68 24a83.3 83.3 0 0 0-1.48-16.26Z" fill="#212121" fill-opacity=".8"/><path d="M45 24 27 14v20" fill="#fff"/></svg>';
+                    ph.appendChild(btn);
+                    section.insertBefore(ph, overlay);
+                }
+                try {
+                    const url = new URL(embedUrl);
+                    const m = url.pathname.match(/\/embed\/([^\/?#]+)/);
+                    const vid = m ? m[1] : '';
+                    if (vid) ph.style.backgroundImage = `url(https://img.youtube.com/vi/${vid}/hqdefault.jpg)`;
+                } catch {}
+                ph.onclick = () => {
+                    const overlayBg = document.createElement('div');
+                    overlayBg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99998;display:flex;align-items:center;justify-content:center';
+                    const box = document.createElement('div');
+                    box.style.cssText = 'position:relative;width:min(90vw,960px);aspect-ratio:16/9;background:#000;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.4);overflow:hidden';
+                    const close = document.createElement('button');
+                    close.textContent = '×';
+                    close.setAttribute('aria-label','Sluiten');
+                    close.style.cssText = 'position:absolute;top:8px;right:12px;width:32px;height:32px;border:none;border-radius:6px;background:rgba(0,0,0,.5);color:#fff;font-size:20px;line-height:1;cursor:pointer;z-index:2';
+                    const iframe = document.createElement('iframe');
+                    iframe.setAttribute('title', 'Video preview');
+                    iframe.setAttribute('frameborder', '0');
+                    iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture');
+                    iframe.setAttribute('allowfullscreen', '');
+                    iframe.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
+                    const url = new URL(embedUrl);
+                    const params = url.searchParams;
+                    if (!params.has('autoplay')) params.set('autoplay', '1');
+                    const opts = section._ytOptions || { mute: true, start: 0 };
+                    if (opts.mute === false) { params.delete('mute'); } else { params.set('mute', '1'); }
+                    if (!params.has('controls')) params.set('controls', '1');
+                    if (!params.has('loop')) params.set('loop', '0');
+                    const vidIdMatch = url.pathname.match(/\/embed\/([^\/?#]+)/);
+                    if (vidIdMatch && !params.has('playlist')) params.set('playlist', vidIdMatch[1]);
+                    const startSec = Math.max(0, parseInt(opts.start, 10) || 0);
+                    if (startSec > 0) params.set('start', String(startSec)); else params.delete('start');
+                    url.search = params.toString();
+                    iframe.src = url.toString();
+                    const cleanup = () => { try { document.body.removeChild(overlayBg); } catch {} };
+                    close.onclick = cleanup;
+                    overlayBg.onclick = (e) => { if (e.target === overlayBg) cleanup(); };
+                    box.appendChild(iframe);
+                    box.appendChild(close);
+                    overlayBg.appendChild(box);
+                    document.body.appendChild(overlayBg);
+                };
                 return;
             }
-            stopSlideshow();
             let videoWrap = section.querySelector('.hero-video');
             if (!videoWrap) {
                 videoWrap = document.createElement('div');
@@ -1038,7 +1106,6 @@ class ComponentFactory {
                 iframe.style.width = '100%';
                 iframe.style.height = '100%';
                 videoWrap.appendChild(iframe);
-                // place behind overlay/content but above bg
                 section.insertBefore(videoWrap, overlay);
             }
             const iframe = videoWrap.querySelector('iframe');
