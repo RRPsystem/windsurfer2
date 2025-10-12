@@ -431,6 +431,32 @@
         } catch(e) { /* noop */ }
       })();
     </script>
+    <style>
+      /* Make fatal overlay non-blocking by default */
+      #fatalOverlay { pointer-events: none; }
+      #fatalOverlay .bar, #fatalOverlay button, #fatalOverlay a { pointer-events: auto; }
+    </style>
+    <script>
+      // Global emergency unfreeze helper
+      (function(){
+        try {
+          window.WB_unfreeze = function WB_unfreeze(){
+            try { document.body.classList.remove('modal-open'); } catch {}
+            try { document.body.style.pointerEvents = 'auto'; document.body.style.overflow = ''; } catch {}
+            // Hide known overlays
+            try {
+              const hide = (el) => { if (!el) return; el.style.pointerEvents = 'none'; el.classList.remove('show'); el.style.display = 'none'; };
+              ['fatalOverlay','wbOverlay','errorOverlay'].forEach(id => hide(document.getElementById(id)));
+              document.querySelectorAll('.wb-overlay,.wb-busy,.wb-blocker,.modal,.modal-backdrop').forEach(hide);
+            } catch {}
+            // Re-enable canvas and main app surface
+            try { const cvs = document.getElementById('canvas'); if (cvs) cvs.style.pointerEvents = 'auto'; } catch {}
+          };
+          // Bind Escape to unfreeze
+          window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') { try { window.WB_unfreeze(); } catch {} } }, { passive:true });
+        } catch {}
+      })();
+    </script>
     <script src="js/main.js"></script>
     <script src="js/deeplink.js"></script>
     <script src="js/settings.js"></script>
