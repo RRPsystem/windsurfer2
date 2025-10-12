@@ -982,6 +982,10 @@ class ComponentFactory {
             nextImg.style.opacity = '0';
             nextImg.style.transform = section._transitionType === 'slide' ? 'translateX(10%)' : 'translateX(0)';
             __WB_applyResponsiveSrc(current, section._slides[0]);
+            // Skip slideshow animations during edit to avoid jank
+            if (document.body && document.body.dataset && document.body.dataset.wbMode === 'edit') {
+                return;
+            }
             section._slideshowTimer = setInterval(() => {
                 if (!section._slides || section._slides.length === 0) return;
                 section._slideIndex = (section._slideIndex + 1) % section._slides.length;
@@ -1010,6 +1014,13 @@ class ComponentFactory {
 
         // Apply YouTube video background
         const setYouTubeBg = (embedUrl) => {
+            // In edit mode, avoid loading/playing the YouTube iframe to prevent continuous layout work
+            const isEdit = !!(document.body && document.body.dataset && document.body.dataset.wbMode === 'edit');
+            if (isEdit) {
+                stopSlideshow();
+                removeVideoLayer && removeVideoLayer();
+                return;
+            }
             stopSlideshow();
             let videoWrap = section.querySelector('.hero-video');
             if (!videoWrap) {
