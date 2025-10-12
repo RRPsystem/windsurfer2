@@ -461,6 +461,24 @@
     </script>
     <script src="js/main.js"></script>
     <script>
+      (function(){
+        try{
+          var q=new URL(location.href).searchParams;var enabled=q.get('debug')==='1';
+          var state={on:enabled,logs:[],mut:0,fps:0,long:0,stall:0,net:[]};
+          var ui=null;function el(t,a){var e=document.createElement(t);if(a)Object.assign(e.style,a);return e}
+          function render(){if(!state.on)return;try{if(!ui){ui=el('div',{position:'fixed',bottom:'10px',right:'10px',zIndex:99999,background:'rgba(17,24,39,.92)',color:'#e5e7eb',font:'12px system-ui,Segoe UI,Roboto,Arial',padding:'10px 12px',borderRadius:'8px',boxShadow:'0 6px 18px rgba(0,0,0,.35)',maxWidth:'420px',maxHeight:'45vh',overflow:'auto'});ui.id='wb-debug';document.body.appendChild(ui);}var h='DBG · mut/s:'+state.mps+' · long:'+state.long+' · stall:'+state.stall+'ms';var n=state.net.slice(-5).map(function(x){return x.name+" "+x.status+" "+x.ms+"ms"}).join('<br>');ui.innerHTML='<div style="display:flex;align-items:center;gap:8px;justify-content:space-between"><b>'+h+'</b><button id="wb-dump" style="background:#374151;color:#fff;border:0;padding:4px 8px;border-radius:6px;cursor:pointer">dump</button></div><div style="margin-top:6px;opacity:.9">'+n+'</div>';var b=ui.querySelector('#wb-dump');b.onclick=function(){try{console.log(window.WB_dump&&window.WB_dump());}catch{}}}catch{}}
+          function ensureOn(){if(!state.on)return;render()}
+          window.addEventListener('keydown',function(e){if(e.ctrlKey&&e.altKey&&e.key.toLowerCase()==='d'){state.on=!state.on;if(!state.on){try{var n=document.getElementById('wb-debug');if(n)n.remove()}catch{} } else {render();}}},{passive:true});
+          var po=null;function startPO(){try{po=new PerformanceObserver(function(list){list.getEntries().forEach(function(entry){state.long++;state.logs.push({t:'longtask',d:entry.duration});});ensureOn()});po.observe({type:'longtask',buffered:true});}catch{}}
+          var last=performance.now();setInterval(function(){var now=performance.now(),dt=now-last;last=now;if(dt>250){state.stall=Math.max(state.stall,Math.round(dt));state.logs.push({t:'stall',d:dt});ensureOn()}},250);
+          var origFetch=window.fetch;window.fetch=function(input,init){var u=typeof input==='string'?input:(input&&input.url)||'';var t0=performance.now();return origFetch.apply(this,arguments).then(function(r){try{if(/\/functions\/v1\//.test(u)){state.net.push({name:(u.split('/functions/v1/')[1]||u).slice(0,60),ms:Math.round(performance.now()-t0),status:r.status});ensureOn()}}catch{}return r}).catch(function(e){try{if(/\/functions\/v1\//.test(u)){state.net.push({name:(u.split('/functions/v1/')[1]||u).slice(0,60),ms:Math.round(performance.now()-t0),status:'ERR'});ensureOn()}}catch{}throw e})}
+          function guardCanvas(){try{var c=document.getElementById('canvas');if(!c)return;var k=0;var mo=new MutationObserver(function(){k++});mo.observe(c,{childList:true,subtree:true,attributes:true,characterData:true});setInterval(function(){state.mps=k;k=0;ensureOn()},1000);}catch{}}
+          window.WB_dump=function(){try{var btn=document.getElementById('saveProjectBtn');var center=(function(){var el=document.elementFromPoint(innerWidth/2,innerHeight/2);return el?{tag:el.tagName,id:el.id,cls:el.className}:null})();var canvas=document.getElementById('canvas');var comps=canvas?canvas.querySelectorAll('.wb-component').length:0;var ifr=canvas?canvas.querySelectorAll('iframe').length:0;var vid=canvas?canvas.querySelectorAll('video').length:0;return {saving:window.websiteBuilder&&window.websiteBuilder._savingInFlight,btnExists:!!btn,btnDisabled:btn&&btn.disabled,center,comps,ifr,vid,long:state.long,stall:state.stall,net:state.net.slice(-10)};}catch(e){return {err:String(e)}}}
+          if(state.on){render()}startPO();guardCanvas();
+        }catch{}
+      })();
+    </script>
+    <script>
       // Edit/deeplink media guard: stop autoplay in canvas and show popup preview on demand
       (function(){
         try {
