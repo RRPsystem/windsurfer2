@@ -731,19 +731,26 @@ function getCurrentPageMeta() {
 window.exportBuilderAsJSON = function exportBuilderAsJSON() {
   const canvas = document.getElementById('canvas');
   const meta = getCurrentPageMeta();
-  let layout = undefined;
+  // Prefer the full builder project JSON stored in localStorage so backend gets real content structure
   try {
     const saved = localStorage.getItem('wb_project');
     if (saved) {
-      const d = JSON.parse(saved);
-      if (d && d.layout) layout = d.layout;
+      const project = JSON.parse(saved);
+      if (project && typeof project === 'object') {
+        // Ensure title/slug are present at top-level (used by save flows)
+        try { project.title = meta.title; } catch {}
+        try { project.slug = meta.slug; } catch {}
+        // Attach latest html snapshot for convenience/debug
+        try { project.htmlSnapshot = canvas ? canvas.innerHTML : ''; } catch {}
+        return project;
+      }
     }
   } catch {}
+  // Fallback: minimal payload if no project present
   return {
     title: meta.title,
     slug: meta.slug,
     htmlSnapshot: canvas ? canvas.innerHTML : '',
-    layout
   };
 };
 
