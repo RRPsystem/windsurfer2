@@ -551,6 +551,48 @@
         } catch {}
       })();
     </script>
+    <style id="wb-overlay-perf-css">
+      .mp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .18s ease-out;will-change:opacity}
+      .mp-overlay.is-open{opacity:1;pointer-events:auto}
+      .mp-drawer{position:fixed;top:0;right:0;height:100%;width:min(520px,95vw);transform:translateX(100%);transition:transform .22s ease-out;will-change:transform;contain:content;content-visibility:auto}
+      .mp-drawer.is-open{transform:translateX(0)}
+      .mp-overlay img{content-visibility:auto}
+      .mp-thumb img{max-width:100%;height:auto}
+    </style>
+    <script>
+      (function(){
+        try{
+          // Debounce Unsplash query
+          var input=document.querySelector('.unsplash-query');
+          if(input){
+            var t=null; var delay=300;
+            var handler=function(e){ clearTimeout(t); t=setTimeout(function(){
+              try{ var q=(e.target.value||'').trim(); if(q.length<3) return; if(typeof window.unsplashSearch==='function'){ window.unsplashSearch(q); }
+              else { input.dispatchEvent(new CustomEvent('unsplash:search',{detail:{q}})); } }catch{}
+            }, delay); };
+            try{ input.addEventListener('input', function(e){ e.stopImmediatePropagation(); handler(e); }, {capture:true}); }catch{ input.addEventListener('input', handler); }
+          }
+          // Lightweight overlay close: class toggles, defer cleanup
+          var root=document;
+          root.addEventListener('click', function(ev){
+            try{
+              var closeEl = ev.target.closest && ev.target.closest('.mp-overlay .mp-close, .mp-overlay .fa-times, .mp-drawer .mp-close, .mp-drawer .fa-times');
+              if(!closeEl) return;
+              var overlay = document.querySelector('.mp-overlay');
+              var drawer  = document.querySelector('.mp-drawer');
+              ev.preventDefault(); ev.stopImmediatePropagation();
+              requestAnimationFrame(function(){
+                try{ if(drawer) drawer.classList.remove('is-open'); if(overlay) overlay.classList.remove('is-open'); }catch{}
+                if(drawer){
+                  var onDone=function(e){ if(e.target!==drawer) return; try{ drawer.removeEventListener('transitionend', onDone); }catch{} try{ document.body.style.overflow=''; }catch{} };
+                  try{ drawer.addEventListener('transitionend', onDone, {once:true}); }catch{}
+                } else { try{ document.body.style.overflow=''; }catch{} }
+              });
+            }catch{}
+          }, true);
+        }catch{}
+      })();
+    </script>
     <script src="js/deeplink.js"></script>
     <script src="js/settings.js"></script>
     <script src="js/deeplink-utils.js"></script>
