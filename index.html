@@ -460,6 +460,79 @@
       })();
     </script>
     <script src="js/main.js"></script>
+    <script>
+      // Edit/deeplink media guard: stop autoplay in canvas and show popup preview on demand
+      (function(){
+        try {
+          const mkPoster = (embedUrl) => {
+            const ph = document.createElement('div');
+            ph.className = 'wb-media-ph';
+            ph.style.cssText = 'position:relative;width:100%;height:100%;background:#000;border-radius:8px;overflow:hidden;cursor:pointer;min-height:120px';
+            const img = document.createElement('div');
+            img.style.cssText = 'position:absolute;inset:0;background-size:cover;background-position:center;filter:brightness(.85)';
+            try {
+              const u = new URL(embedUrl);
+              const m = u.pathname.match(/\/embed\/([^\/?#]+)/);
+              const vid = m && m[1];
+              if (vid) img.style.backgroundImage = `url(https://img.youtube.com/vi/${vid}/hqdefault.jpg)`;
+            } catch {}
+            const play = document.createElement('div');
+            play.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:68px;height:48px;background:rgba(0,0,0,.45);border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.25)';
+            play.innerHTML = '<svg viewBox="0 0 68 48" style="width:100%;height:100%"><path d="M66.52 7.74a8 8 0 0 0-5.65-5.66C56.5 1 34 1 34 1S11.5 1 7.13 2.08A8 8 0 0 0 1.48 7.74 83.3 83.3 0 0 0 0 24a83.3 83.3 0 0 0 1.48 16.26 8 8 0 0 0 5.65 5.66C11.5 47 34 47 34 47s22.5 0 26.87-1.08a8 8 0 0 0 5.65-5.66A83.3 83.3 0 0 0 68 24a83.3 83.3 0 0 0-1.48-16.26Z" fill="#212121" fill-opacity=".8"/><path d="M45 24 27 14v20" fill="#fff"/></svg>';
+            ph.appendChild(img); ph.appendChild(play);
+            ph.addEventListener('click', () => {
+              const overlayBg = document.createElement('div');
+              overlayBg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99998;display:flex;align-items:center;justify-content:center';
+              const box = document.createElement('div');
+              box.style.cssText = 'position:relative;width:min(90vw,960px);aspect-ratio:16/9;background:#000;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.4);overflow:hidden';
+              const close = document.createElement('button');
+              close.textContent = '×';
+              close.setAttribute('aria-label','Sluiten');
+              close.style.cssText = 'position:absolute;top:8px;right:12px;width:32px;height:32px;border:none;border-radius:6px;background:rgba(0,0,0,.5);color:#fff;font-size:20px;line-height:1;cursor:pointer;z-index:2';
+              const frame = document.createElement('iframe');
+              frame.setAttribute('allow','autoplay; fullscreen; picture-in-picture');
+              frame.setAttribute('allowfullscreen','');
+              frame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
+              try {
+                const u = new URL(embedUrl); const p=u.searchParams;
+                p.set('autoplay','1'); p.set('mute','1'); p.set('controls','1'); p.delete('loop'); u.search=p.toString();
+                frame.src = u.toString();
+              } catch { frame.src = embedUrl; }
+              const cleanup = () => { try { document.body.removeChild(overlayBg); } catch {} };
+              close.onclick = cleanup; overlayBg.onclick = (e) => { if (e.target === overlayBg) cleanup(); };
+              box.appendChild(frame); box.appendChild(close); overlayBg.appendChild(box); document.body.appendChild(overlayBg);
+            });
+            return ph;
+          };
+
+          const guard = () => {
+            const canvas = document.getElementById('canvas'); if (!canvas) return;
+            // Neutralize iframes (e.g., YouTube/Vimeo/widgets)
+            canvas.querySelectorAll('iframe').forEach(ifr => {
+              if (ifr.dataset.wbGuarded === '1') return;
+              const src = ifr.src || ifr.getAttribute('src') || '';
+              if (!src) return;
+              ifr.dataset.wbGuarded = '1'; ifr.dataset.src = src;
+              try { ifr.src = 'about:blank'; } catch {}
+              const poster = mkPoster(src);
+              ifr.replaceWith(poster);
+            });
+            // Pause <video>
+            canvas.querySelectorAll('video').forEach(v => {
+              try { v.pause(); v.preload='metadata'; v.autoplay=false; v.muted=true; } catch {}
+            });
+          };
+
+          // Activate only in edit/deeplink
+          document.body.dataset.wbMode = document.body.dataset.wbMode || 'edit';
+          const run = () => { try { guard(); } catch {} };
+          run();
+          const mo = new MutationObserver(() => run());
+          const canvas = document.getElementById('canvas');
+          if (canvas) mo.observe(canvas, { childList:true, subtree:true });
+        } catch {}
+      })();
+    </script>
     <script src="js/deeplink.js"></script>
     <script src="js/settings.js"></script>
     <script src="js/deeplink-utils.js"></script>
