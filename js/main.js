@@ -871,43 +871,6 @@ class WebsiteBuilder {
                         // Fallback: if pages helper exists use it; otherwise local save
                         if (window.BuilderPublishAPI && typeof window.BuilderPublishAPI.saveDraft === 'function') {
                             await window.BuilderPublishAPI.saveDraft({ brand_id, title: safeTitle, slug: safeSlug, content_json: contentJson });
-                            this.showNotification('💾 Concept opgeslagen (Bolt-draft)', 'success');
-                        } else {
-                            this.saveProject(true);
-                            this.showNotification('💾 Lokaal opgeslagen (geen remote helper)', 'info');
-                        }
-                    }
-                } catch (e) {
-                    console.warn('Draft opslaan mislukt:', e?.message||e);
-                    // Fallbacks: try direct POST; if that fails, ensure local save
-                    try {
-                        const url = new URL(window.location.href);
-                        const api = (url.searchParams.get('api') || '').replace(/\/$/, '');
-                        const token = url.searchParams.get('token') || '';
-                        const apiKeyHeader = url.searchParams.get('apikey') || url.searchParams.get('api_key') || '';
-                        if (api && token) {
-                            const qs = new URLSearchParams();
-                            qs.set('type', (url.searchParams.get('content_type')||'news_items'));
-                            const apiUrl = `${api}/functions/v1/content-api/save?${qs.toString()}`;
-                            const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
-                            if (apiKeyHeader) headers['apikey'] = apiKeyHeader;
-                            const body = {
-                                brand_id: (url.searchParams.get('brand_id') || window.CURRENT_BRAND_ID),
-                                title: (contentJson.title),
-                                slug: (contentJson.slug),
-                                content: { json: contentJson, html: (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '' },
-                                status: 'draft'
-                            };
-                            await fetch(apiUrl, { method: 'POST', headers, body: JSON.stringify(body) });
-                            this.showNotification('💾 Concept opgeslagen (Edge fallback)', 'success');
-                            return;
-                        }
-                    } catch {}
-                    // Final fallback: local save
-                    try { this.saveProject(true); } catch {}
-                    this.showNotification('💾 Lokaal opgeslagen (remote opslaan mislukt)', 'warning');
-                } finally {
-                    try { if (wd) clearTimeout(wd); } catch {}
                     try { if (s) s.textContent = 'Opgeslagen'; } catch {}
                     try { saveBtn.disabled = prevDisabled; if (prevHTML != null) saveBtn.innerHTML = prevHTML; } catch {}
                     // Emergency unlock: force UI to be interactive again
