@@ -59,10 +59,18 @@ function withApiKey(url) {
   } catch { return url; }
 }
 
-async function saveDraftBolt({ brand_id, page_id, title, slug, content_json }) {
+async function saveDraftBolt({ brand_id, page_id, title, slug, content_json, is_template, template_category, preview_image_url }) {
   const base = boltProjectBase();
-  const payload = { brand_id, title, slug, content_json };
+  // Build payload conditionally: templates must NOT include brand_id
+  const payload = { title, slug, content_json };
   if (page_id) payload.page_id = page_id;
+  if (is_template) {
+    payload.is_template = true;
+    if (template_category) payload.template_category = template_category;
+    if (preview_image_url) payload.preview_image_url = preview_image_url;
+  } else {
+    payload.brand_id = brand_id; // normal page draft
+  }
   let url = `${base}/functions/v1/pages-api/saveDraft`;
   url = withApiKey(url);
   const res = await fetch(url, {
