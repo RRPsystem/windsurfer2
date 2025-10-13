@@ -844,11 +844,11 @@ class WebsiteBuilder {
                             try { this.saveProject(true); } catch {}
                         }
                         // Publish only for normal pages (not for templates)
-                        const htmlString = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '';
+                        const pageHtml = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '';
                         let published = false;
                         if (!isTemplate && page && !this._disablePublish) {
                             try {
-                                await withTimeout(window.BuilderPublishAPI.publishPage(page.id, htmlString), 8000, 'publish');
+                                await withTimeout(window.BuilderPublishAPI.publishPage(page.id, pageHtml), 8000, 'publish');
                                 published = true;
                             } catch (ePublish) {
                                 const em = String(ePublish && ePublish.message || ePublish || '').toLowerCase();
