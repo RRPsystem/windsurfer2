@@ -60,7 +60,7 @@ function withApiKey(url) {
 }
 
 async function saveDraftBolt({ brand_id, page_id, title, slug, content_json, is_template, template_category, preview_image_url }) {
-  const base = boltProjectBase();
+  const base = boltFunctionsBase();
   // Build payload conditionally: templates must NOT include brand_id
   const payload = { title, slug, content_json };
   if (page_id) payload.page_id = page_id;
