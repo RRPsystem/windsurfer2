@@ -75,7 +75,14 @@ async function saveDraftBolt({ brand_id, page_id, title, slug, content_json, is_
   url = withApiKey(url);
   const res = await fetch(url, {
     method: 'POST',
-    headers: boltHeaders(),
+    headers: (function(){
+      try {
+        const u = new URL(window.location.href);
+        const token = (u.searchParams.get('token') || window.CURRENT_TOKEN || '');
+        const apikey = (u.searchParams.get('apikey') || u.searchParams.get('api_key') || (window.BOLT_API && window.BOLT_API.apiKey) || '');
+        return { 'Content-Type':'application/json', 'Authorization': `Bearer ${token}`, 'apikey': apikey };
+      } catch { return { 'Content-Type':'application/json' }; }
+    })(),
     body: JSON.stringify(payload)
   });
   let data = null;
