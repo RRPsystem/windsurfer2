@@ -929,6 +929,19 @@ class WebsiteBuilder {
     }
 
     setupFileSaveLoad() {
+        const saveBtn = document.getElementById('saveProjectBtn');
+        const openBtn = document.getElementById('openProjectBtn');
+        const fileInput = document.getElementById('projectFileInput');
+        const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl);
+
+        // In Bolt context, Save is handled via Edge/publish helpers; keep local download only for standalone use
+        if (saveBtn && !isBolt) {
+            saveBtn.addEventListener('click', () => {
+                try {
+                    const data = this.getProjectData();
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
                     const dt = new Date();
                     const y = dt.getFullYear();
                     const m = String(dt.getMonth()+1).padStart(2,'0');
@@ -954,7 +967,7 @@ class WebsiteBuilder {
                     const text = await file.text();
                     const data = JSON.parse(text);
                     this.loadProjectData(data);
-                    this.saveProject(true); // also update localStorage
+                    this.saveProject(true);
                     this.showNotification('📂 Project geladen uit bestand', 'success');
                 } catch (err) {
                     console.error('Load error', err);
