@@ -43,6 +43,22 @@ class WebsiteBuilder {
         this.init();
     }
 
+    init() {
+        try {
+            if (this.isInitialized) return;
+            const run = () => {
+                try { this.setupFileSaveLoad && this.setupFileSaveLoad(); } catch {}
+                try { this.interceptCanvasLinks && this.interceptCanvasLinks(); } catch {}
+                this.isInitialized = true;
+            };
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', run, { once: true });
+            } else {
+                run();
+            }
+        } catch { this.isInitialized = true; }
+    }
+
     // Prevent navigation inside the builder canvas (anchors inside content)
     interceptCanvasLinks() {
         try {
