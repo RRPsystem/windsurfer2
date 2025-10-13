@@ -653,6 +653,8 @@ class WebsiteBuilder {
             }
         });
     }
+
+    setupBoltDeeplinkSave() {
         try {
             const saveBtn = document.getElementById('saveProjectBtn');
             if (!saveBtn) return;
