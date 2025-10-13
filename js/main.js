@@ -737,6 +737,14 @@ class WebsiteBuilder {
                         if (!ready) {
                             this.saveProject(true);
                             this.showNotification('💾 Lokaal opgeslagen (publish helper nog niet geladen)', 'info');
+                            try { if (wd) clearTimeout(wd); } catch {}
+                            try { if (s) s.textContent = 'Opgeslagen'; } catch {}
+                            try { saveBtn.disabled = prevDisabled; if (prevHTML != null) saveBtn.innerHTML = prevHTML; } catch {}
+                            try { document.body.style.pointerEvents = 'auto'; } catch {}
+                            try { const cvs = document.getElementById('canvas'); if (cvs) cvs.style.pointerEvents = 'auto'; } catch {}
+                            try { ['fatalOverlay','wbOverlay','errorOverlay'].forEach(id => { const el = document.getElementById(id); if (el) { el.style.display = 'none'; el.classList.remove('show'); el.style.pointerEvents = 'none'; } }); } catch {}
+                            try { this._savingInFlight = false; } catch {}
+                            try { this.setupBoltDeeplinkSave && this.setupBoltDeeplinkSave(); } catch {}
                             return;
                         }
                     }
