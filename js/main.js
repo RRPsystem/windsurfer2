@@ -871,6 +871,7 @@ class WebsiteBuilder {
                         // Fallback: if pages helper exists use it; otherwise local save
                         if (window.BuilderPublishAPI && typeof window.BuilderPublishAPI.saveDraft === 'function') {
                             await window.BuilderPublishAPI.saveDraft({ brand_id, title: safeTitle, slug: safeSlug, content_json: contentJson });
+                        }
                     try { if (s) s.textContent = 'Opgeslagen'; } catch {}
                     try { saveBtn.disabled = prevDisabled; if (prevHTML != null) saveBtn.innerHTML = prevHTML; } catch {}
                     // Emergency unlock: force UI to be interactive again
