@@ -694,6 +694,10 @@ class WebsiteBuilder {
                 });
                 try {
                     const u = new URL(window.location.href);
+                    // Template mode detection and fields from URL
+                    const isTemplate = (u.searchParams.get('is_template') === 'true') || /template/i.test(u.searchParams.get('mode') || '');
+                    const template_category = u.searchParams.get('template_category') || undefined;
+                    const preview_image_url = u.searchParams.get('preview_image_url') || undefined;
                     const brand_id = u.searchParams.get('brand_id') || window.CURRENT_BRAND_ID;
                     const apiBase = (u.searchParams.get('api') || (window.BOLT_API && window.BOLT_API.baseUrl) || '');
                     const token = (u.searchParams.get('token') || window.CURRENT_TOKEN || '');
@@ -818,25 +822,38 @@ class WebsiteBuilder {
                         });
                         this.showNotification('🗺️ Concept opgeslagen (Bestemming)', 'success');
                     } else if (mode === 'page' && window.BuilderPublishAPI.saveDraft) {
-                        // Pages: save draft JSON; publish HTML only if allowed
+                        // Pages & Templates: save draft JSON
                         let page = null;
                         try {
-                            page = await withTimeout(window.BuilderPublishAPI.saveDraft({ brand_id, title: safeTitle, slug: safeSlug, content_json: contentJson }), 8000, 'saveDraft');
+                            page = await withTimeout(
+                                window.BuilderPublishAPI.saveDraft({
+                                    brand_id,
+                                    page_id: (u.searchParams.get('page_id') || this.currentPageId || undefined),
+                                    title: safeTitle,
+                                    slug: safeSlug,
+                                    content_json: contentJson,
+                                    is_template: isTemplate || undefined,
+                                    template_category,
+                                    preview_image_url
+                                }),
+                                8000,
+                                'saveDraft'
+                            );
                         } catch (eSD) {
                             this.showNotification('⚠️ Concept opslaan duurde te lang of faalde; lokaal opgeslagen', 'warning');
                             try { this.saveProject(true); } catch {}
-                            page = null;
                         }
+                        // Publish only for normal pages (not for templates)
+                        const htmlString = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '';
                         let published = false;
-                        if (page && !this._disablePublish) {
+                        if (!isTemplate && page && !this._disablePublish) {
                             try {
                                 await withTimeout(window.BuilderPublishAPI.publishPage(page.id, htmlString), 8000, 'publish');
                                 published = true;
                             } catch (ePublish) {
                                 const em = String(ePublish && ePublish.message || ePublish || '').toLowerCase();
-                                if (em.includes('403') || em.includes('unauthorized') || em.includes('forbidden')) {
-                                    this._disablePublish = true;
-                                    this.showNotification('⚠️ Geen rechten om te publiceren. Concept is opgeslagen.', 'warning');
+                                if (em.includes('401') || em.includes('403')) {
+                                    this.showNotification('⚠️ Publiceren niet toegestaan; concept opgeslagen.', 'warning');
                                 } else if (em.includes('timeout')) {
                                     this.showNotification('⚠️ Publiceren timeout; concept staat wel opgeslagen.', 'warning');
                                 } else {
@@ -844,7 +861,12 @@ class WebsiteBuilder {
                                 }
                             }
                         }
-                        this.showNotification(published ? '📝 Pagina opgeslagen en gepubliceerd' : '💾 Concept opgeslagen (Pagina)', 'success');
+                        this.showNotification(
+                            isTemplate
+                                ? '🧩 Template opgeslagen'
+                                : (published ? '📝 Pagina opgeslagen en gepubliceerd' : '💾 Concept opgeslagen (Pagina)'),
+                            'success'
+                        );
                     } else {
                         // Fallback: if pages helper exists use it; otherwise local save
                         if (window.BuilderPublishAPI && typeof window.BuilderPublishAPI.saveDraft === 'function') {
