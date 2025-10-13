@@ -71,30 +71,45 @@ async function saveDraftBolt({ brand_id, page_id, title, slug, content_json, is_
   } else {
     payload.brand_id = brand_id; // normal page draft
   }
-  let url = `${base}/functions/v1/pages-api/saveDraft`;
-  url = withApiKey(url);
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: (function(){
+  // Build headers once
+  const hdrs = (function(){
+    try {
+      const u = new URL(window.location.href);
+      const token = (u.searchParams.get('token') || window.CURRENT_TOKEN || '');
+      const apikey = (u.searchParams.get('apikey') || u.searchParams.get('api_key') || (window.BOLT_API && window.BOLT_API.apiKey) || '');
+      return { 'Content-Type':'application/json', 'Authorization': `Bearer ${token}`, 'apikey': apikey };
+    } catch { return { 'Content-Type':'application/json' }; }
+  })();
+
+  // Candidate endpoints: functions host first, then project host; try /saveDraft then /save
+  const bases = [boltFunctionsBase(), boltProjectBase()].filter(Boolean);
+  const paths = ['/functions/v1/pages-api/saveDraft', '/functions/v1/pages-api/save'];
+  let res = null; let data = null; let url = '';
+  for (const b of bases) {
+    for (const p of paths) {
       try {
-        const u = new URL(window.location.href);
-        const token = (u.searchParams.get('token') || window.CURRENT_TOKEN || '');
-        const apikey = (u.searchParams.get('apikey') || u.searchParams.get('api_key') || (window.BOLT_API && window.BOLT_API.apiKey) || '');
-        return { 'Content-Type':'application/json', 'Authorization': `Bearer ${token}`, 'apikey': apikey };
-      } catch { return { 'Content-Type':'application/json' }; }
-    })(),
-    body: JSON.stringify(payload)
-  });
-  let data = null;
-  try { data = await res.json(); } catch {}
-  if (!res.ok) {
-    const msg = (data && (data.error || data.message)) || `saveDraft failed: ${res.status}`;
-    console.error('[saveDraftBolt] HTTP', res.status, msg, { url, payload, data });
-    const err = new Error(`${msg} (${res.status})`);
-    try { err.status = res.status; } catch {}
+        url = withApiKey(`${b}${p}`);
+        res = await fetch(url, { method: 'POST', headers: hdrs, body: JSON.stringify(payload) });
+        // Try to parse body once (even on error) for better diagnostics
+        try { data = await res.clone().json(); } catch { data = null; }
+        if (res.ok) { console.debug('[saveDraftBolt] success', { url, data }); break; }
+        console.warn('[saveDraftBolt] attempt failed', res.status, { url, data });
+      } catch (e) {
+        console.warn('[saveDraftBolt] network error', { url, error: String(e && e.message || e) });
+        res = null; data = null;
+      }
+    }
+    if (res && res.ok) break;
+  }
+
+  if (!res || !res.ok) {
+    const status = res ? res.status : 'no_response';
+    const msg = (data && (data.error || data.message)) || `saveDraft failed: ${status}`;
+    console.error('[saveDraftBolt] all attempts failed', status, msg, { url, payload, data });
+    const err = new Error(`${msg} (${status})`);
+    try { err.status = status; } catch {}
     throw err;
   }
-  console.debug('[saveDraftBolt] success', { url, data });
   // Expected: { success:true, page_id, slug, version, message }
   return {
     id: (data && (data.page_id || data.id)) || page_id || null,
