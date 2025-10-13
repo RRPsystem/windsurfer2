@@ -995,6 +995,20 @@ class WebsiteBuilder {
         }
     }
 
+    // ---------- Notifications (minimal helpers) ----------
+    showNotification(message, type = 'info') {
+        try {
+            if (window.ExportManager && typeof window.ExportManager.showNotification === 'function') {
+                window.ExportManager.showNotification(message, type);
+                return;
+            }
+        } catch {}
+        try { console[type === 'error' ? 'error' : (type === 'success' ? 'log' : 'info')](message); } catch {}
+    }
+    showErrorMessage(message) {
+        try { this.showNotification(`❌ ${message}`, 'error'); } catch { try { console.error(message); } catch {} }
+    }
+
     // Public API methods
     getProjectData() {
         // Sync current canvas to current page before export (safe)
