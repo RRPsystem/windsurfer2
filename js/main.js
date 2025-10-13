@@ -674,7 +674,7 @@ class WebsiteBuilder {
         try {
             const saveBtn = document.getElementById('saveProjectBtn');
             if (!saveBtn) return;
-            saveBtn.__wbSaveHandler = async (ev) => {
+            saveBtn.onclick = saveBtn.__wbSaveHandler = async (ev) => {
                 try { window.WB_lastSaveDebug = { t: Date.now(), phase: 'click_start' }; console.debug('WB/save click'); } catch {}
                 try { ev.preventDefault(); } catch {}
                 // Re-entrancy guard: if previous save still running, ignore
