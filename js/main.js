@@ -1,4 +1,4 @@
-﻿// Main JavaScript file voor Website Builder
+// Main JavaScript file voor Website Builder
 
 // Heuristic: find nested builder JSON (looks for pages array + currentPageId)
 function __WB_findBuilderJson(any){
@@ -891,9 +891,9 @@ class WebsiteBuilder {
                         this._savingInFlight = false;
                     } catch (e) {}
                 } catch (e) {}
-            }
+            };
 
-    // Pause heavy observers/timers when tab is hidden; resume cleanly on focus
+// Pause heavy observers/timers when tab is hidden; resume cleanly on focus
     setupVisibilityGuards() {
         try {
             if (this._visGuardsInstalled) return; this._visGuardsInstalled = true;
