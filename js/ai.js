@@ -1,4 +1,4 @@
-// Simple client for AI generation via serverless endpoint
+﻿// Simple client for AI generation via serverless endpoint
 (function(){
   const DEFAULT_ENDPOINT = '/api/ai-writer';
 
@@ -21,7 +21,7 @@
       const url = new URL(window.location.href);
       const qp = url.searchParams.get('ai_endpoint');
       if (qp) return qp;
-    } catch {}
+    } catch (e) {}
     return DEFAULT_ENDPOINT;
   }
 
@@ -30,16 +30,16 @@
     try {
       const heroTitle = document.querySelector('.wb-hero-page .hero-title');
       if (heroTitle && heroTitle.textContent.trim()) return heroTitle.textContent.trim();
-    } catch {}
+    } catch (e) {}
     try {
       const cfTitle = Array.from(document.querySelectorAll('.wb-content-flex .cf-title')).map(el=>el.textContent.trim()).find(t=>/^Over\s+/.test(t));
       if (cfTitle) return cfTitle.replace(/^Over\s+/,'').trim();
-    } catch {}
+    } catch (e) {}
     // Fallback: current page name if available
     try {
       const cur = (window.Builder?.pages||[]).find(p=>p.id===window.Builder?.currentPageId) || null;
       if (cur && cur.name) return String(cur.name);
-    } catch {}
+    } catch (e) {}
     return '';
   }
 

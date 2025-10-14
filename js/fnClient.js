@@ -1,4 +1,4 @@
-// js/fnClient.js
+﻿// js/fnClient.js
 (function(){
   function boltProjectBase(){
     if (!(window.BOLT_API && window.BOLT_API.baseUrl)) return null;

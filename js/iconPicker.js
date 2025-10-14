@@ -1,4 +1,4 @@
-// Reusable Icon Picker using Font Awesome (v6 Free)
+﻿// Reusable Icon Picker using Font Awesome (v6 Free)
 // Usage: IconPicker.open({ current: 'fa-plane' }).then(({ icon }) => { ... })
 
 class IconPicker {

@@ -1,4 +1,4 @@
-// js/views/menuFooterView.js
+﻿// js/views/menuFooterView.js
 (function(){
   function el(tag, attrs={}, html){
     const e = document.createElement(tag);
@@ -14,7 +14,7 @@
     return [
       {
         id: 'main-basic',
-        label: 'Main – Basic',
+        label: 'Main â€“ Basic',
         key: 'main',
         items: [
           { label: 'Home', href: '/' },
@@ -27,12 +27,12 @@
       },
       {
         id: 'main-mega-stub',
-        label: 'Main – Mega (stub)',
+        label: 'Main â€“ Mega (stub)',
         key: 'main',
         items: [
           { label: 'Bestemmingen', href: '/bestemmingen', children: [
             { label: 'Europa', href: '/bestemmingen/europa' },
-            { label: 'Azië', href: '/bestemmingen/azie' },
+            { label: 'AziÃ«', href: '/bestemmingen/azie' },
             { label: 'Amerika', href: '/bestemmingen/amerika' }
           ]},
           { label: 'Reizen', href: '/reizen' },
@@ -41,7 +41,7 @@
       },
       {
         id: 'footer-compact',
-        label: 'Footer – Compact',
+        label: 'Footer â€“ Compact',
         key: 'footer',
         items: [
           { label: 'Over ons', href: '/over' },
@@ -82,7 +82,7 @@
     const keyWrap = el('div', { style: 'display:flex;gap:8px;align-items:center;margin:8px 0;' });
     keyWrap.appendChild(el('label', { style:'font-weight:700;color:#374151;' }, 'Menu key'));
     const sel = el('select', { class: 'form-control' });
-    sel.innerHTML = '<option value="main">main</option><option value="footer">footer</option><option value="custom">custom…</option>';
+    sel.innerHTML = '<option value="main">main</option><option value="footer">footer</option><option value="custom">customâ€¦</option>';
     const customInput = el('input', { class:'form-control', placeholder:'custom key', style:'display:none' });
     keyWrap.appendChild(sel);
     keyWrap.appendChild(customInput);
@@ -167,7 +167,7 @@
       });
     }
     socialsAdd.onclick = () => {
-      let arr=[]; try { arr = JSON.parse(socialsHidden.value||'[]'); } catch { arr=[]; }
+      let arr=[]; try { arr = JSON.parse(socialsHidden.value||'[]'); } catch (e) { arr=[]; }
       arr.push({ icon:'fa-brands fa-facebook', href:'https://facebook.com' });
       socialsHidden.value = JSON.stringify(arr); redrawSocials(); renderTop();
     };
@@ -231,7 +231,7 @@
     colsWrap.appendChild(colsList);
 
     function readCols(){
-      try { const arr = JSON.parse(ftrColsHidden.value||'[]'); return Array.isArray(arr)?arr:[]; } catch { return []; }
+      try { const arr = JSON.parse(ftrColsHidden.value||'[]'); return Array.isArray(arr)?arr:[]; } catch (e) { return []; }
     }
     function writeCols(arr){ ftrColsHidden.value = JSON.stringify(arr); renderFooter(); }
     function redrawCols(){
@@ -265,7 +265,7 @@
             const del = el('button', { type:'button', class:'btn btn-secondary' }, 'X');
             del.onclick = () => { const b = readCols(); b[ci].links.splice(li,1); writeCols(b); redrawLinks(); };
             lab.oninput = () => { const b = readCols(); b[ci].links[li].label = lab.value; writeCols(b); };
-            pick.onclick = async () => { try { const { icon } = await window.IconPicker.open({ current: lk.icon||'', compact:true }); if (icon){ const b = readCols(); b[ci].links[li].icon = icon; writeCols(b); redrawLinks(); } } catch {} };
+            pick.onclick = async () => { try { const { icon } = await window.IconPicker.open({ current: lk.icon||'', compact:true }); if (icon){ const b = readCols(); b[ci].links[li].icon = icon; writeCols(b); redrawLinks(); } } catch (e) {} };
             href.oninput = () => { const b = readCols(); b[ci].links[li].href = href.value; writeCols(b); };
             row.appendChild(lab); row.appendChild(pick); row.appendChild(href); row.appendChild(del);
             linksList.appendChild(row);
@@ -321,7 +321,7 @@
         const headerHtml = window.LayoutsBuilder.exportHeaderAsHTML(headerJson);
         topInner.innerHTML = headerHtml;
         // Populate menus inside header navs after injecting HTML
-        try { window.MenuPreview?.render(form.__menuMap); } catch {}
+        try { window.MenuPreview?.render(form.__menuMap); } catch (e) {}
       } catch (e) { console.warn('Preview render failed', e); }
     };
 
@@ -334,8 +334,8 @@
     // Wire controls
     sel.onchange = () => { customInput.style.display = sel.value==='custom' ? '' : 'none'; updateView(); renderTop(); };
     customInput.oninput = () => updateView();
-    btnImport.onclick = async (e) => { e.preventDefault(); await window.LayoutsBuilder.importPagesFromBoltIntoForm(form, treeWrap, currentKey()); try { window.MenuPreview?.render(form.__menuMap); } catch {}; renderTop(); };
-    btnPublish.onclick = (e) => { e.preventDefault(); window.LayoutsBuilder.doMenuSavePublish(form, 'publish'); try { window.MenuPreview?.render(form.__menuMap); } catch {}; renderTop(); };
+    btnImport.onclick = async (e) => { e.preventDefault(); await window.LayoutsBuilder.importPagesFromBoltIntoForm(form, treeWrap, currentKey()); try { window.MenuPreview?.render(form.__menuMap); } catch (e) {}; renderTop(); };
+    btnPublish.onclick = (e) => { e.preventDefault(); window.LayoutsBuilder.doMenuSavePublish(form, 'publish'); try { window.MenuPreview?.render(form.__menuMap); } catch (e) {}; renderTop(); };
 
     // Header actions
     hdrSave.onclick = async (e) => { e.preventDefault(); await window.LayoutsBuilder.doHeaderSavePublish(hdrForm, 'save'); renderTop(); };
@@ -352,14 +352,14 @@
         const footerJson = window.LayoutsBuilder.exportFooterAsJSON(ftrForm);
         const footerHtml = window.LayoutsBuilder.exportFooterAsHTML(footerJson);
         btmInner.innerHTML = footerHtml;
-        try { window.MenuPreview?.render(form.__menuMap); } catch {}
+        try { window.MenuPreview?.render(form.__menuMap); } catch (e) {}
       } catch (e) { console.warn('Footer render failed', e); }
     };
     renderFooter();
     ;['input','change'].forEach(ev => ftrForm.addEventListener(ev, () => renderFooter()));
 
     // First render of preview from cache (header)
-    try { window.MenuPreview?.render(); } catch {}
+    try { window.MenuPreview?.render(); } catch (e) {}
   }
 
   window.MenuFooterView = { mount };

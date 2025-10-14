@@ -1,4 +1,4 @@
-// js/menuRender.js
+﻿// js/menuRender.js
 (function(){
   function ensureArray(x){ return Array.isArray(x) ? x : (x ? [x] : []); }
 

@@ -1,4 +1,4 @@
-// Properties panel voor component editing
+﻿// Properties panel voor component editing
 class PropertiesPanel {
     constructor() {
         this.panel = document.getElementById('propertiesContent');
@@ -115,13 +115,13 @@ class PropertiesPanel {
         picks.appendChild(btnLeft); picks.appendChild(btnRight);
         this.panel.appendChild(picks);
 
-        // Tags (for news filtering) — chips UI stored globally for publish fallback
+        // Tags (for news filtering) â€” chips UI stored globally for publish fallback
         try {
             const grp = this.createFormGroup('Tags (nieuws)');
             const wrap = document.createElement('div');
             wrap.style.display = 'flex'; wrap.style.gap = '8px'; wrap.style.alignItems = 'center';
             const ul = document.createElement('ul'); ul.style.display='flex'; ul.style.flexWrap='wrap'; ul.style.gap='6px'; ul.style.listStyle='none'; ul.style.margin='6px 0 0'; ul.style.padding='0';
-            const input = document.createElement('input'); input.type='text'; input.className='form-control'; input.placeholder='Voeg tag toe… (Enter of ,)'; input.style.maxWidth='220px';
+            const input = document.createElement('input'); input.type='text'; input.className='form-control'; input.placeholder='Voeg tag toeâ€¦ (Enter of ,)'; input.style.maxWidth='220px';
             const read = ()=> Array.from(ul.querySelectorAll('li[data-tag]')).map(li=>li.getAttribute('data-tag')).filter(Boolean);
             const write = (arr)=>{
                 ul.innerHTML='';
@@ -129,19 +129,19 @@ class PropertiesPanel {
                     const li=document.createElement('li'); li.setAttribute('data-tag', t);
                     li.style.cssText='background:#eef2ff;color:#3730a3;border:1px solid #e5e7eb;border-radius:20px;padding:4px 10px;font-size:12px;display:flex;gap:6px;align-items:center;';
                     const span=document.createElement('span'); span.textContent=t;
-                    const x=document.createElement('button'); x.type='button'; x.className='btn btn-secondary btn-small'; x.textContent='×'; x.style.padding='0 6px';
-                    x.onclick=()=>{ const next=read().filter(v=>v!==t); write(next); try{ window.CURRENT_NEWS_TAGS = next; }catch{} };
+                    const x=document.createElement('button'); x.type='button'; x.className='btn btn-secondary btn-small'; x.textContent='Ã—'; x.style.padding='0 6px';
+                    x.onclick=()=>{ const next=read().filter(v=>v!==t); write(next); try{ window.CURRENT_NEWS_TAGS = next; }catch (e) {} };
                     li.appendChild(span); li.appendChild(x); ul.appendChild(li);
                 });
             };
-            const add=(raw)=>{ const base=read(); const parts=String(raw||'').split(',').map(s=>s.trim()).filter(Boolean); if(!parts.length) return; const next=Array.from(new Set(base.concat(parts))).slice(0,20); write(next); input.value=''; try{ window.CURRENT_NEWS_TAGS = next; }catch{} };
+            const add=(raw)=>{ const base=read(); const parts=String(raw||'').split(',').map(s=>s.trim()).filter(Boolean); if(!parts.length) return; const next=Array.from(new Set(base.concat(parts))).slice(0,20); write(next); input.value=''; try{ window.CURRENT_NEWS_TAGS = next; }catch (e) {} };
             input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===','){ e.preventDefault(); add(input.value); }});
             const btn=document.createElement('button'); btn.type='button'; btn.className='btn btn-secondary'; btn.textContent='Toevoegen'; btn.onclick=()=>add(input.value);
             // init from globals if present
-            let initial=[]; try{ const g=window.CURRENT_NEWS_TAGS; initial = Array.isArray(g)? g : (typeof g==='string'? g.split(',').map(s=>s.trim()).filter(Boolean): []);}catch{}
+            let initial=[]; try{ const g=window.CURRENT_NEWS_TAGS; initial = Array.isArray(g)? g : (typeof g==='string'? g.split(',').map(s=>s.trim()).filter(Boolean): []);}catch (e) {}
             write(initial);
             wrap.appendChild(input); wrap.appendChild(btn); grp.appendChild(wrap); grp.appendChild(ul); this.panel.appendChild(grp);
-        } catch {}
+        } catch (e) {}
 
         // CTAs (default off)
         // Simple two CTA config stored in dataset on component for now
@@ -175,12 +175,12 @@ class PropertiesPanel {
                     const cs = getComputedStyle(component);
                     const v = cs.getPropertyValue('--cf-accent').trim();
                     if (v) curAccent = v;
-                } catch {}
+                } catch (e) {}
                 if (!curAccent) curAccent = '#16a34a';
             }
             const colorEl = this.createColorInput('CTA kleur', curAccent, (v)=>{
                 component._ctaColor = v;
-                try { component.style.setProperty('--cf-accent', v); } catch {}
+                try { component.style.setProperty('--cf-accent', v); } catch (e) {}
                 updateCtas();
             });
             wrap.appendChild(colorEl);
@@ -306,7 +306,7 @@ class PropertiesPanel {
                     const r = await window.MediaPicker.openImage();
                     const u = r && (r.fullUrl || r.regularUrl || r.url || r.dataUrl);
                     if (!u) break; collected.push(u);
-                } catch { break; }
+                } catch (e) { break; }
             }
             if (collected.length) { api.addImages && api.addImages(collected); renderList(); }
         });
@@ -318,7 +318,7 @@ class PropertiesPanel {
                     const r = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
                     const u = r && (r.fullUrl || r.regularUrl || r.url || r.dataUrl);
                     if (!u) break; collected.push(u);
-                } catch { break; }
+                } catch (e) { break; }
                 if (collected.length > 20) break;
             }
             if (collected.length) { api.addImages && api.addImages(collected); renderList(); }
@@ -346,7 +346,7 @@ class PropertiesPanel {
                         const u = r && (r.fullUrl || r.regularUrl || r.url || r.dataUrl);
                         if (!u) return;
                         const next = imgs.slice(); next[i] = u; api.setImages && api.setImages(next); renderList();
-                    } catch {}
+                    } catch (e) {}
                 };
                 const pick = document.createElement('button'); pick.className='btn btn-secondary btn-small'; pick.textContent='Kies'; pick.onclick = async ()=>{
                     try {
@@ -355,7 +355,7 @@ class PropertiesPanel {
                         const u = r && (r.fullUrl || r.regularUrl || r.url || r.dataUrl);
                         if (!u) return;
                         const next = imgs.slice(); next[i] = u; api.setImages && api.setImages(next); renderList();
-                    } catch {}
+                    } catch (e) {}
                 };
                 const label = document.createElement('input'); label.type='text'; label.placeholder='Label (optioneel)'; label.onchange=()=> api.setItemMeta && api.setItemMeta(i,{label: label.value});
                 const href = document.createElement('input'); href.type='text'; href.placeholder='URL (optioneel)'; href.onchange=()=> api.setItemMeta && api.setItemMeta(i,{href: href.value});
@@ -390,7 +390,7 @@ class PropertiesPanel {
         aiCap.style.background = '#0ea5e9'; aiCap.style.borderColor = '#0ea5e9'; aiCap.style.color = '#fff';
         this.panel.appendChild(aiCap);
 
-        // Count control – aantal foto's bepalen
+        // Count control â€“ aantal foto's bepalen
         const getCount = () => ((api.getImages && api.getImages()) || []).length;
         const initialCount = String(getCount() || 4);
         this.createRangeInput('Aantal foto\'s', initialCount, '1', '24', '1', async (v) => {
@@ -402,7 +402,7 @@ class PropertiesPanel {
                 renderList();
                 return;
             }
-            // desired > current.length → vul aan via MediaPicker (sequentieel)
+            // desired > current.length â†’ vul aan via MediaPicker (sequentieel)
             const missing = desired - current.length;
             const added = [];
             for (let i = 0; i < missing; i++) {
@@ -412,7 +412,7 @@ class PropertiesPanel {
                     const u = r && (r.fullUrl || r.regularUrl || r.url || r.dataUrl);
                     if (!u) break;
                     added.push(u);
-                } catch { break; }
+                } catch (e) { break; }
             }
             if (added.length) { api.addImages && api.addImages(added); }
             renderList();
@@ -455,11 +455,11 @@ class PropertiesPanel {
                         if (tEl) tEl.textContent = d.title || tEl.textContent;
                         if (sEl) sEl.textContent = d.summary || sEl.textContent;
                     });
-                } catch { alert('AI highlights genereren mislukt.'); }
+                } catch (e) { alert('AI highlights genereren mislukt.'); }
             });
             aiBtnHl.style.background = '#0ea5e9'; aiBtnHl.style.borderColor = '#0ea5e9'; aiBtnHl.style.color = '#fff';
             this.panel.appendChild(aiBtnHl);
-        } catch {}
+        } catch (e) {}
 
         if (labelEl) this.createTextInput('Label', labelEl.textContent, (v) => { labelEl.textContent = v; });
         if (titleEl) this.createTextInput('Titel', titleEl.textContent, (v) => { titleEl.textContent = v; });
@@ -570,7 +570,7 @@ class PropertiesPanel {
                 if (!window.MediaPicker) return;
                 const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
                 const src = (res && (res.fullUrl || res.regularUrl || res.url || res.dataUrl || res.src || res.imageUrl || res.downloadUrl)) || '';
-                try { console.debug('[hero-page][props] media chosen src', src, res); } catch {}
+                try { console.debug('[hero-page][props] media chosen src', src, res); } catch (e) {}
                 if (src && bgImg) {
                     if (typeof window.__WB_applyResponsiveSrc === 'function') {
                         window.__WB_applyResponsiveSrc(bgImg, src);
@@ -587,7 +587,7 @@ class PropertiesPanel {
         pickBg.style.background = '#ff7700'; pickBg.style.borderColor = '#ff7700'; pickBg.style.color = '#fff';
         this.panel.appendChild(pickBg);
 
-        // Height (min-height on section) — use numeric slider and add 'px' via callback
+        // Height (min-height on section) â€” use numeric slider and add 'px' via callback
         const currentH = parseInt(component.style.minHeight || '600', 10).toString();
         this.createRangeInput('Hoogte (px)', currentH, '120', '1000', '1', (v) => {
             const num = parseInt(v, 10) || 0;
@@ -621,7 +621,7 @@ class PropertiesPanel {
         const curColor = word?.style.color || '#ffffff';
         this.createColorInput('Woord kleur', curColor, (v) => { if (word) word.style.color = v; });
 
-        // Word font size — numeric slider, add 'px' in callback
+        // Word font size â€” numeric slider, add 'px' in callback
         const curSize = parseInt(word?.style.fontSize || '200', 10).toString();
         this.createRangeInput('Woord grootte (px)', curSize, '18', '300', '1', (v) => {
             if (word) {
@@ -634,11 +634,11 @@ class PropertiesPanel {
         const curOp = word?.style.opacity || '1';
         this.createRangeInput('Woord transparantie', curOp, '0', '1', '0.01', (v) => { if (word) word.style.opacity = String(parseFloat(v)); });
 
-        // Position X (left) as percentage to move across full width — numeric slider 0–95
+        // Position X (left) as percentage to move across full width â€” numeric slider 0â€“95
         const curLeft = (word?.style.left || '5%').replace('%','');
         this.createRangeInput('Positie X (%)', curLeft, '0', '95', '1', (v) => { if (word) word.style.left = `${parseInt(v,10)||0}%`; });
 
-        // Position Y (bottom) in px with wider range and a quick snap button — numeric slider
+        // Position Y (bottom) in px with wider range and a quick snap button â€” numeric slider
         const curBottom = parseInt(word?.style.bottom || '-6', 10).toString();
         this.createRangeInput('Positie Y (px)', curBottom, '-300', '300', '1', (v) => { if (word) word.style.bottom = `${parseInt(v,10)||0}px`; });
         const snapBtn = this.createButton('Zet woord op bodem (0px)', () => { if (word) word.style.bottom = '0px'; });
@@ -674,12 +674,12 @@ class PropertiesPanel {
                 const cssBg = bg.style.backgroundImage || getComputedStyle(bg).backgroundImage || '';
                 const m = cssBg.match(/^url\("?(.+?)"?\)$/);
                 if (m && m[1]) bgImg.src = m[1];
-            } catch {}
+            } catch (e) {}
             bgImg.alt = 'Hero background';
             bgImg.decoding = 'async';
             bgImg.loading = 'eager';
             bg.insertBefore(bgImg, bg.firstChild || null);
-            try { bg.style.backgroundImage = ''; } catch {}
+            try { bg.style.backgroundImage = ''; } catch (e) {}
         }
         const overlay = component.querySelector('.hero-overlay');
         const badge = component.querySelector('.hero-badge');
@@ -691,7 +691,7 @@ class PropertiesPanel {
         const currentBg = (bgImg && bgImg.src) ? bgImg.src : '';
         const bgGroup = this.createTextInput('Achtergrond URL', currentBg, (value) => {
             if (bgImg) bgImg.src = value;
-            if (bg && value) try { bg.style.backgroundImage = `url("${value}")`; } catch {}
+            if (bg && value) try { bg.style.backgroundImage = `url("${value}")`; } catch (e) {}
         });
         const inputEl = bgGroup.querySelector('input.form-control');
         if (inputEl) {
@@ -718,7 +718,7 @@ class PropertiesPanel {
                 const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
                 if (src) {
                     if (bgImg) bgImg.src = src;
-                    if (bg) try { bg.style.backgroundImage = `url("${src}")`; } catch {}
+                    if (bg) try { bg.style.backgroundImage = `url("${src}")`; } catch (e) {}
                     inputEl.value = src;
                 }
             };
@@ -732,7 +732,7 @@ class PropertiesPanel {
             const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
             if (src) {
                 if (bgImg) bgImg.src = src;
-                if (bg) try { bg.style.backgroundImage = `url("${src}")`; } catch {}
+                if (bg) try { bg.style.backgroundImage = `url("${src}")`; } catch (e) {}
             }
         });
         this.panel.appendChild(pickBgBtn);
@@ -1222,7 +1222,7 @@ class PropertiesPanel {
                         }
                         if (src) {
                             if (bgImg) bgImg.src = src;
-                            if (bg) try { bg.style.backgroundImage = `url("${src}")`; } catch {}
+                            if (bg) try { bg.style.backgroundImage = `url("${src}")`; } catch (e) {}
                         }
                     });
                     // Emphasize button visually
@@ -1401,7 +1401,7 @@ class PropertiesPanel {
             let x = li.querySelector('[data-tag-del]');
             if (!x) { x = document.createElement('button'); x.type='button'; x.setAttribute('data-tag-del',''); li.appendChild(x); }
             x.title = 'Verwijder tag';
-            x.textContent = '×';
+            x.textContent = 'Ã—';
             x.style.cssText = 'background:transparent;border:none;color:#111827;font-weight:700;cursor:pointer;padding:0 6px;';
             x.onclick = () => { const list = readTags().filter(v => v !== text); writeTags(list); syncGlobals(list); };
         };
@@ -1418,7 +1418,7 @@ class PropertiesPanel {
             });
         };
         const syncGlobals = (tags) => {
-            try { window.CURRENT_NEWS_TAGS = tags.slice(0, 50); } catch {}
+            try { window.CURRENT_NEWS_TAGS = tags.slice(0, 50); } catch (e) {}
         };
 
         // UI group
@@ -1426,7 +1426,7 @@ class PropertiesPanel {
         const wrap = document.createElement('div');
         wrap.style.display = 'flex'; wrap.style.gap = '8px'; wrap.style.alignItems = 'center';
         const input = document.createElement('input');
-        input.type = 'text'; input.className = 'form-control'; input.placeholder = 'Voeg tag toe… (Enter of ,)'; input.style.maxWidth = '220px';
+        input.type = 'text'; input.className = 'form-control'; input.placeholder = 'Voeg tag toeâ€¦ (Enter of ,)'; input.style.maxWidth = '220px';
         const add = (raw) => {
             const base = readTags();
             const parts = String(raw||'').split(',').map(s=>s.trim()).filter(Boolean);
@@ -1555,7 +1555,7 @@ class PropertiesPanel {
                         if (!u) return;
                         api.updateItem && api.updateItem(active, idx, { img: u });
                         renderList();
-                    } catch {}
+                    } catch (e) {}
                 };
 
                 // Title
@@ -1566,7 +1566,7 @@ class PropertiesPanel {
                 // Summary
                 const sum = document.createElement('input');
                 sum.type = 'text'; sum.className = 'form-control'; sum.value = it.summary || '';
-                sum.placeholder = '2–3 regels';
+                sum.placeholder = '2â€“3 regels';
                 sum.onchange = () => { api.updateItem && api.updateItem(active, idx, { summary: sum.value }); };
 
                 // Link
@@ -1800,7 +1800,7 @@ class PropertiesPanel {
                     component._transitionType = component._transitionType || 'fade';
                 }
             }
-        } catch {}
+        } catch (e) {}
 
         // Slideshow interval (visible also when user selects slideshow mode)
         const defaultMs = component._slideshowInterval || 3500;
@@ -2045,7 +2045,7 @@ class PropertiesPanel {
                 img.style.height = '64px';
                 img.style.objectFit = 'cover';
                 const del = document.createElement('button');
-                del.textContent = '×';
+                del.textContent = 'Ã—';
                 del.title = 'Verwijderen';
                 del.style.position = 'absolute';
                 del.style.top = '2px';
@@ -2408,11 +2408,11 @@ class PropertiesPanel {
                         if (p) p.textContent = d.summary || p.textContent;
                         if (iconEl && d.icon) { iconEl.className = `fas ${d.icon}`; }
                     });
-                } catch { alert('AI activiteiten genereren mislukt.'); }
+                } catch (e) { alert('AI activiteiten genereren mislukt.'); }
             });
             aiBtnAct.style.background = '#0ea5e9'; aiBtnAct.style.borderColor = '#0ea5e9'; aiBtnAct.style.color = '#fff';
             this.panel.appendChild(aiBtnAct);
-        } catch {}
+        } catch (e) {}
 
         // Colors: title, subtitle, and labels on cards
         if (titleEl) {
@@ -2997,11 +2997,11 @@ class PropertiesPanel {
         let tId = null;
         const safeCall = (val)=>{ try { if (typeof onChange === 'function') onChange(val); } catch(err){ console.warn('text onChange failed', err); } };
         input.addEventListener('input', (e) => {
-            try { e.stopPropagation(); } catch {}
-            try { window.websiteBuilder && typeof window.websiteBuilder.markTyping==='function' && window.websiteBuilder.markTyping(900); } catch {}
+            try { e.stopPropagation(); } catch (e) {}
+            try { window.websiteBuilder && typeof window.websiteBuilder.markTyping==='function' && window.websiteBuilder.markTyping(900); } catch (e) {}
             const val = e.target.value;
             if (tId) clearTimeout(tId);
-            tId = setTimeout(()=> { try { requestAnimationFrame(()=> safeCall(val)); } catch { safeCall(val); } }, 220);
+            tId = setTimeout(()=> { try { requestAnimationFrame(()=> safeCall(val)); } catch (e) { safeCall(val); } }, 220);
         }, { passive: true });
         group.appendChild(input);
         this.panel.appendChild(group);

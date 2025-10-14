@@ -1,4 +1,4 @@
-// Vercel Serverless Function: GET /api/version
+﻿// Vercel Serverless Function: GET /api/version
 // Returns deployment metadata to identify which build is running.
 
 export default async function handler(req, res) {

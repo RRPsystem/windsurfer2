@@ -1,4 +1,4 @@
-// js/router.js
+﻿// js/router.js
 (function(){
   const MODES = [
     { value: 'page', label: 'Web pagina' },
@@ -35,18 +35,18 @@
       }
     } catch (e) {}
   }
-  try { window.WB_tryScaffold = WB_tryScaffold; } catch {}
+  try { window.WB_tryScaffold = WB_tryScaffold; } catch (e) {}
 
   function hideHeaderPageButtonsNow(){
     try {
       ['newPageQuickBtn','pagesBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
       document.querySelectorAll('button, a').forEach(el => {
         const txt = (el.textContent || '').trim().toLowerCase();
-        if (txt === "nieuwe pagina" || txt === "pagina's" || txt === 'paginas' || txt === 'pagina’s') {
+        if (txt === "nieuwe pagina" || txt === "pagina's" || txt === 'paginas' || txt === 'paginaâ€™s') {
           el.style.display = 'none';
         }
       });
-    } catch {}
+    } catch (e) {}
   }
 
   function observeHeaderButtons(){
@@ -57,7 +57,7 @@
       mo.observe(header, { childList: true, subtree: true });
       header.__wb_observing = true;
       hideHeaderPageButtonsNow();
-    } catch {}
+    } catch (e) {}
   }
 
   function isCanvasEffectivelyEmpty(){
@@ -66,15 +66,15 @@
       if (!canvas) return true;
       const hasComp = !!canvas.querySelector('.wb-component');
       return !hasComp;
-    } catch { return true; }
+    } catch (e) { return true; }
   }
 
   function readModeFromStorage(){
-    try { return localStorage.getItem('wb_mode') || null; } catch { return null; }
+    try { return localStorage.getItem('wb_mode') || null; } catch (e) { return null; }
   }
 
   function saveMode(mode){
-    try { localStorage.setItem('wb_mode', mode); } catch {}
+    try { localStorage.setItem('wb_mode', mode); } catch (e) {}
   }
 
   function ensureMiniMenu(){
@@ -83,7 +83,7 @@
     // en maken we GEEN extra mini-balk aan.
     try {
       if ((window.BOLT_API && window.BOLT_API.baseUrl) || document.getElementById('topModeSelect')) return null;
-    } catch {}
+    } catch (e) {}
     const header = document.querySelector('.app-header');
     const bar = document.createElement('div');
     bar.id = 'miniMenuBar';
@@ -218,7 +218,7 @@
         if (which === 'news' && builder && typeof builder.createNewsArticleTemplate === 'function') {
           builder.createNewsArticleTemplate();
         }
-      } catch {}
+      } catch (e) {}
     };
 
     if (mode === 'destination') {
@@ -249,7 +249,7 @@
             builder.createNewsArticleTemplate();
           }
         }
-      } catch {}
+      } catch (e) {}
       tryScaffold('news', 0);
       // Fallback delayed attempts
       setTimeout(() => WB_tryScaffold('news', 0), 1000);
@@ -281,7 +281,7 @@
       if (layoutBtn) layoutBtn.style.display = isPage ? '' : 'none';
       // Always keep essential buttons visible
       ['backToDashboardBtn','saveProjectBtn','previewBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = ''; });
-    } catch {}
+    } catch (e) {}
   }
 
   function setupGlobalModeClickDelegation(){
@@ -300,7 +300,7 @@
           e.preventDefault();
           setMode(m);
         }
-      } catch {}
+      } catch (e) {}
     }, true);
   }
 
@@ -333,5 +333,5 @@
   } else { init(); }
 
   // Expose a safe global so other scripts (e.g., header UI) can force a mode
-  try { window.WB_setMode = (m) => { try { setMode(m); } catch {} }; } catch {}
+  try { window.WB_setMode = (m) => { try { setMode(m); } catch (e) {} }; } catch (e) {}
 })();

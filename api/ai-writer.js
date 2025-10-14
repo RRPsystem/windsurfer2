@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+﻿export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
         return `Geef ${count} activiteiten voor ${country}. Voor elk item: titel (3-5 woorden), korte samenvatting (10-20 woorden) en een geschikt Font Awesome 6 icon-naam (fa-...)
 Als JSON: [{"title":"..","summary":"..","icon":"fa-..."}]`;
       case 'extra':
-        return `Schrijf een extra tekstblok (80-120 woorden) met praktische tips of context voor ${country}. Eén alinea.`;
+        return `Schrijf een extra tekstblok (80-120 woorden) met praktische tips of context voor ${country}. EÃ©n alinea.`;
       case 'gallery_captions':
         return `Geef bij ${images.length} foto\'s over ${country} een korte caption (6-10 woorden) die algemeen past.
 Als JSON: [{"caption":".."}] met dezelfde volgorde als de foto\'s.`;
@@ -69,7 +69,7 @@ Als JSON: [{"caption":".."}] met dezelfde volgorde als de foto\'s.`;
 
     let parsed = null;
     if (section === 'highlights' || section === 'activities' || section === 'gallery_captions') {
-      try { parsed = JSON.parse(content); } catch { /* if model returned prose, fallback below */ }
+      try { parsed = JSON.parse(content); } catch (e) { /* if model returned prose, fallback below */ }
     }
 
     if (section === 'intro') return res.json({ intro: { text: content } });

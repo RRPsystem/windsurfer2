@@ -1,4 +1,4 @@
-(function(){
+﻿(function(){
   // Simple cache-busting via commit SHA from /api/version
   const qs = new URLSearchParams(location.search);
   const currentV = qs.get('v') || '';

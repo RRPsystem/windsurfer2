@@ -1,4 +1,4 @@
-// Settings modal to configure API credentials and target without deeplinks
+﻿// Settings modal to configure API credentials and target without deeplinks
 (function(){
   'use strict';
   const ls = {
@@ -38,8 +38,8 @@
     const set = ()=>{
       if (!window.websiteBuilder) return;
       window.websiteBuilder._edgeCtx = edge;
-      try { window.websiteBuilder._edgeDisabled = false; } catch {}
-      try { window.websiteBuilder.updateEdgeBadge && window.websiteBuilder.updateEdgeBadge(); } catch {}
+      try { window.websiteBuilder._edgeDisabled = false; } catch (e) {}
+      try { window.websiteBuilder.updateEdgeBadge && window.websiteBuilder.updateEdgeBadge(); } catch (e) {}
     };
     if (window.websiteBuilder) set(); else document.addEventListener('DOMContentLoaded', set);
   };
@@ -48,7 +48,7 @@
       const map = { page:'#/mode/page', news:'#/mode/news', destination:'#/mode/destination' };
       const h = map[mode]||map.page;
       if (String(location.hash||'') !== h) location.hash = h;
-    } catch {}
+    } catch (e) {}
   };
 
   function openSettings(){
@@ -80,7 +80,7 @@
         </div>
       </div>`;
     modal.appendChild(box); document.body.appendChild(modal);
-    const close = ()=>{ try { document.body.removeChild(modal); } catch {} };
+    const close = ()=>{ try { document.body.removeChild(modal); } catch (e) {} };
     box.querySelector('.modal-close').onclick = close; box.querySelector('#stClose').onclick = close;
 
     // Prefill
