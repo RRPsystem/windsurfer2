@@ -910,7 +910,9 @@ class WebsiteBuilder {
                         if (this._headerMO && this._headerTarget) {
                             this._headerMO.observe(this._headerTarget, { childList: true, subtree: true, attributes: false });
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        // console.warn('Header MO observe failed', e);
+                    }
                     try { this.setupBoltDeeplinkSave && this.setupBoltDeeplinkSave(); } catch (e) {}
                     try { const s = document.getElementById('pageSaveStatus'); if (s) s.textContent = 'Opgeslagen'; } catch (e) {}
                 }, 300);
