@@ -891,7 +891,7 @@ class WebsiteBuilder {
                         this._savingInFlight = false;
                     } catch (e) {}
                 } catch (e) {}
-            };
+            }
 
     // Pause heavy observers/timers when tab is hidden; resume cleanly on focus
     setupVisibilityGuards() {
