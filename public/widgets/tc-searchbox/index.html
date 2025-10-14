@@ -1,3 +1,75 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zoekbox – Trip Planner</title>
+  <!-- Core vendor CSS from HAR (can be inlined locally later) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/primeicons/7.0.0/primeicons.min.css">
+  <!-- Site-specific CSS (keep remote for now; we can mirror later) -->
+  <link rel="stylesheet" href="https://rondreis-planner.nl/javax.faces.resource/css/reset.min.css">
+  <link rel="stylesheet" href="https://rondreis-planner.nl/javax.faces.resource/css/icons/icons.css">
+  <link rel="stylesheet" href="https://rondreis-planner.nl/css/clientes/rondreis-planner/styles_rondreis-planner.css">
 
+  <style>
+    :root { color-scheme: light; }
+    html, body { height: 100%; }
+    body { margin: 0; background: transparent; }
+    /* Container to keep things centered and avoid internal scrollbars */
+    .tc-local-wrap { max-width: 1100px; margin: 0 auto; padding: 0; }
+    /* Hide any example-only banners if scripts inject them */
+    .c-alert.c-alert--danger, .notice-title, .notice-onlyexample, .notice-implement, .notice-responsible, .notice-donotuse { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="tc-local-wrap" id="tc-root"></div>
 
+  <!-- Vendor JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js"></script>
+  <!-- Globals expected by TC scripts -->
+  <script>
+    window.urlBaseHome = 'https://rondreis-planner.nl';
+    window.urlBase = 'https://rondreis-planner.nl';
+    window.urlBaseWidgets = 'https://rondreis-planner.nl/widgets';
+    window.language = 'Dutch';
+    window.currency = 'Euro';
+  </script>
+  <!-- Widget JS (remote for now; can mirror later) -->
+  <script src="https://rondreis-planner.nl/widgets/searchbox_stylish/js/residentDiscount.js?version=1759053776151"></script>
+  <script src="https://rondreis-planner.nl/widgets/searchbox_stylish/js/searchBox.js?version=1759053776151"></script>
+
+  <script>
+    // Basic post-init tweaks: set NL/EUR and ensure Trip Planner tab active.
+    (function initAfterRender(){
+      const tryInit = () => {
+        try {
+          // Prefer selecting tab by label text content
+          const $tabs = $(document).find('.searchbox .c-tabs, .c-tabs');
+          if ($tabs.length) {
+            // Activate Trip Planner (first tab usually). If an explicit tab exists, click it.
+            const $tp = $tabs.find('li, a, button').filter((i, el) => /trip\s*planner/i.test($(el).text()));
+            ($tp[0] ? $($tp[0]) : $tabs.find('li, a, button').first()).trigger('click');
+          }
+
+          // Set language + currency if dropdowns exist
+          const $lang = $('select, button').filter((i, el) => /dutch|nederlands/i.test($(el).text()) || $(el).val()==='Dutch');
+          if ($lang.length) $($lang[0]).val('Dutch').trigger('change');
+          const $cur = $('select, button').filter((i, el) => /eur|euro/i.test($(el).text()) || $(el).val()==='Euro');
+          if ($cur.length) $($cur[0]).val('Euro').trigger('change');
+          return true;
+        } catch(e) { return false; }
+      };
+      // Observe DOM changes briefly to run once elements are present
+      const obs = new MutationObserver(() => { if (tryInit()) obs.disconnect(); });
+      obs.observe(document.documentElement, { childList: true, subtree: true });
+      // Safety timeout
+      setTimeout(() => { tryInit(); obs.disconnect(); }, 3000);
+    })();
+  </script>
 <script src="/js/main.js?v=20251014-2" defer></script>
+</body>
+</html>
