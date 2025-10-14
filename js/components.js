@@ -4,8 +4,8 @@
 function __WB_applyResponsiveSrc(imageEl, url, opts = {}) {
     try {
         // Basic perf hints
-        try { imageEl.decoding = 'async'; } catch {}
-        try { if (!imageEl.loading) imageEl.loading = 'lazy'; } catch {}
+        try { imageEl.decoding = 'async'; } catch (e) {}
+        try { if (!imageEl.loading) imageEl.loading = 'lazy'; } catch (e) {}
 
         const u = new URL(url);
         const widths = opts.widths || [1280, 1920, 2560, 3200];

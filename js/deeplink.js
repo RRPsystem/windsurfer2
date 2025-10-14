@@ -1,8 +1,8 @@
 // Deeplink v2 – Non-blocking, local-first context and background sync
 (function(){
   'use strict';
-  const log  = (...a)=>{ try { console.log('[DeeplinkV2]', ...a); } catch {} };
-  const warn = (...a)=>{ try { console.warn('[DeeplinkV2]', ...a); } catch {} };
+  const log  = (...a)=>{ try { console.log('[DeeplinkV2]', ...a); } catch (e) {} };
+  const warn = (...a)=>{ try { console.warn('[DeeplinkV2]', ...a); } catch (e) {} };
 
   const parseUrl = () => {
     try { return new URL(window.location.href); } catch { return null; }

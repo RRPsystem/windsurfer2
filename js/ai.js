@@ -10,7 +10,7 @@
     });
     if (!r.ok) {
       let detail = '';
-      try { detail = await r.text(); } catch {}
+      try { detail = await r.text(); } catch (e) {}
       throw new Error(`AI endpoint error ${r.status}: ${detail}`);
     }
     return r.json();

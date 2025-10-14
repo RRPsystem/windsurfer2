@@ -1,8 +1,8 @@
 // Deeplink URL generator + Copy UI
 (function(){
   'use strict';
-  const qsVal = (u,k) => { try { return u.searchParams.get(k) || ''; } catch { return ''; } };
-  const curUrl = () => { try { return new URL(window.location.href); } catch { return null; } };
+  const qsVal = (u,k) => { try { return u.searchParams.get(k) || ''; } catch (e) { return ''; } };
+  const curUrl = () => { try { return new URL(window.location.href); } catch (e) { return null; } };
   const getMode = () => {
     const h = String(location.hash||'').toLowerCase();
     if (/#\/mode\/news/.test(h)) return 'news';
@@ -83,7 +83,7 @@
         </div>
       </div>`;
     wrap.appendChild(box); host.appendChild(wrap);
-    const close = ()=>{ try { host.removeChild(wrap); } catch {} };
+    const close = ()=>{ try { host.removeChild(wrap); } catch (e) {} };
     box.querySelector('.modal-close').onclick = close;
     wrap.onclick = (e)=>{ if (e.target === wrap) close(); };
 
@@ -106,7 +106,7 @@
           if (kind === 'news' && initialMode==='news') preKey = key || '';
           if (kind === 'destination' && initialMode==='destination') preKey = key || '';
         }
-      } catch {}
+      } catch (e) {}
       if (!preKey) {
         try {
           if (initialMode === 'news' || initialMode === 'destination') {

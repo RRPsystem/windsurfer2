@@ -139,7 +139,7 @@ class DragDropManager {
             const ok = await ensureFactory();
             if (!ok || !window.ComponentFactory || typeof window.ComponentFactory.createComponent !== 'function') {
                 console.error('[DND] ComponentFactory is not defined – kan geen component maken.');
-                try { window.ExportManager?.showNotification?.('Scripts nog niet geladen. Probeer Ctrl+F5.', 'error'); } catch {}
+                try { window.ExportManager?.showNotification?.('Scripts nog niet geladen. Probeer Ctrl+F5.', 'error'); } catch (e) {}
                 alert('Kan component niet toevoegen: scripts nog niet geladen. Probeer Ctrl+F5.');
                 return;
             }
@@ -170,7 +170,7 @@ class DragDropManager {
                     if (typeof window.websiteBuilder.markTyping === 'function') window.websiteBuilder.markTyping(900);
                     if (typeof window.websiteBuilder.scheduleSaveSilent === 'function') window.websiteBuilder.scheduleSaveSilent(1000);
                 }
-            } catch {}
+            } catch (e) {}
         };
 
         proceed();

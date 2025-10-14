@@ -48,7 +48,7 @@
       if (!raw) return null;
       const data = JSON.parse(raw);
       return data.menu_map || (data.menu_json ? { main: data.menu_json } : null);
-    } catch { return null; }
+    } catch (e) { return null; }
   }
 
   function renderAll(menuMap){
@@ -67,5 +67,5 @@
   };
 
   // Auto-render on load using cached menu if present
-  try { document.addEventListener('DOMContentLoaded', () => renderAll()); } catch {}
+  try { document.addEventListener('DOMContentLoaded', () => renderAll()); } catch (e) {}
 })();

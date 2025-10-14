@@ -12,7 +12,7 @@
     try {
       const m = (location.hash.match(/#\/mode\/([a-z]+)/i)||[])[1];
       return MODES.some(x=>x.value===m) ? m : null;
-    } catch { return null; }
+    } catch (e) { return null; }
   }
 
   // Global scaffolding helper with extended retries
@@ -33,7 +33,7 @@
         builder.createNewsArticleTemplate();
         return;
       }
-    } catch {}
+    } catch (e) {}
   }
   try { window.WB_tryScaffold = WB_tryScaffold; } catch {}
 
