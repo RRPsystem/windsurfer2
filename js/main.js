@@ -887,8 +887,8 @@ class WebsiteBuilder {
                     } catch (e) {}
                     // Rebind save handler in case node was replaced
                     try {
-                      if (this.setupBoltDeeplinkSave) this.setupBoltDeeplinkSave();
-                      this._savingInFlight = false;
+                        if (this.setupBoltDeeplinkSave) this.setupBoltDeeplinkSave();
+                        this._savingInFlight = false;
                     } catch (e) {}
                 }
             };
