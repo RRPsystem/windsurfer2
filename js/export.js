@@ -19,7 +19,7 @@ class ExportManager {
                 this.showPreview(e);
             });
             // Tooltip hint for users
-            try { previewBtn.title = 'Preview (klik = homepage, Shift/Alt = huidige pagina)'; } catch {}
+            try { previewBtn.title = 'Preview (klik = homepage, Shift/Alt = huidige pagina)'; } catch (e) {}
         }
     }
 
@@ -51,7 +51,7 @@ class ExportManager {
             a.style.display = 'none';
             document.body.appendChild(a);
             a.click();
-            setTimeout(() => { try { document.body.removeChild(a); } catch {} }, 1000);
+            setTimeout(() => { try { document.body.removeChild(a); } catch (e) {} }, 1000);
             return;
         } catch (e) {
             console.warn('Fallback inline preview due to error:', e);
@@ -272,7 +272,7 @@ Upload deze bestanden naar je webserver om je website live te zetten.
             if ((options.wrapWithLayout || options.useBuilderCss) && window.Layouts && typeof window.Layouts.renderWithLayout === 'function') {
                 bodyWrapped = window.Layouts.renderWithLayout(bodyWrapped, layout);
             }
-        } catch { /* ignore */ }
+        } catch (e) { /* ignore */ }
 
         return `<!DOCTYPE html>
 <html lang="nl">

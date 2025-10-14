@@ -52,12 +52,12 @@ function joinDestinations(arr) {
 
 function trimText(t, n) { return t.length>n ? t.slice(0,n-1)+'…' : t; }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
-function formatPrice(v, cur){ try{ return new Intl.NumberFormat('nl-NL',{style:'currency',currency:cur||'EUR',maximumFractionDigits:0}).format(Number(v)); }catch{ return (cur||'EUR')+ ' '+ v; }}
+function formatPrice(v, cur){ try{ return new Intl.NumberFormat('nl-NL',{style:'currency',currency:cur||'EUR',maximumFractionDigits:0}).format(Number(v)); }catch (e) {} return (cur||'EUR')+ ' '+ v; }
 function toPlainText(s){
   try {
     const div = document.createElement('div');
     div.innerHTML = String(s);
     const text = div.textContent || div.innerText || '';
     return text.replace(/\s+/g,' ').trim();
-  } catch { return String(s); }
+  } catch (e) { return String(s); }
 }

@@ -2,8 +2,8 @@
 (function(){
   'use strict';
   const ls = {
-    get: (k, d='') => { try { return localStorage.getItem(k) ?? d; } catch { return d; } },
-    set: (k, v) => { try { localStorage.setItem(k, v); } catch {} }
+    get: (k, d='') => { try { return localStorage.getItem(k) ?? d; } catch (e) { return d; } },
+    set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} }
   };
   const readStored = () => ({
     api: ls.get('wb_api',''),
@@ -31,7 +31,7 @@
       window.BOLT_DB = window.BOLT_DB || {}; window.BOLT_DB.url = window.BOLT_API.baseUrl;
       window.CURRENT_BRAND_ID = cfg.brand_id||'';
       window.CURRENT_TOKEN = cfg.token||'';
-    } catch {}
+    } catch (e) {}
   };
   const installEdge = (edge) => {
     if (!edge) return;

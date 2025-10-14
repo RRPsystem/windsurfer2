@@ -107,7 +107,9 @@
       if (!saved) return null;
       const data = JSON.parse(saved);
       return data && data.layout ? data.layout : null;
-    } catch { return null; }
+    } catch (error) { 
+      return null; 
+    }
   }
 
   function renderWithLayout(bodyHtml, layout) {

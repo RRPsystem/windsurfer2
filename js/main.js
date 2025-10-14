@@ -16,10 +16,10 @@ function __WB_findBuilderJson(any){
             }
             // Push children
             for (const k in cur){
-                try { stack.push(cur[k]); } catch {}
+                try { stack.push(cur[k]); } catch (e) {}
             }
         }
-    } catch {}
+    } catch (e) {}
     return null;
 }
 
@@ -47,8 +47,8 @@ class WebsiteBuilder {
         try {
             if (this.isInitialized) return;
             const run = () => {
-                try { this.setupFileSaveLoad && this.setupFileSaveLoad(); } catch {}
-                try { this.interceptCanvasLinks && this.interceptCanvasLinks(); } catch {}
+                try { this.setupFileSaveLoad && this.setupFileSaveLoad(); } catch (e) {}
+                try { this.interceptCanvasLinks && this.interceptCanvasLinks(); } catch (e) {}
                 this.isInitialized = true;
             };
             if (document.readyState === 'loading') {

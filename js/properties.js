@@ -55,12 +55,12 @@ class PropertiesPanel {
                     const r = await window.BuilderAI.generate('extra', { country, language: 'nl' });
                     const text = r?.extra?.text || '';
                     if (text) api.setBodyHtml && api.setBodyHtml(`<p>${text.replace(/\n+/g,'</p><p>')}</p>`);
-                } catch { alert('AI genereren mislukt.'); }
+                } catch (e) { alert('AI genereren mislukt.'); }
             });
             aiBtnExtra.style.background = '#0ea5e9'; aiBtnExtra.style.borderColor = '#0ea5e9'; aiBtnExtra.style.color = '#fff';
             aiRowExtra.appendChild(aiBtnExtra);
             this.panel.appendChild(aiRowExtra);
-        } catch {}
+        } catch (e) {}
         // Header alignment (left/center)
         const headerCentered = component.classList.contains('center-header') ? 'center' : 'left';
         this.createSelectInput('Titel uitlijning', headerCentered, [
@@ -81,7 +81,7 @@ class PropertiesPanel {
                 const num = parseInt(v, 10) || 0;
                 component.style.marginTop = `${num}px`;
             });
-        } catch {}
+        } catch (e) {}
 
         // Layout
         const curLayout = component._layout || 'none';

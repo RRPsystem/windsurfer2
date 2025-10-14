@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   }
 
   let body = {};
-  try { body = req.body && typeof req.body === 'object' ? req.body : JSON.parse(req.body || '{}'); } catch {}
+  try { body = req.body && typeof req.body === 'object' ? req.body : JSON.parse(req.body || '{}'); } catch (e) {}
   const {
     section = 'intro',
     country = '',

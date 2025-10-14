@@ -200,7 +200,7 @@
       const arr = Array.isArray(r?.facilities)?r.facilities:[];
       for (const f of arr) if (f?.id!=null) map.set(String(f.id), f?.description||'');
       return map;
-    } catch { return new Map(); }
+    } catch (e) { return new Map(); }
   }
 
   function renderFacilityChips(fac, lut){
@@ -244,10 +244,10 @@
       div.innerHTML = String(s);
       const text = div.textContent || div.innerText || '';
       return text.replace(/\s+/g,' ').trim();
-    } catch { return String(s||''); }
+    } catch(e) { return String(s||''); }
   }
 
   async function fetchJson(url){ const r = await fetch(url); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }
-  function formatPrice(v, cur){ try{ return new Intl.NumberFormat('nl-NL',{style:'currency',currency:cur||'EUR',maximumFractionDigits:0}).format(Number(v)); }catch{ return (cur||'EUR')+ ' '+ v; }}
+  function formatPrice(v, cur){ try{ return new Intl.NumberFormat('nl-NL',{style:'currency',currency:cur||'EUR',maximumFractionDigits:0}).format(Number(v)); }catch(e){ return (cur||'EUR')+ ' '+ v; }}
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
 })();

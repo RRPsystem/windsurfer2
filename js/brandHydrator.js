@@ -6,7 +6,7 @@
     try {
       const url = new URL(window.location.href);
       return url.searchParams.get(name);
-    } catch { return null; }
+    } catch (e) { return null; }
   }
 
   async function detectContext(){
@@ -49,7 +49,7 @@
         window.MenuPreview.render(map);
         return;
       }
-    } catch {}
+    } catch (e) {}
 
     // Fallback: simple renderer (subset of js/menuRender.js)
     const buildMenuHtml = (items) => {

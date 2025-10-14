@@ -11,7 +11,7 @@ function sanitizeBaseUrl(raw) {
   try {
     const u = new URL(base);
     return `${u.protocol}//${u.hostname}`; // strip path/query/hash
-  } catch {
+  } catch (e) {
     // Fallback: strip query/hash manually
     return base.split('#')[0].split('?')[0];
   }
@@ -27,13 +27,13 @@ function boltFunctionsBase() {
       return `${u.protocol}//${fnHost}`;
     }
     return `${u.protocol}//${u.hostname}`;
-  } catch {
+  } catch (e) {
     return clean;
   }
 }
 
 // expose for other modules (e.g., layoutsBuilder.js)
-try { window.boltFunctionsBase = boltFunctionsBase; } catch {}
+try { window.boltFunctionsBase = boltFunctionsBase; } catch (e) {}
 
 function boltProjectBase() {
   if (!hasBoltApi()) return null;
@@ -107,7 +107,7 @@ async function saveDraftBolt({ brand_id, page_id, title, slug, content_json, is_
     const msg = (data && (data.error || data.message)) || `saveDraft failed: ${status}`;
     console.error('[saveDraftBolt] all attempts failed', status, msg, { url, payload, data });
     const err = new Error(`${msg} (${status})`);
-    try { err.status = status; } catch {}
+    try { err.status = status; } catch (e) {}
     throw err;
   }
   // Expected: { success:true, page_id, slug, version, message }

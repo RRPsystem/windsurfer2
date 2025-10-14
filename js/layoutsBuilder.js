@@ -24,7 +24,7 @@
       <div class="modal-body"></div>`;
     modal.appendChild(inner);
     document.body.appendChild(modal);
-    const close = () => { try { document.body.removeChild(modal); } catch {} };
+    const close = () => { try { document.body.removeChild(modal); } catch (e) {} };
     inner.querySelector('.modal-close').onclick = close;
     modal.onclick = (e) => { if (e.target === modal) close(); };
     return { modal, inner, close };
@@ -33,7 +33,7 @@
   // ========== EXPORT HELPERS ==========
   function exportHeaderAsJSON(form){
     let topbarSocials = [];
-    try { topbarSocials = JSON.parse(form.topbarSocials?.value || '[]'); } catch { topbarSocials = []; }
+    try { topbarSocials = JSON.parse(form.topbarSocials?.value || '[]'); } catch (e) { topbarSocials = []; }
     return {
       preset: form.preset?.value || 'minimal',
       logo_url: form.logo?.value || '',
@@ -365,7 +365,7 @@ ${body}
         const payload = Array.isArray(menuData) ? { brand_id, menu_json: menuData } : { brand_id, menu_map: menuData };
         const r = await window.BuilderPublishAPI.saveMenuDraft(payload);
         window.websiteBuilder?.showNotification(`✅ Menu concept opgeslagen (v${r.version ?? '-'})`, 'success');
-        try { window.MenuPreview?.render(menuData); } catch {}
+        try { window.MenuPreview?.render(menuData); } catch (e) {}
       } else if (action === 'publish') {
         const r = await window.BuilderPublishAPI.publishMenu({ brand_id });
         window.websiteBuilder?.showNotification(`🚀 Menu gepubliceerd (v${r.version ?? '-'})`, 'success');

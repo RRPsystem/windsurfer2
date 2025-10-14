@@ -53,7 +53,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({ username: TC_USERNAME, password: TC_PASSWORD, micrositeId })
       });
       const authText = await authRes.text();
-      let authJson; try { authJson = JSON.parse(authText); } catch { authJson = null; }
+      let authJson; try { authJson = JSON.parse(authText); } catch (e) { authJson = null; }
       if (!authRes.ok || !authJson?.token) {
         return res.status(authRes.status || 500).json({ error: 'Auth failed', detail: authJson || authText });
       }
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
     const r = await fetch(upstreamUrl, { headers });
     const status = r.status;
     const text = await r.text();
-    let data; try { data = JSON.parse(text); } catch { data = null; }
+    let data; try { data = JSON.parse(text); } catch (e) { data = null; }
     if (!r.ok) {
       return res.status(status).json({ error: 'Upstream error', status, upstreamUrl, authMode: 'bearer', detail: data || text || null });
     }
