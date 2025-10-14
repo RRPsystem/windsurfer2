@@ -1,4 +1,4 @@
-// js/publish.js
+﻿// js/publish.js
 
 // If Bolt.new API base is provided, publish via Bolt.new Functions endpoints; otherwise fallback to Supabase.
 function hasBoltApi() {
@@ -56,7 +56,7 @@ function withApiKey(url) {
     if (!apiKey) return url;
     const hasQuery = url.includes('?');
     return url + (hasQuery ? '&' : '?') + 'apikey=' + encodeURIComponent(apiKey);
-  } catch { return url; }
+  } catch (e) { return url; }
 }
 
 async function saveDraftBolt({ brand_id, page_id, title, slug, content_json, is_template, template_category, preview_image_url }) {
@@ -78,7 +78,7 @@ async function saveDraftBolt({ brand_id, page_id, title, slug, content_json, is_
       const token = (u.searchParams.get('token') || window.CURRENT_TOKEN || '');
       const apikey = (u.searchParams.get('apikey') || u.searchParams.get('api_key') || (window.BOLT_API && window.BOLT_API.apiKey) || '');
       return { 'Content-Type':'application/json', 'Authorization': `Bearer ${token}`, 'apikey': apikey };
-    } catch { return { 'Content-Type':'application/json' }; }
+    } catch (e) { return { 'Content-Type':'application/json' }; }
   })();
 
   // Candidate endpoints: functions host first, then project host; try /saveDraft then /save
@@ -91,7 +91,7 @@ async function saveDraftBolt({ brand_id, page_id, title, slug, content_json, is_
         url = withApiKey(`${b}${p}`);
         res = await fetch(url, { method: 'POST', headers: hdrs, body: JSON.stringify(payload) });
         // Try to parse body once (even on error) for better diagnostics
-        try { data = await res.clone().json(); } catch { data = null; }
+        try { data = await res.clone().json(); } catch (e) { data = null; }
         if (res.ok) { console.debug('[saveDraftBolt] success', { url, data }); break; }
         console.warn('[saveDraftBolt] attempt failed', res.status, { url, data });
       } catch (e) {
@@ -131,12 +131,12 @@ async function publishPageBolt(pageId, htmlString) {
     body: JSON.stringify({ body_html: htmlString })
   });
   let data = null;
-  try { data = await res.json(); } catch {}
+  try { data = await res.json(); } catch (e) {}
   if (!res.ok) {
     const msg = (data && (data.error || data.message)) || `publish failed: ${res.status}`;
     console.error('[publishPageBolt] HTTP', res.status, msg, { url, data });
     const err = new Error(`${msg} (${res.status})`);
-    try { err.status = res.status; } catch {}
+    try { err.status = res.status; } catch (e) {}
     throw err;
   }
   console.debug('[publishPageBolt] success', { url, data });
@@ -199,7 +199,7 @@ async function healthCheck({ brand_id } = {}) {
   if (!headers.Authorization) missing.push('token');
   if (!headers.apikey) missing.push('apikey');
   if (!brand_id) {
-    try { brand_id = (new URL(window.location.href)).searchParams.get('brand_id') || window.CURRENT_BRAND_ID; } catch {}
+    try { brand_id = (new URL(window.location.href)).searchParams.get('brand_id') || window.CURRENT_BRAND_ID; } catch (e) {}
   }
   if (!brand_id) missing.push('brand_id');
   const result = { ok: missing.length === 0, missing, base, hasAuth: !!headers.Authorization, hasApiKey: !!headers.apikey };
@@ -221,7 +221,7 @@ async function healthCheck({ brand_id } = {}) {
   return result;
 }
 
-try { window.BuilderPublishAPI.healthCheck = healthCheck; } catch {}
+try { window.BuilderPublishAPI.healthCheck = healthCheck; } catch (e) {}
 
 // ==============================
 // Layouts (Header/Footer/Menu)
@@ -367,7 +367,7 @@ function readQueryParam(name) {
   try {
     const u = new URL(window.location.href);
     return u.searchParams.get(name);
-  } catch { return null; }
+  } catch (e) { return null; }
 }
 
 async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, featured_image, status = 'draft', author_type: arg_author_type, author_id: arg_author_id }) {
@@ -391,7 +391,7 @@ async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, feat
       const arr = String(qp).split(',').map(s=>s.trim()).filter(Boolean);
       if (arr.length) baseBody.tags = arr;
     }
-  } catch {}
+  } catch (e) {}
   // Attach author attribution if provided via URL or globals (for admin attribution in Bolt)
   const author_type = arg_author_type || readQueryParam('author_type') || (window.CURRENT_AUTHOR_TYPE || null);
   const author_id = arg_author_id || readQueryParam('author_id') || readQueryParam('user_id') || (window.CURRENT_USER_ID || null);
@@ -416,10 +416,10 @@ async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, feat
       hasApiKey: !!hdr.apikey,
       tags: (body.tags && body.tags.join(',')) || null,
       author_type: body.author_type || null,
-      author_id: body.author_id ? String(body.author_id).slice(0,6) + '…' : null,
+      author_id: body.author_id ? String(body.author_id).slice(0,6) + 'â€¦' : null,
       headers: masked
     });
-  } catch {}
+  } catch (e) {}
 
   const send = async (payload) => {
     let res; let data = null; let rawText = '';
@@ -429,9 +429,9 @@ async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, feat
       console.warn('[newsSaveDraft] network error', netErr);
       throw netErr;
     }
-    try { data = await res.json(); } catch { /* may not be JSON */ }
+    try { data = await res.json(); } catch (e) { /* may not be JSON */ }
     if (!res.ok) {
-      try { rawText = await res.text(); } catch {}
+      try { rawText = await res.text(); } catch (e) {}
       const msg = (data && (data.error || data.message)) || rawText || `news save failed: ${res.status}`;
       throw new Error(msg);
     }
@@ -451,7 +451,7 @@ async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, feat
       console.warn('[newsSaveDraft] retrying without tags due to schema error');
       const fallback = { ...baseBody }; delete fallback.tags;
       const second = await send(fallback);
-      try { window.websiteBuilder?.showNotification?.('Concept opgeslagen zonder tags (kolom ontbreekt in backend)', 'warning'); } catch {}
+      try { window.websiteBuilder?.showNotification?.('Concept opgeslagen zonder tags (kolom ontbreekt in backend)', 'warning'); } catch (e) {}
       return second;
     }
     // Not a tags-related error: rethrow
@@ -469,9 +469,9 @@ async function newsPublish({ brand_id, id, slug }) {
   try {
     const at = readQueryParam('author_type') || (window.CURRENT_AUTHOR_TYPE || null);
     if (at) body.author_type = at;
-  } catch {}
+  } catch (e) {}
   const res = await fetch(url, { method: 'POST', headers: contentApiHeaders(), body: JSON.stringify(body) });
-  let data = null; try { data = await res.json(); } catch {}
+  let data = null; try { data = await res.json(); } catch (e) {}
   if (!res.ok) { const msg = (data && (data.error || data.message)) || `news publish failed: ${res.status}`; throw new Error(msg); }
   return data; // expect { id, slug, status: 'published', preview_url/public_url? }
 }
@@ -481,7 +481,7 @@ async function newsList({ brand_id, status = 'published' }) {
   if (!base) throw new Error('content-api base URL ontbreekt');
   const u = `${base}/content-api/list?type=news_items&brand_id=${encodeURIComponent(brand_id)}&status=${encodeURIComponent(status)}`;
   const res = await fetch(u, { headers: contentApiHeaders() });
-  let data = null; try { data = await res.json(); } catch {}
+  let data = null; try { data = await res.json(); } catch (e) {}
   if (!res.ok) { const msg = (data && (data.error || data.message)) || `news list failed: ${res.status}`; throw new Error(msg); }
   return data;
 }
@@ -491,7 +491,7 @@ async function newsGetById({ id }) {
   if (!base) throw new Error('content-api base URL ontbreekt');
   const u = `${base}/content-api/${encodeURIComponent(id)}?type=news_items`;
   const res = await fetch(u, { headers: contentApiHeaders() });
-  let data = null; try { data = await res.json(); } catch {}
+  let data = null; try { data = await res.json(); } catch (e) {}
   if (!res.ok) { const msg = (data && (data.error || data.message)) || `news get failed: ${res.status}`; throw new Error(msg); }
   return data;
 }
@@ -502,7 +502,7 @@ async function newsGetBySlug({ brand_id, slug }) {
   const params = new URLSearchParams({ type: 'news_items', brand_id: brand_id || '', slug: slug || '' });
   const u = `${base}/content-api?${params.toString()}`;
   const res = await fetch(u, { headers: contentApiHeaders() });
-  let data = null; try { data = await res.json(); } catch {}
+  let data = null; try { data = await res.json(); } catch (e) {}
   if (!res.ok) { const msg = (data && (data.error || data.message)) || `news getBySlug failed: ${res.status}`; throw new Error(msg); }
   return data;
 }
@@ -512,7 +512,7 @@ async function newsDelete({ id }) {
   if (!base) throw new Error('content-api base URL ontbreekt');
   const u = `${base}/content-api/${encodeURIComponent(id)}?type=news_items`;
   const res = await fetch(u, { method: 'DELETE', headers: contentApiHeaders() });
-  if (!res.ok) { let data = null; try { data = await res.json(); } catch {}; const msg = (data && (data.error || data.message)) || `news delete failed: ${res.status}`; throw new Error(msg); }
+  if (!res.ok) { let data = null; try { data = await res.json(); } catch (e) {}; const msg = (data && (data.error || data.message)) || `news delete failed: ${res.status}`; throw new Error(msg); }
   return { ok: true };
 }
 
@@ -550,16 +550,16 @@ async function destinationsSaveDraft({ brand_id, id, title, slug, content, statu
       hasToken: !!hdr.Authorization,
       hasApiKey: !!hdr.apikey,
       author_type: body.author_type || null,
-      author_id: body.author_id ? String(body.author_id).slice(0,6)+'…' : null
+      author_id: body.author_id ? String(body.author_id).slice(0,6)+'â€¦' : null
     });
-  } catch {}
+  } catch (e) {}
   let res;
   try {
     res = await fetch(url, { method: 'POST', headers: contentApiHeaders(), body: JSON.stringify(body) });
   } catch (e) { console.warn('[destinationsSaveDraft] network error', e); throw e; }
-  let data = null; try { data = await res.json(); } catch {}
+  let data = null; try { data = await res.json(); } catch (e) {}
   if (!res.ok) {
-    let text = ''; try { text = await res.text(); } catch {}
+    let text = ''; try { text = await res.text(); } catch (e) {}
     const msg = (data && (data.error || data.message)) || text || `destinations save failed: ${res.status}`;
     console.warn('[destinationsSaveDraft] HTTP error', { status: res.status, msg, data });
     throw new Error(msg);

@@ -1,4 +1,4 @@
-// Local media configuration (gitignored). Do not commit secrets.
+﻿// Local media configuration (gitignored). Do not commit secrets.
 window.MEDIA_CONFIG = {
   // Unsplash Access Key (public client key)
   unsplashAccessKey: 'w_Vc_SD_Kx7QtJg2dJ8lbnfK-7zx2pXrNB7OW76jVs8',

@@ -1,4 +1,4 @@
-// js/previewPage.js
+﻿// js/previewPage.js
 // Compose a full page preview: header + page content + footer for the given brand
 (async function(){
   function qs(name){ try { return new URL(location.href).searchParams.get(name); } catch (e) { return null; } }

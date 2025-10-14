@@ -1,4 +1,4 @@
-// js/layouts.js
+﻿// js/layouts.js
 // Provides simple header/footer presets and helpers for preview rendering in the builder
 (function(){
   const presets = {
@@ -51,7 +51,7 @@
       compact: ({brandName = 'Brand'} = {}) => `
         <footer class="wb-layout footer-compact" style="border-top:1px solid #e5e7eb;margin-top:40px;">
           <div class="wrap" style="max-width:1200px;margin:0 auto;padding:20px 16px;display:flex;justify-content:space-between;color:#6b7280;font-size:14px;">
-            <div>© ${new Date().getFullYear()} ${brandName}</div>
+            <div>Â© ${new Date().getFullYear()} ${brandName}</div>
             <div style="display:flex;gap:12px;">
               <a href="#" style="color:#6b7280;text-decoration:none;">Privacy</a>
               <a href="#" style="color:#6b7280;text-decoration:none;">Voorwaarden</a>
@@ -84,7 +84,7 @@
               </ul>
             </div>
           </div>
-          <div style="border-top:1px solid #f3f4f6;color:#6b7280;font-size:14px;padding:10px 16px;max-width:1200px;margin:0 auto;">© ${new Date().getFullYear()} ${brandName}</div>
+          <div style="border-top:1px solid #f3f4f6;color:#6b7280;font-size:14px;padding:10px 16px;max-width:1200px;margin:0 auto;">Â© ${new Date().getFullYear()} ${brandName}</div>
         </footer>
       `,
       dark: ({brandName = 'Brand'} = {}) => `

@@ -1,4 +1,4 @@
-// js/brandHydrator.js
+﻿// js/brandHydrator.js
 // Populates all <nav data-menu-key> elements for a given brand by fetching menus from the API
 // Reuses MenuPreview.render(map) to draw the menus consistently with the builder preview.
 (function(){
@@ -95,12 +95,12 @@
           const sp = new URL(location.href).searchParams;
           const slug = sp.get('page') || sp.get('slug') || '';
           pageTitle = slug ? slug.replace(/-/g,' ') : 'Pagina';
-        } catch { pageTitle = 'Pagina'; }
+        } catch (e) { pageTitle = 'Pagina'; }
       }
       document.querySelectorAll('[data-page-title]').forEach(el => { el.textContent = pageTitle; });
     } catch (e) { console.warn('[BrandHydrator] page title hydrate failed', e); }
   }
 
   window.BrandHydrator = { hydrate };
-  try { document.addEventListener('DOMContentLoaded', hydrate); } catch {}
+  try { document.addEventListener('DOMContentLoaded', hydrate); } catch (e) {}
 })();

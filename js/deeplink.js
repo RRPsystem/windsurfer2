@@ -1,14 +1,14 @@
-// Deeplink v2 – Non-blocking, local-first context and background sync
+﻿// Deeplink v2 â€“ Non-blocking, local-first context and background sync
 (function(){
   'use strict';
   const log  = (...a)=>{ try { console.log('[DeeplinkV2]', ...a); } catch (e) {} };
   const warn = (...a)=>{ try { console.warn('[DeeplinkV2]', ...a); } catch (e) {} };
 
   const parseUrl = () => {
-    try { return new URL(window.location.href); } catch { return null; }
+    try { return new URL(window.location.href); } catch (e) { return null; }
   };
   const getParam = (u, k) => {
-    try { return (u && (u.searchParams.get(k) || '')) || ''; } catch { return ''; }
+    try { return (u && (u.searchParams.get(k) || '')) || ''; } catch (e) { return ''; }
   };
 
   // --- canonicalSubset (keys alfabetisch, met ?? null) ---
@@ -47,7 +47,7 @@
       const sigRaw = Uint8Array.from(atob(String(ctx.sig).replace(/-/g,'+').replace(/_/g,'/')), c=>c.charCodeAt(0));
       const ok = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, sigRaw, data);
       return !!ok;
-    } catch { return false; }
+    } catch (e) { return false; }
   }
 
   // --- bootstrapCtx: eerst valideren, daarna pas URL-overrides toepassen ---
@@ -58,7 +58,7 @@
     // Load compact ctx from cache/fetch
     const ctxId = getParam(u,'ctx');
     if (ctxId){
-      try { ctx = JSON.parse(localStorage.getItem('wb_ctx_'+ctxId) || '{}'); } catch {}
+      try { ctx = JSON.parse(localStorage.getItem('wb_ctx_'+ctxId) || '{}'); } catch (e) {}
       if (!ctx || !ctx.api || !(ctx.token || ctx.news_slug)){
         const base = (getParam(u,'ctx_base')||'').replace(/\/$/, '');
         const candidates = [];
@@ -71,9 +71,9 @@
             if (!r.ok) continue;
             const t = await r.text();
             if (!t) continue;
-            let data = null; try { data = JSON.parse(t); } catch { continue; }
+            let data = null; try { data = JSON.parse(t); } catch (e) { continue; }
             if (data && data.api && (data.token || data.news_slug)) { ctx = data; break; }
-          } catch {}
+          } catch (e) {}
         }
       }
     }
@@ -83,13 +83,13 @@
       if (ctx.exp && Number.isFinite(+ctx.exp) && Math.floor(Date.now()/1000) >= +ctx.exp) {
         warn('ctx expired'); return {};
       }
-    } catch {}
+    } catch (e) {}
 
     // 2) Signature check VOOR overrides
     const sigOk = await verifySigIfPresent(ctx);
     if (!sigOk) { warn('invalid ctx signature'); return {}; }
 
-    // 3) Pas HIERNA URL-overrides toe (niet opnieuw verifiëren)
+    // 3) Pas HIERNA URL-overrides toe (niet opnieuw verifiÃ«ren)
     ['api','token','apikey','api_key','brand_id','page_id','news_slug','slug','content_type','exp','ephemeral'].forEach(k=>{
       const v = getParam(u,k); if (v) ctx[k] = v;
     });
@@ -98,7 +98,7 @@
     // Persist non-ephemeral ctx
     const isEphemeral = (String(ctx.ephemeral)==='1') || (getParam(u,'ctx_ephemeral')==='1');
     if (ctxId && ctx.api && (ctx.token || ctx.news_slug) && !isEphemeral){
-      try { localStorage.setItem('wb_ctx_'+ctxId, JSON.stringify(ctx)); } catch {}
+      try { localStorage.setItem('wb_ctx_'+ctxId, JSON.stringify(ctx)); } catch (e) {}
     }
     return ctx;
   }
@@ -132,18 +132,18 @@
   }
 
   function installEdgeCtx(edgeCtx){
-    try { window.websiteBuilder = window.websiteBuilder || null; } catch {}
+    try { window.websiteBuilder = window.websiteBuilder || null; } catch (e) {}
     if (!window.websiteBuilder) {
       document.addEventListener('DOMContentLoaded', () => {
         if (window.websiteBuilder) {
           window.websiteBuilder._edgeCtx = edgeCtx;
-          try { window.websiteBuilder.updateEdgeBadge && window.websiteBuilder.updateEdgeBadge(); } catch {}
+          try { window.websiteBuilder.updateEdgeBadge && window.websiteBuilder.updateEdgeBadge(); } catch (e) {}
         }
       });
       return;
     }
     window.websiteBuilder._edgeCtx = edgeCtx;
-    try { window.websiteBuilder.updateEdgeBadge && window.websiteBuilder.updateEdgeBadge(); } catch {}
+    try { window.websiteBuilder.updateEdgeBadge && window.websiteBuilder.updateEdgeBadge(); } catch (e) {}
   }
 
   function setModeHash(kind){
@@ -151,7 +151,7 @@
       const map = { page: '#/mode/page', news: '#/mode/news', destination: '#/mode/destination' };
       if (!map[kind]) return;
       if (String(location.hash||'') !== map[kind]) { location.hash = map[kind]; }
-    } catch {}
+    } catch (e) {}
   }
 
   function installSaveMonkeyPatch(){
@@ -161,17 +161,17 @@
       if (!btn) return;
       const orig = btn.onclick;
       btn.onclick = async (e) => {
-        try { if (e && e.preventDefault) e.preventDefault(); } catch {}
-        try { window.websiteBuilder && window.websiteBuilder.saveProject && window.websiteBuilder.saveProject(true); } catch {}
+        try { if (e && e.preventDefault) e.preventDefault(); } catch (e) {}
+        try { window.websiteBuilder && window.websiteBuilder.saveProject && window.websiteBuilder.saveProject(true); } catch (e) {}
         try {
           if (window.websiteBuilder && typeof window.websiteBuilder.saveToEdgeIfPresent === 'function') {
             await window.websiteBuilder.saveToEdgeIfPresent();
           }
-        } catch {}
+        } catch (e) {}
         // Call original as a no-op fallback
-        try { if (typeof orig === 'function') orig.call(btn, e); } catch {}
+        try { if (typeof orig === 'function') orig.call(btn, e); } catch (e) {}
       };
-    } catch {}
+    } catch (e) {}
   });
 }
 
@@ -186,10 +186,10 @@
     installEdgeCtx(edgeCtx);
     setModeHash(edgeCtx.kind);
   } else {
-    log('no edgeCtx (or safe mode) – working local-only');
-    try { if (window.websiteBuilder) window.websiteBuilder._edgeDisabled = true; } catch {}
+    log('no edgeCtx (or safe mode) â€“ working local-only');
+    try { if (window.websiteBuilder) window.websiteBuilder._edgeDisabled = true; } catch (e) {}
     document.addEventListener('DOMContentLoaded', () => {
-      try { if (window.websiteBuilder) window.websiteBuilder._edgeDisabled = true; } catch {}
+      try { if (window.websiteBuilder) window.websiteBuilder._edgeDisabled = true; } catch (e) {}
     });
   }
 

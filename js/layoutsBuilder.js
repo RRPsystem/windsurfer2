@@ -1,4 +1,4 @@
-// js/layoutsBuilder.js
+﻿// js/layoutsBuilder.js
 (function(){
   function h(tag, attrs={}, children=[]) {
     const el = document.createElement(tag);
@@ -114,7 +114,7 @@ ${body}
 
   function exportFooterAsJSON(form){
     let cols;
-    try { cols = JSON.parse(form.cols?.value || '[]'); } catch { cols = []; }
+    try { cols = JSON.parse(form.cols?.value || '[]'); } catch (e) { cols = []; }
     return {
       preset: form.preset?.value || 'compact',
       accent: form.accent?.value || '#16a34a',
@@ -179,7 +179,7 @@ ${body}
     // Prefer map format if available
     if (form.__menuMap) return JSON.parse(JSON.stringify(form.__menuMap));
     if (form.__menuState) return JSON.parse(JSON.stringify(form.__menuState));
-    try { return JSON.parse(form.menu?.value || '[]'); } catch { return []; }
+    try { return JSON.parse(form.menu?.value || '[]'); } catch (e) { return []; }
   }
 
   function renderMenuTree(container, form, key){
@@ -202,12 +202,12 @@ ${body}
       href.placeholder = '/pad-of-url';
       href.style.width = '40%';
       href.value = item.href || '';
-      const addBtn = btn('➕', 'Add child');
-      const upBtn = btn('⬆️', 'Move up');
-      const downBtn = btn('⬇️', 'Move down');
-      const indentBtn = btn('↳', 'Indent');
-      const outdentBtn = btn('↰', 'Outdent');
-      const delBtn = btn('🗑️', 'Delete');
+      const addBtn = btn('âž•', 'Add child');
+      const upBtn = btn('â¬†ï¸', 'Move up');
+      const downBtn = btn('â¬‡ï¸', 'Move down');
+      const indentBtn = btn('â†³', 'Indent');
+      const outdentBtn = btn('â†°', 'Outdent');
+      const delBtn = btn('ðŸ—‘ï¸', 'Delete');
 
       label.oninput = () => { item.label = label.value; };
       href.oninput = () => { item.href = href.value; };
@@ -319,11 +319,11 @@ ${body}
       toggleBusy(form, true);
       if (action === 'save') {
         const r = await window.BuilderPublishAPI.saveHeaderDraft({ brand_id, content_json: json });
-        window.websiteBuilder?.showNotification(`✅ Header concept opgeslagen (v${r.version ?? '-'})`, 'success');
+        window.websiteBuilder?.showNotification(`âœ… Header concept opgeslagen (v${r.version ?? '-'})`, 'success');
       } else if (action === 'publish') {
         const html = exportHeaderAsHTML(json);
         const r = await window.BuilderPublishAPI.publishHeader({ brand_id, body_html: html });
-        window.websiteBuilder?.showNotification(`🚀 Header gepubliceerd (v${r.version ?? '-'})`, 'success');
+        window.websiteBuilder?.showNotification(`ðŸš€ Header gepubliceerd (v${r.version ?? '-'})`, 'success');
       }
     } catch (e) {
       console.error('Header publish error', e);
@@ -341,11 +341,11 @@ ${body}
       toggleBusy(form, true);
       if (action === 'save') {
         const r = await window.BuilderPublishAPI.saveFooterDraft({ brand_id, content_json: json });
-        window.websiteBuilder?.showNotification(`✅ Footer concept opgeslagen (v${r.version ?? '-'})`, 'success');
+        window.websiteBuilder?.showNotification(`âœ… Footer concept opgeslagen (v${r.version ?? '-'})`, 'success');
       } else if (action === 'publish') {
         const html = exportFooterAsHTML(json);
         const r = await window.BuilderPublishAPI.publishFooter({ brand_id, body_html: html });
-        window.websiteBuilder?.showNotification(`🚀 Footer gepubliceerd (v${r.version ?? '-'})`, 'success');
+        window.websiteBuilder?.showNotification(`ðŸš€ Footer gepubliceerd (v${r.version ?? '-'})`, 'success');
       }
     } catch (e) {
       console.error('Footer publish error', e);
@@ -364,12 +364,12 @@ ${body}
       if (action === 'save') {
         const payload = Array.isArray(menuData) ? { brand_id, menu_json: menuData } : { brand_id, menu_map: menuData };
         const r = await window.BuilderPublishAPI.saveMenuDraft(payload);
-        window.websiteBuilder?.showNotification(`✅ Menu concept opgeslagen (v${r.version ?? '-'})`, 'success');
+        window.websiteBuilder?.showNotification(`âœ… Menu concept opgeslagen (v${r.version ?? '-'})`, 'success');
         try { window.MenuPreview?.render(menuData); } catch (e) {}
       } else if (action === 'publish') {
         const r = await window.BuilderPublishAPI.publishMenu({ brand_id });
-        window.websiteBuilder?.showNotification(`🚀 Menu gepubliceerd (v${r.version ?? '-'})`, 'success');
-        try { window.MenuPreview?.render(menuData); } catch {}
+        window.websiteBuilder?.showNotification(`ðŸš€ Menu gepubliceerd (v${r.version ?? '-'})`, 'success');
+        try { window.MenuPreview?.render(menuData); } catch (e) {}
       }
     } catch (e) {
       console.error('Menu publish error', e);
@@ -468,7 +468,7 @@ ${body}
     keyWrap.style.cssText = 'display:flex;gap:8px;align-items:center;';
     keyWrap.innerHTML = '<label style="font-weight:700;color:#374151;">Menu key</label>';
     const sel = document.createElement('select'); sel.name = 'menuKey'; sel.className = 'form-control';
-    sel.innerHTML = '<option value="main">main</option><option value="footer">footer</option><option value="custom">custom…</option>';
+    sel.innerHTML = '<option value="main">main</option><option value="footer">footer</option><option value="custom">customâ€¦</option>';
     const customInput = document.createElement('input'); customInput.className='form-control'; customInput.placeholder='custom key'; customInput.style.display='none';
     keyWrap.appendChild(sel); keyWrap.appendChild(customInput);
 
@@ -478,7 +478,7 @@ ${body}
     updateView();
     // Auto-import once on first open for convenience
     (async () => {
-      try { await importPagesFromBoltIntoForm(form, treeWrap, currentKey()); } catch {}
+      try { await importPagesFromBoltIntoForm(form, treeWrap, currentKey()); } catch (e) {}
     })();
 
     const actions = h('div', { style:'display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;' }, [
@@ -551,7 +551,7 @@ ${body}
       const key = menuKey || 'main';
       form.__menuMap[key] = clean(roots);
       renderMenuTree(treeWrap, form, key);
-      window.websiteBuilder?.showNotification('✅ Menu geïmporteerd uit Bolt', 'success');
+      window.websiteBuilder?.showNotification('âœ… Menu geÃ¯mporteerd uit Bolt', 'success');
     } catch (e) {
       console.error('Import pages failed', e);
       window.websiteBuilder?.showErrorMessage(`Import mislukt: ${e?.message||e}`);

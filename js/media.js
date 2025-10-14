@@ -1,4 +1,4 @@
-// Simple Media Picker Modal
+﻿// Simple Media Picker Modal
 // Provides: MediaPicker.openImage(), MediaPicker.openVideo()
 // Optional: window.MEDIA_CONFIG = { unsplashKey: '' }
 
@@ -66,7 +66,7 @@ class MediaPicker {
           <div class="yt-grid"></div>
           <div class="mp-row mp-between mp-more-row">
             <p class="yt-note"></p>
-            <button class="btn btn-primary btn-lg yt-more" disabled>Laad meer video’s</button>
+            <button class="btn btn-primary btn-lg yt-more" disabled>Laad meer videoâ€™s</button>
           </div>
           <div class="mp-help">Geen API key? Plak een URL hieronder:</div>
           <div class="mp-row">

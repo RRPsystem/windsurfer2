@@ -1,4 +1,4 @@
-// Production config for Vercel deployment
+﻿// Production config for Vercel deployment
 // Public anon key is safe to expose client-side. Do NOT put service role keys here.
 window.BOLT_DB = {
   url: "https://huaaogdxxdcakxryecnw.supabase.co",

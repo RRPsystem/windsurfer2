@@ -1,4 +1,4 @@
-// Component factory voor website builder
+﻿// Component factory voor website builder
 
 // Global helper: apply responsive src/srcset for known CDNs (e.g., Unsplash)
 function __WB_applyResponsiveSrc(imageEl, url, opts = {}) {
@@ -12,7 +12,7 @@ function __WB_applyResponsiveSrc(imageEl, url, opts = {}) {
         const quality = String(opts.quality || 80);
         const fm = opts.format || 'webp';
         const currentSrc = imageEl.currentSrc || imageEl.src || '';
-        const currentHost = (()=>{ try { return new URL(currentSrc).host; } catch { return ''; } })();
+        const currentHost = (()=>{ try { return new URL(currentSrc).host; } catch (e) { return ''; } })();
 
         if (u.hostname.includes('images.unsplash.com')) {
             const base = `${u.origin}${u.pathname}`;
@@ -33,9 +33,9 @@ function __WB_applyResponsiveSrc(imageEl, url, opts = {}) {
 
         // If switching CDN/host, drop previous srcset/sizes to prevent the browser from sticking to cached candidates
         if (currentHost && currentHost !== u.host) {
-            try { imageEl.removeAttribute('srcset'); imageEl.removeAttribute('sizes'); } catch {}
+            try { imageEl.removeAttribute('srcset'); imageEl.removeAttribute('sizes'); } catch (e) {}
         }
-    } catch {}
+    } catch (e) {}
     // Fallback: single src (batched)
     const setSingle = () => { imageEl.src = url; };
     if (typeof requestAnimationFrame === 'function') requestAnimationFrame(setSingle); else setSingle();
@@ -91,7 +91,7 @@ class ComponentFactory {
         const defaults = (labelBase) => Array.from({ length: 5 }).map((_, i) => ({
             img: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop',
             title: `${labelBase} ${i + 1}`,
-            summary: 'Korte beschrijving (2–3 regels) over deze plek.',
+            summary: 'Korte beschrijving (2â€“3 regels) over deze plek.',
             href: '#'
         }));
         section._tabs = {
@@ -147,7 +147,7 @@ class ComponentFactory {
                     grid.style.gridTemplateColumns = 'repeat(3,1fr)';
                     grid.style.gap = '12px';
                 }
-            } catch {}
+            } catch (e) {}
         };
 
         const renderCards = () => {
@@ -187,7 +187,7 @@ class ComponentFactory {
         highlightActive();
 
         // Responsive re-check on resize
-        try { window.addEventListener('resize', () => applyMobileBehavior()); } catch {}
+        try { window.addEventListener('resize', () => applyMobileBehavior()); } catch (e) {}
 
         section.appendChild(header);
         section.appendChild(body);
@@ -251,7 +251,7 @@ class ComponentFactory {
             <h1 class="na-title" contenteditable="true">${title}</h1>
             <div class="na-meta" style="display:flex;gap:12px;align-items:center;color:#6b7280;font-size:14px;">
                 <span class="na-date" contenteditable="true">${dateStr}</span>
-                <span class="na-dot">•</span>
+                <span class="na-dot">â€¢</span>
                 <span class="na-author" contenteditable="true">${author}</span>
             </div>
             <ul class="na-tags" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px;padding:0;list-style:none;"></ul>
@@ -365,12 +365,12 @@ class ComponentFactory {
         left.addEventListener('click', async (e)=>{
             e.stopPropagation();
             if (!leftImg) return;
-            try { if (!window.MediaPicker) return; const r = await window.MediaPicker.openImage(); const u = r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if (u){ __WB_applyResponsiveSrc(leftImg, u); } } catch {}
+            try { if (!window.MediaPicker) return; const r = await window.MediaPicker.openImage(); const u = r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if (u){ __WB_applyResponsiveSrc(leftImg, u); } } catch (e) {}
         });
         right.addEventListener('click', async (e)=>{
             e.stopPropagation();
             if (!rightImg) return;
-            try { if (!window.MediaPicker) return; const r = await window.MediaPicker.openImage(); const u = r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if (u){ __WB_applyResponsiveSrc(rightImg, u); } } catch {}
+            try { if (!window.MediaPicker) return; const r = await window.MediaPicker.openImage(); const u = r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if (u){ __WB_applyResponsiveSrc(rightImg, u); } } catch (e) {}
         });
 
         // Interactions
@@ -386,8 +386,8 @@ class ComponentFactory {
             setImageHeight: (px)=>{ section._imgHeight = Math.max(120, parseInt(px,10)||260); applyStyles(); },
             setRadius: (px)=>{ section._radius = Math.max(0, parseInt(px,10)||0); applyStyles(); },
             setShadow: (on)=>{ section._shadow = !!on; applyStyles(); },
-            pickLeft: async ()=>{ try{ if(!window.MediaPicker) return; const r=await window.MediaPicker.openImage(); const u=r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if(u) __WB_applyResponsiveSrc(leftImg, u); }catch{} },
-            pickRight: async ()=>{ try{ if(!window.MediaPicker) return; const r=await window.MediaPicker.openImage(); const u=r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if(u) __WB_applyResponsiveSrc(rightImg, u); }catch{} },
+            pickLeft: async ()=>{ try{ if(!window.MediaPicker) return; const r=await window.MediaPicker.openImage(); const u=r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if(u) __WB_applyResponsiveSrc(leftImg, u); }catch (e) {} },
+            pickRight: async ()=>{ try{ if(!window.MediaPicker) return; const r=await window.MediaPicker.openImage(); const u=r?.fullUrl||r?.regularUrl||r?.url||r?.dataUrl; if(u) __WB_applyResponsiveSrc(rightImg, u); }catch (e) {} },
         };
 
         return section;
@@ -783,7 +783,7 @@ class ComponentFactory {
                         result.fullUrl || result.regularUrl || result.url || result.dataUrl ||
                         result.src || result.imageUrl || result.downloadUrl || ''
                     )) || '';
-                    try { console.debug('[hero-page] media chosen src', src, result); } catch {}
+                    try { console.debug('[hero-page] media chosen src', src, result); } catch (e) {}
                 }
                 if (!src) return;
                 if (typeof window.__WB_applyResponsiveSrc === 'function') {
@@ -843,7 +843,7 @@ class ComponentFactory {
             imgA.style.setProperty('--hero-xfade-easing', easing);
             imgB.style.setProperty('--hero-xfade-duration', dur);
             imgB.style.setProperty('--hero-xfade-easing', easing);
-        } catch {}
+        } catch (e) {}
         imgA.style.willChange = 'opacity';
         imgB.style.willChange = 'opacity';
         __WB_applyResponsiveSrc(imgA, bgUrl);
@@ -1051,14 +1051,14 @@ class ComponentFactory {
                     const m = url.pathname.match(/\/embed\/([^\/?#]+)/);
                     const vid = m ? m[1] : '';
                     if (vid) ph.style.backgroundImage = `url(https://img.youtube.com/vi/${vid}/hqdefault.jpg)`;
-                } catch {}
+                } catch (e) {}
                 ph.onclick = () => {
                     const overlayBg = document.createElement('div');
                     overlayBg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99998;display:flex;align-items:center;justify-content:center';
                     const box = document.createElement('div');
                     box.style.cssText = 'position:relative;width:min(90vw,960px);aspect-ratio:16/9;background:#000;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.4);overflow:hidden';
                     const close = document.createElement('button');
-                    close.textContent = '×';
+                    close.textContent = 'Ã—';
                     close.setAttribute('aria-label','Sluiten');
                     close.style.cssText = 'position:absolute;top:8px;right:12px;width:32px;height:32px;border:none;border-radius:6px;background:rgba(0,0,0,.5);color:#fff;font-size:20px;line-height:1;cursor:pointer;z-index:2';
                     const iframe = document.createElement('iframe');
@@ -1080,7 +1080,7 @@ class ComponentFactory {
                     if (startSec > 0) params.set('start', String(startSec)); else params.delete('start');
                     url.search = params.toString();
                     iframe.src = url.toString();
-                    const cleanup = () => { try { document.body.removeChild(overlayBg); } catch {} };
+                    const cleanup = () => { try { document.body.removeChild(overlayBg); } catch (e) {} };
                     close.onclick = cleanup;
                     overlayBg.onclick = (e) => { if (e.target === overlayBg) cleanup(); };
                     box.appendChild(iframe);
@@ -1157,7 +1157,7 @@ class ComponentFactory {
                     section._ytRafId = requestAnimationFrame(() => { section._ytRafId = null; fitVideo(); });
                 };
                 try { window.addEventListener('resize', section._ytResizeHandler, { passive: true }); }
-                catch { window.addEventListener('resize', section._ytResizeHandler); }
+                catch (e) { window.addEventListener('resize', section._ytResizeHandler); }
             }
         };
 
@@ -1359,7 +1359,7 @@ class ComponentFactory {
         const defaults = options.cards || [
             { icon: 'fa-location-dot', title: 'Office Location', lines: ['55 Main Street', '2nd Floor New York'] },
             { icon: 'fa-envelope', title: 'Email Address', lines: ['contact@example.com', 'info@example.com'] },
-            { icon: 'fa-phone', title: 'Hotline', lines: ['+1(307) 776–0608', '666 8888 000'] }
+            { icon: 'fa-phone', title: 'Hotline', lines: ['+1(307) 776â€“0608', '666 8888 000'] }
         ];
 
         // Header
@@ -1638,8 +1638,8 @@ class ComponentFactory {
             <p class="tt-subtitle" contenteditable="true">${subtitle}</p>
         `;
         // Isolate header layout/paint to avoid impacting grid while typing
-        try { header.style.contain = 'layout paint style'; } catch {}
-        try { header.style.contentVisibility = 'auto'; header.style.containIntrinsicSize = '600px 120px'; } catch {}
+        try { header.style.contain = 'layout paint style'; } catch (e) {}
+        try { header.style.contentVisibility = 'auto'; header.style.containIntrinsicSize = '600px 120px'; } catch (e) {}
         // Batch inline title typing to once-per-frame and signal builder to pause saves
         try {
             const titleEl = header.querySelector('.tt-title');
@@ -1647,20 +1647,20 @@ class ComponentFactory {
             if (titleEl) {
                 titleEl.addEventListener('input', (e) => {
                     // Prevent any global input listeners doing heavy work per keystroke
-                    try { e.stopPropagation(); } catch {}
+                    try { e.stopPropagation(); } catch (e) {}
                     if (_raf) return;
                     _raf = requestAnimationFrame(() => {
                         _raf = null;
-                        try { window.websiteBuilder && typeof window.websiteBuilder.markTyping === 'function' && window.websiteBuilder.markTyping(800); } catch {}
+                        try { window.websiteBuilder && typeof window.websiteBuilder.markTyping === 'function' && window.websiteBuilder.markTyping(800); } catch (e) {}
                     });
                 });
             }
-        } catch {}
+        } catch (e) {}
 
         const grid = document.createElement('div');
         grid.className = 'tt-grid';
         // Contain grid to limit reflow scope when text above changes
-        try { grid.style.contain = 'layout paint style'; } catch {}
+        try { grid.style.contain = 'layout paint style'; } catch (e) {}
 
         // Simple guard to avoid overlapping pickers/updates
         section._ttPickLock = false;
@@ -1677,13 +1677,13 @@ class ComponentFactory {
                 if (!u) return;
                 const targetImg = cardEl.querySelector('img');
                 if (!targetImg) return;
-                try { targetImg.decoding = 'async'; targetImg.loading = 'lazy'; } catch {}
+                try { targetImg.decoding = 'async'; targetImg.loading = 'lazy'; } catch (e) {}
                 if (typeof window.__WB_applyResponsiveSrc === 'function') window.__WB_applyResponsiveSrc(targetImg, u);
                 else if (typeof __WB_applyResponsiveSrc === 'function') __WB_applyResponsiveSrc(targetImg, u);
                 else targetImg.src = u;
-                try { targetImg.src = u; targetImg.removeAttribute('srcset'); targetImg.removeAttribute('sizes'); } catch {}
-                try { await new Promise(requestAnimationFrame); } catch {}
-            } catch {}
+                try { targetImg.src = u; targetImg.removeAttribute('srcset'); targetImg.removeAttribute('sizes'); } catch (e) {}
+                try { await new Promise(requestAnimationFrame); } catch (e) {}
+            } catch (e) {}
             finally { section._ttPickLock = false; }
         };
 
@@ -1700,7 +1700,7 @@ class ComponentFactory {
             img.decoding = 'async';
             img.loading = 'lazy';
             // Avoid layout thrash during decode
-            try { img.style.contentVisibility = 'auto'; img.style.containIntrinsicSize = '320px 200px'; } catch {}
+            try { img.style.contentVisibility = 'auto'; img.style.containIntrinsicSize = '320px 200px'; } catch (e) {}
             // Helper to open picker and replace image
             const pickAndReplace = async (e) => {
                 e.preventDefault();
@@ -1713,16 +1713,16 @@ class ComponentFactory {
                     const u = r?.fullUrl || r?.regularUrl || r?.url || r?.dataUrl;
                     if (!u) return;
                     // Hint the browser to decode off main thread and avoid eager work
-                    try { img.decoding = 'async'; img.loading = 'lazy'; } catch {}
+                    try { img.decoding = 'async'; img.loading = 'lazy'; } catch (e) {}
                     // Apply responsively; avoid double-setting where possible
                     if (typeof window.__WB_applyResponsiveSrc === 'function') window.__WB_applyResponsiveSrc(img, u);
                     else if (typeof __WB_applyResponsiveSrc === 'function') __WB_applyResponsiveSrc(img, u);
                     else img.src = u;
                     // Ensure immediate visual if browser keeps old srcset
-                    try { img.src = u; img.removeAttribute('srcset'); img.removeAttribute('sizes'); } catch {}
+                    try { img.src = u; img.removeAttribute('srcset'); img.removeAttribute('sizes'); } catch (e) {}
                     // Yield a frame to keep UI responsive after heavy image decode
-                    try { await new Promise(requestAnimationFrame); } catch {}
-                } catch {}
+                    try { await new Promise(requestAnimationFrame); } catch (e) {}
+                } catch (e) {}
                 finally { section._ttPickLock = false; }
             };
             // Allow clicking image to replace
@@ -1760,7 +1760,7 @@ class ComponentFactory {
                 e.stopPropagation();
                 pickAndReplaceSafe(card);
             }, { passive: true });
-        } catch {
+        } catch (e) {
             grid.addEventListener('click', (e) => {
                 const label = e.target && e.target.closest && e.target.closest('.tt-label');
                 if (label) return;
@@ -2125,7 +2125,7 @@ class ComponentFactory {
                     imageEl.sizes = '100vw';
                     return;
                 }
-            } catch {}
+            } catch (e) {}
             imageEl.src = url;
         };
 
@@ -2394,7 +2394,7 @@ class ComponentFactory {
         copyBtn.className = 'toolbar-btn';
         copyBtn.setAttribute('data-action', 'copy');
         copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
-        copyBtn.title = 'Kopiëren';
+        copyBtn.title = 'KopiÃ«ren';
 
         // Move Up/Down buttons
         const upBtn = document.createElement('button');
@@ -2427,8 +2427,8 @@ class ComponentFactory {
             let prev = component.previousElementSibling;
             while (prev && !prev.classList.contains('wb-component')) prev = prev.previousElementSibling;
             if (prev) parent.insertBefore(component, prev);
-            try { window.dragDropManager?.saveState?.(); } catch {}
-            try { component.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch {}
+            try { window.dragDropManager?.saveState?.(); } catch (e) {}
+            try { component.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
             component.classList.add('selected');
         };
         const moveDown = (component) => {
@@ -2436,8 +2436,8 @@ class ComponentFactory {
             let next = component.nextElementSibling;
             while (next && !next.classList.contains('wb-component')) next = next.nextElementSibling;
             if (next) parent.insertBefore(next, component);
-            try { window.dragDropManager?.saveState?.(); } catch {}
-            try { component.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch {}
+            try { window.dragDropManager?.saveState?.(); } catch (e) {}
+            try { component.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
             component.classList.add('selected');
         };
         upBtn.addEventListener('click', (e) => { e.stopPropagation(); const comp = toolbar.parentElement; moveUp(comp); });
@@ -2532,7 +2532,7 @@ class ComponentFactory {
             
             // Update properties panel
             if (window.PropertiesPanel) {
-                try { ComponentFactory.ensureApiFor(element); } catch {}
+                try { ComponentFactory.ensureApiFor(element); } catch (e) {}
                 window.PropertiesPanel.showProperties(element);
             }
         });
@@ -2662,10 +2662,10 @@ class ComponentFactory {
                     setRadius: (px) => { section._radius = Math.max(0, parseInt(px,10) || 0); applyStyles(); },
                     setShadow: (on) => { section._shadow = !!on; applyStyles(); },
                     pickLeft: async () => {
-                        try { if (!window.MediaPicker) return; const r = await window.MediaPicker.openImage({ defaultTab: 'unsplash' }); const u = r?.fullUrl || r?.regularUrl || r?.url || r?.dataUrl; const img = findLeftImg(); if (u && img) { if (typeof window.__WB_applyResponsiveSrc === 'function') window.__WB_applyResponsiveSrc(img, u); else img.src = u; } } catch {}
+                        try { if (!window.MediaPicker) return; const r = await window.MediaPicker.openImage({ defaultTab: 'unsplash' }); const u = r?.fullUrl || r?.regularUrl || r?.url || r?.dataUrl; const img = findLeftImg(); if (u && img) { if (typeof window.__WB_applyResponsiveSrc === 'function') window.__WB_applyResponsiveSrc(img, u); else img.src = u; } } catch (e) {}
                     },
                     pickRight: async () => {
-                        try { if (!window.MediaPicker) return; const r = await window.MediaPicker.openImage({ defaultTab: 'unsplash' }); const u = r?.fullUrl || r?.regularUrl || r?.url || r?.dataUrl; const img = findRightImg(); if (u && img) { if (typeof window.__WB_applyResponsiveSrc === 'function') window.__WB_applyResponsiveSrc(img, u); else img.src = u; } } catch {}
+                        try { if (!window.MediaPicker) return; const r = await window.MediaPicker.openImage({ defaultTab: 'unsplash' }); const u = r?.fullUrl || r?.regularUrl || r?.url || r?.dataUrl; const img = findRightImg(); if (u && img) { if (typeof window.__WB_applyResponsiveSrc === 'function') window.__WB_applyResponsiveSrc(img, u); else img.src = u; } } catch (e) {}
                     }
                 };
                 // Best effort: infer current state for layout/styles
@@ -2675,9 +2675,9 @@ class ComponentFactory {
                     else if (section.classList.contains('layout-both')) section._layout = 'both';
                     else section._layout = 'none';
                 }
-                try { applyLayout(); applyStyles(); } catch {}
+                try { applyLayout(); applyStyles(); } catch (e) {}
             }
-        } catch {}
+        } catch (e) {}
     }
 }
 

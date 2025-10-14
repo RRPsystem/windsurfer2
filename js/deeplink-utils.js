@@ -1,4 +1,4 @@
-// Deeplink URL generator + Copy UI
+﻿// Deeplink URL generator + Copy UI
 (function(){
   'use strict';
   const qsVal = (u,k) => { try { return u.searchParams.get(k) || ''; } catch (e) { return ''; } };
@@ -113,7 +113,7 @@
             const s = document.getElementById('pageSlugInput');
             if (s && s.value) preKey = s.value.trim();
           }
-        } catch {}
+        } catch (e) {}
       }
       keyInput.value = preKey;
 
@@ -130,10 +130,10 @@
       refresh();
 
       box.querySelector('#dlCopy').onclick = async ()=>{
-        try { await navigator.clipboard.writeText(out.value); } catch {}
+        try { await navigator.clipboard.writeText(out.value); } catch (e) {}
       };
-      box.querySelector('#dlOpen').onclick = ()=>{ try { window.open(out.value, '_blank'); } catch {} };
-    } catch {}
+      box.querySelector('#dlOpen').onclick = ()=>{ try { window.open(out.value, '_blank'); } catch (e) {} };
+    } catch (e) {}
   }
 
   function ensureHeaderButton(){

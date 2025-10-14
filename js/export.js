@@ -1,4 +1,4 @@
-// Export functionaliteit voor website builder
+﻿// Export functionaliteit voor website builder
 class ExportManager {
     constructor() {
         this.setupExportButtons();
@@ -639,7 +639,7 @@ body {
         URL.revokeObjectURL(url);
         
         // Show success message
-        this.showNotification(`✅ ${filename} succesvol gedownload!`, 'success');
+        this.showNotification(`âœ… ${filename} succesvol gedownload!`, 'success');
     }
 
     sanitizeFilename(filename) {
@@ -738,14 +738,14 @@ window.exportBuilderAsJSON = function exportBuilderAsJSON() {
       const project = JSON.parse(saved);
       if (project && typeof project === 'object') {
         // Ensure title/slug are present at top-level (used by save flows)
-        try { project.title = meta.title; } catch {}
-        try { project.slug = meta.slug; } catch {}
+        try { project.title = meta.title; } catch (e) {}
+        try { project.slug = meta.slug; } catch (e) {}
         // Attach latest html snapshot for convenience/debug
-        try { project.htmlSnapshot = canvas ? canvas.innerHTML : ''; } catch {}
+        try { project.htmlSnapshot = canvas ? canvas.innerHTML : ''; } catch (e) {}
         return project;
       }
     }
-  } catch {}
+  } catch (e) {}
   // Fallback: minimal payload if no project present
   return {
     title: meta.title,
@@ -766,7 +766,7 @@ window.exportBuilderAsHTML = function exportBuilderAsHTML(contentJson) {
     if (window.Layouts && typeof window.Layouts.renderWithLayout === 'function') {
       bodyWrapped = window.Layouts.renderWithLayout(bodyWrapped, layout);
     }
-  } catch {}
+  } catch (e) {}
 
   return `<!doctype html>
 <html lang="nl">

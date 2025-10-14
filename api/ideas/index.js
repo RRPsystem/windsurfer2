@@ -1,4 +1,4 @@
-// Vercel Serverless Function: GET /api/ideas
+﻿// Vercel Serverless Function: GET /api/ideas
 // Proxies Travel Compositor ideas list using env credentials.
 // Updated to match TC docs: authenticate to get Bearer token, then call /resources/travelidea/{micrositeId}
 
