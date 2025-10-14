@@ -890,7 +890,7 @@ class WebsiteBuilder {
                         if (this.setupBoltDeeplinkSave) this.setupBoltDeeplinkSave();
                         this._savingInFlight = false;
                     } catch (e) {}
-                }
+                } catch (e) {}
             };
 
     // Pause heavy observers/timers when tab is hidden; resume cleanly on focus
