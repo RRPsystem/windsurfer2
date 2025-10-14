@@ -40,7 +40,12 @@ for (const p of files) {
   const before = t;
 
   // 1) strip alle varianten (met/zonder ?v=…)
-  t = t.replace(tagRx, "");
+  // Repeated removal to handle incomplete multi-character sanitization
+  let prev;
+  do {
+    prev = t;
+    t = t.replace(tagRx, "");
+  } while (t !== prev);
 
   // 2) voeg exact één include toe
   if (/<\/body>/i.test(t)) {
