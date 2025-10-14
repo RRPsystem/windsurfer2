@@ -886,13 +886,12 @@ class WebsiteBuilder {
                         if (curBtn) { curBtn.disabled = false; if (!prevHTML) curBtn.textContent = 'Opslaan'; }
                     } catch (e) {}
                     // Rebind save handler in case node was replaced
-                    try { this.setupBoltDeeplinkSave && this.setupBoltDeeplinkSave(); } catch (e) {}
-                    try { this._savingInFlight = false; } catch (e) {}
+                    try {
+                      if (this.setupBoltDeeplinkSave) this.setupBoltDeeplinkSave();
+                      this._savingInFlight = false;
                     } catch (e) {}
                 }
             };
-        } catch (e) {}
-    }
 
     // Pause heavy observers/timers when tab is hidden; resume cleanly on focus
     setupVisibilityGuards() {
