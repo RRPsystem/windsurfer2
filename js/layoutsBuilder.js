@@ -1,4 +1,4 @@
-﻿// js/layoutsBuilder.js
+// js/layoutsBuilder.js
 (function(){
   function h(tag, attrs={}, children=[]) {
     const el = document.createElement(tag);
@@ -319,7 +319,7 @@ ${body}
       toggleBusy(form, true);
       if (action === 'save') {
         const r = await window.BuilderPublishAPI.saveHeaderDraft({ brand_id, content_json: json });
-        window.websiteBuilder?.showNotification(`âœ… Header concept opgeslagen (v${r.version ?? '-'})`, 'success');
+        window.websiteBuilder?.showNotification(`✅ Header concept opgeslagen (v${r.version ?? '-'})`, 'success');
       } else if (action === 'publish') {
         const html = exportHeaderAsHTML(json);
         const r = await window.BuilderPublishAPI.publishHeader({ brand_id, body_html: html });
@@ -341,7 +341,7 @@ ${body}
       toggleBusy(form, true);
       if (action === 'save') {
         const r = await window.BuilderPublishAPI.saveFooterDraft({ brand_id, content_json: json });
-        window.websiteBuilder?.showNotification(`âœ… Footer concept opgeslagen (v${r.version ?? '-'})`, 'success');
+        window.websiteBuilder?.showNotification(`✅ Footer concept opgeslagen (v${r.version ?? '-'})`, 'success');
       } else if (action === 'publish') {
         const html = exportFooterAsHTML(json);
         const r = await window.BuilderPublishAPI.publishFooter({ brand_id, body_html: html });
@@ -364,7 +364,7 @@ ${body}
       if (action === 'save') {
         const payload = Array.isArray(menuData) ? { brand_id, menu_json: menuData } : { brand_id, menu_map: menuData };
         const r = await window.BuilderPublishAPI.saveMenuDraft(payload);
-        window.websiteBuilder?.showNotification(`âœ… Menu concept opgeslagen (v${r.version ?? '-'})`, 'success');
+        window.websiteBuilder?.showNotification(`✅ Menu concept opgeslagen (v${r.version ?? '-'})`, 'success');
         try { window.MenuPreview?.render(menuData); } catch (e) {}
       } else if (action === 'publish') {
         const r = await window.BuilderPublishAPI.publishMenu({ brand_id });
@@ -468,7 +468,7 @@ ${body}
     keyWrap.style.cssText = 'display:flex;gap:8px;align-items:center;';
     keyWrap.innerHTML = '<label style="font-weight:700;color:#374151;">Menu key</label>';
     const sel = document.createElement('select'); sel.name = 'menuKey'; sel.className = 'form-control';
-    sel.innerHTML = '<option value="main">main</option><option value="footer">footer</option><option value="custom">customâ€¦</option>';
+    sel.innerHTML = '<option value="main">main</option><option value="footer">footer</option><option value="custom">custom…</option>';
     const customInput = document.createElement('input'); customInput.className='form-control'; customInput.placeholder='custom key'; customInput.style.display='none';
     keyWrap.appendChild(sel); keyWrap.appendChild(customInput);
 
@@ -551,7 +551,7 @@ ${body}
       const key = menuKey || 'main';
       form.__menuMap[key] = clean(roots);
       renderMenuTree(treeWrap, form, key);
-      window.websiteBuilder?.showNotification('âœ… Menu geÃ¯mporteerd uit Bolt', 'success');
+      window.websiteBuilder?.showNotification('✅ Menu geïmporteerd uit Bolt', 'success');
     } catch (e) {
       console.error('Import pages failed', e);
       window.websiteBuilder?.showErrorMessage(`Import mislukt: ${e?.message||e}`);

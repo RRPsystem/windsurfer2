@@ -1,4 +1,4 @@
-﻿// Deeplink v2 â€“ Non-blocking, local-first context and background sync
+// Deeplink v2 ”“ Non-blocking, local-first context and background sync
 (function(){
   'use strict';
   const log  = (...a)=>{ try { console.log('[DeeplinkV2]', ...a); } catch (e) {} };
@@ -89,7 +89,7 @@
     const sigOk = await verifySigIfPresent(ctx);
     if (!sigOk) { warn('invalid ctx signature'); return {}; }
 
-    // 3) Pas HIERNA URL-overrides toe (niet opnieuw verifiÃ«ren)
+    // 3) Pas HIERNA URL-overrides toe (niet opnieuw verifiëren)
     ['api','token','apikey','api_key','brand_id','page_id','news_slug','slug','content_type','exp','ephemeral'].forEach(k=>{
       const v = getParam(u,k); if (v) ctx[k] = v;
     });
@@ -186,7 +186,7 @@
     installEdgeCtx(edgeCtx);
     setModeHash(edgeCtx.kind);
   } else {
-    log('no edgeCtx (or safe mode) â€“ working local-only');
+    log('no edgeCtx (or safe mode) ”“ working local-only');
     try { if (window.websiteBuilder) window.websiteBuilder._edgeDisabled = true; } catch (e) {}
     document.addEventListener('DOMContentLoaded', () => {
       try { if (window.websiteBuilder) window.websiteBuilder._edgeDisabled = true; } catch (e) {}

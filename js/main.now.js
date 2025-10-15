@@ -80,7 +80,7 @@ class WebsiteBuilder {
                     // Optional: small hint once
                     if (!canvas.__wb_linkHintShown) {
                         canvas.__wb_linkHintShown = true;
-                        this.showNotification('ðŸ”— Navigeren is uitgeschakeld in de editor (gebruik Preview).', 'info');
+                        this.showNotification('Ã°Å¸””” Navigeren is uitgeschakeld in de editor (gebruik Preview).', 'info');
                         
 }
 } catch (e) {}
@@ -196,7 +196,7 @@ setupVisibilityGuards() {
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
-                    this.showNotification('ðŸ’¾ Project gedownload (.wbproj)', 'success');
+                    this.showNotification('Ã°Å¸’Â¾ Project gedownload (.wbproj)', 'success');
                 } catch (err) {
                     console.error('Save error', err);
                     this.showErrorMessage('Opslaan mislukt');
@@ -214,7 +214,7 @@ setupVisibilityGuards() {
                     const data = JSON.parse(text);
                     this.loadProjectData(data);
                     this.saveProject(true);
-                    this.showNotification('ðŸ“‚ Project geladen uit bestand', 'success');
+                    this.showNotification('Ã°Å¸“”š Project geladen uit bestand', 'success');
                 } catch (err) {
                     console.error('Load error', err);
                     this.showErrorMessage('Bestand kon niet worden geladen');
@@ -236,7 +236,7 @@ setupVisibilityGuards() {
         try { console[type === 'error' ? 'error' : (type === 'success' ? 'log' : 'info')](message); } catch (e) {}
     }
     showErrorMessage(message) {
-        try { this.showNotification(`âŒ ${message}`, 'error'); } catch (e) { try { console.error(message); } catch (e) {} }
+        try { this.showNotification(`Ã¢ÂÅ’ ${message}`, 'error'); } catch (e) { try { console.error(message); } catch (e) {} }
     }
 
     // Public API methods
@@ -345,7 +345,7 @@ setupVisibilityGuards() {
                 logoUrl: logoInput?.value || ''
             };
             this.persistPagesToLocalStorage(true);
-            this.showNotification('ðŸŽ¨ Layout bijgewerkt', 'success');
+            this.showNotification('Ã°Å¸Å½Â¨ Layout bijgewerkt', 'success');
         };
 
         content.querySelector('#lpApply').onclick = () => { apply(); close(); };
@@ -429,7 +429,7 @@ setupVisibilityGuards() {
                     body: JSON.stringify({ message })
                 });
                 if (!res.ok) throw new Error(await res.text());
-                this.showNotification('âœ… Wijzigingen naar GitHub gepusht', 'success');
+                this.showNotification('Ã¢Å“… Wijzigingen naar GitHub gepusht', 'success');
             } catch (err) {
                 console.warn('Git push via API mislukt', err);
                 // Fallback modal with PowerShell command
@@ -460,7 +460,7 @@ setupVisibilityGuards() {
                 content.querySelector('#copyGitCmd').onclick = () => {
                     const ta = content.querySelector('textarea');
                     ta.select(); document.execCommand('copy');
-                    this.showNotification('ðŸ“‹ Commando gekopieerd', 'success');
+                    this.showNotification('Ã°Å¸“”¹ Commando gekopieerd', 'success');
                 };
             }
         });
@@ -489,7 +489,7 @@ setupVisibilityGuards() {
         }
         this.reattachEventListeners();
         this.persistPagesToLocalStorage(true);
-        this.showNotification('ðŸ“‚ Project geladen', 'success');
+        this.showNotification('Ã°Å¸“”š Project geladen', 'success');
     }
 }
 
@@ -506,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Add global error handler
 window.addEventListener('error', (event) => {
-    console.error('ðŸ’¥ JavaScript fout:', event.error);
+    console.error('Ã°Å¸’Â¥ JavaScript fout:', event.error);
     if (window.websiteBuilder) {
         window.websiteBuilder.showErrorMessage('Er is een onverwachte fout opgetreden.');
     }
@@ -523,4 +523,4 @@ window.wb = {
     loadData: (data) => window.websiteBuilder?.loadProjectData(data)
 };
 
-console.log('ðŸŽ¯ Website Builder geladen! Gebruik wb.save(), wb.export(), etc. in de console.');
+console.log('Ã°Å¸Å½Â¯ Website Builder geladen! Gebruik wb.save(), wb.export(), etc. in de console.');

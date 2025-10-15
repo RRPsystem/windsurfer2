@@ -1,4 +1,4 @@
-﻿// Export functionaliteit voor website builder
+// Export functionaliteit voor website builder
 class ExportManager {
     constructor() {
         this.setupExportButtons();
@@ -639,7 +639,7 @@ body {
         URL.revokeObjectURL(url);
         
         // Show success message
-        this.showNotification(`âœ… ${filename} succesvol gedownload!`, 'success');
+        this.showNotification(`✅ ${filename} succesvol gedownload!`, 'success');
     }
 
     sanitizeFilename(filename) {
