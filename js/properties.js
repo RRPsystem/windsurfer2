@@ -44,22 +44,28 @@ class PropertiesPanel {
         // Title & Subtitle
         this.createTextInput('Titel', component.querySelector('.cf-title')?.textContent || '', (v)=> api.setTitle && api.setTitle(v));
         this.createTextInput('Subtitel', component.querySelector('.cf-subtitle')?.textContent || '', (v)=> api.setSubtitle && api.setSubtitle(v));
-        // AI: Extra tekst generator (plaatst in body)
+        
+        // AI: Smart fill button (uses ComponentFactory.fillWithAI)
         try {
-            const aiRowExtra = document.createElement('div');
-            aiRowExtra.style.display='flex'; aiRowExtra.style.gap='8px'; aiRowExtra.style.margin='6px 0 8px';
-            const aiBtnExtra = this.createButton('Vul met AI (Extra tekst)', async () => {
+            const aiRow = document.createElement('div');
+            aiRow.style.display='flex'; aiRow.style.gap='8px'; aiRow.style.margin='6px 0 8px';
+            const aiBtn = this.createButton('✨ AI vullen', async () => {
                 try {
-                    if (!window.BuilderAI || typeof window.BuilderAI.generate !== 'function') { alert('AI module niet geladen.'); return; }
-                    const country = (window.BuilderAI.guessCountry && window.BuilderAI.guessCountry()) || '';
-                    const r = await window.BuilderAI.generate('extra', { country, language: 'nl' });
-                    const text = r?.extra?.text || '';
-                    if (text) api.setBodyHtml && api.setBodyHtml(`<p>${text.replace(/\n+/g,'</p><p>')}</p>`);
-                } catch (e) { alert('AI genereren mislukt.'); }
+                    if (window.ComponentFactory && typeof window.ComponentFactory.fillWithAI === 'function') {
+                        await window.ComponentFactory.fillWithAI(component);
+                    } else {
+                        alert('AI module niet geladen.');
+                    }
+                } catch (e) { 
+                    console.warn('AI fill failed', e);
+                    if (window.websiteBuilder && window.websiteBuilder.showNotification) {
+                        window.websiteBuilder.showNotification('AI vullen mislukt', 'error');
+                    }
+                }
             });
-            aiBtnExtra.style.background = '#0ea5e9'; aiBtnExtra.style.borderColor = '#0ea5e9'; aiBtnExtra.style.color = '#fff';
-            aiRowExtra.appendChild(aiBtnExtra);
-            this.panel.appendChild(aiRowExtra);
+            aiBtn.style.background = '#8b5cf6'; aiBtn.style.borderColor = '#8b5cf6'; aiBtn.style.color = '#fff'; aiBtn.style.fontWeight = '600';
+            aiRow.appendChild(aiBtn);
+            this.panel.appendChild(aiRow);
         } catch (e) {}
         // Header alignment (left/center)
         const headerCentered = component.classList.contains('center-header') ? 'center' : 'left';
@@ -1319,6 +1325,29 @@ class PropertiesPanel {
         if (titleEl) this.createTextInput('Titel', titleEl.textContent || '', (v) => { titleEl.textContent = v; });
         if (dateEl) this.createTextInput('Datum (YYYY-MM-DD)', dateEl.textContent || '', (v) => { dateEl.textContent = v; });
         if (authorEl) this.createTextInput('Auteur', authorEl.textContent || '', (v) => { authorEl.textContent = v; });
+
+        // AI Fill button
+        try {
+            const aiRow = document.createElement('div');
+            aiRow.style.display='flex'; aiRow.style.gap='8px'; aiRow.style.margin='6px 0 8px';
+            const aiBtn = this.createButton('✨ AI vullen', async () => {
+                try {
+                    if (window.ComponentFactory && typeof window.ComponentFactory.fillWithAI === 'function') {
+                        await window.ComponentFactory.fillWithAI(component);
+                    } else {
+                        alert('AI module niet geladen.');
+                    }
+                } catch (e) { 
+                    console.warn('AI fill failed', e);
+                    if (window.websiteBuilder && window.websiteBuilder.showNotification) {
+                        window.websiteBuilder.showNotification('AI vullen mislukt', 'error');
+                    }
+                }
+            });
+            aiBtn.style.background = '#8b5cf6'; aiBtn.style.borderColor = '#8b5cf6'; aiBtn.style.color = '#fff'; aiBtn.style.fontWeight = '600';
+            aiRow.appendChild(aiBtn);
+            this.panel.appendChild(aiRow);
+        } catch (e) {}
 
         // Helper to apply current styling to a tag element
         const styleTag = (li, text) => {
