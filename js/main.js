@@ -47,13 +47,15 @@ class WebsiteBuilder {
         try {
             if (this.isInitialized) return;
             
-            // Return URL: lees en bewaar bij opstarten
+            // Return URL: lees en bewaar bij opstarten (URL-decoded)
             try {
                 const urlParams = new URLSearchParams(window.location.search);
-                const returnUrl = urlParams.get('return_url');
-                if (returnUrl) {
+                const returnUrlRaw = urlParams.get('return_url');
+                if (returnUrlRaw) {
+                    // Decode de URL (# is geëncodeerd als %23)
+                    const returnUrl = decodeURIComponent(returnUrlRaw);
                     localStorage.setItem('builder_return_url', returnUrl);
-                    console.log('[ReturnURL] Opgeslagen:', returnUrl);
+                    console.log('[ReturnURL] Opgeslagen (decoded):', returnUrl);
                 }
             } catch (e) {
                 console.warn('[ReturnURL] Kon niet opslaan:', e);
@@ -1304,8 +1306,8 @@ setupVisibilityGuards() {
 // Return URL helpers
 window.handleReturnUrl = function() {
     try {
-        const returnUrl = localStorage.getItem('builder_return_url');
-        if (!returnUrl) {
+        const returnUrlRaw = localStorage.getItem('builder_return_url');
+        if (!returnUrlRaw) {
             console.log('[ReturnURL] Geen return URL gevonden');
             return false;
         }
@@ -1322,6 +1324,7 @@ window.handleReturnUrl = function() {
             }
         };
 
+        const returnUrl = decodeURIComponent(returnUrlRaw);
         if (isValidReturnUrl(returnUrl)) {
             console.log('[ReturnURL] Redirecting naar:', returnUrl);
             localStorage.removeItem('builder_return_url');
