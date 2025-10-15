@@ -686,7 +686,12 @@ class WebsiteBuilder {
                 let prevHTML = null; let prevDisabled = false;
                 try { prevHTML = saveBtn.innerHTML; prevDisabled = saveBtn.disabled; saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Opslaanâ€¦'; } catch (e) {}
                 // Watchdog: if something hangs, auto-clear state after 12s
-                let wd; try { wd = setTimeout(() => { try { this._savingInFlight = false; } catch (e) {} try { saveBtn.disabled = prevDisabled; if (prevHTML != null) saveBtn.innerHTML = prevHTML; } catch (e) {} try { if (s) s.textContent = 'Opgeslagen'; } catch (e) {} }, 12000); } catch (e) {}
+                let wd; try { wd = setTimeout(() => { try { this._savingInFlight = false; } catch (e) {} try { 
+                    if (saveBtn) {
+                        saveBtn.disabled = !!prevDisabled;
+                        if (prevHTML != null) saveBtn.innerHTML = prevHTML;
+                    }
+                } catch (e) {} }, 12000); } catch (e) {}
                 // Helper: enforce a hard timeout on any promise
                 const withTimeout = (p, ms, label) => new Promise((resolve, reject) => {
                     let to = setTimeout(() => reject(new Error((label||'opdracht') + ' timeout')), ms);
@@ -840,98 +845,134 @@ class WebsiteBuilder {
                                 'saveDraft'
                             );
                         } catch (eSD) {
-                            this.showNotification('âš ï¸ Concept opslaan duurde te lang of faalde; lokaal opgeslagen', 'warning');
-                            try { this.saveProject(true); } catch (e) {}
-                        }
-                        // Publish only for normal pages (not for templates)
-                        const pageHtml = (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '';
-                        let published = false;
-                        if (!isTemplate && page && !this._disablePublish) {
-                            try {
-                                await withTimeout(window.BuilderPublishAPI.publishPage(page.id, pageHtml), 8000, 'publish');
-                                published = true;
-                            } catch (ePublish) {
-                                const em = String(ePublish && ePublish.message || ePublish || '').toLowerCase();
-                                if (em.includes('401') || em.includes('403')) {
-                                    this.showNotification('âš ï¸ Publiceren niet toegestaan; concept opgeslagen.', 'warning');
-                                } else if (em.includes('timeout')) {
-                                    this.showNotification('âš ï¸ Publiceren timeout; concept staat wel opgeslagen.', 'warning');
-                                } else {
-                                    this.showNotification('âš ï¸ Publiceren mislukt; concept opgeslagen.', 'warning');
-                                }
-                            }
-                        }
-                        this.showNotification(
-                            isTemplate
-                                ? 'ðŸ§© Template opgeslagen'
-                                : (published ? 'ðŸ“ Pagina opgeslagen en gepubliceerd' : 'ðŸ’¾ Concept opgeslagen (Pagina)'),
-                            'success'
-                        );
-                    } else {
-                        // Fallback: if pages helper exists use it; otherwise local save
-                        if (window.BuilderPublishAPI && typeof window.BuilderPublishAPI.saveDraft === 'function') {
-                            await window.BuilderPublishAPI.saveDraft({ brand_id, title: safeTitle, slug: safeSlug, content_json: contentJson });
-                        }
-                    }
-                    try { if (s) s.textContent = 'Opgeslagen'; } catch (e) {}
-                    try { saveBtn.disabled = prevDisabled; if (prevHTML != null) saveBtn.innerHTML = prevHTML; } catch (e) {}
-                    // Emergency unlock: force UI to be interactive again
-                    try { document.body.style.pointerEvents = 'auto'; } catch (e) {}
-                    try { const cvs = document.getElementById('canvas'); if (cvs) cvs.style.pointerEvents = 'auto'; } catch (e) {}
-                    try { ['fatalOverlay','wbOverlay','errorOverlay'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; }); } catch (e) {}
-                    try { document.querySelectorAll('.wb-overlay,.wb-busy,.wb-blocker,.modal,.modal-backdrop').forEach(el => { el.style.pointerEvents = 'none'; el.classList.remove('show'); el.style.display = 'none'; }); } catch (e) {}
-                    // Fallback: if header re-rendered the button, re-query and reset
-                    try {
-                        const curBtn = document.getElementById('saveProjectBtn');
-                        if (curBtn) { curBtn.disabled = false; if (!prevHTML) curBtn.textContent = 'Opslaan'; }
-                    } catch (e) {}
-                    // Rebind save handler in case node was replaced
-                    try {
-                        if (this.setupBoltDeeplinkSave) this.setupBoltDeeplinkSave();
-                        this._savingInFlight = false;
-                    } catch (e) {}
-                } catch (e) {}
-            };
+  this.showNotification('⚠️ Concept opslaan duurde te lang of faalde; lokaal opgeslagen', 'warning');
+  try { this.saveProject(true); } catch (e) {}
+}
 
-// Pause heavy observers/timers when tab is hidden; resume cleanly on focus
-    setupVisibilityGuards() {
-        try {
-            if (this._visGuardsInstalled) return; this._visGuardsInstalled = true;
-            const resume = () => {
-                try {
-                    // Debounce resume to avoid bursts right after tab becomes visible
-                    clearTimeout(this._resumeTimer);
-                } catch (e) {}
-                this._resumeTimer = setTimeout(() => {
-                    try { this._suspendHeaderMO = false; } catch (e) {}
-                    // Re-apply header visibility and rebind save button
-                    try { this.applyBoltHeaderVisibilityLite && this.applyBoltHeaderVisibilityLite(); } catch (e) {}
-                    try {
-                        if (this._headerMO && this._headerTarget) {
-                            this._headerMO.observe(this._headerTarget, { childList: true, subtree: true, attributes: false });
-                        }
-                    } catch (e) {
-                        // console.warn('Header MO observe failed', e);
-                    }
-                    try { this.setupBoltDeeplinkSave && this.setupBoltDeeplinkSave(); } catch (e) {}
-                    try { const s = document.getElementById('pageSaveStatus'); if (s) s.textContent = 'Opgeslagen'; } catch (e) {}
-                }, 300);
-            };
-            const suspend = () => {
-                try { this._suspendHeaderMO = true; } catch (e) {}
-                try { if (this._headerMO) this._headerMO.disconnect(); } catch (e) {}
-                // Best-effort: clear lightweight timers we control
-                try { clearTimeout(this._saveTimer); } catch (e) {}
-                try { clearTimeout(this._headerDebounceTimer); } catch (e) {}
-            };
-            document.addEventListener('visibilitychange', () => {
-                try {
-                    if (document.hidden) suspend(); else resume();
-                } catch (e) {}
-            });
-            window.addEventListener('beforeunload', () => { try { if (this._headerMO) this._headerMO.disconnect(); } catch (e) {} });
-        } catch (e) {}
+// Publish only for normal pages (not for templates)
+const pageHtml = (typeof window.exportBuilderAsHTML === 'function')
+  ? window.exportBuilderAsHTML(contentJson)
+  : '';
+
+let published = false;
+if (!isTemplate && page && !this._disablePublish) {
+  try {
+    await withTimeout(
+      window.BuilderPublishAPI.publishPage(page.id, pageHtml),
+      8000,
+      'publish'
+    );
+    published = true;
+  } catch (ePublish) {
+    const em = String((ePublish && ePublish.message) || ePublish || '').toLowerCase();
+    if (em.includes('401') || em.includes('403')) {
+      this.showNotification('⚠️ Publiceren niet toegestaan; concept opgeslagen.', 'warning');
+    } else if (em.includes('timeout')) {
+      this.showNotification('⚠️ Publiceren timeout; concept staat wel opgeslagen.', 'warning');
+    } else {
+      this.showNotification('⚠️ Publiceren mislukt; concept opgeslagen.', 'warning');
     }
+  }
+}
+
+this.showNotification(
+  isTemplate
+    ? '🧩 Template opgeslagen'
+    : (published ? '📣 Pagina opgeslagen en gepubliceerd' : '💾 Concept opgeslagen (Pagina)'),
+  'success'
+);
+}
+} catch (e) {}
+
+if (!isTemplate) {
+  if (window.BuilderPublishAPI && typeof window.BuilderPublishAPI.saveDraft === 'function') {
+    await window.BuilderPublishAPI.saveDraft({
+      brand_id,
+      title: safeTitle,
+      slug: safeSlug,
+      content_json: contentJson
+    });
+  }
+}
+
+try {
+  if (saveBtn) {
+    saveBtn.disabled = !!prevDisabled;
+    if (prevHTML != null) saveBtn.innerHTML = prevHTML;
+  }
+} catch (e) {}
+
+};
+} catch (e) {}
+
+}
+setupVisibilityGuards() {
+    try {
+        if (this._visGuardsInstalled) return;
+        this._visGuardsInstalled = true;
+
+    const resume = () => {
+      try {
+        clearTimeout(this._resumeTimer);
+      } catch (e) {}
+      this._resumeTimer = setTimeout(() => {
+        try {
+          this._suspendHeaderMO = false;
+        } catch (e) {}
+        try {
+          this.applyBoltHeaderVisibilityLite && this.applyBoltHeaderVisibilityLite();
+        } catch (e) {}
+        try {
+          if (this._headerMO && this._headerTarget) {
+            this._headerMO.observe(this._headerTarget, {
+              childList: true,
+              subtree: true,
+              attributes: false
+            });
+          }
+        } catch (e) {}
+        try {
+          this.setupBoltDeeplinkSave && this.setupBoltDeeplinkSave();
+        } catch (e) {}
+        try {
+          const s = document.getElementById('pageSaveStatus');
+          if (s) s.textContent = 'Opgeslagen';
+        } catch (e) {}
+      }, 300);
+    };
+
+    const suspend = () => {
+      try {
+        this._suspendHeaderMO = true;
+      } catch (e) {}
+      try {
+        if (this._headerMO) this._headerMO.disconnect();
+      } catch (e) {}
+      try {
+        clearTimeout(this._saveTimer);
+      } catch (e) {}
+      try {
+        clearTimeout(this._headerDebounceTimer);
+      } catch (e) {}
+    };
+
+    document.addEventListener('visibilitychange', () => {
+      try {
+        if (document.hidden) {
+          suspend();
+        } else {
+          resume();
+        }
+      } catch (e) {}
+    });
+
+    window.addEventListener('beforeunload', () => {
+      try {
+        if (this._headerMO) this._headerMO.disconnect();
+      } catch (e) {}
+    });
+  } catch (e) {}
+}
 
     setupFileSaveLoad() {
         const saveBtn = document.getElementById('saveProjectBtn');
