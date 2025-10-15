@@ -2424,6 +2424,14 @@ class ComponentFactory {
         downBtn.title = 'Omlaag verplaatsen';
         downBtn.innerHTML = '<i class="fas fa-arrow-down"></i>';
 
+        // AI Fill button (for content blocks)
+        const aiBtn = document.createElement('button');
+        aiBtn.className = 'toolbar-btn toolbar-btn-ai';
+        aiBtn.setAttribute('data-action', 'ai-fill');
+        aiBtn.title = 'AI vullen';
+        aiBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i>';
+        aiBtn.style.cssText = 'background:#8b5cf6;color:#fff;';
+
         // Copy handler
         copyBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -2458,10 +2466,25 @@ class ComponentFactory {
         upBtn.addEventListener('click', (e) => { e.stopPropagation(); const comp = toolbar.parentElement; moveUp(comp); });
         downBtn.addEventListener('click', (e) => { e.stopPropagation(); const comp = toolbar.parentElement; moveDown(comp); });
 
+        // AI handler
+        aiBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const component = toolbar.parentElement;
+            try {
+                await ComponentFactory.fillWithAI(component);
+            } catch (err) {
+                console.warn('AI fill failed', err);
+                if (window.websiteBuilder && window.websiteBuilder.showNotification) {
+                    window.websiteBuilder.showNotification('AI vullen mislukt', 'error');
+                }
+            }
+        });
+
         toolbar.appendChild(editBtn);
         toolbar.appendChild(copyBtn);
         toolbar.appendChild(upBtn);
         toolbar.appendChild(downBtn);
+        toolbar.appendChild(aiBtn);
         
         return toolbar;
     }
@@ -2743,6 +2766,208 @@ class ComponentFactory {
                 try { applyLayout(); applyStyles(); } catch (e) {}
             }
         } catch (e) {}
+    }
+
+    // AI Fill: Generate content based on block context
+    static async fillWithAI(component) {
+        if (!component) return;
+        
+        const type = component.getAttribute('data-component');
+        if (!type) return;
+
+        // Check if AI module is available
+        if (!window.BuilderAI || typeof window.BuilderAI.generate !== 'function') {
+            alert('AI module niet geladen');
+            return;
+        }
+
+        // Get page context
+        const pageTitle = (()=>{
+            try {
+                const input = document.getElementById('pageTitleInput');
+                if (input && input.value) return input.value;
+                const h1 = document.querySelector('.na-title');
+                if (h1) return h1.textContent.trim();
+                return 'Pagina';
+            } catch (e) { return 'Pagina'; }
+        })();
+
+        // Handle different component types
+        if (type === 'content-flex') {
+            await this._fillContentFlex(component, pageTitle);
+        } else if (type === 'feature-media') {
+            await this._fillFeatureMedia(component, pageTitle);
+        } else if (type === 'feature-highlight') {
+            await this._fillFeatureHighlight(component, pageTitle);
+        } else if (type === 'news-article') {
+            await this._fillNewsArticle(component, pageTitle);
+        } else {
+            console.warn('AI fill not supported for', type);
+        }
+    }
+
+    static async _fillContentFlex(component, pageTitle) {
+        const titleEl = component.querySelector('.cf-title');
+        const subtitleEl = component.querySelector('.cf-subtitle');
+        const bodyEl = component.querySelector('.cf-body');
+        
+        if (!bodyEl) return;
+
+        const title = (titleEl && titleEl.textContent) ? titleEl.textContent.trim() : '';
+        const subtitle = (subtitleEl && subtitleEl.textContent) ? subtitleEl.textContent.trim() : '';
+        
+        // Show loading state
+        const originalHtml = bodyEl.innerHTML;
+        bodyEl.innerHTML = '<p style="color:#8b5cf6;"><i class="fas fa-circle-notch fa-spin"></i> AI genereert tekst...</p>';
+        
+        try {
+            const prompt = `Schrijf 2-3 alinea's voor een website sectie.
+Pagina: "${pageTitle}"
+Sectie titel: "${title || 'Content'}"
+Subtitel: "${subtitle || ''}"
+Toon: professioneel en informatief
+Taal: Nederlands`;
+
+            const result = await window.BuilderAI.generate('content_block', {
+                page_title: pageTitle,
+                section_title: title,
+                subtitle: subtitle,
+                language: 'nl',
+                tone: 'professional'
+            });
+
+            const text = result?.text || result?.content_block?.text || result?.content || '';
+            if (text) {
+                // Convert to paragraphs
+                const paragraphs = text.split(/\n\n+/).filter(p => p.trim()).map(p => `<p>${p.trim()}</p>`).join('');
+                bodyEl.innerHTML = paragraphs || originalHtml;
+                
+                if (window.websiteBuilder && window.websiteBuilder.showNotification) {
+                    window.websiteBuilder.showNotification('✨ AI tekst gegenereerd', 'success');
+                }
+            } else {
+                throw new Error('Geen tekst ontvangen');
+            }
+        } catch (err) {
+            console.warn('AI fill failed', err);
+            bodyEl.innerHTML = originalHtml;
+            if (window.websiteBuilder && window.websiteBuilder.showNotification) {
+                window.websiteBuilder.showNotification('AI genereren mislukt', 'error');
+            }
+        }
+    }
+
+    static async _fillFeatureMedia(component, pageTitle) {
+        const titleEl = component.querySelector('h2, h3, .fm-title');
+        const bodyEl = component.querySelector('p, .fm-body, .fm-text');
+        
+        if (!bodyEl) return;
+
+        const title = (titleEl && titleEl.textContent) ? titleEl.textContent.trim() : '';
+        const originalText = bodyEl.textContent;
+        bodyEl.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> AI genereert...';
+        
+        try {
+            const result = await window.BuilderAI.generate('feature_description', {
+                page_title: pageTitle,
+                feature_title: title,
+                language: 'nl',
+                length: 'medium'
+            });
+
+            const text = result?.text || result?.feature_description?.text || '';
+            if (text) {
+                bodyEl.textContent = text;
+                if (window.websiteBuilder && window.websiteBuilder.showNotification) {
+                    window.websiteBuilder.showNotification('✨ AI tekst gegenereerd', 'success');
+                }
+            } else {
+                throw new Error('Geen tekst ontvangen');
+            }
+        } catch (err) {
+            console.warn('AI fill failed', err);
+            bodyEl.textContent = originalText;
+            if (window.websiteBuilder && window.websiteBuilder.showNotification) {
+                window.websiteBuilder.showNotification('AI genereren mislukt', 'error');
+            }
+        }
+    }
+
+    static async _fillFeatureHighlight(component, pageTitle) {
+        const titleEl = component.querySelector('h2, h3');
+        const listEl = component.querySelector('ul');
+        
+        if (!listEl) return;
+
+        const title = (titleEl && titleEl.textContent) ? titleEl.textContent.trim() : '';
+        const originalHtml = listEl.innerHTML;
+        listEl.innerHTML = '<li style="color:#8b5cf6;"><i class="fas fa-circle-notch fa-spin"></i> AI genereert...</li>';
+        
+        try {
+            const result = await window.BuilderAI.generate('feature_list', {
+                page_title: pageTitle,
+                section_title: title,
+                language: 'nl',
+                count: 5
+            });
+
+            const items = result?.items || result?.feature_list || [];
+            if (items.length) {
+                listEl.innerHTML = items.map(item => {
+                    const text = typeof item === 'string' ? item : (item.text || item.title || item.summary || '');
+                    return `<li>${text}</li>`;
+                }).join('');
+                
+                if (window.websiteBuilder && window.websiteBuilder.showNotification) {
+                    window.websiteBuilder.showNotification('✨ AI lijst gegenereerd', 'success');
+                }
+            } else {
+                throw new Error('Geen items ontvangen');
+            }
+        } catch (err) {
+            console.warn('AI fill failed', err);
+            listEl.innerHTML = originalHtml;
+            if (window.websiteBuilder && window.websiteBuilder.showNotification) {
+                window.websiteBuilder.showNotification('AI genereren mislukt', 'error');
+            }
+        }
+    }
+
+    static async _fillNewsArticle(component, pageTitle) {
+        const titleEl = component.querySelector('.na-title');
+        const bodyEl = component.querySelector('.na-body');
+        
+        if (!bodyEl) return;
+
+        const title = (titleEl && titleEl.textContent) ? titleEl.textContent.trim() : pageTitle;
+        const originalHtml = bodyEl.innerHTML;
+        bodyEl.innerHTML = '<p style="color:#8b5cf6;"><i class="fas fa-circle-notch fa-spin"></i> AI schrijft artikel...</p>';
+        
+        try {
+            const result = await window.BuilderAI.generate('news_article', {
+                title: title,
+                language: 'nl',
+                length: 'long'
+            });
+
+            const text = result?.text || result?.news_article?.text || result?.content || '';
+            if (text) {
+                const paragraphs = text.split(/\n\n+/).filter(p => p.trim()).map(p => `<p>${p.trim()}</p>`).join('');
+                bodyEl.innerHTML = paragraphs || originalHtml;
+                
+                if (window.websiteBuilder && window.websiteBuilder.showNotification) {
+                    window.websiteBuilder.showNotification('✨ AI artikel gegenereerd', 'success');
+                }
+            } else {
+                throw new Error('Geen tekst ontvangen');
+            }
+        } catch (err) {
+            console.warn('AI fill failed', err);
+            bodyEl.innerHTML = originalHtml;
+            if (window.websiteBuilder && window.websiteBuilder.showNotification) {
+                window.websiteBuilder.showNotification('AI genereren mislukt', 'error');
+            }
+        }
     }
 }
 
