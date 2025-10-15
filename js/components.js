@@ -53,6 +53,7 @@ class ComponentFactory {
             'hero-travel': this.createHeroTravel,
             'hero-page': this.createHeroPage,
             'hero-banner-cta': this.createHeroBannerCta,
+            'hero-travel-video': this.createHeroTravelVideo,
             'feature-media': this.createFeatureMedia,
             'feature-highlight': this.createFeatureHighlight,
             'content-flex': this.createContentFlex,
