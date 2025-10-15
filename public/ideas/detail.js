@@ -1,4 +1,4 @@
-﻿(function(){
+(function(){
   const API_BASE = (location.port && location.port !== '5050') ? 'http://localhost:5050' : '';
   const params = new URLSearchParams(location.search);
   const ideaId = params.get('ideaId');
@@ -27,7 +27,7 @@
 
   async function load() {
     try {
-      titleEl.textContent = 'Ladenâ€¦';
+      titleEl.textContent = 'Laden…';
       metaEl.textContent = '';
       introEl.textContent = '';
       galleryEl.innerHTML = '';
@@ -39,7 +39,7 @@
       const detail = await fetchJson(`${API_BASE}/api/ideas/${encodeURIComponent(ideaId)}?lang=${encodeURIComponent(lang)}&fields=id,title,description,gallery,itinerary,hotels,transports,destinations,themes,tickets,inclusions,exclusions${ms}`);
 
       titleEl.textContent = detail.title || info.title || `Reis ${ideaId}`;
-      metaEl.textContent = [info.duration ? `${info.duration} dagen` : null, info.currency && info.priceFrom!=null ? `${formatPrice(info.priceFrom, info.currency)} p.p.` : null].filter(Boolean).join(' â€¢ ');
+      metaEl.textContent = [info.duration ? `${info.duration} dagen` : null, info.currency && info.priceFrom!=null ? `${formatPrice(info.priceFrom, info.currency)} p.p.` : null].filter(Boolean).join(' ”¢ ');
       introEl.textContent = toPlainText(detail.description || '');
 
       const G = Array.isArray(detail.gallery) ? detail.gallery : [];
@@ -99,7 +99,7 @@
     el.innerHTML=`${img?`<img src="${escapeHtml(img)}" alt="">`:`<div class="ph"></div>`}
     <div class="card-body">
       <h3 class="card-title">${escapeHtml(h.name||'')}</h3>
-      <div class="card-meta">${escapeHtml(h.destination||'')}${h.nights?` â€¢ ${h.nights} nacht(en)`:''}${h.category?` â€¢ ${escapeHtml(h.category)}`:''}</div>
+      <div class="card-meta">${escapeHtml(h.destination||'')}${h.nights?` ”¢ ${h.nights} nacht(en)`:''}${h.category?` ”¢ ${escapeHtml(h.category)}`:''}</div>
       ${h.address?`<div class="card-desc">${escapeHtml(h.address)}</div>`:''}
       ${h.description?`<div class="card-desc" style="margin-top:6px">${sanitizeHtml(h.description)}</div>`:''}
       <div class="chips">
@@ -115,8 +115,8 @@
   function renderTransportCard(t){
     const el=document.createElement('article'); el.className='card';
     el.innerHTML=`<div class="card-body">
-      <h3 class="card-title">Dag ${t.day||'?'} â€¢ ${escapeHtml(t.transportType||'Vervoer')}</h3>
-      <div class="card-meta">${escapeHtml(t.company||'')}${t.company?' â€¢ ':''}${escapeHtml(t.origin||'')} â†’ ${escapeHtml(t.target||'')}</div>
+      <h3 class="card-title">Dag ${t.day||'?'} ”¢ ${escapeHtml(t.transportType||'Vervoer')}</h3>
+      <div class="card-meta">${escapeHtml(t.company||'')}${t.company?' ”¢ ':''}${escapeHtml(t.origin||'')} â†’ ${escapeHtml(t.target||'')}</div>
       <div class="chips">
         ${t.departureTime?`<span class="chip">Vertrek ${escapeHtml(t.departureTime)}</span>`:''}
         ${t.arrivalTime?`<span class="chip">Aankomst ${escapeHtml(t.arrivalTime)}</span>`:''}
@@ -155,7 +155,7 @@
     el.innerHTML=`${img?`<img src="${escapeHtml(img)}" alt="">`:`<div class="ph"></div>`}
     <div class="card-body">
       <h3 class="card-title">${escapeHtml(t.name||'')}</h3>
-      <div class="card-meta">${escapeHtml(t.activityType||'')}${t.duration?` â€¢ ${escapeHtml(t.duration)}`:''}${t.meetingPoint?` â€¢ ${escapeHtml(t.meetingPoint)}`:''}</div>
+      <div class="card-meta">${escapeHtml(t.activityType||'')}${t.duration?` ”¢ ${escapeHtml(t.duration)}`:''}${t.meetingPoint?` ”¢ ${escapeHtml(t.meetingPoint)}`:''}</div>
       ${t.description?`<div class="card-desc">${sanitizeHtml(t.description)}</div>`:''}
       <div class="chips">
         ${t.departureTime?`<span class="chip">Vertrek ${escapeHtml(t.departureTime)}</span>`:''}
@@ -172,7 +172,7 @@
         if (box.dataset.loaded === '1') { box.style.display = box.style.display==='none'?'':'none'; return; }
         try {
           btn.disabled = true;
-          btn.textContent = 'Ladenâ€¦';
+          btn.textContent = 'Laden…';
           const ds = await fetchJson(`${API_BASE}/api/ticket/${encodeURIComponent(id)}/datasheet?micrositeId=${encodeURIComponent(micrositeId)}&lang=${encodeURIComponent(langSelect.value)}`);
           box.innerHTML = renderDatasheetHtml(ds);
           box.dataset.loaded = '1';
@@ -188,7 +188,7 @@
     const name = ds?.name||''; const desc = ds?.description||'';
     const mp = ds?.meetingPoint||''; const dur = ds?.duration||''; const at = ds?.activityType||'';
     const imgs = Array.isArray(ds?.imageUrls) ? ds.imageUrls.flat().filter(Boolean) : [];
-    const head = `<div class=\"card-meta\">${escapeHtml(at)}${dur?` â€¢ ${escapeHtml(dur)}`:''}${mp?` â€¢ ${escapeHtml(mp)}`:''}</div>`;
+    const head = `<div class=\"card-meta\">${escapeHtml(at)}${dur?` ”¢ ${escapeHtml(dur)}`:''}${mp?` ”¢ ${escapeHtml(mp)}`:''}</div>`;
     const gal = imgs.length?`<div class=\"chips\">${imgs.slice(0,8).map(u=>`<span class=\\\"chip\\\"><img src=\\\"${escapeHtml(u)}\\\" alt=\\\"\\\" style=\\\"width:28px;height:20px;object-fit:cover;border-radius:4px;\\\"></span>`).join('')}</div>`:'';
     return `<div><h4 style=\"margin:0 0 6px\">${escapeHtml(name)}</h4>${head}${desc?`<div class=\\\"card-desc\\\">${sanitizeHtml(desc)}<\\/div>`:''}${gal}</div>`;
   }

@@ -1,4 +1,4 @@
-﻿// js/views/menuFooterView.js
+// js/views/menuFooterView.js
 (function(){
   function el(tag, attrs={}, html){
     const e = document.createElement(tag);
@@ -14,7 +14,7 @@
     return [
       {
         id: 'main-basic',
-        label: 'Main â€“ Basic',
+        label: 'Main ”“ Basic',
         key: 'main',
         items: [
           { label: 'Home', href: '/' },
@@ -27,12 +27,12 @@
       },
       {
         id: 'main-mega-stub',
-        label: 'Main â€“ Mega (stub)',
+        label: 'Main ”“ Mega (stub)',
         key: 'main',
         items: [
           { label: 'Bestemmingen', href: '/bestemmingen', children: [
             { label: 'Europa', href: '/bestemmingen/europa' },
-            { label: 'AziÃ«', href: '/bestemmingen/azie' },
+            { label: 'Azië', href: '/bestemmingen/azie' },
             { label: 'Amerika', href: '/bestemmingen/amerika' }
           ]},
           { label: 'Reizen', href: '/reizen' },
@@ -41,7 +41,7 @@
       },
       {
         id: 'footer-compact',
-        label: 'Footer â€“ Compact',
+        label: 'Footer ”“ Compact',
         key: 'footer',
         items: [
           { label: 'Over ons', href: '/over' },
@@ -82,7 +82,7 @@
     const keyWrap = el('div', { style: 'display:flex;gap:8px;align-items:center;margin:8px 0;' });
     keyWrap.appendChild(el('label', { style:'font-weight:700;color:#374151;' }, 'Menu key'));
     const sel = el('select', { class: 'form-control' });
-    sel.innerHTML = '<option value="main">main</option><option value="footer">footer</option><option value="custom">customâ€¦</option>';
+    sel.innerHTML = '<option value="main">main</option><option value="footer">footer</option><option value="custom">custom…</option>';
     const customInput = el('input', { class:'form-control', placeholder:'custom key', style:'display:none' });
     keyWrap.appendChild(sel);
     keyWrap.appendChild(customInput);

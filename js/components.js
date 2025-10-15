@@ -91,7 +91,7 @@ class ComponentFactory {
         const defaults = (labelBase) => Array.from({ length: 5 }).map((_, i) => ({
             img: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop',
             title: `${labelBase} ${i + 1}`,
-            summary: 'Korte beschrijving (2â€“3 regels) over deze plek.',
+            summary: 'Korte beschrijving (2Ã¢â‚¬“3 regels) over deze plek.',
             href: '#'
         }));
         section._tabs = {
@@ -251,7 +251,7 @@ class ComponentFactory {
             <h1 class="na-title" contenteditable="true">${title}</h1>
             <div class="na-meta" style="display:flex;gap:12px;align-items:center;color:#6b7280;font-size:14px;">
                 <span class="na-date" contenteditable="true">${dateStr}</span>
-                <span class="na-dot">â€¢</span>
+                <span class="na-dot">Ã¢â‚¬Â¢</span>
                 <span class="na-author" contenteditable="true">${author}</span>
             </div>
             <ul class="na-tags" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px;padding:0;list-style:none;"></ul>
@@ -1058,7 +1058,7 @@ class ComponentFactory {
                     const box = document.createElement('div');
                     box.style.cssText = 'position:relative;width:min(90vw,960px);aspect-ratio:16/9;background:#000;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.4);overflow:hidden';
                     const close = document.createElement('button');
-                    close.textContent = 'Ã—';
+                    close.textContent = 'Ãƒ””';
                     close.setAttribute('aria-label','Sluiten');
                     close.style.cssText = 'position:absolute;top:8px;right:12px;width:32px;height:32px;border:none;border-radius:6px;background:rgba(0,0,0,.5);color:#fff;font-size:20px;line-height:1;cursor:pointer;z-index:2';
                     const iframe = document.createElement('iframe');
@@ -1346,7 +1346,7 @@ class ComponentFactory {
         const defaults = options.cards || [
             { icon: 'fa-location-dot', title: 'Office Location', lines: ['55 Main Street', '2nd Floor New York'] },
             { icon: 'fa-envelope', title: 'Email Address', lines: ['contact@example.com', 'info@example.com'] },
-            { icon: 'fa-phone', title: 'Hotline', lines: ['+1(307) 776â€“0608', '666 8888 000'] }
+            { icon: 'fa-phone', title: 'Hotline', lines: ['+1(307) 776Ã¢â‚¬“0608', '666 8888 000'] }
         ];
 
         // Header
@@ -2409,7 +2409,7 @@ class ComponentFactory {
         copyBtn.className = 'toolbar-btn';
         copyBtn.setAttribute('data-action', 'copy');
         copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
-        copyBtn.title = 'KopiÃ«ren';
+        copyBtn.title = 'KopiÃƒÂ«ren';
 
         // Move Up/Down buttons
         const upBtn = document.createElement('button');

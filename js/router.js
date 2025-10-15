@@ -1,4 +1,4 @@
-﻿// js/router.js
+// js/router.js
 (function(){
   const MODES = [
     { value: 'page', label: 'Web pagina' },
@@ -42,7 +42,7 @@
       ['newPageQuickBtn','pagesBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
       document.querySelectorAll('button, a').forEach(el => {
         const txt = (el.textContent || '').trim().toLowerCase();
-        if (txt === "nieuwe pagina" || txt === "pagina's" || txt === 'paginas' || txt === 'paginaâ€™s') {
+        if (txt === "nieuwe pagina" || txt === "pagina's" || txt === 'paginas' || txt === 'pagina’s') {
           el.style.display = 'none';
         }
       });

@@ -1,4 +1,4 @@
-﻿// js/publish.js
+// js/publish.js
 
 // If Bolt.new API base is provided, publish via Bolt.new Functions endpoints; otherwise fallback to Supabase.
 function hasBoltApi() {
@@ -416,7 +416,7 @@ async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, feat
       hasApiKey: !!hdr.apikey,
       tags: (body.tags && body.tags.join(',')) || null,
       author_type: body.author_type || null,
-      author_id: body.author_id ? String(body.author_id).slice(0,6) + 'â€¦' : null,
+      author_id: body.author_id ? String(body.author_id).slice(0,6) + '…' : null,
       headers: masked
     });
   } catch (e) {}
@@ -550,7 +550,7 @@ async function destinationsSaveDraft({ brand_id, id, title, slug, content, statu
       hasToken: !!hdr.Authorization,
       hasApiKey: !!hdr.apikey,
       author_type: body.author_type || null,
-      author_id: body.author_id ? String(body.author_id).slice(0,6)+'â€¦' : null
+      author_id: body.author_id ? String(body.author_id).slice(0,6)+'…' : null
     });
   } catch (e) {}
   let res;

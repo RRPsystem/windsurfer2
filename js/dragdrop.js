@@ -1,4 +1,4 @@
-﻿// Drag and Drop functionaliteit voor website builder
+// Drag and Drop functionaliteit voor website builder
 class DragDropManager {
     constructor() {
         this.init();
@@ -138,7 +138,7 @@ class DragDropManager {
         const proceed = async () => {
             const ok = await ensureFactory();
             if (!ok || !window.ComponentFactory || typeof window.ComponentFactory.createComponent !== 'function') {
-                console.error('[DND] ComponentFactory is not defined â€“ kan geen component maken.');
+                console.error('[DND] ComponentFactory is not defined ”“ kan geen component maken.');
                 try { window.ExportManager?.showNotification?.('Scripts nog niet geladen. Probeer Ctrl+F5.', 'error'); } catch (e) {}
                 alert('Kan component niet toevoegen: scripts nog niet geladen. Probeer Ctrl+F5.');
                 return;

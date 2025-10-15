@@ -155,7 +155,7 @@
                             </div>
                             <div class="component-item" draggable="true" data-component="hero-page">
                                 <i class="fas fa-image"></i>
-                                <span>Hero (Pagina) â€" banner met groot woord</span>
+                                <span>Hero (Pagina) Ã¢â‚¬" banner met groot woord</span>
                             </div>
                             <div class="component-item" draggable="true" data-component="hero-banner-cta">
                                 <i class="fas fa-bullhorn"></i>
@@ -195,7 +195,7 @@
                             </div>
                             <div class="component-item" draggable="true" data-component="media-row">
                                 <i class="fas fa-images"></i>
-                                <span>Media Rij (fotoâ€™s / carrousel)</span>
+                                <span>Media Rij (fotoÃ¢â‚¬â„¢s / carrousel)</span>
                             </div>
                         </div>
                     </div>
@@ -466,7 +466,7 @@
           var q=new URL(location.href).searchParams;var enabled=q.get('debug')==='1';
           var state={on:enabled,logs:[],mut:0,fps:0,long:0,stall:0,net:[]};
           var ui=null;function el(t,a){var e=document.createElement(t);if(a)Object.assign(e.style,a);return e}
-          function render(){if(!state.on)return;try{if(!ui){ui=el('div',{position:'fixed',bottom:'10px',right:'10px',zIndex:99999,background:'rgba(17,24,39,.92)',color:'#e5e7eb',font:'12px system-ui,Segoe UI,Roboto,Arial',padding:'10px 12px',borderRadius:'8px',boxShadow:'0 6px 18px rgba(0,0,0,.35)',maxWidth:'420px',maxHeight:'45vh',overflow:'auto'});ui.id='wb-debug';document.body.appendChild(ui);}var h='DBG Â· mut/s:'+state.mps+' Â· long:'+state.long+' Â· stall:'+state.stall+'ms';var n=state.net.slice(-5).map(function(x){return x.name+" "+x.status+" "+x.ms+"ms"}).join('<br>');ui.innerHTML='<div style="display:flex;align-items:center;gap:8px;justify-content:space-between"><b>'+h+'</b><button id="wb-dump" style="background:#374151;color:#fff;border:0;padding:4px 8px;border-radius:6px;cursor:pointer">dump</button></div><div style="margin-top:6px;opacity:.9">'+n+'</div>';var b=ui.querySelector('#wb-dump');b.onclick=function(){try{console.log(window.WB_dump&&window.WB_dump());}catch (e) {}}}catch (e) {}}
+          function render(){if(!state.on)return;try{if(!ui){ui=el('div',{position:'fixed',bottom:'10px',right:'10px',zIndex:99999,background:'rgba(17,24,39,.92)',color:'#e5e7eb',font:'12px system-ui,Segoe UI,Roboto,Arial',padding:'10px 12px',borderRadius:'8px',boxShadow:'0 6px 18px rgba(0,0,0,.35)',maxWidth:'420px',maxHeight:'45vh',overflow:'auto'});ui.id='wb-debug';document.body.appendChild(ui);}var h='DBG Ã‚Â· mut/s:'+state.mps+' Ã‚Â· long:'+state.long+' Ã‚Â· stall:'+state.stall+'ms';var n=state.net.slice(-5).map(function(x){return x.name+" "+x.status+" "+x.ms+"ms"}).join('<br>');ui.innerHTML='<div style="display:flex;align-items:center;gap:8px;justify-content:space-between"><b>'+h+'</b><button id="wb-dump" style="background:#374151;color:#fff;border:0;padding:4px 8px;border-radius:6px;cursor:pointer">dump</button></div><div style="margin-top:6px;opacity:.9">'+n+'</div>';var b=ui.querySelector('#wb-dump');b.onclick=function(){try{console.log(window.WB_dump&&window.WB_dump());}catch (e) {}}}catch (e) {}}
           function ensureOn(){if(!state.on)return;render()}
           window.addEventListener('keydown',function(e){if(e.ctrlKey&&e.altKey&&e.key.toLowerCase()==='d'){state.on=!state.on;if(!state.on){try{var n=document.getElementById('wb-debug');if(n)n.remove()}catch (e) {} } else {render();}}},{passive:true});
           var po=null;function startPO(){try{po=new PerformanceObserver(function(list){list.getEntries().forEach(function(entry){state.long++;state.logs.push({t:'longtask',d:entry.duration});});ensureOn()});po.observe({type:'longtask',buffered:true});}catch (e) {}}
@@ -504,7 +504,7 @@
               const box = document.createElement('div');
               box.style.cssText = 'position:relative;width:min(90vw,960px);aspect-ratio:16/9;background:#000;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.4);overflow:hidden';
               const close = document.createElement('button');
-              close.textContent = 'Ã—';
+              close.textContent = 'Ãƒ””';
               close.setAttribute('aria-label','Sluiten');
               close.style.cssText = 'position:absolute;top:8px;right:12px;width:32px;height:32px;border:none;border-radius:6px;background:rgba(0,0,0,.5);color:#fff;font-size:20px;line-height:1;cursor:pointer;z-index:2';
               const frame = document.createElement('iframe');
@@ -650,7 +650,7 @@
           try {
             document.querySelectorAll('.app-header button, .app-header a').forEach(el => {
               const t = (el.textContent || '').trim().toLowerCase();
-              if (t === 'importeer tc' || t === "pagina's" || t === 'paginas' || t === 'nieuwe pagina' || t === 'paginaâ€™s') {
+              if (t === 'importeer tc' || t === "pagina's" || t === 'paginas' || t === 'nieuwe pagina' || t === 'paginaÃ¢â‚¬â„¢s') {
                 el.style.display = 'none';
               }
             });

@@ -1,4 +1,4 @@
-﻿// Properties panel voor component editing
+// Properties panel voor component editing
 class PropertiesPanel {
     constructor() {
         this.panel = document.getElementById('propertiesContent');
@@ -115,13 +115,13 @@ class PropertiesPanel {
         picks.appendChild(btnLeft); picks.appendChild(btnRight);
         this.panel.appendChild(picks);
 
-        // Tags (for news filtering) â€” chips UI stored globally for publish fallback
+        // Tags (for news filtering) ”” chips UI stored globally for publish fallback
         try {
             const grp = this.createFormGroup('Tags (nieuws)');
             const wrap = document.createElement('div');
             wrap.style.display = 'flex'; wrap.style.gap = '8px'; wrap.style.alignItems = 'center';
             const ul = document.createElement('ul'); ul.style.display='flex'; ul.style.flexWrap='wrap'; ul.style.gap='6px'; ul.style.listStyle='none'; ul.style.margin='6px 0 0'; ul.style.padding='0';
-            const input = document.createElement('input'); input.type='text'; input.className='form-control'; input.placeholder='Voeg tag toeâ€¦ (Enter of ,)'; input.style.maxWidth='220px';
+            const input = document.createElement('input'); input.type='text'; input.className='form-control'; input.placeholder='Voeg tag toe… (Enter of ,)'; input.style.maxWidth='220px';
             const read = ()=> Array.from(ul.querySelectorAll('li[data-tag]')).map(li=>li.getAttribute('data-tag')).filter(Boolean);
             const write = (arr)=>{
                 ul.innerHTML='';
@@ -129,7 +129,7 @@ class PropertiesPanel {
                     const li=document.createElement('li'); li.setAttribute('data-tag', t);
                     li.style.cssText='background:#eef2ff;color:#3730a3;border:1px solid #e5e7eb;border-radius:20px;padding:4px 10px;font-size:12px;display:flex;gap:6px;align-items:center;';
                     const span=document.createElement('span'); span.textContent=t;
-                    const x=document.createElement('button'); x.type='button'; x.className='btn btn-secondary btn-small'; x.textContent='Ã—'; x.style.padding='0 6px';
+                    const x=document.createElement('button'); x.type='button'; x.className='btn btn-secondary btn-small'; x.textContent='×'; x.style.padding='0 6px';
                     x.onclick=()=>{ const next=read().filter(v=>v!==t); write(next); try{ window.CURRENT_NEWS_TAGS = next; }catch (e) {} };
                     li.appendChild(span); li.appendChild(x); ul.appendChild(li);
                 });
@@ -390,7 +390,7 @@ class PropertiesPanel {
         aiCap.style.background = '#0ea5e9'; aiCap.style.borderColor = '#0ea5e9'; aiCap.style.color = '#fff';
         this.panel.appendChild(aiCap);
 
-        // Count control â€“ aantal foto's bepalen
+        // Count control ”“ aantal foto's bepalen
         const getCount = () => ((api.getImages && api.getImages()) || []).length;
         const initialCount = String(getCount() || 4);
         this.createRangeInput('Aantal foto\'s', initialCount, '1', '24', '1', async (v) => {
@@ -587,7 +587,7 @@ class PropertiesPanel {
         pickBg.style.background = '#ff7700'; pickBg.style.borderColor = '#ff7700'; pickBg.style.color = '#fff';
         this.panel.appendChild(pickBg);
 
-        // Height (min-height on section) â€” use numeric slider and add 'px' via callback
+        // Height (min-height on section) ”” use numeric slider and add 'px' via callback
         const currentH = parseInt(component.style.minHeight || '600', 10).toString();
         this.createRangeInput('Hoogte (px)', currentH, '120', '1000', '1', (v) => {
             const num = parseInt(v, 10) || 0;
@@ -621,7 +621,7 @@ class PropertiesPanel {
         const curColor = word?.style.color || '#ffffff';
         this.createColorInput('Woord kleur', curColor, (v) => { if (word) word.style.color = v; });
 
-        // Word font size â€” numeric slider, add 'px' in callback
+        // Word font size ”” numeric slider, add 'px' in callback
         const curSize = parseInt(word?.style.fontSize || '200', 10).toString();
         this.createRangeInput('Woord grootte (px)', curSize, '18', '300', '1', (v) => {
             if (word) {
@@ -634,11 +634,11 @@ class PropertiesPanel {
         const curOp = word?.style.opacity || '1';
         this.createRangeInput('Woord transparantie', curOp, '0', '1', '0.01', (v) => { if (word) word.style.opacity = String(parseFloat(v)); });
 
-        // Position X (left) as percentage to move across full width â€” numeric slider 0â€“95
+        // Position X (left) as percentage to move across full width ”” numeric slider 0”“95
         const curLeft = (word?.style.left || '5%').replace('%','');
         this.createRangeInput('Positie X (%)', curLeft, '0', '95', '1', (v) => { if (word) word.style.left = `${parseInt(v,10)||0}%`; });
 
-        // Position Y (bottom) in px with wider range and a quick snap button â€” numeric slider
+        // Position Y (bottom) in px with wider range and a quick snap button ”” numeric slider
         const curBottom = parseInt(word?.style.bottom || '-6', 10).toString();
         this.createRangeInput('Positie Y (px)', curBottom, '-300', '300', '1', (v) => { if (word) word.style.bottom = `${parseInt(v,10)||0}px`; });
         const snapBtn = this.createButton('Zet woord op bodem (0px)', () => { if (word) word.style.bottom = '0px'; });
@@ -1401,7 +1401,7 @@ class PropertiesPanel {
             let x = li.querySelector('[data-tag-del]');
             if (!x) { x = document.createElement('button'); x.type='button'; x.setAttribute('data-tag-del',''); li.appendChild(x); }
             x.title = 'Verwijder tag';
-            x.textContent = 'Ã—';
+            x.textContent = '×';
             x.style.cssText = 'background:transparent;border:none;color:#111827;font-weight:700;cursor:pointer;padding:0 6px;';
             x.onclick = () => { const list = readTags().filter(v => v !== text); writeTags(list); syncGlobals(list); };
         };
@@ -1426,7 +1426,7 @@ class PropertiesPanel {
         const wrap = document.createElement('div');
         wrap.style.display = 'flex'; wrap.style.gap = '8px'; wrap.style.alignItems = 'center';
         const input = document.createElement('input');
-        input.type = 'text'; input.className = 'form-control'; input.placeholder = 'Voeg tag toeâ€¦ (Enter of ,)'; input.style.maxWidth = '220px';
+        input.type = 'text'; input.className = 'form-control'; input.placeholder = 'Voeg tag toe… (Enter of ,)'; input.style.maxWidth = '220px';
         const add = (raw) => {
             const base = readTags();
             const parts = String(raw||'').split(',').map(s=>s.trim()).filter(Boolean);
@@ -1566,7 +1566,7 @@ class PropertiesPanel {
                 // Summary
                 const sum = document.createElement('input');
                 sum.type = 'text'; sum.className = 'form-control'; sum.value = it.summary || '';
-                sum.placeholder = '2â€“3 regels';
+                sum.placeholder = '2”“3 regels';
                 sum.onchange = () => { api.updateItem && api.updateItem(active, idx, { summary: sum.value }); };
 
                 // Link
@@ -2045,7 +2045,7 @@ class PropertiesPanel {
                 img.style.height = '64px';
                 img.style.objectFit = 'cover';
                 const del = document.createElement('button');
-                del.textContent = 'Ã—';
+                del.textContent = '×';
                 del.title = 'Verwijderen';
                 del.style.position = 'absolute';
                 del.style.top = '2px';

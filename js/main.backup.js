@@ -80,7 +80,7 @@ class WebsiteBuilder {
                     // Optional: small hint once
                     if (!canvas.__wb_linkHintShown) {
                         canvas.__wb_linkHintShown = true;
-                        this.showNotification('ðŸ”— Navigeren is uitgeschakeld in de editor (gebruik Preview).', 'info');
+                        this.showNotification('Ã°Å¸””” Navigeren is uitgeschakeld in de editor (gebruik Preview).', 'info');
                         setTimeout(() => { canvas.__wb_linkHintShown = false; }, 4000);
                     }
                 } catch (e) {}
@@ -110,16 +110,16 @@ class WebsiteBuilder {
                         if (!window.BuilderPublishAPI || !window.BuilderPublishAPI.news || typeof window.BuilderPublishAPI.news.publish !== 'function') {
                             this.showNotification('Publish helper niet geladen', 'error'); return;
                         }
-                        btn.disabled = true; const prev = btn.innerHTML; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Publicerenâ€¦';
+                        btn.disabled = true; const prev = btn.innerHTML; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> PublicerenÃ¢â‚¬Â¦';
                         try {
                             const res = await window.BuilderPublishAPI.news.publish({ brand_id, id: id || undefined, slug: id ? undefined : (slug || undefined) });
                             // Compact messaging per requirement
-                            let msg = 'ðŸ“£ Nieuws gepubliceerd';
+                            let msg = 'Ã°Å¸“Â£ Nieuws gepubliceerd';
                             const isAdmin = (res && (res.kind === 'admin' || res.author_type === 'admin'));
                             if (isAdmin && res && res.assignment_updated === true) {
-                                msg = 'ðŸ“£ Gepubliceerd en toegewezen aan brand';
+                                msg = 'Ã°Å¸“Â£ Gepubliceerd en toegewezen aan brand';
                             } else if (res && typeof res.message === 'string' && res.message.trim()) {
-                                msg = `ðŸ“£ ${res.message.trim()}`;
+                                msg = `Ã°Å¸“Â£ ${res.message.trim()}`;
                             }
                             this.showNotification(msg, 'success');
                         } finally {
@@ -167,7 +167,7 @@ class WebsiteBuilder {
                     try {
                         document.querySelectorAll('.app-header button, .app-header a').forEach(el => {
                             const t = (el.textContent || '').trim().toLowerCase();
-                            if (t === 'importeer tc' || t === "pagina's" || t === 'paginas' || t === 'nieuwe pagina' || t === 'paginaâ€™s') {
+                            if (t === 'importeer tc' || t === "pagina's" || t === 'paginas' || t === 'nieuwe pagina' || t === 'paginaÃ¢â‚¬â„¢s') {
                                 el.style.display = 'none';
                             }
                         });
@@ -283,7 +283,7 @@ class WebsiteBuilder {
                 const cont = document.querySelector('#canvas')?.parentElement || document.body;
                 cont.insertBefore(bar, cont.firstChild);
             }
-            bar.innerHTML = `âš ï¸ Opslaan naar server uitgeschakeld. Ontbrekende parameters: <strong>${res.missing.join(', ')}</strong>. Open de builder via een deeplink met deze query parameters.`;
+            bar.innerHTML = `Ã¢Å¡Â Ã¯Â¸Â Opslaan naar server uitgeschakeld. Ontbrekende parameters: <strong>${res.missing.join(', ')}</strong>. Open de builder via een deeplink met deze query parameters.`;
         } else {
             try { if (btn) btn.disabled = false; } catch (e) {}
             const bar = document.getElementById(diagId);
@@ -522,7 +522,7 @@ class WebsiteBuilder {
                 };
             } catch (e) {}
 
-            this.showNotification('ðŸ—ºï¸ Bestemmingspagina template toegevoegd. Vul het land en klik op AI-landen teksten voor automatische vulling.', 'success');
+            this.showNotification('Ã°Å¸””ÂºÃ¯Â¸Â Bestemmingspagina template toegevoegd. Vul het land en klik op AI-landen teksten voor automatische vulling.', 'success');
         } catch (e) {
             console.error('createDestinationTemplate failed', e);
             this.showErrorMessage('Kon bestemmingspagina template niet aanmaken.');
@@ -640,7 +640,7 @@ class WebsiteBuilder {
             this.persistPagesToLocalStorage();
             try { this.saveProject(true); } catch (e) {}
 
-            this.showNotification('ðŸ“° Nieuwsartikel template toegevoegd. Je kunt nu verder bewerken.', 'success');
+            this.showNotification('Ã°Å¸“Â° Nieuwsartikel template toegevoegd. Je kunt nu verder bewerken.', 'success');
         } catch (e) {
             console.error('createNewsArticleTemplate failed', e);
             this.showErrorMessage('Kon nieuwsartikel template niet aanmaken.');
@@ -661,11 +661,11 @@ class WebsiteBuilder {
                 if (!resp.ok) throw new Error(await resp.text());
                 const data = await resp.json();
                 this.insertTcBlocks(data);
-                this.showNotification('âœ… TC-content geÃ¯mporteerd', 'success');
+                this.showNotification('Ã¢Å“… TC-content geÃƒÂ¯mporteerd', 'success');
                 this.saveProject(true);
             } catch (e) {
                 console.warn('TC import failed', e);
-                this.showNotification('âŒ Importeren mislukt', 'error');
+                this.showNotification('Ã¢ÂÅ’ Importeren mislukt', 'error');
             }
         });
     }
@@ -678,13 +678,13 @@ class WebsiteBuilder {
                 try { window.WB_lastSaveDebug = { t: Date.now(), phase: 'click_start' }; console.debug('WB/save click'); } catch (e) {}
                 try { ev.preventDefault(); } catch (e) {}
                 // Re-entrancy guard: if previous save still running, ignore
-                if (this._savingInFlight) { try { this.showNotification && this.showNotification('â³ Bezig met opslaanâ€¦', 'info'); } catch (e) {} return; }
+                if (this._savingInFlight) { try { this.showNotification && this.showNotification('Ã¢Â⏳ Bezig met opslaanÃ¢â‚¬Â¦', 'info'); } catch (e) {} return; }
                 this._savingInFlight = true;
                 try { this.markTyping && this.markTyping(600); } catch (e) {}
-                const s = document.getElementById('pageSaveStatus'); if (s) s.textContent = 'Opslaanâ€¦';
+                const s = document.getElementById('pageSaveStatus'); if (s) s.textContent = 'OpslaanÃ¢â‚¬Â¦';
                 // UI: disable button and show spinner so user sees progress
                 let prevHTML = null; let prevDisabled = false;
-                try { prevHTML = saveBtn.innerHTML; prevDisabled = saveBtn.disabled; saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Opslaanâ€¦'; } catch (e) {}
+                try { prevHTML = saveBtn.innerHTML; prevDisabled = saveBtn.disabled; saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> OpslaanÃ¢â‚¬Â¦'; } catch (e) {}
                 // Watchdog: if something hangs, auto-clear state after 12s
                 let wd; try { wd = setTimeout(() => { try { this._savingInFlight = false; } catch (e) {} try { 
                     if (saveBtn) {
@@ -710,7 +710,7 @@ class WebsiteBuilder {
                     try { window.WB_lastSaveDebug = Object.assign(window.WB_lastSaveDebug||{}, { creds: { brand: !!brand_id, api: !!apiBase, token: !!token, apikey: !!apiKey } }); console.debug('WB/save creds', window.WB_lastSaveDebug.creds); } catch (e) {}
                     if (!brand_id || !apiBase || !token || !apiKey) {
                         try { this.saveProject(true); } catch (e) {}
-                        try { this.showNotification('âš ï¸ Lokaal opgeslagen (ontbrekende parameters voor remote opslaan)', 'warning'); } catch (e) {}
+                        try { this.showNotification('Ã¢Å¡Â Ã¯Â¸Â Lokaal opgeslagen (ontbrekende parameters voor remote opslaan)', 'warning'); } catch (e) {}
                         try { if (wd) clearTimeout(wd); } catch (e) {}
                         try { if (s) s.textContent = 'Opgeslagen'; } catch (e) {}
                         try { saveBtn.disabled = prevDisabled; if (prevHTML != null) saveBtn.innerHTML = prevHTML; } catch (e) {}
@@ -778,7 +778,7 @@ class WebsiteBuilder {
                         }
                         if (!ready) {
                             this.saveProject(true);
-                            this.showNotification('ðŸ’¾ Lokaal opgeslagen (publish helper nog niet geladen)', 'info');
+                            this.showNotification('Ã°Å¸’Â¾ Lokaal opgeslagen (publish helper nog niet geladen)', 'info');
                             try { if (wd) clearTimeout(wd); } catch (e) {}
                             try { if (s) s.textContent = 'Opgeslagen'; } catch (e) {}
                             try { saveBtn.disabled = prevDisabled; if (prevHTML != null) saveBtn.innerHTML = prevHTML; } catch (e) {}
@@ -816,7 +816,7 @@ class WebsiteBuilder {
                             author_type: author_type || undefined,
                             author_id: author_id || undefined
                         });
-                        this.showNotification('ðŸ“° Concept opgeslagen (Nieuws)', 'success');
+                        this.showNotification('Ã°Å¸“Â° Concept opgeslagen (Nieuws)', 'success');
                     } else if ((mode === 'destination' || mode === 'destinations') && window.BuilderPublishAPI.destinations) {
                         await window.BuilderPublishAPI.destinations.saveDraft({
                             brand_id,
@@ -825,7 +825,7 @@ class WebsiteBuilder {
                             content: { json: contentJson, html: htmlString },
                             status: 'draft'
                         });
-                        this.showNotification('ðŸ—ºï¸ Concept opgeslagen (Bestemming)', 'success');
+                        this.showNotification('Ã°Å¸””ÂºÃ¯Â¸Â Concept opgeslagen (Bestemming)', 'success');
                     } else if (mode === 'page' && window.BuilderPublishAPI.saveDraft) {
                         // Pages & Templates: save draft JSON
                         let page = null;
@@ -845,7 +845,7 @@ class WebsiteBuilder {
                                 'saveDraft'
                             );
                         } catch (eSD) {
-  this.showNotification('⚠️ Concept opslaan duurde te lang of faalde; lokaal opgeslagen', 'warning');
+  this.showNotification('⚠️ Concept opslaan duurde te lang of faalde; lokaal opgeslagen', 'warning');
   try { this.saveProject(true); } catch (e) {}
 }
 
@@ -866,19 +866,19 @@ if (!isTemplate && page && !this._disablePublish) {
   } catch (ePublish) {
     const em = String((ePublish && ePublish.message) || ePublish || '').toLowerCase();
     if (em.includes('401') || em.includes('403')) {
-      this.showNotification('⚠️ Publiceren niet toegestaan; concept opgeslagen.', 'warning');
+      this.showNotification('⚠️ Publiceren niet toegestaan; concept opgeslagen.', 'warning');
     } else if (em.includes('timeout')) {
-      this.showNotification('⚠️ Publiceren timeout; concept staat wel opgeslagen.', 'warning');
+      this.showNotification('⚠️ Publiceren timeout; concept staat wel opgeslagen.', 'warning');
     } else {
-      this.showNotification('⚠️ Publiceren mislukt; concept opgeslagen.', 'warning');
+      this.showNotification('⚠️ Publiceren mislukt; concept opgeslagen.', 'warning');
     }
   }
 }
 
 this.showNotification(
   isTemplate
-    ? '🧩 Template opgeslagen'
-    : (published ? '📣 Pagina opgeslagen en gepubliceerd' : '💾 Concept opgeslagen (Pagina)'),
+    ? 'ðŸ§© Template opgeslagen'
+    : (published ? 'ðŸ“£ Pagina opgeslagen en gepubliceerd' : 'ðŸ’¾ Concept opgeslagen (Pagina)'),
   'success'
 );
 
@@ -995,7 +995,7 @@ setupVisibilityGuards() {
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
-                    this.showNotification('ðŸ’¾ Project gedownload (.wbproj)', 'success');
+                    this.showNotification('Ã°Å¸’Â¾ Project gedownload (.wbproj)', 'success');
                 } catch (err) {
                     console.error('Save error', err);
                     this.showErrorMessage('Opslaan mislukt');
@@ -1013,7 +1013,7 @@ setupVisibilityGuards() {
                     const data = JSON.parse(text);
                     this.loadProjectData(data);
                     this.saveProject(true);
-                    this.showNotification('ðŸ“‚ Project geladen uit bestand', 'success');
+                    this.showNotification('Ã°Å¸“”š Project geladen uit bestand', 'success');
                 } catch (err) {
                     console.error('Load error', err);
                     this.showErrorMessage('Bestand kon niet worden geladen');
@@ -1035,7 +1035,7 @@ setupVisibilityGuards() {
         try { console[type === 'error' ? 'error' : (type === 'success' ? 'log' : 'info')](message); } catch (e) {}
     }
     showErrorMessage(message) {
-        try { this.showNotification(`âŒ ${message}`, 'error'); } catch (e) { try { console.error(message); } catch (e) {} }
+        try { this.showNotification(`Ã¢ÂÅ’ ${message}`, 'error'); } catch (e) { try { console.error(message); } catch (e) {} }
     }
 
     // Public API methods
@@ -1144,7 +1144,7 @@ setupVisibilityGuards() {
                 logoUrl: logoInput?.value || ''
             };
             this.persistPagesToLocalStorage(true);
-            this.showNotification('ðŸŽ¨ Layout bijgewerkt', 'success');
+            this.showNotification('Ã°Å¸Å½Â¨ Layout bijgewerkt', 'success');
         };
 
         content.querySelector('#lpApply').onclick = () => { apply(); close(); };
@@ -1228,7 +1228,7 @@ setupVisibilityGuards() {
                     body: JSON.stringify({ message })
                 });
                 if (!res.ok) throw new Error(await res.text());
-                this.showNotification('âœ… Wijzigingen naar GitHub gepusht', 'success');
+                this.showNotification('Ã¢Å“… Wijzigingen naar GitHub gepusht', 'success');
             } catch (err) {
                 console.warn('Git push via API mislukt', err);
                 // Fallback modal with PowerShell command
@@ -1259,7 +1259,7 @@ setupVisibilityGuards() {
                 content.querySelector('#copyGitCmd').onclick = () => {
                     const ta = content.querySelector('textarea');
                     ta.select(); document.execCommand('copy');
-                    this.showNotification('ðŸ“‹ Commando gekopieerd', 'success');
+                    this.showNotification('Ã°Å¸“”¹ Commando gekopieerd', 'success');
                 };
             }
         });
@@ -1288,7 +1288,7 @@ setupVisibilityGuards() {
         }
         this.reattachEventListeners();
         this.persistPagesToLocalStorage(true);
-        this.showNotification('ðŸ“‚ Project geladen', 'success');
+        this.showNotification('Ã°Å¸“”š Project geladen', 'success');
     }
 }
 
@@ -1305,7 +1305,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Add global error handler
 window.addEventListener('error', (event) => {
-    console.error('ðŸ’¥ JavaScript fout:', event.error);
+    console.error('Ã°Å¸’Â¥ JavaScript fout:', event.error);
     if (window.websiteBuilder) {
         window.websiteBuilder.showErrorMessage('Er is een onverwachte fout opgetreden.');
     }
@@ -1322,4 +1322,4 @@ window.wb = {
     loadData: (data) => window.websiteBuilder?.loadProjectData(data)
 };
 
-console.log('ðŸŽ¯ Website Builder geladen! Gebruik wb.save(), wb.export(), etc. in de console.');
+console.log('Ã°Å¸Å½Â¯ Website Builder geladen! Gebruik wb.save(), wb.export(), etc. in de console.');

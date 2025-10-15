@@ -1,4 +1,4 @@
-﻿const API_BASE = (location.port && location.port !== '5050') ? 'http://localhost:5050' : '';
+const API_BASE = (location.port && location.port !== '5050') ? 'http://localhost:5050' : '';
 const PAGE_PARAMS = new URLSearchParams(location.search);
 const PAGE_MICROSITE = PAGE_PARAMS.get('micrositeId') || '';
 
@@ -50,7 +50,7 @@ function joinDestinations(arr) {
   return names.slice(0,3).join(', ');
 }
 
-function trimText(t, n) { return t.length>n ? t.slice(0,n-1)+'â€¦' : t; }
+function trimText(t, n) { return t.length>n ? t.slice(0,n-1)+'…' : t; }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
 function formatPrice(v, cur){ try{ return new Intl.NumberFormat('nl-NL',{style:'currency',currency:cur||'EUR',maximumFractionDigits:0}).format(Number(v)); }catch (e) {} return (cur||'EUR')+ ' '+ v; }
 function toPlainText(s){
