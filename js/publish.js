@@ -59,58 +59,67 @@ function withApiKey(url) {
   } catch (e) { return url; }
 }
 
+// Prefer custom API and credentials from URL when present
+function customApiBaseFromUrl() {
+  try {
+    const u = new URL(window.location.href);
+    const api = (u.searchParams.get('api') || '').replace(/\/$/, '');
+    return api || null;
+  } catch (e) { return null; }
+}
+
+function authHeadersFromUrl() {
+  try {
+    const u = new URL(window.location.href);
+    const token = (u.searchParams.get('token') || window.CURRENT_TOKEN || '').trim();
+    const apikey = (u.searchParams.get('apikey') || u.searchParams.get('api_key') || (window.BOLT_API && window.BOLT_API.apiKey) || '').trim();
+    const h = { 'Content-Type': 'application/json' };
+    if (token) h.Authorization = `Bearer ${token}`;
+    if (apikey) h.apikey = apikey;
+    return h;
+  } catch (e) { return { 'Content-Type': 'application/json' }; }
+}
+
 async function saveDraftBolt({ brand_id, page_id, title, slug, content_json, is_template, template_category, preview_image_url }) {
-  const base = boltFunctionsBase();
-  // Build payload conditionally: templates must NOT include brand_id
-  const payload = { title, slug, content_json };
+  // Build payload; always include brand_id per requirement
+  const payload = { brand_id, title, slug, content_json };
   if (page_id) payload.page_id = page_id;
   if (is_template) {
     payload.is_template = true;
     if (template_category) payload.template_category = template_category;
     if (preview_image_url) payload.preview_image_url = preview_image_url;
+  }
+
+  // Determine base endpoint
+  const custom = customApiBaseFromUrl();
+  let base = '';
+  if (custom) {
+    base = custom; // expected to already include /functions/v1
   } else {
-    payload.brand_id = brand_id; // normal page draft
+    // Fallback to previous logic if no custom API is provided
+    const projectBase = boltProjectBase();
+    if (!projectBase) throw new Error('API base URL ontbreekt');
+    base = `${projectBase.replace(/\/$/, '')}/functions/v1`;
   }
-  // Build headers once
-  const hdrs = (function(){
-    try {
-      const u = new URL(window.location.href);
-      const token = (u.searchParams.get('token') || window.CURRENT_TOKEN || '');
-      const apikey = (u.searchParams.get('apikey') || u.searchParams.get('api_key') || (window.BOLT_API && window.BOLT_API.apiKey) || '');
-      return { 'Content-Type':'application/json', 'Authorization': `Bearer ${token}`, 'apikey': apikey };
-    } catch (e) { return { 'Content-Type':'application/json' }; }
-  })();
+  const url = `${base}/pages-api/save`;
+  const headers = authHeadersFromUrl();
 
-  // Candidate endpoints: functions host first, then project host; try /saveDraft then /save
-  const bases = [boltFunctionsBase(), boltProjectBase()].filter(Boolean);
-  const paths = ['/functions/v1/pages-api/saveDraft', '/functions/v1/pages-api/save'];
-  let res = null; let data = null; let url = '';
-  for (const b of bases) {
-    for (const p of paths) {
-      try {
-        url = withApiKey(`${b}${p}`);
-        res = await fetch(url, { method: 'POST', headers: hdrs, body: JSON.stringify(payload) });
-        // Try to parse body once (even on error) for better diagnostics
-        try { data = await res.clone().json(); } catch (e) { data = null; }
-        if (res.ok) { console.debug('[saveDraftBolt] success', { url, data }); break; }
-        console.warn('[saveDraftBolt] attempt failed', res.status, { url, data });
-      } catch (e) {
-        console.warn('[saveDraftBolt] network error', { url, error: String(e && e.message || e) });
-        res = null; data = null;
-      }
-    }
-    if (res && res.ok) break;
+  let res = null; let data = null;
+  try {
+    res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload) });
+    try { data = await res.clone().json(); } catch (e) { data = null; }
+  } catch (e) {
+    console.warn('[saveDraftBolt] network error', e);
+    throw e;
   }
 
-  if (!res || !res.ok) {
-    const status = res ? res.status : 'no_response';
-    const msg = (data && (data.error || data.message)) || `saveDraft failed: ${status}`;
-    console.error('[saveDraftBolt] all attempts failed', status, msg, { url, payload, data });
-    const err = new Error(`${msg} (${status})`);
-    try { err.status = status; } catch (e) {}
+  if (!res.ok) {
+    const msg = (data && (data.error || data.message)) || `saveDraft failed: ${res.status}`;
+    const err = new Error(`${msg}`);
+    try { err.status = res.status; } catch (e) {}
     throw err;
   }
-  // Expected: { success:true, page_id, slug, version, message }
+
   return {
     id: (data && (data.page_id || data.id)) || page_id || null,
     slug: data && data.slug,
@@ -122,12 +131,18 @@ async function saveDraftBolt({ brand_id, page_id, title, slug, content_json, is_
 }
 
 async function publishPageBolt(pageId, htmlString) {
-  const base = boltProjectBase();
-  let url = `${base}/functions/v1/pages-api/${encodeURIComponent(pageId)}/publish`;
-  url = withApiKey(url);
+  // Prefer custom API base from URL; else Bolt project base
+  const base = (function(){
+    const fromUrl = contentApiBase(); // already ends with /functions/v1
+    if (fromUrl) return fromUrl;
+    const proj = boltProjectBase();
+    return proj ? `${proj.replace(/\/$/, '')}/functions/v1` : '';
+  })();
+  if (!base) throw new Error('API base URL ontbreekt');
+  const url = `${base}/pages-api/${encodeURIComponent(pageId)}/publish`;
   const res = await fetch(url, {
     method: 'POST',
-    headers: boltHeaders(),
+    headers: authHeadersFromUrl(),
     body: JSON.stringify({ body_html: htmlString })
   });
   let data = null;
@@ -177,12 +192,13 @@ async function publishPageSupabase(pageId, htmlString) {
 }
 
 async function saveDraft(args) {
-  if (hasBoltApi()) return saveDraftBolt(args);
+  // Use custom API (from URL) or Bolt API if available; otherwise fallback to direct Supabase client
+  if (customApiBaseFromUrl() || hasBoltApi()) return saveDraftBolt(args);
   return saveDraftSupabase(args);
 }
 
 async function publishPage(pageId, htmlString) {
-  if (hasBoltApi()) return publishPageBolt(pageId, htmlString);
+  if (customApiBaseFromUrl() || hasBoltApi()) return publishPageBolt(pageId, htmlString);
   return publishPageSupabase(pageId, htmlString);
 }
 
@@ -347,20 +363,23 @@ window.BuilderPublishAPI.publishMenu = publishMenu;
 // ==============================
 
 function contentApiBase() {
-  // Prefer explicit Bolt API baseUrl when present; otherwise fall back to BOLT_DB.url
-  const supa = (hasBoltApi() ? boltProjectBase() : (window.BOLT_DB && window.BOLT_DB.url)) || '';
-  if (!supa) return '';
-  // Base should be .../functions/v1 ; endpoints will append /content-api/...
-  return `${supa.replace(/\/$/, '')}/functions/v1`;
+  // Prefer explicit custom API from URL, else Bolt API baseUrl, else fall back to BOLT_DB.url
+  const fromUrl = customApiBaseFromUrl();
+  if (fromUrl) {
+    // If URL already includes /functions/v1, return as-is; otherwise append it
+    const clean = fromUrl.replace(/\/$/, '');
+    return /\/functions\/v1$/i.test(clean) ? clean : `${clean}/functions/v1`;
+  }
+  const boltBase = hasBoltApi() ? boltProjectBase() : '';
+  if (boltBase) return `${boltBase.replace(/\/$/, '')}/functions/v1`;
+  const dbUrl = (window.BOLT_DB && window.BOLT_DB.url) || '';
+  if (dbUrl) return `${dbUrl.replace(/\/$/, '')}/functions/v1`;
+  return '';
 }
 
 function contentApiHeaders() {
-  const h = { 'Content-Type': 'application/json' };
-  const token = window.CURRENT_TOKEN || '';
-  if (token) h.Authorization = `Bearer ${token}`;
-  const apiKey = (window.BOLT_API && window.BOLT_API.apiKey) || (window.BOLT_DB && window.BOLT_DB.anonKey);
-  if (apiKey) h.apikey = apiKey;
-  return h;
+  // Prefer URL-provided credentials
+  return authHeadersFromUrl();
 }
 
 function readQueryParam(name) {
@@ -373,7 +392,8 @@ function readQueryParam(name) {
 async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, featured_image, status = 'draft', author_type: arg_author_type, author_id: arg_author_id }) {
   const base = contentApiBase();
   if (!base) throw new Error('content-api base URL ontbreekt');
-  const url = `${base}/content-api/save?type=news_items`;
+  // Use explicit news save endpoint per requirement
+  const url = `${base}/content-api/news/save`;
   const baseBody = { brand_id, title, slug, content: content || {}, excerpt: excerpt || '', featured_image: featured_image || '', status };
   // Tags support: from content.meta.tags (array) or URL ?tags=comma,separated
   try {
@@ -414,9 +434,9 @@ async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, feat
       slug,
       hasToken: !!hdr.Authorization,
       hasApiKey: !!hdr.apikey,
-      tags: (body.tags && body.tags.join(',')) || null,
-      author_type: body.author_type || null,
-      author_id: body.author_id ? String(body.author_id).slice(0,6) + '…' : null,
+      tags: (baseBody.tags && baseBody.tags.join(',')) || null,
+      author_type: baseBody.author_type || null,
+      author_id: baseBody.author_id ? String(baseBody.author_id).slice(0,6) + '…' : null,
       headers: masked
     });
   } catch (e) {}
