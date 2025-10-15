@@ -251,7 +251,7 @@ class ComponentFactory {
             <h1 class="na-title" contenteditable="true">${title}</h1>
             <div class="na-meta" style="display:flex;gap:12px;align-items:center;color:#6b7280;font-size:14px;">
                 <span class="na-date" contenteditable="true">${dateStr}</span>
-                <span class="na-dot">Ã¢â‚¬Â¢</span>
+                <span class="na-dot" aria-hidden="true">&bull;</span>
                 <span class="na-author" contenteditable="true">${author}</span>
             </div>
             <ul class="na-tags" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px;padding:0;list-style:none;"></ul>
