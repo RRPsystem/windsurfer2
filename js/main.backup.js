@@ -881,21 +881,30 @@ this.showNotification(
     : (published ? '📣 Pagina opgeslagen en gepubliceerd' : '💾 Concept opgeslagen (Pagina)'),
   'success'
 );
+
+// Close the big try that started around line 695
 }
 } catch (e) {}
 
+// UI reset after save attempt
+if (!isTemplate) {
+  if (window.BuilderPublishAPI && typeof window.BuilderPublishAPI.saveDraft === 'function') {
+    await window.BuilderPublishAPI.saveDraft({
+      brand_id,
+      title: safeTitle,
+      slug: safeSlug,
+      content_json: contentJson
+    });
+  }
+}
 
 try {
   if (saveBtn) {
     saveBtn.disabled = !!prevDisabled;
-    if (prevHTML != null) saveBtn.innerHTML = prevHTML;
-  }
 } catch (e) {}
 
 };
-} catch (e) {}
 
-}
 setupVisibilityGuards() {
     try {
         if (this._visGuardsInstalled) return;
