@@ -1,4 +1,4 @@
-﻿// Component factory voor website builder
+// Component factory voor website builder
 
 // Global helper: apply responsive src/srcset for known CDNs (e.g., Unsplash)
 function __WB_applyResponsiveSrc(imageEl, url, opts = {}) {
@@ -1102,39 +1102,26 @@ class ComponentFactory {
                 iframe.style.position = 'absolute';
                 iframe.style.top = '50%';
                 iframe.style.left = '50%';
-                iframe.style.transform = 'translate(-50%, -50%)';
-                iframe.style.width = '100%';
-                iframe.style.height = '100%';
-                videoWrap.appendChild(iframe);
-                section.insertBefore(videoWrap, overlay);
-            }
-            const iframe = videoWrap.querySelector('iframe');
-            // ensure autoplay muted looping
             const url = new URL(embedUrl);
             const params = url.searchParams;
             if (!params.has('autoplay')) params.set('autoplay', '1');
-            // Apply options from properties (mute/start)
             const opts = section._ytOptions || { mute: true, start: 0 };
             if (opts.mute === false) { params.delete('mute'); } else { params.set('mute', '1'); }
-            if (!params.has('controls')) params.set('controls', '0');
-            if (!params.has('loop')) params.set('loop', '1');
-            // playlist param needed for loop
+            if (!params.has('controls')) params.set('controls', '1');
+            if (!params.has('loop')) params.set('loop', '0');
             const vidIdMatch = url.pathname.match(/\/embed\/([^\/?#]+)/);
             if (vidIdMatch && !params.has('playlist')) params.set('playlist', vidIdMatch[1]);
             const startSec = Math.max(0, parseInt(opts.start, 10) || 0);
             if (startSec > 0) params.set('start', String(startSec)); else params.delete('start');
             url.search = params.toString();
-            const nextSrc = url.toString();
-            // Avoid redundant reloads
-            if (iframe.src !== nextSrc && section._ytLastSrc !== nextSrc) {
-                section._ytLastSrc = nextSrc;
-                iframe.src = nextSrc;
-            }
-
-            // Fit the iframe to cover the section (16:9) without letterboxing
-            const fitVideo = () => {
-                const w = section.clientWidth || section.offsetWidth || 0;
-                const h = section.clientHeight || parseFloat(getComputedStyle(section).minHeight) || 0;
+            iframe.src = url.toString();
+            const cleanup = () => { try { document.body.removeChild(overlayBg); } catch (e) {} };
+            close.onclick = cleanup;
+            overlayBg.onclick = (e) => { if (e.target === overlayBg) cleanup(); };
+            box.appendChild(iframe);
+            box.appendChild(close);
+            overlayBg.appendChild(box);
+            document.body.appendChild(overlayBg);
                 if (!w || !h) return;
                 const containerRatio = w / h;
                 const videoRatio = 16 / 9;
@@ -1807,8 +1794,36 @@ class ComponentFactory {
         iframe.setAttribute('allowfullscreen', '');
         iframe.style.width = '100%';
         iframe.style.height = '100%';
-        iframe.src = videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}${start>0?`&start=${start}`:''}` : 'about:blank';
+        // Editor-safe autoplay: disable in edit mode, enable in preview; lazy-load when visible
+        const isEditMode = !!(document.body && document.body.dataset && document.body.dataset.wbMode === 'edit');
+        const baseUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+        const common = `${start>0?`&start=${start}`:''}&mute=1&controls=0&playsinline=1`;
+        const paramsEdit = `autoplay=0&loop=0${common}`;
+        const paramsView = `autoplay=1&loop=1&playlist=${videoId}${common}`;
+        const targetSrc = videoId ? `${baseUrl}?${isEditMode ? paramsEdit : paramsView}` : 'about:blank';
+        try { iframe.dataset.src = targetSrc; } catch (e) { /* older browsers */ }
+        // do not set src immediately; attach after visible
         videoWrap.appendChild(iframe);
+        try {
+            const io = new IntersectionObserver((entries, obs) => {
+                entries.forEach(en => {
+                    if (en.isIntersecting) {
+                        try {
+                            if (iframe.dataset && iframe.dataset.src && iframe.src !== iframe.dataset.src) {
+                                iframe.src = iframe.dataset.src;
+                            } else if (!iframe.src) {
+                                iframe.src = targetSrc;
+                            }
+                        } catch (e) { try { iframe.src = targetSrc; } catch (e) {} }
+                        try { obs.disconnect(); } catch (e) {}
+                    }
+                });
+            }, { root: null, threshold: 0.1 });
+            io.observe(videoWrap);
+        } catch (e) {
+            // Fallback: set src soon
+            setTimeout(() => { try { if (iframe.dataset && iframe.dataset.src) iframe.src = iframe.dataset.src; else iframe.src = targetSrc; } catch (e) {} }, 0);
+        }
 
         // Overlay
         const overlay = document.createElement('div');
@@ -2568,9 +2583,59 @@ class ComponentFactory {
             wrapper.innerHTML = '';
             wrapper.appendChild(toolbar);
             
+            const isEditMode = !!(document.body && document.body.dataset && document.body.dataset.wbMode === 'edit');
+            try {
+                const u = new URL(embedUrl);
+                const p = u.searchParams;
+                const isYT = /youtube\.com|youtu\.be/.test(u.href);
+                const isVimeo = /vimeo\.com/.test(u.href);
+                // Controls: on in editor, minimal in view
+                p.set('controls', isEditMode ? '1' : (isYT ? '0' : p.get('controls') || '0'));
+                // Autoplay/loop/mute
+                p.set('autoplay', isEditMode ? '0' : '1');
+                p.set('loop', isEditMode ? '0' : '1');
+                if (isYT) {
+                    p.set('playsinline', '1');
+                    if (!p.has('mute')) p.set('mute', '1');
+                    // For YouTube loop to work reliably, playlist must equal video id
+                    const m = u.pathname.match(/\/embed\/([^\/?#]+)/);
+                    if (!isEditMode && m && !p.has('playlist')) p.set('playlist', m[1]);
+                }
+                if (isVimeo) {
+                    // Vimeo-specific safe params
+                    if (!p.has('muted')) p.set('muted', isEditMode ? '0' : '1');
+                    if (!p.has('background')) p.set('background', isEditMode ? '0' : '1');
+                }
+                u.search = p.toString();
+                embedUrl = u.toString();
+            } catch (e) {}
+
             const iframe = document.createElement('iframe');
-            iframe.src = embedUrl;
-            iframe.allowFullscreen = true;
+            iframe.setAttribute('title', 'Embedded Video');
+            iframe.setAttribute('frameborder', '0');
+            iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture');
+            iframe.setAttribute('allowfullscreen', '');
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            try { iframe.dataset.src = embedUrl; } catch (e) {}
+
+            // Lazy-load when visible
+            try {
+                const io = new IntersectionObserver((entries, obs) => {
+                    entries.forEach(en => {
+                        if (en.isIntersecting) {
+                            try {
+                                if (iframe.dataset && iframe.dataset.src) iframe.src = iframe.dataset.src; else iframe.src = embedUrl;
+                            } catch (e) { iframe.src = embedUrl; }
+                            try { obs.disconnect(); } catch (e) {}
+                        }
+                    });
+                }, { root: null, threshold: 0.1 });
+                io.observe(wrapper);
+            } catch (e) {
+                setTimeout(() => { try { if (!iframe.src) iframe.src = embedUrl; } catch (e) {} }, 0);
+            }
+
             wrapper.appendChild(iframe);
         }
     }
