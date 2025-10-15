@@ -46,6 +46,19 @@ class WebsiteBuilder {
     init() {
         try {
             if (this.isInitialized) return;
+            
+            // Return URL: lees en bewaar bij opstarten
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const returnUrl = urlParams.get('return_url');
+                if (returnUrl) {
+                    localStorage.setItem('builder_return_url', returnUrl);
+                    console.log('[ReturnURL] Opgeslagen:', returnUrl);
+                }
+            } catch (e) {
+                console.warn('[ReturnURL] Kon niet opslaan:', e);
+            }
+            
             const run = () => {
                 try { this.setupFileSaveLoad && this.setupFileSaveLoad(); } catch (e) {}
                 try { this.interceptCanvasLinks && this.interceptCanvasLinks(); } catch (e) {}
@@ -817,6 +830,7 @@ class WebsiteBuilder {
                             author_id: author_id || undefined
                         });
                         this.showNotification('ðŸ“° Concept opgeslagen (Nieuws)', 'success');
+                        try { if (window.handleReturnUrl) window.handleReturnUrl(); } catch (e) {}
                     } else if ((mode === 'destination' || mode === 'destinations') && window.BuilderPublishAPI.destinations) {
                         await window.BuilderPublishAPI.destinations.saveDraft({
                             brand_id,
@@ -826,6 +840,7 @@ class WebsiteBuilder {
                             status: 'draft'
                         });
                         this.showNotification('ðŸ—ºï¸ Concept opgeslagen (Bestemming)', 'success');
+                        try { if (window.handleReturnUrl) window.handleReturnUrl(); } catch (e) {}
                     } else if (mode === 'page' && window.BuilderPublishAPI.saveDraft) {
                         // Pages & Templates: save draft JSON
                         let page = null;
@@ -881,6 +896,8 @@ this.showNotification(
     : (published ? '📣 Pagina opgeslagen en gepubliceerd' : '💾 Concept opgeslagen (Pagina)'),
   'success'
 );
+// Return URL: redirect na succesvol opslaan
+try { if (window.handleReturnUrl) window.handleReturnUrl(); } catch (e) {}
 }
 } catch (e) {}
 
@@ -1284,6 +1301,48 @@ setupVisibilityGuards() {
 }
 
 // Initialize Website Builder when DOM is ready
+// Return URL helpers
+window.handleReturnUrl = function() {
+    try {
+        const returnUrl = localStorage.getItem('builder_return_url');
+        if (!returnUrl) {
+            console.log('[ReturnURL] Geen return URL gevonden');
+            return false;
+        }
+
+        // Valideer return URL
+        const isValidReturnUrl = (url) => {
+            try {
+                const parsedUrl = new URL(url);
+                // Sta alle domains toe (BOLT kan op verschillende domains draaien)
+                // Je kunt hier optioneel een whitelist toevoegen
+                return true;
+            } catch {
+                return false;
+            }
+        };
+
+        if (isValidReturnUrl(returnUrl)) {
+            console.log('[ReturnURL] Redirecting naar:', returnUrl);
+            localStorage.removeItem('builder_return_url');
+            
+            // Kleine delay voor gebruiker om succes melding te zien
+            setTimeout(() => {
+                window.location.href = returnUrl;
+            }, 800);
+            
+            return true;
+        } else {
+            console.warn('[ReturnURL] Ongeldige URL:', returnUrl);
+            localStorage.removeItem('builder_return_url');
+            return false;
+        }
+    } catch (e) {
+        console.error('[ReturnURL] Fout bij redirect:', e);
+        return false;
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     window.websiteBuilder = new WebsiteBuilder();
     // Apply header visibility and attach save handler for Bolt/deeplink context
