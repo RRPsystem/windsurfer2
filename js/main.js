@@ -110,7 +110,7 @@ class WebsiteBuilder {
                         if (!window.BuilderPublishAPI || !window.BuilderPublishAPI.news || typeof window.BuilderPublishAPI.news.publish !== 'function') {
                             this.showNotification('Publish helper niet geladen', 'error'); return;
                         }
-                        btn.disabled = true; const prev = btn.innerHTML; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Publiceren...';
+                        btn.disabled = true; const prev = btn.innerHTML; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Publicerenâ€¦';
                         try {
                             const res = await window.BuilderPublishAPI.news.publish({ brand_id, id: id || undefined, slug: id ? undefined : (slug || undefined) });
                             // Compact messaging per requirement
@@ -167,7 +167,7 @@ class WebsiteBuilder {
                     try {
                         document.querySelectorAll('.app-header button, .app-header a').forEach(el => {
                             const t = (el.textContent || '').trim().toLowerCase();
-                            if (t === 'importeer tc' || t === "pagina's" || t === 'paginas' || t === 'nieuwe pagina') {
+                            if (t === 'importeer tc' || t === "pagina's" || t === 'paginas' || t === 'nieuwe pagina' || t === 'paginaâ€™s') {
                                 el.style.display = 'none';
                             }
                         });
@@ -637,7 +637,7 @@ class WebsiteBuilder {
 
             // Sync meta inputs in header and save
             try { if (typeof this._applyPageMetaToInputs === 'function') this._applyPageMetaToInputs(); } catch (e) {}
-            this.persistPagesToLocalStorage();
+            try { this.persistPagesToLocalStorage?.(true); } catch (e) {}
             try { this.saveProject(true); } catch (e) {}
 
             this.showNotification('ðŸ“° Nieuwsartikel template toegevoegd. Je kunt nu verder bewerken.', 'success');
@@ -661,7 +661,7 @@ class WebsiteBuilder {
                 if (!resp.ok) throw new Error(await resp.text());
                 const data = await resp.json();
                 this.insertTcBlocks(data);
-                this.showNotification('✅ TC-content geïmporteerd', 'success');
+                this.showNotification('âœ… TC-content geÃ¯mporteerd', 'success');
                 this.saveProject(true);
             } catch (e) {
                 console.warn('TC import failed', e);
@@ -678,13 +678,13 @@ class WebsiteBuilder {
                 try { window.WB_lastSaveDebug = { t: Date.now(), phase: 'click_start' }; console.debug('WB/save click'); } catch (e) {}
                 try { ev.preventDefault(); } catch (e) {}
                 // Re-entrancy guard: if previous save still running, ignore
-                if (this._savingInFlight) { try { this.showNotification && this.showNotification('⏳ Bezig met opslaan...', 'info'); } catch (e) {} return; }
+                if (this._savingInFlight) { try { this.showNotification && this.showNotification('â³ Bezig met opslaanâ€¦', 'info'); } catch (e) {} return; }
                 this._savingInFlight = true;
                 try { this.markTyping && this.markTyping(600); } catch (e) {}
-                const s = document.getElementById('pageSaveStatus'); if (s) s.textContent = 'Opslaan...';
+                const s = document.getElementById('pageSaveStatus'); if (s) s.textContent = 'Opslaanâ€¦';
                 // UI: disable button and show spinner so user sees progress
                 let prevHTML = null; let prevDisabled = false;
-                try { prevHTML = saveBtn.innerHTML; prevDisabled = saveBtn.disabled; saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Opslaan...'; } catch (e) {}
+                try { prevHTML = saveBtn.innerHTML; prevDisabled = saveBtn.disabled; saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Opslaanâ€¦'; } catch (e) {}
                 // Watchdog: if something hangs, auto-clear state after 12s
                 let wd; try { wd = setTimeout(() => { try { this._savingInFlight = false; } catch (e) {} try { 
                     if (saveBtn) {
