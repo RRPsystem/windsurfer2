@@ -168,6 +168,41 @@
         view.innerHTML = `
           <div style=\"border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:16px;\">Menu-view wordt geladen...</div>`;
       }
+    } else if (mode === 'travel'){
+      // If dedicated travel view exists, mount it; else show loading and retry
+      if (window.TravelView && typeof window.TravelView.mount === 'function') {
+        window.TravelView.mount(view);
+      } else {
+        // Show loading message and retry after scripts load
+        view.innerHTML = `
+          <div style="border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:16px;max-width:980px;">
+            <div style="font-weight:700;font-size:18px;margin-bottom:6px;"><i class="fas fa-circle-notch fa-spin"></i> Travel view wordt geladen...</div>
+            <div style="color:#475569;margin-bottom:12px;">Een moment geduld...</div>
+          </div>`;
+        // Retry mounting after a short delay (scripts may still be loading)
+        let attempts = 0;
+        const retryMount = () => {
+          attempts++;
+          if (window.TravelView && typeof window.TravelView.mount === 'function') {
+            window.TravelView.mount(view);
+          } else if (attempts < 20) {
+            setTimeout(retryMount, 200);
+          } else {
+            // Fallback after max attempts
+            view.innerHTML = `
+              <div style="border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:16px;max-width:980px;">
+                <div style="font-weight:700;font-size:18px;margin-bottom:6px;">${info.title}</div>
+                <div style="color:#475569;margin-bottom:12px;">${info.body}</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button id="backToPageMode" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Terug naar Web pagina</button>
+                </div>
+              </div>`;
+            const back = view.querySelector('#backToPageMode');
+            if (back){ back.onclick = () => setMode('page'); }
+          }
+        };
+        setTimeout(retryMount, 100);
+      }
     } else {
       view.innerHTML = `
         <div style="border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:16px;max-width:980px;">
@@ -179,9 +214,9 @@
         </div>`;
       const back = view.querySelector('#backToPageMode');
       if (back){ back.onclick = () => setMode('page'); }
+    }
 
     view.style.display = '';
-  }
   }
 
   function setMode(mode){
@@ -264,6 +299,13 @@
       return;
     }
 
+    if (mode === 'travel') {
+      showPageWorkspace(false);
+      renderModeView('travel');
+      history.replaceState(null, '', '#/mode/travel');
+      return;
+    }
+
     // Fallback info view
     showPageWorkspace(false);
     renderModeView(mode);
@@ -312,6 +354,16 @@
     if (topSel){ topSel.onchange = () => setMode(topSel.value); }
     setupGlobalModeClickDelegation();
     observeHeaderButtons();
+
+    // Listen for TravelView ready event to re-render if needed
+    window.addEventListener('travelViewReady', () => {
+      console.log('[Router] TravelView ready event received');
+      const currentMode = readModeFromHash() || readModeFromStorage();
+      if (currentMode === 'travel') {
+        console.log('[Router] Re-rendering travel mode now that TravelView is ready');
+        renderModeView('travel');
+      }
+    });
 
     const hashMode = readModeFromHash();
     // Default to 'page' unless explicitly provided in hash

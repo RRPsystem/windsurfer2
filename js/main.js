@@ -935,14 +935,114 @@ class WebsiteBuilder {
                 const resp = await fetch(base ? url : `/api/ideas/${encodeURIComponent(ideaId)}`);
                 if (!resp.ok) throw new Error(await resp.text());
                 const data = await resp.json();
-                this.insertTcBlocks(data);
+                this.loadTravelIdea(data);
                 this.showNotification('âœ… TC-content geÃ¯mporteerd', 'success');
                 this.saveProject(true);
             } catch (e) {
                 console.warn('TC import failed', e);
-                this.showNotification('âŒ Importeren mislukt', 'error');
+                this.showNotification('âŒ Importeren mislukt', 'error');
             }
         });
+    }
+
+    // Load Travel Compositor idea into the builder
+    loadTravelIdea(data) {
+        try {
+            const canvas = document.getElementById('canvas');
+            if (!canvas) return;
+
+            // Clear canvas
+            canvas.innerHTML = '';
+
+            const title = data.name || data.title || 'Reis';
+            const description = data.description || data.intro || '';
+            const days = data.days || [];
+            const image = data.image || data.mainImage || data.headerImage || '';
+
+            // 1. Add hero with travel image
+            if (image) {
+                try {
+                    const hero = ComponentFactory.createComponent('hero-travel', {
+                        title: title,
+                        subtitle: description.substring(0, 150),
+                        background: image,
+                        height: '400px'
+                    });
+                    if (hero) canvas.appendChild(hero);
+                } catch (e) {
+                    console.warn('Failed to create hero', e);
+                }
+            }
+
+            // 2. Add intro text
+            if (description) {
+                try {
+                    const intro = ComponentFactory.createComponent('content-flex', {
+                        title: 'Over deze reis',
+                        body: `<p>${description}</p>`,
+                        layout: 'none'
+                    });
+                    if (intro) canvas.appendChild(intro);
+                } catch (e) {
+                    console.warn('Failed to create intro', e);
+                }
+            }
+
+            // 3. Add days/itinerary
+            if (days && days.length > 0) {
+                try {
+                    let itineraryHtml = '<h2>Reisschema</h2><div style="display:flex;flex-direction:column;gap:20px;">';
+                    days.forEach((day, index) => {
+                        const dayTitle = day.title || day.name || `Dag ${index + 1}`;
+                        const dayDesc = day.description || day.text || '';
+                        itineraryHtml += `
+                            <div style="border-left: 3px solid #667eea; padding-left: 16px;">
+                                <h3 style="margin: 0 0 8px 0; color: #111827;">${dayTitle}</h3>
+                                ${dayDesc ? `<p style="color: #6b7280;">${dayDesc}</p>` : ''}
+                            </div>
+                        `;
+                    });
+                    itineraryHtml += '</div>';
+
+                    const itinerary = ComponentFactory.createComponent('content-flex', {
+                        title: '',
+                        body: itineraryHtml,
+                        layout: 'none'
+                    });
+                    if (itinerary) canvas.appendChild(itinerary);
+                } catch (e) {
+                    console.warn('Failed to create itinerary', e);
+                }
+            }
+
+            // 4. Add price/booking CTA if available
+            if (data.price || data.totalPrice) {
+                try {
+                    const price = data.price || data.totalPrice;
+                    const currency = data.currency || 'EUR';
+                    const cta = ComponentFactory.createComponent('hero-banner-cta', {
+                        title: 'Boek deze reis',
+                        subtitle: `Vanaf ${price} ${currency}`,
+                        buttonText: 'Boek nu',
+                        buttonLink: '#contact'
+                    });
+                    if (cta) canvas.appendChild(cta);
+                } catch (e) {
+                    console.warn('Failed to create CTA', e);
+                }
+            }
+
+            // Reattach event listeners
+            try {
+                this.reattachEventListeners();
+            } catch (e) {
+                console.warn('Failed to reattach listeners', e);
+            }
+
+        } catch (e) {
+            console.error('loadTravelIdea failed', e);
+            this.showNotification('Fout bij laden van reis', 'error');
+        }
     }
 
     setupBoltDeeplinkSave() {
