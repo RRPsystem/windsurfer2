@@ -324,14 +324,15 @@ class WebsiteBuilder {
             const intro = (options.intro || `Schrijf hier een introductie over ${country}.`).toString();
             const extra = (options.extraText || `Plaats hier extra tekst boven de fotogalerij.`).toString();
 
-            // Default gallery placeholders
+            // Gallery: Use Unsplash Source for country-specific photos
+            // Each URL will fetch a different random photo from Unsplash for the country
             const images = Array.isArray(options.images) && options.images.length ? options.images : [
-                'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?q=80&w=1600&auto=format&fit=crop',
-                'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1600&auto=format&fit=crop',
-                'https://images.unsplash.com/photo-1483683804023-6ccdb62f86ef?q=80&w=1600&auto=format&fit=crop',
-                'https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1600&auto=format&fit=crop',
-                'https://images.unsplash.com/photo-1526779259212-939e64788e3c?q=80&w=1600&auto=format&fit=crop',
-                'https://images.unsplash.com/photo-1482192505345-5655af888cc4?q=80&w=1600&auto=format&fit=crop'
+                `https://source.unsplash.com/800x600/?${encodeURIComponent(country)},landmark&sig=1`,
+                `https://source.unsplash.com/800x600/?${encodeURIComponent(country)},culture&sig=2`,
+                `https://source.unsplash.com/800x600/?${encodeURIComponent(country)},food&sig=3`,
+                `https://source.unsplash.com/800x600/?${encodeURIComponent(country)},nature&sig=4`,
+                `https://source.unsplash.com/800x600/?${encodeURIComponent(country)},city&sig=5`,
+                `https://source.unsplash.com/800x600/?${encodeURIComponent(country)},travel&sig=6`
             ];
 
             // Clear canvas
@@ -353,12 +354,15 @@ class WebsiteBuilder {
                 canvas.appendChild(note);
             } catch (e) {}
 
-            // 1) Hero
+            // 1) Hero with country name and Unsplash photo
             try {
+                // Get a high-quality Unsplash photo for the country
+                const unsplashHeroUrl = `https://source.unsplash.com/1600x900/?${encodeURIComponent(country)},landscape,travel`;
                 const hero = ComponentFactory.createComponent('hero-page', {
                     wordText: country.toUpperCase(),
                     height: '380px',
-                    overlayOpacity: 0.4
+                    overlayOpacity: 0.4,
+                    backgroundImage: unsplashHeroUrl
                 });
                 if (hero) canvas.appendChild(hero);
             } catch (e) { console.warn('Destination hero failed', e); }
