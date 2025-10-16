@@ -94,6 +94,17 @@
                 </ul>
               </div>
             </div>
+
+            <!-- Test API button -->
+            <div style="margin-top: 12px;">
+              <button 
+                id="testApiBtn" 
+                class="btn btn-sm"
+                style="height: 32px; padding: 0 16px; background: #6b7280; border: none; border-radius: 6px; color: white; font-size: 12px; cursor: pointer;"
+              >
+                <i class="fas fa-flask"></i> Test API Configuratie
+              </button>
+            </div>
           </div>
 
           <!-- Status/Loading -->
@@ -110,8 +121,15 @@
     attachEventListeners(container) {
       const loadBtn = container.querySelector('#loadTravelBtn');
       const backBtn = container.querySelector('#backToPageModeBtn');
+      const testApiBtn = container.querySelector('#testApiBtn');
       const ideaInput = container.querySelector('#tcIdeaIdInput');
       const micrositeInput = container.querySelector('#tcMicrositeIdInput');
+
+      if (testApiBtn) {
+        testApiBtn.addEventListener('click', async () => {
+          await this.testApiConfiguration();
+        });
+      }
 
       if (loadBtn) {
         loadBtn.addEventListener('click', async () => {
@@ -154,6 +172,43 @@
       }
     },
 
+    async testApiConfiguration() {
+      this.showStatus('loading', '<i class="fas fa-circle-notch fa-spin"></i> API configuratie testen...');
+
+      try {
+        const apiBase = this.getApiBase();
+        const url = `${apiBase}/api/ideas/test`;
+
+        console.log('[TravelView] Testing API configuration:', url);
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        console.log('[TravelView] API test result:', data);
+
+        if (data.ok) {
+          this.showStatus('success', `<i class="fas fa-check-circle"></i> API is correct geconfigureerd! (${data.config.authMode})`);
+        } else {
+          let missing = [];
+          if (!data.config.hasBaseUrl) missing.push('TC_BASE_URL');
+          if (!data.config.hasMicrositeId) missing.push('TC_MICROSITE_ID');
+          if (!data.config.hasToken && !data.config.hasUsername) missing.push('TC_TOKEN of TC_USERNAME/TC_PASSWORD');
+          
+          this.showStatus('error', `<i class="fas fa-exclamation-circle"></i> Ontbrekende configuratie: ${missing.join(', ')}<br><small>Stel deze in via Vercel Environment Variables</small>`);
+        }
+
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+          const statusEl = document.getElementById('travelStatus');
+          if (statusEl) statusEl.style.display = 'none';
+        }, 5000);
+
+      } catch (error) {
+        console.error('[TravelView] API test failed:', error);
+        this.showStatus('error', `<i class="fas fa-exclamation-circle"></i> API test mislukt: ${error.message}`);
+      }
+    },
+
     async loadTravel(ideaId, micrositeId) {
       this.showStatus('loading', '<i class="fas fa-circle-notch fa-spin"></i> Reis aan het laden...');
 
@@ -186,7 +241,18 @@
 
       } catch (error) {
         console.error('[TravelView] Error loading travel:', error);
-        this.showStatus('error', `<i class="fas fa-exclamation-circle"></i> Fout bij laden: ${error.message}`);
+        
+        // Try to get more error details
+        let errorMsg = error.message;
+        if (error.response) {
+          try {
+            const errorData = await error.response.json();
+            errorMsg = errorData.error || errorData.detail || errorMsg;
+            console.error('[TravelView] Error details:', errorData);
+          } catch (e) {}
+        }
+        
+        this.showStatus('error', `<i class="fas fa-exclamation-circle"></i> Fout bij laden: ${errorMsg}`);
       }
     },
 
