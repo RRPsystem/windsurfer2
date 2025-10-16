@@ -1527,4 +1527,4 @@ window.wb = {
 };
 
 console.log('🎯 Website Builder geladen! Gebruik wb.save(), wb.export(), etc. in de console.');
-console.log('✨ Country-specific fallback data loaded (v1.2 - Vercel reconnected)');
+console.log('✨ OpenAI API integration fixed (v1.3 - Public repo)');
