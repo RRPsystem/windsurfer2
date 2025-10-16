@@ -1032,12 +1032,19 @@ class WebsiteBuilder {
                 }
             }
 
-            // Reattach event listeners
+            // Save to current page
             try {
-                this.reattachEventListeners();
+                const cur = (this.pages || []).find(p => p.id === this.currentPageId) || (this.pages || [])[0] || null;
+                if (cur) {
+                    cur.html = canvas.innerHTML;
+                    this.saveProject(true);
+                }
             } catch (e) {
-                console.warn('Failed to reattach listeners', e);
+                console.warn('Failed to save', e);
             }
+
+            // Show success message
+            this.showNotification('✅ Reis geladen in builder!', 'success');
 
         } catch (e) {
             console.error('loadTravelIdea failed', e);
