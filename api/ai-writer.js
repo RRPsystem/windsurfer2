@@ -54,11 +54,10 @@ Geef JSON: [{"title":"..","summary":".."}]`;
       case 'extra':
         return `Schrijf een praktisch, informatief tekstblok van ongeveer 200 woorden over ${country}. Focus op:
 
-1. **Beste reistijd**: Specifieke maanden per regio, vermijd drukke periodes
-2. **Eten & cultuur**: Concrete gerechten per regio, eetgewoonten, etiquette
-3. **Betalen & praktisch**: Welke betaalmethoden werken, SIM-kaarten, apps, praktische tips
+1. **Beste reistijd**: Specifieke maanden per regio, vermijd drukke periodes (bijv. Chinese Nieuwjaar, Golden Week)
+2. **Eten & cultuur**: Concrete gerechten per regio, eetgewoonten, etiquette, lokale gewoonten
 
-Schrijf in 3 korte alinea's (elk ~65 woorden). Geen titel, geen subtitel. Wees concreet en feitelijk correct. Vermijd vage adviezen.`;
+Schrijf in 2 korte alinea's (elk ~100 woorden). Geen titel, geen subtitel. Wees concreet en feitelijk correct. Vermijd vage adviezen en GEEN informatie over betalen, SIM-kaarten of apps.`;
 
       case 'gallery_captions':
         return `Geef bij ${images.length} foto\'s over ${country} een korte caption (6-10 woorden) die algemeen past.
