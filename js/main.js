@@ -948,8 +948,12 @@ class WebsiteBuilder {
     // Load Travel Compositor idea into the builder using Travel Cards
     loadTravelIdea(data) {
         try {
+            console.log('[loadTravelIdea] Loading data:', data);
             const canvas = document.getElementById('canvas');
-            if (!canvas) return;
+            if (!canvas) {
+                console.error('[loadTravelIdea] Canvas not found!');
+                return;
+            }
 
             // Clear canvas
             canvas.innerHTML = '';
@@ -960,6 +964,8 @@ class WebsiteBuilder {
             const image = data.image || data.mainImage || data.headerImage || '';
             const price = data.price || data.totalPrice;
             const currency = data.currency || 'EUR';
+
+            console.log('[loadTravelIdea] Parsed:', { title, description, daysCount: days.length, image, price });
 
             // 1. Add hero with travel image
             if (image) {
@@ -1139,8 +1145,21 @@ class WebsiteBuilder {
                     });
 
                     canvas.appendChild(timeline);
+                    console.log('[loadTravelIdea] Timeline added with', days.length, 'days');
                 } catch (e) {
-                    console.warn('Failed to create timeline', e);
+                    console.error('Failed to create timeline', e);
+                }
+            } else {
+                // No days found - create a simple example timeline
+                console.warn('[loadTravelIdea] No days found, creating example timeline');
+                try {
+                    const exampleTimeline = ComponentFactory.createComponent('travel-timeline', {});
+                    if (exampleTimeline) {
+                        canvas.appendChild(exampleTimeline);
+                        console.log('[loadTravelIdea] Example timeline added');
+                    }
+                } catch (e) {
+                    console.error('Failed to create example timeline', e);
                 }
             }
 
