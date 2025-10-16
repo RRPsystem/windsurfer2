@@ -484,15 +484,13 @@ class WebsiteBuilder {
                         // Intro
                         if (content) {
                             console.log('[Destination AI] Generating intro...');
-                            const r = await window.BuilderAI.generate('content_block', { 
-                                page_title: c, 
-                                section_title: `Over ${c}`, 
-                                subtitle: 'Ontdek de hoogtepunten, activiteiten en inspiratie',
+                            const r = await window.BuilderAI.generate('intro', { 
+                                country: c, 
                                 language: 'nl',
-                                tone: 'professional'
+                                tone: 'inspiring'
                             });
                             console.log('[Destination AI] Intro response:', r);
-                            let text = r?.text || r?.content_block?.text || r?.content || '';
+                            let text = r?.intro?.text || r?.text || r?.content || '';
                             // Fallback als AI geen tekst geeft
                             if (!text || text.length < 20) {
                                 console.warn('[Destination AI] No intro text received, using fallback');
@@ -509,28 +507,25 @@ class WebsiteBuilder {
                         // Highlights (6) with green checkmarks
                         if (highlights) {
                             console.log('[Destination AI] Generating highlights...');
-                            const r = await window.BuilderAI.generate('feature_list', { 
-                                page_title: c, 
-                                section_title: `Hoogtepunten van ${c}`, 
+                            const r = await window.BuilderAI.generate('highlights', { 
+                                country: c, 
                                 language: 'nl', 
                                 count: 6 
                             });
                             console.log('[Destination AI] Highlights response:', r);
                             console.log('[Destination AI] Response keys:', Object.keys(r || {}));
                             
-                            // Try multiple possible response structures
+                            // Parse highlights response
                             let arr = [];
-                            if (Array.isArray(r?.items)) {
-                                arr = r.items;
-                            } else if (Array.isArray(r?.feature_list)) {
-                                arr = r.feature_list;
-                            } else if (Array.isArray(r?.highlights)) {
-                                arr = r.highlights;
+                            if (Array.isArray(r?.highlights)) {
+                                arr = r.highlights.map(h => h.title || h.summary || h.text || h);
+                            } else if (Array.isArray(r?.items)) {
+                                arr = r.items.map(h => h.title || h.summary || h.text || h);
                             } else if (r && typeof r === 'object') {
                                 // Try to find any array in the response
                                 const firstKey = Object.keys(r)[0];
                                 if (firstKey && Array.isArray(r[firstKey])) {
-                                    arr = r[firstKey];
+                                    arr = r[firstKey].map(h => h.title || h.summary || h.text || h);
                                     console.log(`[Destination AI] Found array in key: ${firstKey}`);
                                 }
                             }
@@ -550,6 +545,16 @@ class WebsiteBuilder {
                                     arr = ['Eiffeltoren en Parijse charme', 'Lavendelvelden in de Provence', 'Wijnstreken van Bordeaux', 'Côte d\'Azur en Franse Rivièra', 'Historische kastelen in Loire', 'Franse gastronomie en patisserie'];
                                 } else if (country.includes('italië') || country.includes('italy') || country.includes('italie')) {
                                     arr = ['Colosseum en Romeinse geschiedenis', 'Venetiaanse gondels en kanalen', 'Toscaanse heuvels en wijngaarden', 'Italiaanse pizza en pasta', 'Renaissance kunst in Florence', 'Amalfikust en Cinque Terre'];
+                                } else if (country.includes('thailand')) {
+                                    arr = ['Gouden tempels en Boeddhabeelden', 'Tropische stranden en eilanden', 'Authentieke Thaise massage', 'Drijvende markten', 'Pad Thai en street food', 'Olifantensanctuaria'];
+                                } else if (country.includes('griekenland') || country.includes('greece')) {
+                                    arr = ['Acropolis en Parthenon', 'Witte huisjes op Santorini', 'Griekse eilanden en stranden', 'Moussaka en Griekse mezze', 'Oude mythologie en ruïnes', 'Blauwe koepels van Oia'];
+                                } else if (country.includes('portugal')) {
+                                    arr = ['Pastéis de Nata en Portugese keuken', 'Kleurrijke azulejos tegels', 'Douro vallei wijnstreek', 'Historisch Lissabon en Porto', 'Algarve stranden', 'Fado muziek'];
+                                } else if (country.includes('duitsland') || country.includes('germany')) {
+                                    arr = ['Kasteel Neuschwanstein', 'Oktoberfest in München', 'Berlijnse Muur en geschiedenis', 'Romantische Rijn', 'Zwarte Woud', 'Duitse biercultuur'];
+                                } else if (country.includes('turkije') || country.includes('turkey')) {
+                                    arr = ['Hagia Sophia en Blauwe Moskee', 'Cappadocië luchtballonnen', 'Turkse bazaars', 'Turkse keuken en kebab', 'Pamukkale kalkterrassen', 'Bosporus cruise'];
                                 } else {
                                     arr = [
                                         `Rijke culturele geschiedenis van ${c}`,
@@ -580,28 +585,25 @@ class WebsiteBuilder {
                         // Activities (6)
                         if (activities) {
                             console.log('[Destination AI] Generating activities...');
-                            const r = await window.BuilderAI.generate('feature_list', { 
-                                page_title: c, 
-                                section_title: `Activiteiten in ${c}`, 
+                            const r = await window.BuilderAI.generate('activities', { 
+                                country: c, 
                                 language: 'nl', 
                                 count: 6 
                             });
                             console.log('[Destination AI] Activities response:', r);
                             console.log('[Destination AI] Response keys:', Object.keys(r || {}));
                             
-                            // Try multiple possible response structures
+                            // Parse activities response
                             let arr = [];
-                            if (Array.isArray(r?.items)) {
-                                arr = r.items;
-                            } else if (Array.isArray(r?.feature_list)) {
-                                arr = r.feature_list;
-                            } else if (Array.isArray(r?.activities)) {
-                                arr = r.activities;
+                            if (Array.isArray(r?.activities)) {
+                                arr = r.activities.map(a => a.title || a.summary || a.text || a);
+                            } else if (Array.isArray(r?.items)) {
+                                arr = r.items.map(a => a.title || a.summary || a.text || a);
                             } else if (r && typeof r === 'object') {
                                 // Try to find any array in the response
                                 const firstKey = Object.keys(r)[0];
                                 if (firstKey && Array.isArray(r[firstKey])) {
-                                    arr = r[firstKey];
+                                    arr = r[firstKey].map(a => a.title || a.summary || a.text || a);
                                     console.log(`[Destination AI] Found array in key: ${firstKey}`);
                                 }
                             }
@@ -621,6 +623,16 @@ class WebsiteBuilder {
                                     arr = ['Bezoek het Louvre museum', 'Proef wijn in Bordeaux', 'Wandel langs de Seine', 'Ontdek de lavendelvelden', 'Geniet van croissants in een café', 'Bezoek het Paleis van Versailles'];
                                 } else if (country.includes('italië') || country.includes('italy') || country.includes('italie')) {
                                     arr = ['Proef authentieke pizza in Napels', 'Bezoek het Vaticaan en Sixtijnse Kapel', 'Wandel door Venetië', 'Ontdek de Toscaanse wijngaarden', 'Bezoek de Toren van Pisa', 'Geniet van gelato in Rome'];
+                                } else if (country.includes('thailand')) {
+                                    arr = ['Bezoek de Wat Pho tempel in Bangkok', 'Neem een longtail boot tour', 'Proef Pad Thai op een nachtmarkt', 'Duik of snorkel bij de eilanden', 'Bezoek een olifantensanctuarium', 'Ervaar een Thaise kookcursus'];
+                                } else if (country.includes('griekenland') || country.includes('greece')) {
+                                    arr = ['Bezoek de Acropolis in Athene', 'Eilandhoppen in de Cycladen', 'Proef Griekse mezze en ouzo', 'Zwem in kristalhelder water', 'Bezoek oude ruïnes', 'Geniet van zonsondergang in Oia'];
+                                } else if (country.includes('portugal')) {
+                                    arr = ['Proef Pastéis de Nata in Belém', 'Rijd met tram 28 door Lissabon', 'Bezoek de Douro vallei', 'Wandel door Porto', 'Ontdek de Algarve grotten', 'Luister naar Fado muziek'];
+                                } else if (country.includes('duitsland') || country.includes('germany')) {
+                                    arr = ['Bezoek kasteel Neuschwanstein', 'Vier Oktoberfest in München', 'Wandel langs de Berlijnse Muur', 'Cruise over de Rijn', 'Ontdek het Zwarte Woud', 'Proef Duitse worsten en bier'];
+                                } else if (country.includes('turkije') || country.includes('turkey')) {
+                                    arr = ['Bezoek de Hagia Sophia', 'Vlieg in een luchtballon over Cappadocië', 'Shop op de Grand Bazaar', 'Proef Turkse kebab en baklava', 'Zwem in Pamukkale', 'Cruise over de Bosporus'];
                                 } else {
                                     arr = [
                                         'Bezoek historische bezienswaardigheden en monumenten',
