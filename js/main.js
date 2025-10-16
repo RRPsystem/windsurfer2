@@ -362,7 +362,7 @@ class WebsiteBuilder {
                     wordText: country.toUpperCase(),
                     height: '380px',
                     overlayOpacity: 0.4,
-                    backgroundImage: unsplashHeroUrl
+                    background: unsplashHeroUrl  // Use 'background' not 'backgroundImage'
                 });
                 if (hero) canvas.appendChild(hero);
             } catch (e) { console.warn('Destination hero failed', e); }
@@ -407,18 +407,28 @@ class WebsiteBuilder {
                 canvas.appendChild(highlights);
             } catch (e) { console.warn('Destination highlights failed', e); }
 
-            // 4) Activities (2x3) simple cards
+            // 4) Activities (2x3) simple cards - will be filled by AI
             try {
+                const placeholderActivities = [
+                    { title: 'Activiteit 1', desc: 'Klik op AI tekst genereren om te vullen' },
+                    { title: 'Activiteit 2', desc: 'Klik op AI tekst genereren om te vullen' },
+                    { title: 'Activiteit 3', desc: 'Klik op AI tekst genereren om te vullen' },
+                    { title: 'Activiteit 4', desc: 'Klik op AI tekst genereren om te vullen' },
+                    { title: 'Activiteit 5', desc: 'Klik op AI tekst genereren om te vullen' },
+                    { title: 'Activiteit 6', desc: 'Klik op AI tekst genereren om te vullen' }
+                ];
+                const icons = ['fa-hiking','fa-camera','fa-utensils','fa-landmark','fa-water','fa-mountain'];
+                
                 activities = document.createElement('section');
                 activities.className = 'wb-block';
                 activities.innerHTML = `
                   <div style="max-width:1100px;margin:0 auto;padding:8px 16px;">
                     <h2 style="margin:0 0 8px;">Activiteiten</h2>
                     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
-                      ${[1,2,3,4,5,6].map(i=>`
+                      ${placeholderActivities.map((act, i)=>`
                         <div class="card" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;box-shadow:0 6px 16px rgba(0,0,0,.04);">
-                          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;"><i class="fas fa-star" style="color:#f59e0b;"></i><strong>Activiteit ${i}</strong></div>
-                          <div style="color:#475569;font-size:14px;">Korte beschrijving van de activiteit.</div>
+                          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><i class="fas ${icons[i]}" style="color:#f59e0b;font-size:20px;"></i><strong style="font-size:16px;color:#111827;">${act.title}</strong></div>
+                          <div style="color:#64748b;font-size:14px;line-height:1.5;">${act.desc}</div>
                         </div>`).join('')}
                     </div>
                   </div>`;
@@ -696,6 +706,11 @@ class WebsiteBuilder {
                                 bodyEl.innerHTML = paragraphs;
                                 console.log('[Destination AI] Extra text updated');
                             }
+                            // Remove title and subtitle elements
+                            const titleEl = extraBlock.querySelector('.cf-title');
+                            const subtitleEl = extraBlock.querySelector('.cf-subtitle');
+                            if (titleEl) titleEl.remove();
+                            if (subtitleEl) subtitleEl.remove();
                         }
                         // Success notification
                         if (window.websiteBuilder && window.websiteBuilder.showNotification) {
