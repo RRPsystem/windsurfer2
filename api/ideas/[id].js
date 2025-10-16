@@ -69,6 +69,13 @@ export default async function handler(req, res) {
       });
       const authText = await authRes.text();
       let authJson; try { authJson = JSON.parse(authText); } catch (e) { authJson = null; }
+      
+      console.log('[TC API] Auth response:', {
+        status: authRes.status,
+        hasToken: !!authJson?.token,
+        responseKeys: authJson ? Object.keys(authJson) : []
+      });
+      
       if (!authRes.ok || !authJson?.token) {
         console.error('[TC API] Auth failed:', {
           status: authRes.status,
@@ -86,7 +93,10 @@ export default async function handler(req, res) {
         });
       }
       bearer = authJson.token;
+      console.log('[TC API] Auth successful, token received:', bearer ? `${bearer.substring(0, 20)}...` : 'EMPTY');
     }
+    
+    console.log('[TC API] Making request with token:', bearer ? `${bearer.substring(0, 20)}...` : 'EMPTY');
     headers.Authorization = `Bearer ${bearer}`;
     headers['auth-token'] = bearer;
     headers['Auth-Token'] = bearer;
