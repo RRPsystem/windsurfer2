@@ -25,14 +25,13 @@ export default async function handler(req, res) {
   const makePrompt = () => {
     switch (section) {
       case 'intro':
-        return `Schrijf een korte inleiding (80-120 woorden) voor een bestemmingspagina over ${country}. Toon 1 alinea, toon geen titel.`;
+        return `Schrijf een inspirerende inleiding van ongeveer 200 woorden voor een bestemmingspagina over ${country}. Beschrijf wat het land uniek maakt, de cultuur, natuur en waarom bezoekers het moeten ervaren. Schrijf in 2-3 alinea's. Toon geen titel.`;
       case 'highlights':
-        return `Geef ${count} highlights voor ${country}. Voor elk item: titel (3-5 woorden) en 1 korte samenvatting (10-20 woorden). Geef JSON: [{"title":"..","summary":".."}]`;
+        return `Geef ${count} specifieke highlights voor ${country}. Denk aan iconische bezienswaardigheden, unieke ervaringen, bekende plaatsen. Voor elk item: een korte titel (2-4 woorden) en een beknopte beschrijving (8-15 woorden). Geef JSON: [{"title":"Sagrada Familia","summary":"Gaudí's meesterwerk in Barcelona"}]`;
       case 'activities':
-        return `Geef ${count} activiteiten voor ${country}. Voor elk item: titel (3-5 woorden), korte samenvatting (10-20 woorden) en een geschikt Font Awesome 6 icon-naam (fa-...)
-Als JSON: [{"title":"..","summary":"..","icon":"fa-..."}]`;
+        return `Geef ${count} specifieke activiteiten voor ${country}. Voor elk item: een korte titel (2-4 woorden) en een beschrijving (8-15 woorden) wat je daar doet. Bijvoorbeeld: {"title":"Fushimi Inari","summary":"Bezoek de iconische tempel met duizenden rode torii poorten"}. Geef JSON: [{"title":"..","summary":".."}]`;
       case 'extra':
-        return `Schrijf een extra tekstblok (80-120 woorden) met praktische tips of context voor ${country}. Eén alinea.`;
+        return `Schrijf een aanvullend tekstblok van ongeveer 200 woorden over ${country}. Focus op praktische informatie, beste reistijd, lokale tips, of verdieping over cultuur en tradities. Schrijf in 2-3 alinea's. Toon geen titel.`;
       case 'gallery_captions':
         return `Geef bij ${images.length} foto\'s over ${country} een korte caption (6-10 woorden) die algemeen past.
 Als JSON: [{"caption":".."}] met dezelfde volgorde als de foto\'s.`;
