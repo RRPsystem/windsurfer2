@@ -492,14 +492,17 @@ class WebsiteBuilder {
                                 tone: 'professional'
                             });
                             console.log('[Destination AI] Intro response:', r);
-                            const text = r?.text || r?.content_block?.text || r?.content || '';
+                            let text = r?.text || r?.content_block?.text || r?.content || '';
+                            // Fallback als AI geen tekst geeft
+                            if (!text || text.length < 20) {
+                                console.warn('[Destination AI] No intro text received, using fallback');
+                                text = `${c} is een fascinerend land met een rijke geschiedenis en cultuur. Van bruisende steden tot serene natuurlandschappen, ${c} biedt bezoekers een unieke ervaring die moderne voorzieningen combineert met eeuwenoude tradities.\n\nOf je nu geïnteresseerd bent in historische bezienswaardigheden, culinaire avonturen, of natuurlijke schoonheid, ${c} heeft voor elk wat wils. De gastvrijheid van de lokale bevolking en de diverse attracties maken het tot een onvergetelijke bestemming.`;
+                            }
                             const bodyEl = content.querySelector('.cf-body');
-                            if (bodyEl && text) {
+                            if (bodyEl) {
                                 const paragraphs = text.split(/\n\n+/).filter(p => p.trim()).map(p => `<p>${p.trim()}</p>`).join('');
                                 bodyEl.innerHTML = paragraphs;
                                 console.log('[Destination AI] Intro updated');
-                            } else {
-                                console.warn('[Destination AI] No intro text received');
                             }
                             const tEl = content.querySelector('.cf-title'); if (tEl) tEl.textContent = `Over ${c}`;
                         }
@@ -511,10 +514,24 @@ class WebsiteBuilder {
                                 language: 'nl', 
                                 count: 6 
                             });
-                            const arr = Array.isArray(r?.items) ? r.items : (Array.isArray(r?.feature_list) ? r.feature_list : []);
+                            let arr = Array.isArray(r?.items) ? r.items : (Array.isArray(r?.feature_list) ? r.feature_list : []);
+                            
+                            // Fallback als AI geen items geeft
+                            if (!arr || arr.length === 0) {
+                                console.warn('[Destination AI] No highlights received, using fallback');
+                                arr = [
+                                    'Rijke culturele geschiedenis en tradities',
+                                    'Prachtige natuurlijke landschappen',
+                                    'Unieke culinaire ervaringen',
+                                    'Moderne steden met historische wijken',
+                                    'Vriendelijke en gastvrije bevolking',
+                                    'Diverse activiteiten voor elk seizoen'
+                                ];
+                            }
+                            
                             const uls = highlights.querySelectorAll('ul');
                             const a = uls[0], b = uls[1];
-                            if (a && b && arr.length) {
+                            if (a && b) {
                                 const left = arr.slice(0,3).map(x=>{
                                     const txt = typeof x === 'string' ? x : (x.text || x.title || x.summary || '');
                                     return `<li style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;"><span style="flex-shrink:0;width:24px;height:24px;background:#10b981;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;">✓</span><span style="color:#374151;font-size:16px;line-height:24px;">${txt}</span></li>`;
@@ -535,9 +552,23 @@ class WebsiteBuilder {
                                 language: 'nl', 
                                 count: 6 
                             });
-                            const arr = Array.isArray(r?.items) ? r.items : (Array.isArray(r?.feature_list) ? r.feature_list : []);
+                            let arr = Array.isArray(r?.items) ? r.items : (Array.isArray(r?.feature_list) ? r.feature_list : []);
+                            
+                            // Fallback als AI geen items geeft
+                            if (!arr || arr.length === 0) {
+                                console.warn('[Destination AI] No activities received, using fallback');
+                                arr = [
+                                    'Bezoek historische bezienswaardigheden en monumenten',
+                                    'Proef de lokale keuken en culinaire specialiteiten',
+                                    'Ontdek natuurparken en wandelroutes',
+                                    'Ervaar de lokale cultuur en tradities',
+                                    'Verken bruisende markten en winkelstraten',
+                                    'Geniet van outdoor activiteiten en avonturen'
+                                ];
+                            }
+                            
                             const cardsWrap = activities.querySelector('[style*="grid-template-columns"]');
-                            if (cardsWrap && arr.length) {
+                            if (cardsWrap) {
                                 cardsWrap.innerHTML = arr.slice(0,6).map((it, idx)=>{
                                     const txt = typeof it === 'string' ? it : (it.text || it.title || it.summary || '');
                                     const icons = ['fa-hiking','fa-camera','fa-utensils','fa-landmark','fa-water','fa-mountain'];
