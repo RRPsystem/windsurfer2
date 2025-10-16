@@ -2,6 +2,9 @@
 
 Een moderne, gebruiksvriendelijke website builder waarmee je prachtige websites kunt maken zonder code te schrijven!
 
+## ✨ Latest Update
+- Country-specific destination pages with fallback data
+
 ## ✨ Features
 
 - **🖱️ Drag & Drop Interface**: Sleep componenten eenvoudig naar je canvas
