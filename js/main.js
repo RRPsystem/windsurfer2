@@ -1514,5 +1514,5 @@ window.wb = {
     loadData: (data) => window.websiteBuilder?.loadProjectData(data)
 };
 
-console.log('ðŸŽ¯ Website Builder geladen! Gebruik wb.save(), wb.export(), etc. in de console.');
-console.log('✨ Country-specific fallback data loaded (v1.1)');
+console.log('🎯 Website Builder geladen! Gebruik wb.save(), wb.export(), etc. in de console.');
+console.log('✨ Country-specific fallback data loaded (v1.2 - Vercel reconnected)');
