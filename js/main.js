@@ -508,13 +508,17 @@ class WebsiteBuilder {
                         }
                         // Highlights (6) with green checkmarks
                         if (highlights) {
+                            console.log('[Destination AI] Generating highlights...');
                             const r = await window.BuilderAI.generate('feature_list', { 
                                 page_title: c, 
                                 section_title: `Hoogtepunten van ${c}`, 
                                 language: 'nl', 
                                 count: 6 
                             });
+                            console.log('[Destination AI] Highlights response:', r);
+                            console.log('[Destination AI] Response keys:', Object.keys(r || {}));
                             let arr = Array.isArray(r?.items) ? r.items : (Array.isArray(r?.feature_list) ? r.feature_list : []);
+                            console.log('[Destination AI] Parsed highlights array:', arr);
                             
                             // Fallback als AI geen items geeft
                             if (!arr || arr.length === 0) {
@@ -546,13 +550,17 @@ class WebsiteBuilder {
                         }
                         // Activities (6)
                         if (activities) {
+                            console.log('[Destination AI] Generating activities...');
                             const r = await window.BuilderAI.generate('feature_list', { 
                                 page_title: c, 
                                 section_title: `Activiteiten in ${c}`, 
                                 language: 'nl', 
                                 count: 6 
                             });
+                            console.log('[Destination AI] Activities response:', r);
+                            console.log('[Destination AI] Response keys:', Object.keys(r || {}));
                             let arr = Array.isArray(r?.items) ? r.items : (Array.isArray(r?.feature_list) ? r.feature_list : []);
+                            console.log('[Destination AI] Parsed activities array:', arr);
                             
                             // Fallback als AI geen items geeft
                             if (!arr || arr.length === 0) {
