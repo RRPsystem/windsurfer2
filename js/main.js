@@ -648,29 +648,49 @@ class WebsiteBuilder {
                             const cardsWrap = activities.querySelector('[style*="grid-template-columns"]');
                             if (cardsWrap) {
                                 cardsWrap.innerHTML = arr.slice(0,6).map((it, idx)=>{
-                                    const txt = typeof it === 'string' ? it : (it.text || it.title || it.summary || '');
+                                    // Extract title and description
+                                    let title = '';
+                                    let description = '';
+                                    
+                                    if (typeof it === 'string') {
+                                        // If it's a string, try to split on common patterns
+                                        const parts = it.split(/[:-]/);
+                                        if (parts.length > 1) {
+                                            title = parts[0].trim();
+                                            description = parts.slice(1).join(':').trim();
+                                        } else {
+                                            description = it;
+                                            title = `Activiteit ${idx+1}`;
+                                        }
+                                    } else {
+                                        title = it.title || `Activiteit ${idx+1}`;
+                                        description = it.summary || it.text || it.description || '';
+                                    }
+                                    
                                     const icons = ['fa-hiking','fa-camera','fa-utensils','fa-landmark','fa-water','fa-mountain'];
                                     return `
                                       <div class="card" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;box-shadow:0 6px 16px rgba(0,0,0,.04);">
-                                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;"><i class="fas ${icons[idx] || 'fa-star'}" style="color:#f59e0b;"></i><strong>Activiteit ${idx+1}</strong></div>
-                                        <div style="color:#475569;font-size:14px;">${txt}</div>
+                                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><i class="fas ${icons[idx] || 'fa-star'}" style="color:#f59e0b;font-size:20px;"></i><strong style="font-size:16px;color:#111827;">${title}</strong></div>
+                                        <div style="color:#64748b;font-size:14px;line-height:1.5;">${description}</div>
                                       </div>`;
                                 }).join('');
                             }
                         }
-                        // Extra text
+                        // Extra text (deel 2 van de content)
                         if (extraBlock) {
-                            const r = await window.BuilderAI.generate('content_block', { 
-                                page_title: c, 
-                                section_title: `Meer over ${c}`, 
+                            console.log('[Destination AI] Generating extra text (part 2)...');
+                            const r = await window.BuilderAI.generate('extra', { 
+                                country: c, 
                                 language: 'nl',
-                                tone: 'professional'
+                                tone: 'inspiring'
                             });
-                            const text = r?.text || r?.content_block?.text || r?.content || '';
+                            console.log('[Destination AI] Extra text response:', r);
+                            const text = r?.extra?.text || r?.text || r?.content || '';
                             const bodyEl = extraBlock.querySelector('.cf-body');
                             if (bodyEl && text) {
                                 const paragraphs = text.split(/\n\n+/).filter(p => p.trim()).map(p => `<p>${p.trim()}</p>`).join('');
                                 bodyEl.innerHTML = paragraphs;
+                                console.log('[Destination AI] Extra text updated');
                             }
                         }
                         // Success notification
