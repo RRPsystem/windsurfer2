@@ -88,6 +88,9 @@ export default async function handler(req, res) {
       bearer = authJson.token;
     }
     headers.Authorization = `Bearer ${bearer}`;
+    headers['auth-token'] = bearer;
+    headers['Auth-Token'] = bearer;
+    headers['X-Auth-Token'] = bearer;
 
     // Build detail or info URL
     const path = info ? `${IDEAS_PATH}/${encodeURIComponent(micrositeId)}/info/${encodeURIComponent(id)}`
