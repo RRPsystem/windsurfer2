@@ -364,7 +364,7 @@ class WebsiteBuilder {
             } catch (e) { console.warn('Destination hero failed', e); }
 
             // Prepare refs so we can wire AI after creation
-            let content = null, highlights = null, activities = null, extraBlock = null, gallery = null;
+            let content = null, highlights = null, activities = null, gallery = null;
 
             // 2) Intro + right column placeholder (TC trips will be added later in a sidebar component)
             try {
@@ -422,22 +422,7 @@ class WebsiteBuilder {
                 canvas.appendChild(activities);
             } catch (e) { console.warn('Destination activities failed', e); }
 
-            // 5) Extra text block (above gallery)
-            try {
-                extraBlock = ComponentFactory.createComponent('content-flex', {
-                    title: '',
-                    subtitle: '',
-                    body: `<p>${extra}</p>`,
-                    layout: 'none',
-                    shadow: false,
-                    radius: 0
-                });
-                if (extraBlock) {
-                    extraBlock.classList.add('cf-plain');
-                    extraBlock.dataset.role = 'extra';
-                    canvas.appendChild(extraBlock);
-                }
-            } catch (e) { console.warn('Destination extra text failed', e); }
+            // Extra text block removed - not needed
 
             // 6) Gallery 2x3
             try {
@@ -676,23 +661,7 @@ class WebsiteBuilder {
                                 }).join('');
                             }
                         }
-                        // Extra text (deel 2 van de content)
-                        if (extraBlock) {
-                            console.log('[Destination AI] Generating extra text (part 2)...');
-                            const r = await window.BuilderAI.generate('extra', { 
-                                country: c, 
-                                language: 'nl',
-                                tone: 'inspiring'
-                            });
-                            console.log('[Destination AI] Extra text response:', r);
-                            const text = r?.extra?.text || r?.text || r?.content || '';
-                            const bodyEl = extraBlock.querySelector('.cf-body');
-                            if (bodyEl && text) {
-                                const paragraphs = text.split(/\n\n+/).filter(p => p.trim()).map(p => `<p>${p.trim()}</p>`).join('');
-                                bodyEl.innerHTML = paragraphs;
-                                console.log('[Destination AI] Extra text updated');
-                            }
-                        }
+                        // Extra text removed - not needed anymore
                         // Success notification
                         if (window.websiteBuilder && window.websiteBuilder.showNotification) {
                             window.websiteBuilder.showNotification('✨ AI teksten gegenereerd voor ' + c, 'success');
