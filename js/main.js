@@ -713,6 +713,73 @@ class WebsiteBuilder {
                             if (titleEl) titleEl.remove();
                             if (subtitleEl) subtitleEl.remove();
                         }
+                        
+                        // Fetch country-specific photos from Unsplash
+                        console.log('[Destination AI] Fetching Unsplash photos for:', c);
+                        try {
+                            const key = (window.MEDIA_CONFIG && (window.MEDIA_CONFIG.unsplashAccessKey || window.MEDIA_CONFIG.unsplashKey)) || '';
+                            if (key) {
+                                // Fetch hero photo
+                                const heroResp = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(c + ' landscape')}&per_page=1&orientation=landscape`, {
+                                    headers: { Authorization: `Client-ID ${key}` }
+                                });
+                                const heroData = await heroResp.json();
+                                if (heroData.results && heroData.results.length > 0) {
+                                    const heroImg = heroData.results[0];
+                                    const heroUrl = heroImg.urls.regular || heroImg.urls.full;
+                                    // Update hero background
+                                    const heroBg = document.querySelector('.wb-hero-page .hp-bg img');
+                                    if (heroBg && heroUrl) {
+                                        if (typeof window.__WB_applyResponsiveSrc === 'function') {
+                                            window.__WB_applyResponsiveSrc(heroBg, heroUrl);
+                                        } else {
+                                            heroBg.src = heroUrl;
+                                        }
+                                        console.log('[Destination AI] Hero photo updated');
+                                    }
+                                }
+                                
+                                // Fetch gallery photos (6 different searches)
+                                const queries = [
+                                    `${c} landmark`,
+                                    `${c} culture`,
+                                    `${c} food`,
+                                    `${c} nature`,
+                                    `${c} city`,
+                                    `${c} travel`
+                                ];
+                                const galleryUrls = [];
+                                for (const query of queries) {
+                                    const resp = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1`, {
+                                        headers: { Authorization: `Client-ID ${key}` }
+                                    });
+                                    const data = await resp.json();
+                                    if (data.results && data.results.length > 0) {
+                                        galleryUrls.push(data.results[0].urls.regular || data.results[0].urls.full);
+                                    }
+                                }
+                                
+                                // Update gallery images
+                                if (galleryUrls.length > 0 && gallery) {
+                                    const galleryImgs = gallery.querySelectorAll('img');
+                                    galleryImgs.forEach((img, idx) => {
+                                        if (galleryUrls[idx]) {
+                                            if (typeof window.__WB_applyResponsiveSrc === 'function') {
+                                                window.__WB_applyResponsiveSrc(img, galleryUrls[idx]);
+                                            } else {
+                                                img.src = galleryUrls[idx];
+                                            }
+                                        }
+                                    });
+                                    console.log('[Destination AI] Gallery photos updated:', galleryUrls.length);
+                                }
+                            } else {
+                                console.warn('[Destination AI] No Unsplash API key found - using placeholder photos');
+                            }
+                        } catch (err) {
+                            console.warn('[Destination AI] Unsplash photo fetch failed:', err);
+                        }
+                        
                         // Success notification
                         if (window.websiteBuilder && window.websiteBuilder.showNotification) {
                             window.websiteBuilder.showNotification('✨ AI teksten gegenereerd voor ' + c, 'success');
