@@ -35,13 +35,15 @@ VERMIJD clichés zoals "land van tegenstellingen" of vage taal. Gebruik in plaat
 Schrijf in 2-3 alinea's. Geen titel, geen subtitel. Direct beginnen met de tekst.`;
 
       case 'highlights':
-        return `Geef ${count} specifieke, concrete highlights voor ${country}. Denk aan:
-- Iconische bezienswaardigheden met naam
-- Unieke culturele ervaringen
-- Bekende natuurlijke attracties
+        return `Geef ${count} zeer specifieke, unieke highlights voor ${country}. GEEN algemene beschrijvingen!
 
-Voor elk item: een pakkende titel (2-4 woorden) en een concrete beschrijving (8-15 woorden).
-Geef JSON: [{"title":"Sagrada Familia","summary":"Gaudí's onvoltooide meesterwerk in Barcelona"}]`;
+Denk aan concrete, unieke ervaringen zoals:
+- Voor Nederland: "Kaas eten op de kaasmarkt", "Kroket uit de muur", "Fietsen door Amsterdam", "Molens van Kinderdijk", "Wandelen op de Veluwe", "Deltawerken bezoeken"
+- Voor Japan: "Fushimi Inari torii poorten", "Onsen (warmwaterbron)", "Sumo worstelen", "Kersenbloesem hanami"
+- Voor Spanje: "Tapas in Barcelona", "Flamenco show", "Sagrada Familia"
+
+Voor elk item: een korte, pakkende titel (2-5 woorden) en een concrete beschrijving (8-15 woorden).
+Geef JSON: [{"title":"Kaasmarkt Alkmaar","summary":"Proef authentieke Goudse kaas op de traditionele kaasmarkt"}]`;
 
       case 'activities':
         return `Geef ${count} specifieke, uitvoerbare activiteiten voor ${country}. Voor elk item:
