@@ -468,7 +468,6 @@ class WebsiteBuilder {
 
             try { this.reattachEventListeners(); } catch (e) {}
             try { if (typeof this._applyPageMetaToInputs === 'function') this._applyPageMetaToInputs(); } catch (e) {}
-            this.persistPagesToLocalStorage();
             try { this.saveProject(true); } catch (e) {}
 
             // 8) Wire AI button after components exist
@@ -481,8 +480,10 @@ class WebsiteBuilder {
                     if (!window.BuilderAI || typeof window.BuilderAI.generate !== 'function') { alert('AI module niet geladen.'); return; }
                     btn.disabled = true; const oldTxt = btn.innerHTML; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> AI bezig...';
                     try {
+                        console.log('[Destination AI] Starting generation for:', c);
                         // Intro
                         if (content) {
+                            console.log('[Destination AI] Generating intro...');
                             const r = await window.BuilderAI.generate('content_block', { 
                                 page_title: c, 
                                 section_title: `Over ${c}`, 
@@ -490,11 +491,15 @@ class WebsiteBuilder {
                                 language: 'nl',
                                 tone: 'professional'
                             });
+                            console.log('[Destination AI] Intro response:', r);
                             const text = r?.text || r?.content_block?.text || r?.content || '';
                             const bodyEl = content.querySelector('.cf-body');
                             if (bodyEl && text) {
                                 const paragraphs = text.split(/\n\n+/).filter(p => p.trim()).map(p => `<p>${p.trim()}</p>`).join('');
                                 bodyEl.innerHTML = paragraphs;
+                                console.log('[Destination AI] Intro updated');
+                            } else {
+                                console.warn('[Destination AI] No intro text received');
                             }
                             const tEl = content.querySelector('.cf-title'); if (tEl) tEl.textContent = `Over ${c}`;
                         }
@@ -564,8 +569,12 @@ class WebsiteBuilder {
                             window.websiteBuilder.showNotification('✨ AI teksten gegenereerd voor ' + c, 'success');
                         }
                     } catch (err) { 
-                        console.error('AI genereren mislukt:', err);
-                        alert('AI genereren mislukt: ' + (err.message || 'Onbekende fout')); 
+                        console.error('[Destination AI] Error:', err);
+                        const errMsg = err.message || 'Onbekende fout';
+                        alert('AI genereren mislukt: ' + errMsg + '\n\nControleer de browser console (F12) voor details.\n\nMogelijke oorzaken:\n- AI endpoint niet beschikbaar\n- Geen internetverbinding\n- API key ontbreekt'); 
+                        if (window.websiteBuilder && window.websiteBuilder.showNotification) {
+                            window.websiteBuilder.showNotification('AI genereren mislukt - check console', 'error');
+                        }
                     }
                     finally { btn.disabled = false; btn.innerHTML = oldTxt; }
                 };
@@ -590,7 +599,7 @@ class WebsiteBuilder {
             this.pages = [{ id, name, slug, html }];
             this.currentPageId = id;
             if (canvas) canvas.innerHTML = html;
-            this.persistPagesToLocalStorage(true);
+            try { this.saveProject(true); } catch (e) {}
             this.reattachEventListeners();
 
             // Ask for country if not provided
@@ -686,7 +695,6 @@ class WebsiteBuilder {
 
             // Sync meta inputs in header and save
             try { if (typeof this._applyPageMetaToInputs === 'function') this._applyPageMetaToInputs(); } catch (e) {}
-            try { this.persistPagesToLocalStorage?.(true); } catch (e) {}
             try { this.saveProject(true); } catch (e) {}
 
             this.showNotification('ðŸ“° Nieuwsartikel template toegevoegd. Je kunt nu verder bewerken.', 'success');
@@ -1187,7 +1195,7 @@ setupVisibilityGuards() {
                 accent: accentInput?.value || '#16a34a',
                 logoUrl: logoInput?.value || ''
             };
-            this.persistPagesToLocalStorage(true);
+            try { this.saveProject(true); } catch (e) {}
             this.showNotification('ðŸŽ¨ Layout bijgewerkt', 'success');
         };
 
@@ -1331,7 +1339,7 @@ setupVisibilityGuards() {
             if (deviceBtn) deviceBtn.click();
         }
         this.reattachEventListeners();
-        this.persistPagesToLocalStorage(true);
+        try { this.saveProject(true); } catch (e) {}
         this.showNotification('ðŸ“‚ Project geladen', 'success');
     }
 }
