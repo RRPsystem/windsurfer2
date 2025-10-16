@@ -536,17 +536,30 @@ class WebsiteBuilder {
                             }
                             console.log('[Destination AI] Parsed highlights array:', arr);
                             
-                            // Fallback als AI geen items geeft
+                            // Fallback als AI geen items geeft - land-specifiek
                             if (!arr || arr.length === 0) {
-                                console.warn('[Destination AI] No highlights received, using fallback');
-                                arr = [
-                                    'Rijke culturele geschiedenis en tradities',
-                                    'Prachtige natuurlijke landschappen',
-                                    'Unieke culinaire ervaringen',
-                                    'Moderne steden met historische wijken',
-                                    'Vriendelijke en gastvrije bevolking',
-                                    'Diverse activiteiten voor elk seizoen'
-                                ];
+                                console.warn('[Destination AI] No highlights received, using country-specific fallback for:', c);
+                                const country = c.toLowerCase();
+                                
+                                // Land-specifieke hoogtepunten
+                                if (country.includes('japan')) {
+                                    arr = ['Oude tempels en heiligdommen', 'Mount Fuji en natuurlijke schoonheid', 'Traditionele geisha cultuur', 'Moderne technologie en anime', 'Kersenbloesem seizoen', 'Authentieke sushi en ramen'];
+                                } else if (country.includes('spanje') || country.includes('spain')) {
+                                    arr = ['Sagrada Familia en Gaudí architectuur', 'Flamenco dans en muziek', 'Tapas en paella cultuur', 'Prachtige stranden aan de Costa', 'Historische Alhambra in Granada', 'Levendige festivals zoals La Tomatina'];
+                                } else if (country.includes('frankrijk') || country.includes('france')) {
+                                    arr = ['Eiffeltoren en Parijse charme', 'Lavendelvelden in de Provence', 'Wijnstreken van Bordeaux', 'Côte d\'Azur en Franse Rivièra', 'Historische kastelen in Loire', 'Franse gastronomie en patisserie'];
+                                } else if (country.includes('italië') || country.includes('italy') || country.includes('italie')) {
+                                    arr = ['Colosseum en Romeinse geschiedenis', 'Venetiaanse gondels en kanalen', 'Toscaanse heuvels en wijngaarden', 'Italiaanse pizza en pasta', 'Renaissance kunst in Florence', 'Amalfikust en Cinque Terre'];
+                                } else {
+                                    arr = [
+                                        `Rijke culturele geschiedenis van ${c}`,
+                                        'Prachtige natuurlijke landschappen',
+                                        'Unieke culinaire ervaringen',
+                                        'Moderne steden met historische wijken',
+                                        'Vriendelijke en gastvrije bevolking',
+                                        'Diverse activiteiten voor elk seizoen'
+                                    ];
+                                }
                             }
                             
                             const uls = highlights.querySelectorAll('ul');
@@ -594,17 +607,30 @@ class WebsiteBuilder {
                             }
                             console.log('[Destination AI] Parsed activities array:', arr);
                             
-                            // Fallback als AI geen items geeft
+                            // Fallback als AI geen items geeft - land-specifiek
                             if (!arr || arr.length === 0) {
-                                console.warn('[Destination AI] No activities received, using fallback');
-                                arr = [
-                                    'Bezoek historische bezienswaardigheden en monumenten',
-                                    'Proef de lokale keuken en culinaire specialiteiten',
-                                    'Ontdek natuurparken en wandelroutes',
-                                    'Ervaar de lokale cultuur en tradities',
-                                    'Verken bruisende markten en winkelstraten',
-                                    'Geniet van outdoor activiteiten en avonturen'
-                                ];
+                                console.warn('[Destination AI] No activities received, using country-specific fallback for:', c);
+                                const country = c.toLowerCase();
+                                
+                                // Land-specifieke activiteiten
+                                if (country.includes('japan')) {
+                                    arr = ['Bezoek de Fushimi Inari tempel in Kyoto', 'Ervaar een traditionele theeceremonie', 'Wandel door bamboewoude van Arashiyama', 'Proef street food in Osaka', 'Bezoek het Ghibli Museum in Tokyo', 'Ontspan in een onsen (warmwaterbron)'];
+                                } else if (country.includes('spanje') || country.includes('spain')) {
+                                    arr = ['Proef tapas in Barcelona', 'Bezoek het Prado Museum in Madrid', 'Wandel door Park Güell', 'Ervaar een flamenco show', 'Ontdek de gotische wijk van Barcelona', 'Geniet van sangria op een terrasje'];
+                                } else if (country.includes('frankrijk') || country.includes('france')) {
+                                    arr = ['Bezoek het Louvre museum', 'Proef wijn in Bordeaux', 'Wandel langs de Seine', 'Ontdek de lavendelvelden', 'Geniet van croissants in een café', 'Bezoek het Paleis van Versailles'];
+                                } else if (country.includes('italië') || country.includes('italy') || country.includes('italie')) {
+                                    arr = ['Proef authentieke pizza in Napels', 'Bezoek het Vaticaan en Sixtijnse Kapel', 'Wandel door Venetië', 'Ontdek de Toscaanse wijngaarden', 'Bezoek de Toren van Pisa', 'Geniet van gelato in Rome'];
+                                } else {
+                                    arr = [
+                                        'Bezoek historische bezienswaardigheden en monumenten',
+                                        'Proef de lokale keuken en culinaire specialiteiten',
+                                        'Ontdek natuurparken en wandelroutes',
+                                        'Ervaar de lokale cultuur en tradities',
+                                        'Verken bruisende markten en winkelstraten',
+                                        'Geniet van outdoor activiteiten en avonturen'
+                                    ];
+                                }
                             }
                             
                             const cardsWrap = activities.querySelector('[style*="grid-template-columns"]');
