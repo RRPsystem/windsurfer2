@@ -47,10 +47,25 @@ export default async function handler(req, res) {
       if (!TC_USERNAME || !TC_PASSWORD || !micrositeId) {
         return res.status(500).json({ error: 'Missing TC credentials to authenticate' });
       }
+      const authBody = { 
+        username: TC_USERNAME, 
+        password: TC_PASSWORD, 
+        micrositeId: parseInt(micrositeId) || micrositeId // Try both string and number
+      };
+      console.log('[TC API] Attempting auth with:', { 
+        url: `${base}${AUTH_PATH}`, 
+        username: TC_USERNAME,
+        micrositeId: authBody.micrositeId 
+      });
+      
       const authRes = await fetch(`${base}${AUTH_PATH}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ username: TC_USERNAME, password: TC_PASSWORD, micrositeId })
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Accept': 'application/json',
+          'Accept-Encoding': 'gzip'
+        },
+        body: JSON.stringify(authBody)
       });
       const authText = await authRes.text();
       let authJson; try { authJson = JSON.parse(authText); } catch (e) { authJson = null; }
