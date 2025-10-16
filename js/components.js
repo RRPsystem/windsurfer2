@@ -2855,21 +2855,28 @@ class ComponentFactory {
         
         if (!bodyEl) return;
 
-        const title = (titleEl && titleEl.textContent) ? titleEl.textContent.trim() : '';
-        const subtitle = (subtitleEl && subtitleEl.textContent) ? subtitleEl.textContent.trim() : '';
+        let title = (titleEl && titleEl.textContent) ? titleEl.textContent.trim() : '';
+        let subtitle = (subtitleEl && subtitleEl.textContent) ? subtitleEl.textContent.trim() : '';
+        
+        // If title is empty or generic, ask user for topic
+        if (!title || title === 'Titel' || title === 'Title' || title.length < 3) {
+            const userTopic = prompt('Waarover wil je tekst genereren?', title || '');
+            if (!userTopic || !userTopic.trim()) {
+                if (window.websiteBuilder && window.websiteBuilder.showNotification) {
+                    window.websiteBuilder.showNotification('Geannuleerd', 'info');
+                }
+                return;
+            }
+            title = userTopic.trim();
+            // Update the title element with user input
+            if (titleEl) titleEl.textContent = title;
+        }
         
         // Show loading state
         const originalHtml = bodyEl.innerHTML;
         bodyEl.innerHTML = '<p style="color:#8b5cf6;"><i class="fas fa-circle-notch fa-spin"></i> AI genereert tekst...</p>';
         
         try {
-            const prompt = `Schrijf 2-3 alinea's voor een website sectie.
-Pagina: "${pageTitle}"
-Sectie titel: "${title || 'Content'}"
-Subtitel: "${subtitle || ''}"
-Toon: professioneel en informatief
-Taal: Nederlands`;
-
             const result = await window.BuilderAI.generate('content_block', {
                 page_title: pageTitle,
                 section_title: title,
@@ -2905,7 +2912,21 @@ Taal: Nederlands`;
         
         if (!bodyEl) return;
 
-        const title = (titleEl && titleEl.textContent) ? titleEl.textContent.trim() : '';
+        let title = (titleEl && titleEl.textContent) ? titleEl.textContent.trim() : '';
+        
+        // If title is empty or generic, ask user for topic
+        if (!title || title === 'Titel' || title === 'Title' || title.length < 3) {
+            const userTopic = prompt('Waarover wil je tekst genereren?', title || '');
+            if (!userTopic || !userTopic.trim()) {
+                if (window.websiteBuilder && window.websiteBuilder.showNotification) {
+                    window.websiteBuilder.showNotification('Geannuleerd', 'info');
+                }
+                return;
+            }
+            title = userTopic.trim();
+            if (titleEl) titleEl.textContent = title;
+        }
+        
         const originalText = bodyEl.textContent;
         bodyEl.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> AI genereert...';
         
@@ -2941,7 +2962,21 @@ Taal: Nederlands`;
         
         if (!listEl) return;
 
-        const title = (titleEl && titleEl.textContent) ? titleEl.textContent.trim() : '';
+        let title = (titleEl && titleEl.textContent) ? titleEl.textContent.trim() : '';
+        
+        // If title is empty or generic, ask user for topic
+        if (!title || title === 'Titel' || title === 'Title' || title.length < 3) {
+            const userTopic = prompt('Waarover wil je een lijst genereren?', title || '');
+            if (!userTopic || !userTopic.trim()) {
+                if (window.websiteBuilder && window.websiteBuilder.showNotification) {
+                    window.websiteBuilder.showNotification('Geannuleerd', 'info');
+                }
+                return;
+            }
+            title = userTopic.trim();
+            if (titleEl) titleEl.textContent = title;
+        }
+        
         const originalHtml = listEl.innerHTML;
         listEl.innerHTML = '<li style="color:#8b5cf6;"><i class="fas fa-circle-notch fa-spin"></i> AI genereert...</li>';
         
@@ -2981,7 +3016,21 @@ Taal: Nederlands`;
         
         if (!bodyEl) return;
 
-        const title = (titleEl && titleEl.textContent) ? titleEl.textContent.trim() : pageTitle;
+        let title = (titleEl && titleEl.textContent) ? titleEl.textContent.trim() : pageTitle;
+        
+        // If title is empty or generic, ask user for topic
+        if (!title || title === 'Titel' || title === 'Title' || title === 'Nieuw artikel' || title.length < 3) {
+            const userTopic = prompt('Wat is het onderwerp van het nieuwsartikel?', title || '');
+            if (!userTopic || !userTopic.trim()) {
+                if (window.websiteBuilder && window.websiteBuilder.showNotification) {
+                    window.websiteBuilder.showNotification('Geannuleerd', 'info');
+                }
+                return;
+            }
+            title = userTopic.trim();
+            if (titleEl) titleEl.textContent = title;
+        }
+        
         const originalHtml = bodyEl.innerHTML;
         bodyEl.innerHTML = '<p style="color:#8b5cf6;"><i class="fas fa-circle-notch fa-spin"></i> AI schrijft artikel...</p>';
         

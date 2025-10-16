@@ -343,12 +343,12 @@ class WebsiteBuilder {
                 note = document.createElement('section');
                 note.className = 'wb-admin-note';
                 note.innerHTML = `
-                  <div style="max-width:1100px;margin:0 auto;padding:10px 14px;border:1px dashed #f59e0b;border-radius:10px;background:#fff7ed;color:#7c2d12;display:flex;gap:8px;align-items:center;">
-                    <i class="fas fa-info-circle" style="color:#f59e0b;"></i>
+                  <div style="max-width:1100px;margin:0 auto;padding:10px 14px;border:1px solid #e5e7eb;border-radius:10px;background:#fafafa;color:#374151;display:flex;gap:8px;align-items:center;">
+                    <i class="fas fa-wand-magic-sparkles" style="color:#8b5cf6;"></i>
                     <div style="font-weight:700;">Vul het land en genereer de teksten met AI</div>
                     <input id="destCountryInput" class="form-control" type="text" placeholder="Bijv. Japan" value="" style="max-width:220px; margin-left:8px;" />
-                    <button id="aiCountryBtn" class="btn btn-primary"><i class="fas fa-wand-magic-sparkles"></i> AI-landen teksten</button>
-                    <div style="margin-left:auto;font-size:12px;color:#9a3412;">De AI vult Intro, Hoogtepunten, Activiteiten en Extra tekst</div>
+                    <button id="aiCountryBtn" class="btn" style="background:#8b5cf6;border-color:#8b5cf6;color:#fff;font-weight:600;"><i class="fas fa-wand-magic-sparkles"></i> ✨ AI tekst genereren</button>
+                    <div style="margin-left:auto;font-size:12px;color:#6b7280;">De AI vult Intro, Hoogtepunten, Activiteiten en Extra tekst</div>
                   </div>`;
                 canvas.appendChild(note);
             } catch (e) {}
@@ -379,23 +379,23 @@ class WebsiteBuilder {
                 if (content) { content.dataset.role = 'intro'; canvas.appendChild(content); }
             } catch (e) { console.warn('Destination intro failed', e); }
 
-            // 3) Highlights (2x3) simple two-column lists scaffold
+            // 3) Highlights (2x3) with green checkmarks
             try {
                 highlights = document.createElement('section');
                 highlights.className = 'wb-block';
                 highlights.innerHTML = `
                   <div style="max-width:1100px;margin:0 auto;padding:8px 16px;">
-                    <h2 style="margin:0 0 8px;">Hoogtepunten</h2>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                      <ul style="margin:0;padding-left:20px;">
-                        <li>Hoogtepunt 1</li>
-                        <li>Hoogtepunt 2</li>
-                        <li>Hoogtepunt 3</li>
+                    <h2 style="margin:0 0 16px;font-size:28px;font-weight:700;color:#111827;">Hoogtepunten</h2>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                      <ul style="margin:0;padding:0;list-style:none;">
+                        <li style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;"><span style="flex-shrink:0;width:24px;height:24px;background:#10b981;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;">✓</span><span style="color:#374151;font-size:16px;line-height:24px;">Hoogtepunt 1</span></li>
+                        <li style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;"><span style="flex-shrink:0;width:24px;height:24px;background:#10b981;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;">✓</span><span style="color:#374151;font-size:16px;line-height:24px;">Hoogtepunt 2</span></li>
+                        <li style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;"><span style="flex-shrink:0;width:24px;height:24px;background:#10b981;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;">✓</span><span style="color:#374151;font-size:16px;line-height:24px;">Hoogtepunt 3</span></li>
                       </ul>
-                      <ul style="margin:0;padding-left:20px;">
-                        <li>Hoogtepunt 4</li>
-                        <li>Hoogtepunt 5</li>
-                        <li>Hoogtepunt 6</li>
+                      <ul style="margin:0;padding:0;list-style:none;">
+                        <li style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;"><span style="flex-shrink:0;width:24px;height:24px;background:#10b981;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;">✓</span><span style="color:#374151;font-size:16px;line-height:24px;">Hoogtepunt 4</span></li>
+                        <li style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;"><span style="flex-shrink:0;width:24px;height:24px;background:#10b981;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;">✓</span><span style="color:#374151;font-size:16px;line-height:24px;">Hoogtepunt 5</span></li>
+                        <li style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;"><span style="flex-shrink:0;width:24px;height:24px;background:#10b981;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;">✓</span><span style="color:#374151;font-size:16px;line-height:24px;">Hoogtepunt 6</span></li>
                       </ul>
                     </div>
                   </div>`;
@@ -483,56 +483,90 @@ class WebsiteBuilder {
                     try {
                         // Intro
                         if (content) {
-                            const r = await window.BuilderAI.generate('intro', { country: c, language: 'nl' });
-                            const text = r?.intro?.text || '';
+                            const r = await window.BuilderAI.generate('content_block', { 
+                                page_title: c, 
+                                section_title: `Over ${c}`, 
+                                subtitle: 'Ontdek de hoogtepunten, activiteiten en inspiratie',
+                                language: 'nl',
+                                tone: 'professional'
+                            });
+                            const text = r?.text || r?.content_block?.text || r?.content || '';
                             const bodyEl = content.querySelector('.cf-body');
-                            if (bodyEl && text) bodyEl.innerHTML = `<p>${text.replace(/\n+/g,'</p><p>')}</p>`;
+                            if (bodyEl && text) {
+                                const paragraphs = text.split(/\n\n+/).filter(p => p.trim()).map(p => `<p>${p.trim()}</p>`).join('');
+                                bodyEl.innerHTML = paragraphs;
+                            }
                             const tEl = content.querySelector('.cf-title'); if (tEl) tEl.textContent = `Over ${c}`;
                         }
-                        // Highlights (6)
+                        // Highlights (6) with green checkmarks
                         if (highlights) {
-                            const r = await window.BuilderAI.generate('highlights', { country: c, language: 'nl', count: 6 });
-                            const arr = Array.isArray(r?.highlights) ? r.highlights : [];
+                            const r = await window.BuilderAI.generate('feature_list', { 
+                                page_title: c, 
+                                section_title: `Hoogtepunten van ${c}`, 
+                                language: 'nl', 
+                                count: 6 
+                            });
+                            const arr = Array.isArray(r?.items) ? r.items : (Array.isArray(r?.feature_list) ? r.feature_list : []);
                             const uls = highlights.querySelectorAll('ul');
                             const a = uls[0], b = uls[1];
                             if (a && b && arr.length) {
-                                const left = arr.slice(0,3).map(x=>`<li>${x.title || x.summary || ''}</li>`).join('');
-                                const right = arr.slice(3,6).map(x=>`<li>${x.title || x.summary || ''}</li>`).join('');
-                                a.innerHTML = left || a.innerHTML;
-                                b.innerHTML = right || b.innerHTML;
+                                const left = arr.slice(0,3).map(x=>{
+                                    const txt = typeof x === 'string' ? x : (x.text || x.title || x.summary || '');
+                                    return `<li style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;"><span style="flex-shrink:0;width:24px;height:24px;background:#10b981;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;">✓</span><span style="color:#374151;font-size:16px;line-height:24px;">${txt}</span></li>`;
+                                }).join('');
+                                const right = arr.slice(3,6).map(x=>{
+                                    const txt = typeof x === 'string' ? x : (x.text || x.title || x.summary || '');
+                                    return `<li style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;"><span style="flex-shrink:0;width:24px;height:24px;background:#10b981;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;">✓</span><span style="color:#374151;font-size:16px;line-height:24px;">${txt}</span></li>`;
+                                }).join('');
+                                if (left) a.innerHTML = left;
+                                if (right) b.innerHTML = right;
                             }
                         }
                         // Activities (6)
                         if (activities) {
-                            const r = await window.BuilderAI.generate('activities', { country: c, language: 'nl', count: 6 });
-                            const arr = Array.isArray(r?.activities) ? r.activities : [];
+                            const r = await window.BuilderAI.generate('feature_list', { 
+                                page_title: c, 
+                                section_title: `Activiteiten in ${c}`, 
+                                language: 'nl', 
+                                count: 6 
+                            });
+                            const arr = Array.isArray(r?.items) ? r.items : (Array.isArray(r?.feature_list) ? r.feature_list : []);
                             const cardsWrap = activities.querySelector('[style*="grid-template-columns"]');
                             if (cardsWrap && arr.length) {
-                                cardsWrap.innerHTML = arr.slice(0,6).map(it=>`
-                                  <div class="card" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;box-shadow:0 6px 16px rgba(0,0,0,.04);">
-                                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;"><i class="fas ${it.icon || 'fa-star'}" style="color:#f59e0b;"></i><strong>${it.title || ''}</strong></div>
-                                    <div style="color:#475569;font-size:14px;">${it.summary || ''}</div>
-                                  </div>`).join('');
+                                cardsWrap.innerHTML = arr.slice(0,6).map((it, idx)=>{
+                                    const txt = typeof it === 'string' ? it : (it.text || it.title || it.summary || '');
+                                    const icons = ['fa-hiking','fa-camera','fa-utensils','fa-landmark','fa-water','fa-mountain'];
+                                    return `
+                                      <div class="card" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;box-shadow:0 6px 16px rgba(0,0,0,.04);">
+                                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;"><i class="fas ${icons[idx] || 'fa-star'}" style="color:#f59e0b;"></i><strong>Activiteit ${idx+1}</strong></div>
+                                        <div style="color:#475569;font-size:14px;">${txt}</div>
+                                      </div>`;
+                                }).join('');
                             }
                         }
                         // Extra text
                         if (extraBlock) {
-                            const r = await window.BuilderAI.generate('extra', { country: c, language: 'nl' });
-                            const text = r?.extra?.text || '';
+                            const r = await window.BuilderAI.generate('content_block', { 
+                                page_title: c, 
+                                section_title: `Meer over ${c}`, 
+                                language: 'nl',
+                                tone: 'professional'
+                            });
+                            const text = r?.text || r?.content_block?.text || r?.content || '';
                             const bodyEl = extraBlock.querySelector('.cf-body');
-                            if (bodyEl && text) bodyEl.innerHTML = `<p>${text.replace(/\n+/g,'</p><p>')}</p>`;
-                        }
-                        // Gallery captions (best effort)
-                        if (gallery) {
-                            const imgs = gallery.querySelectorAll('img');
-                            const arrImgs = Array.from(imgs);
-                            if (arrImgs.length) {
-                                const r = await window.BuilderAI.generate('gallery_captions', { country: c, language: 'nl', images: arrImgs.map(()=>({})) });
-                                const caps = Array.isArray(r?.gallery_captions) ? r.gallery_captions : [];
-                                arrImgs.forEach((im, i) => { const cap = caps[i]?.caption || ''; if (cap) { im.alt = cap; im.title = cap; } });
+                            if (bodyEl && text) {
+                                const paragraphs = text.split(/\n\n+/).filter(p => p.trim()).map(p => `<p>${p.trim()}</p>`).join('');
+                                bodyEl.innerHTML = paragraphs;
                             }
                         }
-                    } catch (_) { alert('AI genereren mislukt.'); }
+                        // Success notification
+                        if (window.websiteBuilder && window.websiteBuilder.showNotification) {
+                            window.websiteBuilder.showNotification('✨ AI teksten gegenereerd voor ' + c, 'success');
+                        }
+                    } catch (err) { 
+                        console.error('AI genereren mislukt:', err);
+                        alert('AI genereren mislukt: ' + (err.message || 'Onbekende fout')); 
+                    }
                     finally { btn.disabled = false; btn.innerHTML = oldTxt; }
                 };
             } catch (e) {}
