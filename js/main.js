@@ -719,8 +719,9 @@ class WebsiteBuilder {
                         try {
                             const key = (window.MEDIA_CONFIG && (window.MEDIA_CONFIG.unsplashAccessKey || window.MEDIA_CONFIG.unsplashKey)) || '';
                             if (key) {
-                                // Fetch hero photo
-                                const heroResp = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(c + ' landscape')}&per_page=1&orientation=landscape`, {
+                                // Fetch hero photo with better query
+                                const heroQuery = `${c} landscape travel iconic`;
+                                const heroResp = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(heroQuery)}&per_page=3&orientation=landscape&order_by=popular`, {
                                     headers: { Authorization: `Client-ID ${key}` }
                                 });
                                 const heroData = await heroResp.json();
@@ -739,22 +740,23 @@ class WebsiteBuilder {
                                     }
                                 }
                                 
-                                // Fetch gallery photos (6 different searches)
+                                // Fetch gallery photos (6 different searches) with better queries
                                 const queries = [
-                                    `${c} landmark`,
-                                    `${c} culture`,
-                                    `${c} food`,
-                                    `${c} nature`,
-                                    `${c} city`,
-                                    `${c} travel`
+                                    `${c} landmark architecture`,
+                                    `${c} culture traditional`,
+                                    `${c} food cuisine`,
+                                    `${c} nature landscape`,
+                                    `${c} city street`,
+                                    `${c} iconic famous`
                                 ];
                                 const galleryUrls = [];
                                 for (const query of queries) {
-                                    const resp = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1`, {
+                                    const resp = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=3&order_by=popular`, {
                                         headers: { Authorization: `Client-ID ${key}` }
                                     });
                                     const data = await resp.json();
                                     if (data.results && data.results.length > 0) {
+                                        // Pick first result (most popular)
                                         galleryUrls.push(data.results[0].urls.regular || data.results[0].urls.full);
                                     }
                                 }
