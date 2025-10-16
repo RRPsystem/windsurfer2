@@ -49,7 +49,7 @@ class PropertiesPanel {
         try {
             const aiRow = document.createElement('div');
             aiRow.style.display='flex'; aiRow.style.gap='8px'; aiRow.style.margin='6px 0 8px';
-            const aiBtn = this.createButton('✨ AI vullen', async () => {
+            const aiBtn = this.createButton('✨ AI tekst genereren', async () => {
                 try {
                     if (window.ComponentFactory && typeof window.ComponentFactory.fillWithAI === 'function') {
                         await window.ComponentFactory.fillWithAI(component);
@@ -1243,6 +1243,67 @@ class PropertiesPanel {
             case 'hero-page':
                 this.createHeroPageProperties(component);
                 break;
+            case 'hero-travel-video':
+                // Add a prominent top-level media button for Hero video background
+                (function addTopHeroVideoMediaButton(self, comp){
+                    const btn = self.createButton('Video kiezen (YouTube ID)', async () => {
+                        const currentId = comp.querySelector('iframe')?.src?.match(/embed\/([^?]+)/)?.[1] || '';
+                        const newId = prompt('Voer YouTube video ID in:', currentId);
+                        if (!newId) return;
+                        
+                        const iframe = comp.querySelector('iframe');
+                        const videoWrap = comp.querySelector('.hero-video');
+                        if (iframe && videoWrap) {
+                            const start = parseInt(prompt('Start tijd (seconden, optioneel):', '0') || '0', 10);
+                            const baseUrl = `https://www.youtube.com/embed/${newId}`;
+                            const common = `${start>0?`&start=${start}`:''}&mute=1&controls=0&playsinline=1`;
+                            const isEditMode = !!(document.body?.dataset?.wbMode === 'edit');
+                            const paramsEdit = `autoplay=0&loop=0${common}`;
+                            const paramsView = `autoplay=1&loop=1&playlist=${newId}${common}`;
+                            const targetSrc = `${baseUrl}?${isEditMode ? paramsEdit : paramsView}`;
+                            
+                            iframe.src = targetSrc;
+                            if (iframe.dataset) iframe.dataset.src = targetSrc;
+                            
+                            // Update preview button if exists
+                            const previewBtn = videoWrap.querySelector('.video-preview-btn');
+                            if (previewBtn) {
+                                previewBtn.onclick = (e) => {
+                                    e.stopPropagation();
+                                    const modal = document.createElement('div');
+                                    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+                                    const modalContent = document.createElement('div');
+                                    modalContent.style.cssText = 'position:relative;width:90%;max-width:1200px;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);';
+                                    const modalIframe = document.createElement('iframe');
+                                    modalIframe.setAttribute('title', 'Video Preview');
+                                    modalIframe.setAttribute('frameborder', '0');
+                                    modalIframe.setAttribute('allow', 'autoplay; fullscreen');
+                                    modalIframe.setAttribute('allowfullscreen', '');
+                                    modalIframe.style.cssText = 'width:100%;height:100%;';
+                                    modalIframe.src = `${baseUrl}?autoplay=1&controls=1&mute=0${start>0?`&start=${start}`:''}`;
+                                    const closeBtn = document.createElement('button');
+                                    closeBtn.type = 'button';
+                                    closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                                    closeBtn.style.cssText = 'position:absolute;top:-50px;right:0;background:rgba(255,255,255,0.2);color:#fff;border:none;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:20px;transition:all 0.2s;';
+                                    closeBtn.onclick = () => modal.remove();
+                                    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+                                    modalContent.appendChild(modalIframe);
+                                    modalContent.appendChild(closeBtn);
+                                    modal.appendChild(modalContent);
+                                    document.body.appendChild(modal);
+                                };
+                            }
+                        }
+                    });
+                    // Emphasize button visually
+                    btn.style.backgroundColor = '#8b5cf6';
+                    btn.style.borderColor = '#8b5cf6';
+                    btn.style.color = '#fff';
+                    btn.style.fontWeight = '700';
+                    self.panel.appendChild(btn);
+                })(this, component);
+                this.createHeroTravelProperties(component);
+                break;
             case 'hero-banner-cta':
                 this.createHeroBannerCtaProperties(component);
                 break;
@@ -1299,6 +1360,7 @@ class PropertiesPanel {
             video: 'Video',
             gallery: 'Galerij',
             'hero-travel': 'Hero Travel',
+            'hero-travel-video': 'Hero Travel Video',
             'hero-page': 'Hero (Pagina)',
             'hero-banner-cta': 'Hero Banner + CTA',
             'feature-media': 'Feature + Media',
