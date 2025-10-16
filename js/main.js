@@ -945,7 +945,7 @@ class WebsiteBuilder {
         });
     }
 
-    // Load Travel Compositor idea into the builder
+    // Load Travel Compositor idea into the builder using Travel Cards
     loadTravelIdea(data) {
         try {
             const canvas = document.getElementById('canvas');
@@ -958,6 +958,8 @@ class WebsiteBuilder {
             const description = data.description || data.intro || '';
             const days = data.days || [];
             const image = data.image || data.mainImage || data.headerImage || '';
+            const price = data.price || data.totalPrice;
+            const currency = data.currency || 'EUR';
 
             // 1. Add hero with travel image
             if (image) {
@@ -988,38 +990,163 @@ class WebsiteBuilder {
                 }
             }
 
-            // 3. Add days/itinerary
+            // 3. Create Travel Timeline with Cards for each day
             if (days && days.length > 0) {
                 try {
-                    let itineraryHtml = '<h2>Reisschema</h2><div style="display:flex;flex-direction:column;gap:20px;">';
-                    days.forEach((day, index) => {
-                        const dayTitle = day.title || day.name || `Dag ${index + 1}`;
+                    // Create timeline container
+                    const timeline = document.createElement('section');
+                    timeline.className = 'wb-component wb-travel-timeline';
+                    timeline.setAttribute('data-component', 'travel-timeline');
+                    
+                    days.forEach((day, dayIndex) => {
+                        const dayNumber = dayIndex + 1;
+                        const dayTitle = day.title || day.name || `Dag ${dayNumber}`;
                         const dayDesc = day.description || day.text || '';
-                        itineraryHtml += `
-                            <div style="border-left: 3px solid #667eea; padding-left: 16px;">
-                                <h3 style="margin: 0 0 8px 0; color: #111827;">${dayTitle}</h3>
-                                ${dayDesc ? `<p style="color: #6b7280;">${dayDesc}</p>` : ''}
-                            </div>
-                        `;
-                    });
-                    itineraryHtml += '</div>';
 
-                    const itinerary = ComponentFactory.createComponent('content-flex', {
-                        title: '',
-                        body: itineraryHtml,
-                        layout: 'none'
+                        // Add Day Header
+                        const dayHeader = ComponentFactory.createComponent('travel-day-header', {
+                            dayNumber: dayNumber,
+                            dayTitle: dayTitle,
+                            dayDescription: dayDesc
+                        });
+                        if (dayHeader) timeline.appendChild(dayHeader);
+
+                        // Parse day items (transport, hotels, activities, transfers)
+                        const items = day.items || [];
+                        
+                        // If no structured items, try to extract from day data
+                        if (items.length === 0) {
+                            // Check for transport
+                            if (day.transport || day.flight) {
+                                const transport = day.transport || day.flight;
+                                const card = ComponentFactory.createComponent('travel-card-transport', {
+                                    departure: transport.from || transport.departure || '',
+                                    arrival: transport.to || transport.arrival || '',
+                                    airline: transport.airline || transport.carrier || '',
+                                    flightNumber: transport.flightNumber || transport.number || '',
+                                    departureTime: transport.departureTime || '',
+                                    arrivalTime: transport.arrivalTime || '',
+                                    duration: transport.duration || '',
+                                    price: transport.price ? `€ ${transport.price}` : '',
+                                    priceLabel: 'per persoon'
+                                });
+                                if (card) timeline.appendChild(card);
+                            }
+
+                            // Check for transfer
+                            if (day.transfer) {
+                                const transfer = day.transfer;
+                                const card = ComponentFactory.createComponent('travel-card-transfer', {
+                                    from: transfer.from || 'Luchthaven',
+                                    to: transfer.to || 'Hotel',
+                                    transferType: transfer.type || 'Private transfer',
+                                    duration: transfer.duration || '30 minuten',
+                                    price: transfer.price ? `€ ${transfer.price}` : '',
+                                    priceLabel: 'per rit'
+                                });
+                                if (card) timeline.appendChild(card);
+                            }
+
+                            // Check for hotel/accommodation
+                            if (day.hotel || day.accommodation) {
+                                const hotel = day.hotel || day.accommodation;
+                                const card = ComponentFactory.createComponent('travel-card-hotel', {
+                                    hotelName: hotel.name || 'Hotel',
+                                    stars: hotel.stars || hotel.rating || 3,
+                                    nights: hotel.nights || 1,
+                                    persons: hotel.persons || 2,
+                                    roomType: hotel.roomType || 'Standaard kamer',
+                                    meals: hotel.meals || hotel.mealPlan || 'Ontbijt inbegrepen',
+                                    price: hotel.price ? `€ ${hotel.price}` : '',
+                                    priceLabel: 'totaal'
+                                });
+                                if (card) timeline.appendChild(card);
+                            }
+
+                            // Check for activities
+                            if (day.activities && Array.isArray(day.activities)) {
+                                day.activities.forEach(activity => {
+                                    const card = ComponentFactory.createComponent('travel-card-destination', {
+                                        activityName: activity.name || activity.title || 'Activiteit',
+                                        day: `Dag ${dayNumber}`,
+                                        location: activity.location || '',
+                                        duration: activity.duration || '3 uur',
+                                        includes: activity.includes || 'inclusief gids',
+                                        price: activity.price ? `€ ${activity.price}` : '',
+                                        priceLabel: 'per persoon'
+                                    });
+                                    if (card) timeline.appendChild(card);
+                                });
+                            }
+                        } else {
+                            // Process structured items
+                            items.forEach(item => {
+                                let card = null;
+                                switch(item.type) {
+                                    case 'transport':
+                                    case 'flight':
+                                        card = ComponentFactory.createComponent('travel-card-transport', {
+                                            departure: item.data?.from || '',
+                                            arrival: item.data?.to || '',
+                                            airline: item.data?.airline || '',
+                                            flightNumber: item.data?.flightNumber || '',
+                                            departureTime: item.data?.departureTime || '',
+                                            arrivalTime: item.data?.arrivalTime || '',
+                                            duration: item.data?.duration || '',
+                                            price: item.data?.price ? `€ ${item.data.price}` : '',
+                                            priceLabel: 'per persoon'
+                                        });
+                                        break;
+                                    case 'hotel':
+                                    case 'accommodation':
+                                        card = ComponentFactory.createComponent('travel-card-hotel', {
+                                            hotelName: item.data?.name || 'Hotel',
+                                            stars: item.data?.stars || 3,
+                                            nights: item.data?.nights || 1,
+                                            persons: item.data?.persons || 2,
+                                            roomType: item.data?.roomType || 'Standaard kamer',
+                                            meals: item.data?.meals || 'Ontbijt inbegrepen',
+                                            price: item.data?.price ? `€ ${item.data.price}` : '',
+                                            priceLabel: 'totaal'
+                                        });
+                                        break;
+                                    case 'transfer':
+                                        card = ComponentFactory.createComponent('travel-card-transfer', {
+                                            from: item.data?.from || 'Luchthaven',
+                                            to: item.data?.to || 'Hotel',
+                                            transferType: item.data?.type || 'Private transfer',
+                                            duration: item.data?.duration || '30 minuten',
+                                            price: item.data?.price ? `€ ${item.data.price}` : '',
+                                            priceLabel: 'per rit'
+                                        });
+                                        break;
+                                    case 'activity':
+                                    case 'destination':
+                                        card = ComponentFactory.createComponent('travel-card-destination', {
+                                            activityName: item.data?.name || 'Activiteit',
+                                            day: `Dag ${dayNumber}`,
+                                            location: item.data?.location || '',
+                                            duration: item.data?.duration || '3 uur',
+                                            includes: item.data?.includes || 'inclusief gids',
+                                            price: item.data?.price ? `€ ${item.data.price}` : '',
+                                            priceLabel: 'per persoon'
+                                        });
+                                        break;
+                                }
+                                if (card) timeline.appendChild(card);
+                            });
+                        }
                     });
-                    if (itinerary) canvas.appendChild(itinerary);
+
+                    canvas.appendChild(timeline);
                 } catch (e) {
-                    console.warn('Failed to create itinerary', e);
+                    console.warn('Failed to create timeline', e);
                 }
             }
 
             // 4. Add price/booking CTA if available
-            if (data.price || data.totalPrice) {
+            if (price) {
                 try {
-                    const price = data.price || data.totalPrice;
-                    const currency = data.currency || 'EUR';
                     const cta = ComponentFactory.createComponent('hero-banner-cta', {
                         title: 'Boek deze reis',
                         subtitle: `Vanaf ${price} ${currency}`,
@@ -1044,7 +1171,7 @@ class WebsiteBuilder {
             }
 
             // Show success message
-            this.showNotification('✅ Reis geladen in builder!', 'success');
+            this.showNotification('✅ Reis geladen met Travel Cards!', 'success');
 
         } catch (e) {
             console.error('loadTravelIdea failed', e);
