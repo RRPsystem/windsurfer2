@@ -223,7 +223,22 @@
         
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || `HTTP ${response.status}`);
+          console.error('[TravelView] API Error Response:', {
+            status: response.status,
+            statusText: response.statusText,
+            errorData
+          });
+          
+          // Show detailed error
+          let errorMsg = errorData.error || `HTTP ${response.status}`;
+          if (errorData.detail) {
+            errorMsg += ': ' + (typeof errorData.detail === 'string' ? errorData.detail : JSON.stringify(errorData.detail));
+          }
+          if (errorData.authUrl) {
+            console.error('[TravelView] Auth URL used:', errorData.authUrl);
+          }
+          
+          throw new Error(errorMsg);
         }
 
         const data = await response.json();
