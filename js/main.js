@@ -324,15 +324,15 @@ class WebsiteBuilder {
             const intro = (options.intro || `Schrijf hier een introductie over ${country}.`).toString();
             const extra = (options.extraText || `Plaats hier extra tekst boven de fotogalerij.`).toString();
 
-            // Gallery: Use Unsplash Source for country-specific photos
-            // Each URL will fetch a different random photo from Unsplash for the country
+            // Gallery: Use generic travel photos (Unsplash Source is deprecated)
+            // User can replace these with specific photos via the media picker
             const images = Array.isArray(options.images) && options.images.length ? options.images : [
-                `https://source.unsplash.com/800x600/?${encodeURIComponent(country)},landmark&sig=1`,
-                `https://source.unsplash.com/800x600/?${encodeURIComponent(country)},culture&sig=2`,
-                `https://source.unsplash.com/800x600/?${encodeURIComponent(country)},food&sig=3`,
-                `https://source.unsplash.com/800x600/?${encodeURIComponent(country)},nature&sig=4`,
-                `https://source.unsplash.com/800x600/?${encodeURIComponent(country)},city&sig=5`,
-                `https://source.unsplash.com/800x600/?${encodeURIComponent(country)},travel&sig=6`
+                'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&h=600&fit=crop',
+                'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop',
+                'https://images.unsplash.com/photo-1530789253388-582c481c54b0?w=800&h=600&fit=crop',
+                'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=600&fit=crop',
+                'https://images.unsplash.com/photo-1503220317375-aaad61436b1b?w=800&h=600&fit=crop',
+                'https://images.unsplash.com/photo-1488085061387-422e29b40080?w=800&h=600&fit=crop'
             ];
 
             // Clear canvas
@@ -354,15 +354,15 @@ class WebsiteBuilder {
                 canvas.appendChild(note);
             } catch (e) {}
 
-            // 1) Hero with country name and Unsplash photo
+            // 1) Hero with country name and travel photo
             try {
-                // Get a high-quality Unsplash photo for the country
-                const unsplashHeroUrl = `https://source.unsplash.com/1600x900/?${encodeURIComponent(country)},landscape,travel`;
+                // Use a generic travel photo (user can change via media picker)
+                const heroUrl = 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&h=900&fit=crop';
                 const hero = ComponentFactory.createComponent('hero-page', {
                     wordText: country.toUpperCase(),
                     height: '380px',
                     overlayOpacity: 0.4,
-                    background: unsplashHeroUrl  // Use 'background' not 'backgroundImage'
+                    background: heroUrl
                 });
                 if (hero) canvas.appendChild(hero);
             } catch (e) { console.warn('Destination hero failed', e); }
@@ -529,17 +529,17 @@ class WebsiteBuilder {
                             console.log('[Destination AI] Highlights response:', r);
                             console.log('[Destination AI] Response keys:', Object.keys(r || {}));
                             
-                            // Parse highlights response
+                            // Parse highlights response - keep full objects
                             let arr = [];
                             if (Array.isArray(r?.highlights)) {
-                                arr = r.highlights.map(h => h.title || h.summary || h.text || h);
+                                arr = r.highlights;
                             } else if (Array.isArray(r?.items)) {
-                                arr = r.items.map(h => h.title || h.summary || h.text || h);
+                                arr = r.items;
                             } else if (r && typeof r === 'object') {
                                 // Try to find any array in the response
                                 const firstKey = Object.keys(r)[0];
                                 if (firstKey && Array.isArray(r[firstKey])) {
-                                    arr = r[firstKey].map(h => h.title || h.summary || h.text || h);
+                                    arr = r[firstKey];
                                     console.log(`[Destination AI] Found array in key: ${firstKey}`);
                                 }
                             }
@@ -585,11 +585,12 @@ class WebsiteBuilder {
                             const a = uls[0], b = uls[1];
                             if (a && b) {
                                 const left = arr.slice(0,3).map(x=>{
-                                    const txt = typeof x === 'string' ? x : (x.text || x.title || x.summary || '');
+                                    // Extract title and summary from object
+                                    const txt = typeof x === 'string' ? x : (x.title || x.summary || x.text || '');
                                     return `<li style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;"><span style="flex-shrink:0;width:24px;height:24px;background:#10b981;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;">✓</span><span style="color:#374151;font-size:16px;line-height:24px;">${txt}</span></li>`;
                                 }).join('');
                                 const right = arr.slice(3,6).map(x=>{
-                                    const txt = typeof x === 'string' ? x : (x.text || x.title || x.summary || '');
+                                    const txt = typeof x === 'string' ? x : (x.title || x.summary || x.text || '');
                                     return `<li style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;"><span style="flex-shrink:0;width:24px;height:24px;background:#10b981;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;">✓</span><span style="color:#374151;font-size:16px;line-height:24px;">${txt}</span></li>`;
                                 }).join('');
                                 if (left) a.innerHTML = left;
@@ -607,17 +608,17 @@ class WebsiteBuilder {
                             console.log('[Destination AI] Activities response:', r);
                             console.log('[Destination AI] Response keys:', Object.keys(r || {}));
                             
-                            // Parse activities response
+                            // Parse activities response - keep full objects
                             let arr = [];
                             if (Array.isArray(r?.activities)) {
-                                arr = r.activities.map(a => a.title || a.summary || a.text || a);
+                                arr = r.activities;
                             } else if (Array.isArray(r?.items)) {
-                                arr = r.items.map(a => a.title || a.summary || a.text || a);
+                                arr = r.items;
                             } else if (r && typeof r === 'object') {
                                 // Try to find any array in the response
                                 const firstKey = Object.keys(r)[0];
                                 if (firstKey && Array.isArray(r[firstKey])) {
-                                    arr = r[firstKey].map(a => a.title || a.summary || a.text || a);
+                                    arr = r[firstKey];
                                     console.log(`[Destination AI] Found array in key: ${firstKey}`);
                                 }
                             }
