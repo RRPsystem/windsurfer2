@@ -242,17 +242,31 @@
       } catch (error) {
         console.error('[TravelView] Error loading travel:', error);
         
-        // Try to get more error details
+        // Try to parse error response for more details
         let errorMsg = error.message;
-        if (error.response) {
-          try {
-            const errorData = await error.response.json();
-            errorMsg = errorData.error || errorData.detail || errorMsg;
-            console.error('[TravelView] Error details:', errorData);
-          } catch (e) {}
+        let errorDetails = null;
+        
+        try {
+          const errorText = await response.text();
+          errorDetails = JSON.parse(errorText);
+          console.error('[TravelView] Error response:', errorDetails);
+          
+          if (errorDetails.detail) {
+            errorMsg = typeof errorDetails.detail === 'string' 
+              ? errorDetails.detail 
+              : JSON.stringify(errorDetails.detail);
+          }
+          if (errorDetails.authUrl) {
+            console.error('[TravelView] Auth URL:', errorDetails.authUrl);
+          }
+          if (errorDetails.status) {
+            errorMsg = `HTTP ${errorDetails.status}: ${errorMsg}`;
+          }
+        } catch (e) {
+          // Response already consumed or not JSON
         }
         
-        this.showStatus('error', `<i class="fas fa-exclamation-circle"></i> Fout bij laden: ${errorMsg}`);
+        this.showStatus('error', `<i class="fas fa-exclamation-circle"></i> Fout bij laden: ${errorMsg}<br><small>Check console voor details</small>`);
       }
     },
 

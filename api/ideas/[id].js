@@ -55,7 +55,20 @@ export default async function handler(req, res) {
       const authText = await authRes.text();
       let authJson; try { authJson = JSON.parse(authText); } catch (e) { authJson = null; }
       if (!authRes.ok || !authJson?.token) {
-        return res.status(authRes.status || 500).json({ error: 'Auth failed', detail: authJson || authText });
+        console.error('[TC API] Auth failed:', {
+          status: authRes.status,
+          statusText: authRes.statusText,
+          response: authJson || authText,
+          url: `${base}${AUTH_PATH}`,
+          username: TC_USERNAME,
+          micrositeId
+        });
+        return res.status(authRes.status || 500).json({ 
+          error: 'Auth failed', 
+          detail: authJson || authText,
+          status: authRes.status,
+          authUrl: `${base}${AUTH_PATH}`
+        });
       }
       bearer = authJson.token;
     }
