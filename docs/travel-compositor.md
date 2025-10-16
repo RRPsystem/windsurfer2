@@ -72,7 +72,16 @@ Will be added for convenience:
 - `GET /api/ideas/:id/info` → info
 
 ## Postman Collections
-TC provides Postman collections per domain (Accommodation, Closed Tour, etc.) from the docs pages. You can import them into Postman and test with your credentials; mirror any working request here as examples if needed.
+TC provides Postman collections per domain (Accommodation, Closed Tour, etc.) from the docs pages. You can import them into Postman and test with your credentials.
+
+**Download links:**
+- Accommodation: https://online.travelcompositor.com/resources/api-accommodation/TravelC_Api_Accommodation.postman_collection.json
+- Closed Tour: https://online.travelcompositor.com/resources/api-closedtour/TravelC_Api_ClosedTour.postman_collection.json
+- Transport: https://online.travelcompositor.com/resources/api-transport/TravelC_Api_Transports.postman_collection.json
+- Ticket: https://online.travelcompositor.com/resources/api-ticket/TravelC_Api_Ticket.postman_collection.json
+- Multi-Engine: https://online.travelcompositor.com/resources/api-multi-engine/TravelC_Api_Multi-Engine.postman_collection.json
+
+**Important:** All TC API requests use the `auth-token` header (lowercase with dash), NOT `Authorization: Bearer`
 
 ## Notes
 - Never commit real credentials. Keep `server/.env` untracked (already in `.gitignore`).

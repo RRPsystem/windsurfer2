@@ -97,10 +97,8 @@ export default async function handler(req, res) {
     }
     
     console.log('[TC API] Making request with token:', bearer ? `${bearer.substring(0, 20)}...` : 'EMPTY');
-    headers.Authorization = `Bearer ${bearer}`;
+    // Travel Compositor uses 'auth-token' header (lowercase with dash), not Authorization Bearer
     headers['auth-token'] = bearer;
-    headers['Auth-Token'] = bearer;
-    headers['X-Auth-Token'] = bearer;
 
     // Build detail or info URL
     const path = info ? `${IDEAS_PATH}/${encodeURIComponent(micrositeId)}/info/${encodeURIComponent(id)}`
