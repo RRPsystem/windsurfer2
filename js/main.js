@@ -517,7 +517,23 @@ class WebsiteBuilder {
                             });
                             console.log('[Destination AI] Highlights response:', r);
                             console.log('[Destination AI] Response keys:', Object.keys(r || {}));
-                            let arr = Array.isArray(r?.items) ? r.items : (Array.isArray(r?.feature_list) ? r.feature_list : []);
+                            
+                            // Try multiple possible response structures
+                            let arr = [];
+                            if (Array.isArray(r?.items)) {
+                                arr = r.items;
+                            } else if (Array.isArray(r?.feature_list)) {
+                                arr = r.feature_list;
+                            } else if (Array.isArray(r?.highlights)) {
+                                arr = r.highlights;
+                            } else if (r && typeof r === 'object') {
+                                // Try to find any array in the response
+                                const firstKey = Object.keys(r)[0];
+                                if (firstKey && Array.isArray(r[firstKey])) {
+                                    arr = r[firstKey];
+                                    console.log(`[Destination AI] Found array in key: ${firstKey}`);
+                                }
+                            }
                             console.log('[Destination AI] Parsed highlights array:', arr);
                             
                             // Fallback als AI geen items geeft
@@ -559,7 +575,23 @@ class WebsiteBuilder {
                             });
                             console.log('[Destination AI] Activities response:', r);
                             console.log('[Destination AI] Response keys:', Object.keys(r || {}));
-                            let arr = Array.isArray(r?.items) ? r.items : (Array.isArray(r?.feature_list) ? r.feature_list : []);
+                            
+                            // Try multiple possible response structures
+                            let arr = [];
+                            if (Array.isArray(r?.items)) {
+                                arr = r.items;
+                            } else if (Array.isArray(r?.feature_list)) {
+                                arr = r.feature_list;
+                            } else if (Array.isArray(r?.activities)) {
+                                arr = r.activities;
+                            } else if (r && typeof r === 'object') {
+                                // Try to find any array in the response
+                                const firstKey = Object.keys(r)[0];
+                                if (firstKey && Array.isArray(r[firstKey])) {
+                                    arr = r[firstKey];
+                                    console.log(`[Destination AI] Found array in key: ${firstKey}`);
+                                }
+                            }
                             console.log('[Destination AI] Parsed activities array:', arr);
                             
                             // Fallback als AI geen items geeft
