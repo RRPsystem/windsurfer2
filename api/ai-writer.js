@@ -25,13 +25,41 @@ export default async function handler(req, res) {
   const makePrompt = () => {
     switch (section) {
       case 'intro':
-        return `Schrijf een inspirerende inleiding van ongeveer 200 woorden voor een bestemmingspagina over ${country}. Beschrijf wat het land uniek maakt, de cultuur, natuur en waarom bezoekers het moeten ervaren. Schrijf in 2-3 alinea's. Toon geen titel.`;
+        return `Schrijf een concrete, informatieve inleiding van ongeveer 200 woorden over ${country}. 
+
+VERMIJD clichés zoals "land van tegenstellingen" of vage taal. Gebruik in plaats daarvan:
+- Specifieke voorbeelden van steden, regio's of bezienswaardigheden
+- Concrete contrasten (bijv. moderne steden vs. traditionele dorpen)
+- Unieke culturele aspecten met voorbeelden
+
+Schrijf in 2-3 alinea's. Geen titel, geen subtitel. Direct beginnen met de tekst.`;
+
       case 'highlights':
-        return `Geef ${count} specifieke highlights voor ${country}. Denk aan iconische bezienswaardigheden, unieke ervaringen, bekende plaatsen. Voor elk item: een korte titel (2-4 woorden) en een beknopte beschrijving (8-15 woorden). Geef JSON: [{"title":"Sagrada Familia","summary":"Gaudí's meesterwerk in Barcelona"}]`;
+        return `Geef ${count} specifieke, concrete highlights voor ${country}. Denk aan:
+- Iconische bezienswaardigheden met naam
+- Unieke culturele ervaringen
+- Bekende natuurlijke attracties
+
+Voor elk item: een pakkende titel (2-4 woorden) en een concrete beschrijving (8-15 woorden).
+Geef JSON: [{"title":"Sagrada Familia","summary":"Gaudí's onvoltooide meesterwerk in Barcelona"}]`;
+
       case 'activities':
-        return `Geef ${count} specifieke activiteiten voor ${country}. Voor elk item: een korte titel (2-4 woorden) en een beschrijving (8-15 woorden) wat je daar doet. Bijvoorbeeld: {"title":"Fushimi Inari","summary":"Bezoek de iconische tempel met duizenden rode torii poorten"}. Geef JSON: [{"title":"..","summary":".."}]`;
+        return `Geef ${count} specifieke, uitvoerbare activiteiten voor ${country}. Voor elk item:
+- Titel: de naam van de plek of activiteit (2-4 woorden)
+- Summary: wat je daar doet of ziet (8-15 woorden)
+
+Bijvoorbeeld: {"title":"Fushimi Inari","summary":"Wandel door duizenden rode torii poorten naar de bergtop"}
+Geef JSON: [{"title":"..","summary":".."}]`;
+
       case 'extra':
-        return `Schrijf een aanvullend tekstblok van ongeveer 200 woorden over ${country}. Focus op praktische informatie, beste reistijd, lokale tips, of verdieping over cultuur en tradities. Schrijf in 2-3 alinea's. Toon geen titel.`;
+        return `Schrijf een praktisch, informatief tekstblok van ongeveer 200 woorden over ${country}. Focus op:
+
+1. **Beste reistijd**: Specifieke maanden per regio, vermijd drukke periodes
+2. **Eten & cultuur**: Concrete gerechten per regio, eetgewoonten, etiquette
+3. **Betalen & praktisch**: Welke betaalmethoden werken, SIM-kaarten, apps, praktische tips
+
+Schrijf in 3 korte alinea's (elk ~65 woorden). Geen titel, geen subtitel. Wees concreet en feitelijk correct. Vermijd vage adviezen.`;
+
       case 'gallery_captions':
         return `Geef bij ${images.length} foto\'s over ${country} een korte caption (6-10 woorden) die algemeen past.
 Als JSON: [{"caption":".."}] met dezelfde volgorde als de foto\'s.`;
