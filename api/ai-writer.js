@@ -35,23 +35,42 @@ VERMIJD clichés zoals "land van tegenstellingen" of vage taal. Gebruik in plaat
 Schrijf in 2-3 alinea's. Geen titel, geen subtitel. Direct beginnen met de tekst.`;
 
       case 'highlights':
-        return `Geef ${count} zeer specifieke, unieke highlights voor ${country}. GEEN algemene beschrijvingen!
+        return `Geef ${count} specifieke highlights voor ${country}. Wees concreet en uniek!
 
-Denk aan concrete, unieke ervaringen zoals:
-- Voor Nederland: "Kaas eten op de kaasmarkt", "Kroket uit de muur", "Fietsen door Amsterdam", "Molens van Kinderdijk", "Wandelen op de Veluwe", "Deltawerken bezoeken"
-- Voor Japan: "Fushimi Inari torii poorten", "Onsen (warmwaterbron)", "Sumo worstelen", "Kersenbloesem hanami"
-- Voor Spanje: "Tapas in Barcelona", "Flamenco show", "Sagrada Familia"
+Voorbeelden van GOEDE highlights:
+- "Kaasmarkt Alkmaar" - Proef Goudse kaas op de traditionele markt
+- "Fietsen in Amsterdam" - Verken de grachten op de fiets
+- "Molens van Kinderdijk" - Bezoek 19 authentieke windmolens
+- "Kroket uit de muur" - Typisch Nederlandse snack ervaring
+- "Fushimi Inari" - Wandel door duizenden rode torii poorten
+- "Sagrada Familia" - Gaudí's iconische basiliek in Barcelona
 
-Voor elk item: een korte, pakkende titel (2-5 woorden) en een concrete beschrijving (8-15 woorden).
-Geef JSON: [{"title":"Kaasmarkt Alkmaar","summary":"Proef authentieke Goudse kaas op de traditionele kaasmarkt"}]`;
+Voorbeelden van SLECHTE highlights (NIET doen):
+- "Rijke culturele geschiedenis"
+- "Prachtige natuurlijke landschappen"
+- "Diverse activiteiten"
+
+Geef JSON array met title (2-5 woorden) en summary (8-15 woorden):
+[{"title":"Kaasmarkt Alkmaar","summary":"Proef authentieke Goudse kaas op de traditionele kaasmarkt"}]`;
 
       case 'activities':
-        return `Geef ${count} specifieke, uitvoerbare activiteiten voor ${country}. Voor elk item:
-- Titel: de naam van de plek of activiteit (2-4 woorden)
-- Summary: wat je daar doet of ziet (8-15 woorden)
+        return `Geef ${count} specifieke activiteiten voor ${country}. Wees concreet!
 
-Bijvoorbeeld: {"title":"Fushimi Inari","summary":"Wandel door duizenden rode torii poorten naar de bergtop"}
-Geef JSON: [{"title":"..","summary":".."}]`;
+Voorbeelden van GOEDE activiteiten:
+- {"title":"Fushimi Inari","summary":"Wandel door duizenden rode torii poorten naar de bergtop"}
+- {"title":"Rijksmuseum","summary":"Bewonder Rembrandts Nachtwacht en Vermeers Melkmeisje"}
+- {"title":"Grachtenrondvaart","summary":"Vaar door de UNESCO grachten van Amsterdam"}
+- {"title":"Anne Frank Huis","summary":"Bezoek het achterhuis waar Anne Frank haar dagboek schreef"}
+
+Voorbeelden van SLECHTE activiteiten (NIET doen):
+- {"title":"Activiteit 1","summary":"Bezoek historische bezienswaardigheden"}
+- {"title":"Activiteit 2","summary":"Proef de lokale keuken"}
+
+Voor elk item:
+- title: naam van plek/activiteit (2-5 woorden)
+- summary: wat je doet/ziet (8-15 woorden)
+
+Geef JSON array: [{"title":"..","summary":".."}]`;
 
       case 'extra':
         return `Schrijf een praktisch, informatief tekstblok van ongeveer 200 woorden over ${country}. Focus op:
