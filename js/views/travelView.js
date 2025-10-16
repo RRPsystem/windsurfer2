@@ -496,13 +496,20 @@
     },
 
     editInBuilder(data) {
+      console.log('[TravelView] editInBuilder called with data:', data);
       // Switch to page mode and load the travel data into the builder
       if (window.websiteBuilder && typeof window.websiteBuilder.loadTravelIdea === 'function') {
+        console.log('[TravelView] Calling websiteBuilder.loadTravelIdea...');
         window.websiteBuilder.loadTravelIdea(data);
+        console.log('[TravelView] Switching to page mode...');
         if (window.WB_setMode) {
           window.WB_setMode('page');
         }
       } else {
+        console.error('[TravelView] Builder not available!', {
+          hasWebsiteBuilder: !!window.websiteBuilder,
+          hasLoadTravelIdea: typeof window.websiteBuilder?.loadTravelIdea
+        });
         alert('Builder functie nog niet beschikbaar. Implementeer websiteBuilder.loadTravelIdea()');
       }
     }
