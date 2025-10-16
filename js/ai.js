@@ -125,10 +125,19 @@
       console.log('[BuilderAI] API response:', result);
       
       // Check if response is generic/empty
-      if (result && result.text && result.text.includes('Natuurlijk!')) {
-        console.warn('[BuilderAI] Generic response detected, using mock data instead');
+      if (result && result.text && (
+        result.text.includes('Natuurlijk!') || 
+        result.text.includes('Zeker!') ||
+        result.text.includes('Waarover wil je') ||
+        result.text.includes('welk onderwerp') ||
+        result.text.length < 100
+      )) {
+        console.warn('[BuilderAI] Generic/empty response detected, using mock data instead');
+        console.log('[BuilderAI] Using mock data for section:', section);
         if (mockData[section]) {
-          return mockData[section](params);
+          const mockResult = mockData[section](params);
+          console.log('[BuilderAI] Mock data result:', mockResult);
+          return mockResult;
         }
       }
       
