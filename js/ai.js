@@ -117,9 +117,21 @@
     const endpoint = getAiEndpoint();
     const payload = Object.assign({ section }, params);
     
+    console.log('[BuilderAI] Sending request to:', endpoint);
+    console.log('[BuilderAI] Payload:', payload);
+    
     try {
       const result = await post(endpoint, payload);
       console.log('[BuilderAI] API response:', result);
+      
+      // Check if response is generic/empty
+      if (result && result.text && result.text.includes('Natuurlijk!')) {
+        console.warn('[BuilderAI] Generic response detected, using mock data instead');
+        if (mockData[section]) {
+          return mockData[section](params);
+        }
+      }
+      
       return result;
     } catch (err) {
       console.warn('[BuilderAI] API failed, using mock data:', err.message);
