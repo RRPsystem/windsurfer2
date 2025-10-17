@@ -2041,13 +2041,38 @@ class ComponentFactory {
         const meals = options.meals || 'Ontbijt inbegrepen';
         const price = options.price || '€ 450';
         const priceLabel = options.priceLabel || 'totaal';
-        const imageUrl = options.imageUrl || '';
+        const images = options.images || [];
 
         const starsHtml = '⭐'.repeat(stars);
 
+        // Create image carousel HTML
+        let carouselHtml = '';
+        if (images.length > 0) {
+            carouselHtml = `
+                <div class="wb-travel-card-carousel">
+                    <div class="carousel-images">
+                        ${images.map((img, idx) => `
+                            <div class="carousel-image ${idx === 0 ? 'active' : ''}" style="background-image: url('${img}');"></div>
+                        `).join('')}
+                    </div>
+                    ${images.length > 1 ? `
+                        <button class="carousel-prev" onclick="event.stopPropagation(); this.closest('.wb-travel-card-carousel').querySelector('.carousel-images').scrollBy({left: -300, behavior: 'smooth'})">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="carousel-next" onclick="event.stopPropagation(); this.closest('.wb-travel-card-carousel').querySelector('.carousel-images').scrollBy({left: 300, behavior: 'smooth'})">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <div class="carousel-dots">
+                            ${images.map((_, idx) => `<span class="dot ${idx === 0 ? 'active' : ''}"></span>`).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
         const content = document.createElement('div');
         content.innerHTML = `
-            ${imageUrl ? `<div class="wb-travel-card-image" style="background-image: url('${imageUrl}');"></div>` : ''}
+            ${carouselHtml}
             <div class="wb-travel-card-header">
                 <div class="wb-travel-card-icon">
                     <i class="fas fa-hotel"></i>
@@ -2102,11 +2127,36 @@ class ComponentFactory {
         const includes = options.includes || 'inclusief gids';
         const price = options.price || '€ 45';
         const priceLabel = options.priceLabel || 'per persoon';
-        const imageUrl = options.imageUrl || '';
+        const images = options.images || [];
+
+        // Create image carousel HTML
+        let carouselHtml = '';
+        if (images.length > 0) {
+            carouselHtml = `
+                <div class="wb-travel-card-carousel">
+                    <div class="carousel-images">
+                        ${images.map((img, idx) => `
+                            <div class="carousel-image ${idx === 0 ? 'active' : ''}" style="background-image: url('${img}');"></div>
+                        `).join('')}
+                    </div>
+                    ${images.length > 1 ? `
+                        <button class="carousel-prev" onclick="event.stopPropagation(); this.closest('.wb-travel-card-carousel').querySelector('.carousel-images').scrollBy({left: -300, behavior: 'smooth'})">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="carousel-next" onclick="event.stopPropagation(); this.closest('.wb-travel-card-carousel').querySelector('.carousel-images').scrollBy({left: 300, behavior: 'smooth'})">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <div class="carousel-dots">
+                            ${images.map((_, idx) => `<span class="dot ${idx === 0 ? 'active' : ''}"></span>`).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
 
         const content = document.createElement('div');
         content.innerHTML = `
-            ${imageUrl ? `<div class="wb-travel-card-image" style="background-image: url('${imageUrl}');"></div>` : ''}
+            ${carouselHtml}
             <div class="wb-travel-card-header">
                 <div class="wb-travel-card-icon">
                     <i class="fas fa-map-marker-alt"></i>
