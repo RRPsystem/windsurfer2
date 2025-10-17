@@ -69,7 +69,8 @@ class ComponentFactory {
             'travel-card-destination': this.createTravelCardDestination,
             'travel-card-transfer': this.createTravelCardTransfer,
             'travel-day-header': this.createTravelDayHeader,
-            'travel-timeline': this.createTravelTimeline
+            'travel-timeline': this.createTravelTimeline,
+            'travel-hero': this.createTravelHero
         };
 
         
@@ -3375,6 +3376,75 @@ class ComponentFactory {
                 window.websiteBuilder.showNotification('AI genereren mislukt', 'error');
             }
         }
+    }
+
+    // Travel Hero - with 5 style options
+    static createTravelHero(options = {}) {
+        const hero = document.createElement('div');
+        hero.className = 'wb-component wb-travel-hero';
+        hero.setAttribute('data-component', 'travel-hero');
+        hero.id = this.generateId('travel_hero');
+
+        const toolbar = this.createToolbar();
+        hero.appendChild(toolbar);
+        this.addTypeBadge(hero);
+
+        const currentStyle = options.style || 'interactive-map';
+        const title = options.title || 'Thailand Rondreis';
+        const subtitle = options.subtitle || '20 dagen door het land van de glimlach';
+
+        const content = document.createElement('div');
+        content.innerHTML = `
+            <div class="travel-hero-container">
+                <div class="travel-hero-style-selector">
+                    <label>Hero Style:</label>
+                    <select class="travel-hero-style-select">
+                        <option value="interactive-map" ${currentStyle === 'interactive-map' ? 'selected' : ''}>🗺️ Interactive Map</option>
+                        <option value="timeline-slider" ${currentStyle === 'timeline-slider' ? 'selected' : ''}>🎯 Timeline Slider</option>
+                        <option value="video-overlay" ${currentStyle === 'video-overlay' ? 'selected' : ''}>🎬 Video Overlay</option>
+                        <option value="parallax-photos" ${currentStyle === 'parallax-photos' ? 'selected' : ''}>📸 Parallax Photos</option>
+                        <option value="globe-3d" ${currentStyle === 'globe-3d' ? 'selected' : ''}>🌍 3D Globe</option>
+                    </select>
+                </div>
+                <div class="travel-hero-preview" data-style="${currentStyle}">
+                    <div class="travel-hero-content">
+                        <h1 contenteditable="true">${title}</h1>
+                        <p contenteditable="true">${subtitle}</p>
+                        <div class="travel-hero-placeholder">
+                            <i class="fas fa-image"></i>
+                            <p>Hero Style: <strong>${this.getStyleName(currentStyle)}</strong></p>
+                            <small>Kies een style hierboven</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        hero.appendChild(content);
+
+        // Style selector change handler
+        const select = hero.querySelector('.travel-hero-style-select');
+        const preview = hero.querySelector('.travel-hero-preview');
+        const placeholder = hero.querySelector('.travel-hero-placeholder p');
+        
+        select.addEventListener('change', (e) => {
+            const newStyle = e.target.value;
+            preview.setAttribute('data-style', newStyle);
+            placeholder.innerHTML = `Hero Style: <strong>${this.getStyleName(newStyle)}</strong>`;
+        });
+
+        this.makeSelectable(hero);
+        return hero;
+    }
+
+    static getStyleName(style) {
+        const names = {
+            'interactive-map': '🗺️ Interactive Map',
+            'timeline-slider': '🎯 Timeline Slider',
+            'video-overlay': '🎬 Video Overlay',
+            'parallax-photos': '📸 Parallax Photos',
+            'globe-3d': '🌍 3D Globe'
+        };
+        return names[style] || style;
     }
 }
 
