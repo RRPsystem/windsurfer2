@@ -29,6 +29,60 @@
     box-shadow: 0 20px 60px rgba(0,0,0,0.25);
 }
 
+/* Collapsible Categories */
+.category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.category-header:hover {
+    background: #e2e8f0;
+}
+
+.category-header h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin: 0;
+}
+
+.category-header i.category-icon {
+    font-size: 16px;
+}
+
+.category-header i.toggle-icon {
+    font-size: 12px;
+    color: #64748b;
+    transition: transform 0.3s ease;
+}
+
+.category.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.category .component-list {
+    max-height: 2000px;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    opacity: 1;
+}
+
+.category.collapsed .component-list {
+    max-height: 0;
+    opacity: 0;
+}
+
 /* Reset en basis styling */
 * {
     margin: 0;
