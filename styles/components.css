@@ -1653,27 +1653,114 @@
     background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
     color: white;
 }
-
 .wb-travel-card.activity .wb-travel-card-header {
-    border-bottom-color: #fce7f3;
+border-bottom-color: #fce7f3;
+}
+
+/* Travel Day Header */
+.wb-travel-day-header {
+display: flex;
+align-items: center;
+gap: 20px;
+padding: 20px;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+border-radius: 12px;
+margin: 30px 0 20px 0;
+position: relative;
+}
+
+.wb-travel-day-mode-selector {
+margin-left: auto;
+}
+
+.day-display-mode {
+padding: 8px 12px;
+border: 2px solid rgba(255,255,255,0.3);
+border-radius: 6px;
+background: rgba(255,255,255,0.2);
+color: white;
+font-size: 14px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s ease;
+}
+
+.day-display-mode:hover {
+background: rgba(255,255,255,0.3);
+border-color: rgba(255,255,255,0.5);
+}
+
+.day-display-mode option {
+background: #667eea;
+color: white;
+}
+
+/* Accordion mode */
+.wb-travel-day-header.accordion-mode {
+cursor: pointer;
+user-select: none;
+}
+
+.wb-travel-day-header.accordion-mode::after {
+content: '▼';
+margin-left: 12px;
+font-size: 14px;
+transition: transform 0.3s ease;
+}
+
+.wb-travel-day-header.accordion-mode.expanded::after {
+transform: rotate(180deg);
+}
+
+/* Compact display mode */
+.wb-travel-card.display-compact {
+padding: 12px 16px;
+min-height: auto;
+}
+
+.wb-travel-card.display-compact .wb-travel-card-header {
+margin-bottom: 0;
+}
+
+.wb-travel-card.display-compact .wb-travel-card-title h3 {
+font-size: 14px;
+margin-bottom: 0;
+}
+
+.wb-travel-card.display-compact .wb-travel-card-title .subtitle {
+font-size: 12px;
+}
+
+.wb-travel-card.display-compact .wb-travel-card-body {
+display: none;
+}
+
+.wb-travel-card.display-compact .wb-travel-card-carousel {
+display: none;
+}
+
+/* Accordion display mode */
+.wb-travel-card.display-accordion {
+transition: all 0.3s ease;
 }
 
 /* Route Map Button */
 .wb-route-map-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    margin: 20px 0;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+display: inline-flex;
+align-items: center;
+gap: 8px;
+padding: 12px 24px;
+margin: 20px 0;
+background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+color: white;
+border: none;
+border-radius: 8px;
+font-size: 16px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s ease;
+box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .wb-route-map-button:hover {
