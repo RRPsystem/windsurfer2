@@ -1136,7 +1136,7 @@ class WebsiteBuilder {
                         hotelData = {
                             name: destHotel.name,
                             description: destHotel.hotelData?.description || '',
-                            images: destHotel.images || [],
+                            images: destHotel.imageUrls || destHotel.images || [],
                             roomType: translate(destHotel.roomTypes?.split(',')[0] || 'Standaard kamer'),
                             meals: translate(destHotel.mealPlan || 'Ontbijt inbegrepen'),
                             facilities: facilities
@@ -1150,7 +1150,7 @@ class WebsiteBuilder {
                         fromDay: d.fromDay,
                         toDay: d.toDay,
                         description: d.description || '',
-                        images: d.images || [],
+                        images: d.imageUrls || d.images || [],
                         hotel: hotelData
                     };
                 });
