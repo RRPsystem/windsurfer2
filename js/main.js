@@ -1068,6 +1068,9 @@ class WebsiteBuilder {
             }
 
             // 2. Add Travel Hero with Interactive Map
+            console.log('[DEBUG] Destinations:', destinations);
+            console.log('[DEBUG] Hotels:', hotels);
+            
             const destinationsWithCoords = destinations
                 .filter(d => d.geolocation?.latitude && d.geolocation?.longitude)
                 .map(d => {
@@ -1075,6 +1078,12 @@ class WebsiteBuilder {
                     const destHotel = hotels.find(h => 
                         h.fromDay <= d.toDay && h.toDay >= d.fromDay
                     );
+                    
+                    console.log(`[DEBUG] Destination ${d.name} (Day ${d.fromDay}-${d.toDay}):`, {
+                        images: d.images,
+                        description: d.description,
+                        hotel: destHotel ? destHotel.name : 'NO HOTEL FOUND'
+                    });
 
                     // Translation mapping
                     const translations = {
@@ -1177,10 +1186,11 @@ class WebsiteBuilder {
             // 4. Create Travel Timeline with TC data
             if (destinations.length > 0 || hotels.length > 0 || transports.length > 0 || transfers.length > 0) {
                 try {
-                    // Create route map button (will read destinations from timeline when clicked)
+                    // Only show route map button if NO interactive map hero was added
                     const hasDestinations = destinations.some(d => d.geolocation?.latitude && d.geolocation?.longitude);
+                    const hasInteractiveMapHero = destinationsWithCoords.length > 0;
                     
-                    if (hasDestinations) {
+                    if (hasDestinations && !hasInteractiveMapHero) {
                         const mapButton = document.createElement('button');
                         mapButton.className = 'wb-route-map-button';
                         mapButton.innerHTML = '<i class="fas fa-map-marked-alt"></i> Bekijk route op kaart';
