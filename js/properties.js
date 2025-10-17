@@ -39,6 +39,58 @@ class PropertiesPanel {
         this.panel.appendChild(del);
     }
 
+    createTravelHeroProperties(component) {
+        const select = component.querySelector('.travel-hero-style-select');
+        const preview = component.querySelector('.travel-hero-preview');
+        const h1 = component.querySelector('.travel-hero-content h1');
+        const p = component.querySelector('.travel-hero-content p');
+        const placeholder = component.querySelector('.travel-hero-placeholder p');
+
+        // Hero Style Selector
+        const currentStyle = select?.value || 'interactive-map';
+        this.createSelectInput('Hero Style', currentStyle, [
+            { value: 'interactive-map', label: '🗺️ Interactive Map' },
+            { value: 'timeline-slider', label: '🎯 Timeline Slider' },
+            { value: 'video-overlay', label: '🎬 Video Overlay' },
+            { value: 'parallax-photos', label: '📸 Parallax Photos' },
+            { value: 'globe-3d', label: '🌍 3D Globe' }
+        ], (value) => {
+            if (select) select.value = value;
+            if (preview) preview.setAttribute('data-style', value);
+            if (placeholder) {
+                const names = {
+                    'interactive-map': '🗺️ Interactive Map',
+                    'timeline-slider': '🎯 Timeline Slider',
+                    'video-overlay': '🎬 Video Overlay',
+                    'parallax-photos': '📸 Parallax Photos',
+                    'globe-3d': '🌍 3D Globe'
+                };
+                placeholder.innerHTML = `Hero Style: <strong>${names[value]}</strong>`;
+            }
+        });
+
+        // Title
+        this.createTextInput('Titel', h1?.textContent || '', (value) => {
+            if (h1) h1.textContent = value;
+        });
+
+        // Subtitle
+        this.createTextInput('Subtitel', p?.textContent || '', (value) => {
+            if (p) p.textContent = value;
+        });
+
+        // Info text
+        const info = document.createElement('div');
+        info.style.fontSize = '12px';
+        info.style.color = '#6b7280';
+        info.style.padding = '12px';
+        info.style.background = '#f8fafc';
+        info.style.borderRadius = '6px';
+        info.style.marginTop = '12px';
+        info.innerHTML = '<strong>ℹ️ Info:</strong> Elke style wordt later volledig uitgewerkt met unieke features. Voor nu zie je een placeholder.';
+        this.panel.appendChild(info);
+    }
+
     createContentFlexProperties(component) {
         const api = component.__contentFlexApi || {};
         // Title & Subtitle
@@ -1181,6 +1233,9 @@ class PropertiesPanel {
         
         // Generate properties based on component type
         switch (componentType) {
+            case 'travel-hero':
+                this.createTravelHeroProperties(component);
+                break;
             case 'container':
                 this.createContainerProperties(component);
                 break;
@@ -1359,6 +1414,7 @@ class PropertiesPanel {
             button: 'Knop',
             video: 'Video',
             gallery: 'Galerij',
+            'travel-hero': '🎨 Reis Hero',
             'hero-travel': 'Hero Travel',
             'hero-travel-video': 'Hero Travel Video',
             'hero-page': 'Hero (Pagina)',
