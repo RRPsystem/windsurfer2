@@ -1035,15 +1035,22 @@ class WebsiteBuilder {
                     // Add all transports
                     transports.forEach((transport, idx) => {
                         console.log('[loadTravelIdea] Adding transport:', transport);
+                        
+                        // Get airport/location names from segment if available
+                        const firstSegment = transport.segment && transport.segment[0];
+                        const departure = firstSegment?.departureAirportName || transport.originCode || transport.from || '';
+                        const arrival = firstSegment?.arrivalAirportName || transport.targetCode || transport.to || '';
+                        
                         const card = ComponentFactory.createComponent('travel-card-transport', {
-                            departure: transport.originCode || transport.from || '',
-                            arrival: transport.targetCode || transport.destinationCode || transport.to || '',
+                            departure: departure,
+                            arrival: arrival,
                             airline: transport.company || transport.carrierName || transport.airline || '',
                             flightNumber: transport.transportNumber || transport.flightNumber || '',
                             departureTime: transport.departureTime || '',
                             arrivalTime: transport.arrivalTime || '',
                             duration: transport.duration || '',
-                            price: transport.price ? `€ ${transport.price}` : '',
+                            price: transport.priceBreakdown?.totalPrice?.microsite?.amount ? 
+                                   `€ ${Math.round(transport.priceBreakdown.totalPrice.microsite.amount)}` : '',
                             priceLabel: 'per persoon'
                         });
                         if (card) timeline.appendChild(card);
