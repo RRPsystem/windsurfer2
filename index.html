@@ -148,90 +148,49 @@
             <!-- Sidebar met componenten -->
             <aside class="sidebar">
                 <div class="component-categories">
-                    <div class="category">
-                        <h4>HERO</h4>
+                    
+                    <!-- ALGEMEEN -->
+                    <div class="category" data-category-id="general">
+                        <div class="category-header">
+                            <h4><i class="fas fa-cube category-icon"></i> Algemeen</h4>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
                         <div class="component-list">
-                            <div class="component-item" draggable="true" data-component="hero-travel">
-                                <i class="fas fa-mountain-sun"></i>
-                                <span>Hero Travel (met overlay + zoek + kaarten)</span>
-                            </div>
                             <div class="component-item" draggable="true" data-component="hero-page">
                                 <i class="fas fa-image"></i>
-                                <span>Hero (Pagina) – banner met groot woord</span>
+                                <span>Hero Banner</span>
                             </div>
                             <div class="component-item" draggable="true" data-component="hero-banner-cta">
                                 <i class="fas fa-bullhorn"></i>
-                                <span>Hero Banner + CTA (volledige breedte)</span>
+                                <span>Hero + CTA</span>
                             </div>
-                            <div class="component-item" draggable="true" data-component="hero-travel-video">
-                                <i class="fas fa-video"></i>
-                                <span>Hero Travel Video (YouTube achtergrond)</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="category">
-                        <h4>CONTENT</h4>
-                        <div class="component-list">
                             <div class="component-item" draggable="true" data-component="feature-media">
                                 <i class="fas fa-square-split-horizontal"></i>
-                                <span>Feature + Media (tekst + beeld)</span>
+                                <span>Feature + Media</span>
                             </div>
                             <div class="component-item" draggable="true" data-component="feature-highlight">
                                 <i class="fas fa-image"></i>
-                                <span>Feature Highlight (foto + lijst)</span>
+                                <span>Feature Highlight</span>
                             </div>
                             <div class="component-item" draggable="true" data-component="content-flex">
                                 <i class="fas fa-align-left"></i>
-                                <span>Content (flex)</span>
+                                <span>Content Blok</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-component="media-row">
+                                <i class="fas fa-images"></i>
+                                <span>Media Rij</span>
                             </div>
                             <div class="component-item" draggable="true" data-component="news-article">
                                 <i class="fas fa-newspaper"></i>
                                 <span>Nieuwsbericht</span>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="category">
-                        <h4>MEDIA</h4>
-                        <div class="component-list">
-                            <div class="component-item" draggable="true" data-component="travel-types">
-                                <i class="fas fa-th-large"></i>
-                                <span>Soorten Reizen (8 kaarten)</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="media-row">
-                                <i class="fas fa-images"></i>
-                                <span>Media Rij (foto's / carrousel)</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="category">
-                        <h4>FORMULIEREN</h4>
-                        <div class="component-list">
                             <div class="component-item" draggable="true" data-component="jotform-embed">
                                 <i class="fas fa-wpforms"></i>
-                                <span>Jotform Embed (inline)</span>
+                                <span>Formulier (Jotform)</span>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="category">
-                        <h4>REIZEN</h4>
-                        <div class="component-list">
-                            <div class="component-item disabled" title="Binnenkort beschikbaar">
-                                <i class="fas fa-suitcase-rolling"></i>
-                                <span>Komt eraan</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="category">
-                        <h4>CONTACT</h4>
-                        <div class="component-list">
                             <div class="component-item" draggable="true" data-component="contact-info">
                                 <i class="fas fa-address-card"></i>
-                                <span>Contact Info (3 kaarten)</span>
+                                <span>Contact Info</span>
                             </div>
                             <div class="component-item" draggable="true" data-component="contact-map-cta">
                                 <i class="fas fa-map-location-dot"></i>
@@ -239,6 +198,53 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- REIS COMPONENTEN -->
+                    <div class="category" data-category-id="travel">
+                        <div class="category-header">
+                            <h4><i class="fas fa-plane-departure category-icon"></i> Reis Componenten</h4>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <div class="component-list">
+                            <div class="component-item" draggable="true" data-component="hero-travel">
+                                <i class="fas fa-mountain-sun"></i>
+                                <span>Hero Travel (zoek + kaarten)</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-component="hero-travel-video">
+                                <i class="fas fa-video"></i>
+                                <span>Hero Travel Video</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-component="travel-types">
+                                <i class="fas fa-th-large"></i>
+                                <span>Soorten Reizen (8 kaarten)</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-component="travel-timeline">
+                                <i class="fas fa-route"></i>
+                                <span>Travel Timeline</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-component="travel-card-transport">
+                                <i class="fas fa-plane"></i>
+                                <span>Transport Card</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-component="travel-card-hotel">
+                                <i class="fas fa-hotel"></i>
+                                <span>Hotel Card</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-component="travel-card-destination">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Destination Card</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-component="travel-card-transfer">
+                                <i class="fas fa-car"></i>
+                                <span>Transfer Card</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-component="travel-day-header">
+                                <i class="fas fa-calendar-day"></i>
+                                <span>Dag Header</span>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </aside>
 
@@ -391,6 +397,7 @@
       </script>
     <script src="js/layouts.js"></script>
     <script src="js/iconPicker.js"></script>
+    <script src="js/sidebar.js"></script>
     <script src="js/components.js?v=20251017-8"></script>
     <script src="js/dragdrop.js"></script>
     <script src="js/media.js"></script>
@@ -726,7 +733,7 @@
     </script>
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="/js/main.js?v=20251017-12" defer></script>
+  <script src="/js/main.js?v=20251017-13" defer></script>
 </body>
 </html>
 
