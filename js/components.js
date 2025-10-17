@@ -2257,26 +2257,14 @@ class ComponentFactory {
                 <h2 contenteditable="true">${dayTitle}</h2>
                 <p contenteditable="true">${dayDescription}</p>
             </div>
-            <div class="wb-travel-day-mode-selector">
-                <select class="day-display-mode" data-day="${dayNumber}">
-                    <option value="standard" ${displayMode === 'standard' ? 'selected' : ''}>📋 Standaard</option>
-                    <option value="accordion" ${displayMode === 'accordion' ? 'selected' : ''}>📁 Harmonica</option>
-                    <option value="compact" ${displayMode === 'compact' ? 'selected' : ''}>📦 Compact</option>
-                </select>
-            </div>
         `;
         header.appendChild(content);
 
         // Store display mode
         header._displayMode = displayMode;
-
-        // Handle display mode change
-        const select = header.querySelector('.day-display-mode');
-        select.addEventListener('change', (e) => {
-            const newMode = e.target.value;
-            header._displayMode = newMode;
-            this.applyDayDisplayMode(header, newMode);
-        });
+        
+        // Apply initial display mode
+        setTimeout(() => this.applyDayDisplayMode(header, displayMode), 100);
 
         this.makeSelectable(header);
         return header;
@@ -2298,6 +2286,26 @@ class ComponentFactory {
         cards.forEach(card => {
             card.classList.remove('display-standard', 'display-accordion', 'display-compact');
             card.classList.add(`display-${mode}`);
+            
+            // Remove existing expand button if any
+            const existingBtn = card.querySelector('.card-expand-btn');
+            if (existingBtn) existingBtn.remove();
+            
+            // Add expand button for compact mode
+            if (mode === 'compact') {
+                const expandBtn = document.createElement('button');
+                expandBtn.className = 'card-expand-btn';
+                expandBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                expandBtn.title = 'Uitklappen';
+                expandBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    card.classList.toggle('expanded');
+                    expandBtn.innerHTML = card.classList.contains('expanded') 
+                        ? '<i class="fas fa-chevron-up"></i>' 
+                        : '<i class="fas fa-chevron-down"></i>';
+                };
+                card.appendChild(expandBtn);
+            }
         });
 
         // For accordion mode, add toggle functionality
