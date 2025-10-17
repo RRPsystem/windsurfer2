@@ -1036,10 +1036,10 @@ class WebsiteBuilder {
                     transports.forEach((transport, idx) => {
                         console.log('[loadTravelIdea] Adding transport:', transport);
                         const card = ComponentFactory.createComponent('travel-card-transport', {
-                            departure: transport.originName || transport.originCode || transport.from || '',
-                            arrival: transport.destinationName || transport.destinationCode || transport.to || '',
-                            airline: transport.carrierName || transport.airline || '',
-                            flightNumber: transport.carrierCode ? `${transport.carrierCode} ${transport.flightNumber || ''}` : '',
+                            departure: transport.originCode || transport.from || '',
+                            arrival: transport.targetCode || transport.destinationCode || transport.to || '',
+                            airline: transport.company || transport.carrierName || transport.airline || '',
+                            flightNumber: transport.transportNumber || transport.flightNumber || '',
                             departureTime: transport.departureTime || '',
                             arrivalTime: transport.arrivalTime || '',
                             duration: transport.duration || '',
