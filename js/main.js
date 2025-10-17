@@ -1070,13 +1070,81 @@ class WebsiteBuilder {
             // 2. Add Travel Hero with Interactive Map
             const destinationsWithCoords = destinations
                 .filter(d => d.geolocation?.latitude && d.geolocation?.longitude)
-                .map(d => ({
-                    name: d.name,
-                    latitude: d.geolocation.latitude,
-                    longitude: d.geolocation.longitude,
-                    fromDay: d.fromDay,
-                    toDay: d.toDay
-                }));
+                .map(d => {
+                    // Find hotel for this destination (same days)
+                    const destHotel = hotels.find(h => 
+                        h.fromDay <= d.toDay && h.toDay >= d.fromDay
+                    );
+
+                    // Translation mapping
+                    const translations = {
+                        'Free internet': 'Gratis internet',
+                        'Swimming Pool': 'Zwembad',
+                        'Coworking space': 'Coworking ruimte',
+                        'Beach hotels': 'Strandhotels',
+                        'Accessible parking': 'Toegankelijke parkeerplaats',
+                        'Restaurant': 'Restaurant',
+                        'Bar': 'Bar',
+                        'Fitness center': 'Fitnesscentrum',
+                        'Spa': 'Spa',
+                        'Air conditioning': 'Airconditioning',
+                        'Parking': 'Parkeren',
+                        'WiFi': 'WiFi',
+                        'Pool': 'Zwembad',
+                        'Gym': 'Sportschool',
+                        'Breakfast': 'Ontbijt',
+                        'Room service': 'Roomservice',
+                        'Concierge': 'Conciërge',
+                        'Laundry': 'Wasservice',
+                        'Safe': 'Kluis',
+                        'Minibar': 'Minibar',
+                        'Guest Room': 'Standaard kamer',
+                        'Standard Room': 'Standaard kamer',
+                        'Deluxe Room': 'Deluxe kamer',
+                        'Suite': 'Suite',
+                        'Double Room': 'Tweepersoonskamer',
+                        'Twin Room': 'Kamer met 2 aparte bedden',
+                        'Family Room': 'Familiekamer',
+                        'BED AND BREAKFAST': 'Bed & Breakfast',
+                        'HALF BOARD': 'Halfpension',
+                        'FULL BOARD': 'Volpension',
+                        'ALL INCLUSIVE': 'All-inclusive',
+                        'ROOM ONLY': 'Alleen kamer'
+                    };
+                    const translate = (text) => translations[text] || text;
+
+                    let hotelData = null;
+                    if (destHotel) {
+                        const facilities = destHotel.hotelData?.facilities?.otherFacilities
+                            ?.filter(f => f.priority > 50)
+                            .sort((a, b) => b.priority - a.priority)
+                            .slice(0, 6)
+                            .map(f => ({
+                                icon: f.icon || 'fa-regular fa-check',
+                                description: translate(f.description)
+                            })) || [];
+
+                        hotelData = {
+                            name: destHotel.name,
+                            description: destHotel.hotelData?.description || '',
+                            images: destHotel.images || [],
+                            roomType: translate(destHotel.roomTypes?.split(',')[0] || 'Standaard kamer'),
+                            meals: translate(destHotel.mealPlan || 'Ontbijt inbegrepen'),
+                            facilities: facilities
+                        };
+                    }
+
+                    return {
+                        name: d.name,
+                        latitude: d.geolocation.latitude,
+                        longitude: d.geolocation.longitude,
+                        fromDay: d.fromDay,
+                        toDay: d.toDay,
+                        description: d.description || '',
+                        images: d.images || [],
+                        hotel: hotelData
+                    };
+                });
 
             if (destinationsWithCoords.length > 0) {
                 try {

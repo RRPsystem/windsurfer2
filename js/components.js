@@ -3506,15 +3506,10 @@ class ComponentFactory {
                 .bindPopup(`<b>${dest.name}</b><br>Dag ${dest.fromDay}${dest.toDay !== dest.fromDay ? ` - ${dest.toDay}` : ''}`)
                 .addTo(map);
             
-            // Click handler to scroll to timeline
+            // Click handler to show detail panel
             marker.on('click', () => {
-                const timeline = document.querySelector('.wb-travel-timeline');
-                if (timeline) {
-                    const dayHeader = Array.from(timeline.querySelectorAll('.wb-day-header'))
-                        .find(h => h.textContent.includes(`Dag ${dest.fromDay}`));
-                    if (dayHeader) {
-                        dayHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
+                if (window.ComponentFactory?.showDestinationDetail) {
+                    window.ComponentFactory.showDestinationDetail(dest, idx + 1);
                 }
             });
         });
@@ -3536,6 +3531,126 @@ class ComponentFactory {
             'globe-3d': '🌍 3D Globe'
         };
         return names[style] || style;
+    }
+
+    static showDestinationDetail(destination, markerNumber) {
+        // Remove existing panel if any
+        const existing = document.querySelector('.wb-destination-detail-panel');
+        if (existing) existing.remove();
+
+        // Create panel
+        const panel = document.createElement('div');
+        panel.className = 'wb-destination-detail-panel';
+
+        // Build images HTML
+        let imagesHtml = '';
+        if (destination.images && destination.images.length > 0) {
+            imagesHtml = `
+                <div class="destination-detail-images">
+                    ${destination.images.slice(0, 5).map(img => `
+                        <div class="destination-detail-image">
+                            <img src="${img}" alt="${destination.name}" loading="lazy">
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Build hotel section if available
+        let hotelHtml = '';
+        if (destination.hotel) {
+            const hotel = destination.hotel;
+            let hotelImagesHtml = '';
+            if (hotel.images && hotel.images.length > 0) {
+                hotelImagesHtml = `
+                    <div class="destination-detail-images">
+                        ${hotel.images.slice(0, 5).map(img => `
+                            <div class="destination-detail-image">
+                                <img src="${img}" alt="${hotel.name}" loading="lazy">
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            let facilitiesHtml = '';
+            if (hotel.facilities && hotel.facilities.length > 0) {
+                facilitiesHtml = `
+                    <div class="hotel-facilities">
+                        ${hotel.facilities.map(f => `
+                            <div class="hotel-facility">
+                                <i class="${f.icon || 'fas fa-check'}"></i>
+                                <span>${f.description}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            hotelHtml = `
+                <div class="destination-detail-section">
+                    <h3><i class="fas fa-hotel"></i> Hotel</h3>
+                    ${hotelImagesHtml}
+                    <h4 style="margin: 0 0 8px 0; font-size: 16px; color: #1f2937;">${hotel.name}</h4>
+                    ${hotel.description ? `<p class="destination-detail-description">${hotel.description}</p>` : ''}
+                    <div class="destination-detail-info">
+                        ${hotel.roomType ? `
+                            <div class="destination-detail-info-row">
+                                <i class="fas fa-bed"></i>
+                                <span>${hotel.roomType}</span>
+                            </div>
+                        ` : ''}
+                        ${hotel.meals ? `
+                            <div class="destination-detail-info-row">
+                                <i class="fas fa-utensils"></i>
+                                <span>${hotel.meals}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    ${facilitiesHtml}
+                </div>
+            `;
+        }
+
+        panel.innerHTML = `
+            <div class="destination-detail-header">
+                <h2><span style="opacity: 0.7; margin-right: 8px;">${markerNumber}</span> ${destination.name}</h2>
+                <button class="destination-detail-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="destination-detail-content">
+                <div class="destination-detail-section">
+                    <h3><i class="fas fa-map-marker-alt"></i> Bestemming</h3>
+                    ${imagesHtml}
+                    ${destination.description ? `<p class="destination-detail-description">${destination.description}</p>` : ''}
+                    <div class="destination-detail-info">
+                        <div class="destination-detail-info-row">
+                            <i class="fas fa-calendar"></i>
+                            <span>Dag ${destination.fromDay}${destination.toDay !== destination.fromDay ? ` - ${destination.toDay}` : ''}</span>
+                        </div>
+                        ${destination.duration ? `
+                            <div class="destination-detail-info-row">
+                                <i class="fas fa-clock"></i>
+                                <span>${destination.duration}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                ${hotelHtml}
+            </div>
+        `;
+
+        document.body.appendChild(panel);
+
+        // Close button handler
+        panel.querySelector('.destination-detail-close').onclick = () => {
+            panel.classList.remove('active');
+            setTimeout(() => panel.remove(), 300);
+        };
+
+        // Animate in
+        setTimeout(() => panel.classList.add('active'), 10);
     }
 }
 
