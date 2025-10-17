@@ -945,6 +945,76 @@ class WebsiteBuilder {
         });
     }
 
+    // Route Map functionality
+    showRouteMap(destinations) {
+        // Create slide-in panel
+        const panel = document.createElement('div');
+        panel.className = 'wb-route-map-panel';
+        panel.innerHTML = `
+            <div class="route-map-header">
+                <h2><i class="fas fa-route"></i> Reisroute</h2>
+                <button class="route-map-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="routeMap" class="route-map-container"></div>
+        `;
+        document.body.appendChild(panel);
+        
+        // Close button
+        panel.querySelector('.route-map-close').onclick = () => {
+            panel.classList.remove('active');
+            setTimeout(() => panel.remove(), 300);
+        };
+        
+        // Animate in
+        setTimeout(() => panel.classList.add('active'), 10);
+        
+        // Initialize map after panel is visible
+        setTimeout(() => {
+            // Calculate center and bounds
+            const lats = destinations.map(d => d.latitude);
+            const lngs = destinations.map(d => d.longitude);
+            const centerLat = (Math.max(...lats) + Math.min(...lats)) / 2;
+            const centerLng = (Math.max(...lngs) + Math.min(...lngs)) / 2;
+            
+            // Create map
+            const map = L.map('routeMap').setView([centerLat, centerLng], 6);
+            
+            // Add tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 18
+            }).addTo(map);
+            
+            // Create route line coordinates
+            const routeCoords = destinations.map(d => [d.latitude, d.longitude]);
+            
+            // Draw route line
+            L.polyline(routeCoords, {
+                color: '#3b82f6',
+                weight: 3,
+                opacity: 0.7,
+                smoothFactor: 1
+            }).addTo(map);
+            
+            // Add numbered markers
+            destinations.forEach((dest, idx) => {
+                const icon = L.divIcon({
+                    className: 'route-marker',
+                    html: `<div class="route-marker-inner">${idx + 1}</div>`,
+                    iconSize: [32, 32]
+                });
+                
+                L.marker([dest.latitude, dest.longitude], { icon })
+                    .bindPopup(`<b>${dest.name}</b><br>Dag ${dest.fromDay}${dest.toDay !== dest.fromDay ? ` - ${dest.toDay}` : ''}`)
+                    .addTo(map);
+            });
+            
+            // Fit bounds to show all markers
+            const bounds = L.latLngBounds(routeCoords);
+            map.fitBounds(bounds, { padding: [50, 50] });
+        }, 350);
+    }
+
     // Load Travel Compositor idea into the builder using Travel Cards
     loadTravelIdea(data) {
         try {
@@ -2077,77 +2147,6 @@ window.addEventListener('error', (event) => {
         window.websiteBuilder.showErrorMessage('Er is een onverwachte fout opgetreden.');
     }
 });
-
-// Route Map functionality
-if (!window.websiteBuilder) window.websiteBuilder = {};
-window.websiteBuilder.showRouteMap = function(destinations) {
-    // Create slide-in panel
-    const panel = document.createElement('div');
-    panel.className = 'wb-route-map-panel';
-    panel.innerHTML = `
-        <div class="route-map-header">
-            <h2><i class="fas fa-route"></i> Reisroute</h2>
-            <button class="route-map-close"><i class="fas fa-times"></i></button>
-        </div>
-        <div id="routeMap" class="route-map-container"></div>
-    `;
-    document.body.appendChild(panel);
-    
-    // Close button
-    panel.querySelector('.route-map-close').onclick = () => {
-        panel.classList.remove('active');
-        setTimeout(() => panel.remove(), 300);
-    };
-    
-    // Animate in
-    setTimeout(() => panel.classList.add('active'), 10);
-    
-    // Initialize map after panel is visible
-    setTimeout(() => {
-        // Calculate center and bounds
-        const lats = destinations.map(d => d.latitude);
-        const lngs = destinations.map(d => d.longitude);
-        const centerLat = (Math.max(...lats) + Math.min(...lats)) / 2;
-        const centerLng = (Math.max(...lngs) + Math.min(...lngs)) / 2;
-        
-        // Create map
-        const map = L.map('routeMap').setView([centerLat, centerLng], 6);
-        
-        // Add tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 18
-        }).addTo(map);
-        
-        // Create route line coordinates
-        const routeCoords = destinations.map(d => [d.latitude, d.longitude]);
-        
-        // Draw route line
-        L.polyline(routeCoords, {
-            color: '#3b82f6',
-            weight: 3,
-            opacity: 0.7,
-            smoothFactor: 1
-        }).addTo(map);
-        
-        // Add numbered markers
-        destinations.forEach((dest, idx) => {
-            const icon = L.divIcon({
-                className: 'route-marker',
-                html: `<div class="route-marker-inner">${idx + 1}</div>`,
-                iconSize: [32, 32]
-            });
-            
-            L.marker([dest.latitude, dest.longitude], { icon })
-                .bindPopup(`<b>${dest.name}</b><br>Dag ${dest.fromDay}${dest.toDay !== dest.fromDay ? ` - ${dest.toDay}` : ''}`)
-                .addTo(map);
-        });
-        
-        // Fit bounds to show all markers
-        const bounds = L.latLngBounds(routeCoords);
-        map.fitBounds(bounds, { padding: [50, 50] });
-    }, 350);
-};
 
 // Add some helpful global functions
 window.wb = {
