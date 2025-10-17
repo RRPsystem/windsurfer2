@@ -3396,16 +3396,13 @@ class ComponentFactory {
         const content = document.createElement('div');
         content.innerHTML = `
             <div class="travel-hero-container">
-                <div class="travel-hero-style-selector">
-                    <label>Hero Style:</label>
-                    <select class="travel-hero-style-select">
-                        <option value="interactive-map" ${currentStyle === 'interactive-map' ? 'selected' : ''}>🗺️ Interactive Map</option>
-                        <option value="timeline-slider" ${currentStyle === 'timeline-slider' ? 'selected' : ''}>🎯 Timeline Slider</option>
-                        <option value="video-overlay" ${currentStyle === 'video-overlay' ? 'selected' : ''}>🎬 Video Overlay</option>
-                        <option value="parallax-photos" ${currentStyle === 'parallax-photos' ? 'selected' : ''}>📸 Parallax Photos</option>
-                        <option value="globe-3d" ${currentStyle === 'globe-3d' ? 'selected' : ''}>🌍 3D Globe</option>
-                    </select>
-                </div>
+                <select class="travel-hero-style-select" style="display:none;">
+                    <option value="interactive-map" ${currentStyle === 'interactive-map' ? 'selected' : ''}>🗺️ Interactive Map</option>
+                    <option value="timeline-slider" ${currentStyle === 'timeline-slider' ? 'selected' : ''}>🎯 Timeline Slider</option>
+                    <option value="video-overlay" ${currentStyle === 'video-overlay' ? 'selected' : ''}>🎬 Video Overlay</option>
+                    <option value="parallax-photos" ${currentStyle === 'parallax-photos' ? 'selected' : ''}>📸 Parallax Photos</option>
+                    <option value="globe-3d" ${currentStyle === 'globe-3d' ? 'selected' : ''}>🌍 3D Globe</option>
+                </select>
                 <div class="travel-hero-preview" data-style="${currentStyle}">
                     <div class="travel-hero-content">
                         <h1 contenteditable="true">${title}</h1>
@@ -3413,24 +3410,12 @@ class ComponentFactory {
                         <div class="travel-hero-placeholder">
                             <i class="fas fa-image"></i>
                             <p>Hero Style: <strong>${this.getStyleName(currentStyle)}</strong></p>
-                            <small>Kies een style hierboven</small>
+                            <small>Bewerk in eigenschappen panel →</small>
                         </div>
                     </div>
                 </div>
             </div>
         `;
-        hero.appendChild(content);
-
-        // Style selector change handler
-        const select = hero.querySelector('.travel-hero-style-select');
-        const preview = hero.querySelector('.travel-hero-preview');
-        const placeholder = hero.querySelector('.travel-hero-placeholder p');
-        
-        select.addEventListener('change', (e) => {
-            const newStyle = e.target.value;
-            preview.setAttribute('data-style', newStyle);
-            placeholder.innerHTML = `Hero Style: <strong>${this.getStyleName(newStyle)}</strong>`;
-        });
 
         this.makeSelectable(hero);
         return hero;
