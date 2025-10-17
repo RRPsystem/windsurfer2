@@ -1985,8 +1985,6 @@ class ComponentFactory {
         const departureTime = options.departureTime || '10:30';
         const arrivalTime = options.arrivalTime || '13:45';
         const duration = options.duration || '3u 15min';
-        const price = options.price || '€ 250';
-        const priceLabel = options.priceLabel || 'per persoon';
 
         const content = document.createElement('div');
         content.innerHTML = `
@@ -2007,12 +2005,6 @@ class ComponentFactory {
                 <div class="wb-travel-card-row">
                     <i class="fas fa-clock"></i>
                     <span contenteditable="true">${departureTime} - ${arrivalTime} (${duration})</span>
-                </div>
-            </div>
-            <div class="wb-travel-card-price">
-                <div>
-                    <div class="wb-travel-card-price-amount" contenteditable="true">${price}</div>
-                    <div class="wb-travel-card-price-label" contenteditable="true">${priceLabel}</div>
                 </div>
             </div>
         `;
@@ -2039,8 +2031,8 @@ class ComponentFactory {
         const persons = options.persons || 2;
         const roomType = options.roomType || 'Standaard kamer';
         const meals = options.meals || 'Ontbijt inbegrepen';
-        const price = options.price || '€ 450';
-        const priceLabel = options.priceLabel || 'totaal';
+        const description = options.description || '';
+        const facilities = options.facilities || [];
         const images = options.images || [];
 
         const starsHtml = '⭐'.repeat(stars);
@@ -2095,12 +2087,14 @@ class ComponentFactory {
                     <i class="fas fa-utensils"></i>
                     <span contenteditable="true">${meals}</span>
                 </div>
-            </div>
-            <div class="wb-travel-card-price">
-                <div>
-                    <div class="wb-travel-card-price-amount" contenteditable="true">${price}</div>
-                    <div class="wb-travel-card-price-label" contenteditable="true">${priceLabel}</div>
-                </div>
+                ${facilities.length > 0 ? `
+                    <div class="wb-travel-card-facilities">
+                        ${facilities.map(f => `<span class="facility"><i class="${f.icon}"></i> ${f.description}</span>`).join('')}
+                    </div>
+                ` : ''}
+                ${description ? `
+                    <div class="wb-travel-card-description" contenteditable="true">${description}</div>
+                ` : ''}
             </div>
         `;
         card.appendChild(content);
@@ -2124,9 +2118,7 @@ class ComponentFactory {
         const day = options.day || 'Dag 2';
         const location = options.location || 'Sagrada Familia';
         const duration = options.duration || '3 uur';
-        const includes = options.includes || 'inclusief gids';
-        const price = options.price || '€ 45';
-        const priceLabel = options.priceLabel || 'per persoon';
+        const description = options.description || '';
         const images = options.images || [];
 
         // Create image carousel HTML
@@ -2173,14 +2165,11 @@ class ComponentFactory {
                 </div>
                 <div class="wb-travel-card-row">
                     <i class="fas fa-clock"></i>
-                    <span contenteditable="true">${duration}, ${includes}</span>
+                    <span contenteditable="true">${duration}</span>
                 </div>
-            </div>
-            <div class="wb-travel-card-price">
-                <div>
-                    <div class="wb-travel-card-price-amount" contenteditable="true">${price}</div>
-                    <div class="wb-travel-card-price-label" contenteditable="true">${priceLabel}</div>
-                </div>
+                ${description ? `
+                    <div class="wb-travel-card-description" contenteditable="true">${description}</div>
+                ` : ''}
             </div>
         `;
         card.appendChild(content);
@@ -2204,13 +2193,9 @@ class ComponentFactory {
         const to = options.to || 'Hotel';
         const transferType = options.transferType || 'Private transfer';
         const duration = options.duration || '30 minuten';
-        const price = options.price || '€ 35';
-        const priceLabel = options.priceLabel || 'per rit';
-        const imageUrl = options.imageUrl || '';
 
         const content = document.createElement('div');
         content.innerHTML = `
-            ${imageUrl ? `<div class="wb-travel-card-image" style="background-image: url('${imageUrl}');"></div>` : ''}
             <div class="wb-travel-card-header">
                 <div class="wb-travel-card-icon">
                     <i class="fas fa-car"></i>
@@ -2228,12 +2213,6 @@ class ComponentFactory {
                 <div class="wb-travel-card-row">
                     <i class="fas fa-clock"></i>
                     <span contenteditable="true">${duration}</span>
-                </div>
-            </div>
-            <div class="wb-travel-card-price">
-                <div>
-                    <div class="wb-travel-card-price-amount" contenteditable="true">${price}</div>
-                    <div class="wb-travel-card-price-label" contenteditable="true">${priceLabel}</div>
                 </div>
             </div>
         `;

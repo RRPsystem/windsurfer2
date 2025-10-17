@@ -1572,24 +1572,40 @@
     color: #6b7280;
 }
 
-.wb-travel-card-price {
-    margin-top: 12px;
-    padding: 12px 20px 20px 20px;
-    border-top: 1px solid #f3f4f6;
+.wb-travel-card-facilities {
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f3f4f6;
+}
+
+.wb-travel-card-facilities .facility {
+    display: inline-flex;
     align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #374151;
 }
 
-.wb-travel-card-price-amount {
-    font-size: 20px;
-    font-weight: 700;
-    color: #111827;
-}
-
-.wb-travel-card-price-label {
-    font-size: 12px;
+.wb-travel-card-facilities .facility i {
     color: #6b7280;
+    width: auto;
+}
+
+.wb-travel-card-description {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f3f4f6;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #374151;
+    max-height: 200px;
+    overflow-y: auto;
 }
 
 /* Transport Card - Blue */
