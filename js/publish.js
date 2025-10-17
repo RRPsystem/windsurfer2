@@ -205,8 +205,95 @@ async function publishPage(pageId, htmlString) {
 window.BuilderPublishAPI = { saveDraft, publishPage };
 
 // ------------------------------
-// Health check for runtime config
+// JWT Debug Helper
 // ------------------------------
+function decodeJWT(token) {
+  try {
+    if (!token) return null;
+    // Remove 'Bearer ' prefix if present
+    const clean = token.replace(/^Bearer\s+/i, '');
+    const parts = clean.split('.');
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return payload;
+  } catch (e) {
+    console.warn('[decodeJWT] failed', e);
+    return null;
+  }
+}
+
+function validateJWT() {
+  try {
+    const headers = contentApiHeaders();
+    if (!headers.Authorization) {
+      console.warn('[validateJWT] No Authorization header');
+      return { valid: false, reason: 'No Authorization header' };
+    }
+    
+    const payload = decodeJWT(headers.Authorization);
+    if (!payload) {
+      console.warn('[validateJWT] Failed to decode JWT');
+      return { valid: false, reason: 'Failed to decode JWT' };
+    }
+    
+    // Check expiration
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp && now >= payload.exp) {
+      const expDate = new Date(payload.exp * 1000);
+      console.warn('[validateJWT] Token expired', { exp: payload.exp, expDate, now });
+      return { valid: false, reason: 'Token expired', expiredAt: expDate, payload };
+    }
+    
+    // Get brand_id from URL or globals
+    let expectedBrandId = null;
+    try {
+      const u = new URL(window.location.href);
+      expectedBrandId = u.searchParams.get('brand_id') || window.CURRENT_BRAND_ID;
+    } catch (e) {}
+    
+    // Check brand_id match
+    if (expectedBrandId && payload.brand_id && payload.brand_id !== expectedBrandId) {
+      console.warn('[validateJWT] Brand ID mismatch', {
+        jwtBrandId: payload.brand_id,
+        expectedBrandId
+      });
+      return {
+        valid: false,
+        reason: 'Brand ID mismatch',
+        jwtBrandId: payload.brand_id,
+        expectedBrandId,
+        payload
+      };
+    }
+    
+    console.debug('[validateJWT] Token valid', {
+      brand_id: payload.brand_id,
+      user_id: payload.user_id,
+      exp: payload.exp,
+      expiresAt: new Date(payload.exp * 1000),
+      timeUntilExpiry: payload.exp ? `${Math.floor((payload.exp - now) / 60)} minutes` : 'N/A'
+    });
+    
+    return { valid: true, payload };
+  } catch (e) {
+    console.error('[validateJWT] error', e);
+    return { valid: false, reason: String(e.message || e) };
+  }
+}
+
+// Expose JWT helpers and API functions
+try {
+  window.BuilderPublishAPI = window.BuilderPublishAPI || {};
+  window.BuilderPublishAPI.decodeJWT = decodeJWT;
+  window.BuilderPublishAPI.validateJWT = validateJWT;
+  window.BuilderPublishAPI.contentApiHeaders = contentApiHeaders;
+  window.BuilderPublishAPI.contentApiBase = contentApiBase;
+  window.BuilderPublishAPI.customApiBaseFromUrl = customApiBaseFromUrl;
+} catch (e) {}
+
+// ==============================
+// Health check for runtime config
+// ==============================
 async function healthCheck({ brand_id } = {}) {
   const base = contentApiBase();
   const headers = contentApiHeaders();
@@ -490,9 +577,45 @@ async function newsPublish({ brand_id, id, slug }) {
     const at = readQueryParam('author_type') || (window.CURRENT_AUTHOR_TYPE || null);
     if (at) body.author_type = at;
   } catch (e) {}
+  
+  // Debug logging (mask secrets)
+  try {
+    const hdr = contentApiHeaders();
+    const masked = {
+      Authorization: hdr.Authorization ? `Bearer ${hdr.Authorization.substring(7, 17)}...` : undefined,
+      apikey: hdr.apikey ? `${hdr.apikey.substring(0, 10)}...` : undefined,
+      'Content-Type': hdr['Content-Type']
+    };
+    console.debug('[newsPublish] request', {
+      base,
+      url,
+      brand_id,
+      id: id || null,
+      slug: slug || null,
+      hasToken: !!hdr.Authorization,
+      hasApiKey: !!hdr.apikey,
+      author_type: body.author_type || null,
+      headers: masked,
+      body
+    });
+  } catch (e) {}
+  
   const res = await fetch(url, { method: 'POST', headers: contentApiHeaders(), body: JSON.stringify(body) });
   let data = null; try { data = await res.json(); } catch (e) {}
-  if (!res.ok) { const msg = (data && (data.error || data.message)) || `news publish failed: ${res.status}`; throw new Error(msg); }
+  
+  // Enhanced error logging
+  if (!res.ok) {
+    console.error('[newsPublish] HTTP error', {
+      status: res.status,
+      statusText: res.statusText,
+      data,
+      url
+    });
+    const msg = (data && (data.error || data.message)) || `news publish failed: ${res.status}`;
+    throw new Error(msg);
+  }
+  
+  console.debug('[newsPublish] success', { id: data && data.id, slug: data && data.slug, status: data && data.status });
   return data; // expect { id, slug, status: 'published', preview_url/public_url? }
 }
 
