@@ -948,7 +948,7 @@ class WebsiteBuilder {
     // Load Travel Compositor idea into the builder using Travel Cards
     loadTravelIdea(data) {
         try {
-            console.log('[loadTravelIdea] Loading data:', data);
+            console.log('[loadTravelIdea] Loading TC data:', data);
             const canvas = document.getElementById('canvas');
             if (!canvas) {
                 console.error('[loadTravelIdea] Canvas not found!');
@@ -958,14 +958,29 @@ class WebsiteBuilder {
             // Clear canvas
             canvas.innerHTML = '';
 
+            // Extract TC data structure
             const title = data.name || data.title || 'Reis';
             const description = data.description || data.intro || '';
-            const days = data.days || [];
             const image = data.image || data.mainImage || data.headerImage || '';
             const price = data.price || data.totalPrice;
             const currency = data.currency || 'EUR';
+            
+            // TC uses these arrays instead of 'days'
+            const destinations = data.destinations || [];
+            const hotels = data.hotels || [];
+            const transports = data.transports || [];
+            const transfers = data.transfers || [];
 
-            console.log('[loadTravelIdea] Parsed:', { title, description, daysCount: days.length, image, price });
+            console.log('[loadTravelIdea] TC Data:', { 
+                title, 
+                description, 
+                destinations: destinations.length,
+                hotels: hotels.length,
+                transports: transports.length,
+                transfers: transfers.length,
+                image, 
+                price 
+            });
 
             // 1. Add hero with travel image
             if (image) {
@@ -996,15 +1011,92 @@ class WebsiteBuilder {
                 }
             }
 
-            // 3. Create Travel Timeline with Cards for each day
-            if (days && days.length > 0) {
+            // 3. Create Travel Timeline with TC data
+            if (destinations.length > 0 || hotels.length > 0 || transports.length > 0 || transfers.length > 0) {
                 try {
                     // Create timeline container
                     const timeline = document.createElement('section');
                     timeline.className = 'wb-component wb-travel-timeline';
                     timeline.setAttribute('data-component', 'travel-timeline');
                     
-                    days.forEach((day, dayIndex) => {
+                    // Helper to add day header
+                    const addDayHeader = (day, title, desc) => {
+                        const dayHeader = ComponentFactory.createComponent('travel-day-header', {
+                            dayNumber: day,
+                            dayTitle: title || `Dag ${day}`,
+                            dayDescription: desc || ''
+                        });
+                        if (dayHeader) timeline.appendChild(dayHeader);
+                    };
+                    
+                    // Start with Day 1
+                    addDayHeader(1, 'Dag 1', 'Aankomst');
+                    
+                    // Add all transports
+                    transports.forEach((transport, idx) => {
+                        console.log('[loadTravelIdea] Adding transport:', transport);
+                        const card = ComponentFactory.createComponent('travel-card-transport', {
+                            departure: transport.departureCity || transport.from || '',
+                            arrival: transport.arrivalCity || transport.to || '',
+                            airline: transport.airline || transport.carrier || '',
+                            flightNumber: transport.flightNumber || transport.number || '',
+                            departureTime: transport.departureTime || '',
+                            arrivalTime: transport.arrivalTime || '',
+                            duration: transport.duration || '',
+                            price: transport.price ? `€ ${transport.price}` : '',
+                            priceLabel: 'per persoon'
+                        });
+                        if (card) timeline.appendChild(card);
+                    });
+                    
+                    // Add all transfers
+                    transfers.forEach((transfer, idx) => {
+                        console.log('[loadTravelIdea] Adding transfer:', transfer);
+                        const card = ComponentFactory.createComponent('travel-card-transfer', {
+                            from: transfer.from || transfer.departureCity || 'Luchthaven',
+                            to: transfer.to || transfer.arrivalCity || 'Hotel',
+                            transferType: transfer.type || 'Private transfer',
+                            duration: transfer.duration || '30 minuten',
+                            price: transfer.price ? `€ ${transfer.price}` : '',
+                            priceLabel: 'per rit'
+                        });
+                        if (card) timeline.appendChild(card);
+                    });
+                    
+                    // Add all hotels
+                    hotels.forEach((hotel, idx) => {
+                        console.log('[loadTravelIdea] Adding hotel:', hotel);
+                        const card = ComponentFactory.createComponent('travel-card-hotel', {
+                            hotelName: hotel.name || hotel.hotelName || 'Hotel',
+                            stars: hotel.stars || hotel.rating || 3,
+                            nights: hotel.nights || hotel.numberOfNights || 1,
+                            persons: hotel.persons || hotel.numberOfPersons || 2,
+                            roomType: hotel.roomType || hotel.accommodationType || 'Standaard kamer',
+                            meals: hotel.meals || hotel.mealPlan || 'Ontbijt inbegrepen',
+                            price: hotel.price ? `€ ${hotel.price}` : '',
+                            priceLabel: 'totaal'
+                        });
+                        if (card) timeline.appendChild(card);
+                    });
+                    
+                    // Add all destinations
+                    destinations.forEach((destination, idx) => {
+                        console.log('[loadTravelIdea] Adding destination:', destination);
+                        const card = ComponentFactory.createComponent('travel-card-destination', {
+                            activityName: destination.name || destination.title || 'Bestemming',
+                            day: 'Dag 1',
+                            location: destination.location || destination.city || '',
+                            duration: destination.duration || '1 dag',
+                            includes: destination.includes || destination.description || '',
+                            price: destination.price ? `€ ${destination.price}` : '',
+                            priceLabel: 'per persoon'
+                        });
+                        if (card) timeline.appendChild(card);
+                    });
+
+                    // OLD CODE BELOW - will be removed
+                    const dummyDays = [];
+                    dummyDays.forEach((day, dayIndex) => {
                         const dayNumber = dayIndex + 1;
                         const dayTitle = day.title || day.name || `Dag ${dayNumber}`;
                         const dayDesc = day.description || day.text || '';
@@ -1145,22 +1237,12 @@ class WebsiteBuilder {
                     });
 
                     canvas.appendChild(timeline);
-                    console.log('[loadTravelIdea] Timeline added with', days.length, 'days');
+                    console.log('[loadTravelIdea] Timeline added with TC data');
                 } catch (e) {
                     console.error('Failed to create timeline', e);
                 }
             } else {
-                // No days found - create a simple example timeline
-                console.warn('[loadTravelIdea] No days found, creating example timeline');
-                try {
-                    const exampleTimeline = ComponentFactory.createComponent('travel-timeline', {});
-                    if (exampleTimeline) {
-                        canvas.appendChild(exampleTimeline);
-                        console.log('[loadTravelIdea] Example timeline added');
-                    }
-                } catch (e) {
-                    console.error('Failed to create example timeline', e);
-                }
+                console.warn('[loadTravelIdea] No TC data found');
             }
 
             // 4. Add price/booking CTA if available
