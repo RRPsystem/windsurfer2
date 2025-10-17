@@ -3397,6 +3397,23 @@ class ComponentFactory {
         hero.id = this.generateId('travel_hero');
 
         const toolbar = this.createToolbar();
+        
+        // Add refresh button for interactive map
+        if (options.style === 'interactive-map' || !options.style) {
+            const refreshBtn = document.createElement('button');
+            refreshBtn.className = 'toolbar-btn';
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+            refreshBtn.title = 'Ververs kaart';
+            refreshBtn.onclick = (e) => {
+                e.stopPropagation();
+                this.refreshTravelHeroMap(hero);
+                if (window.websiteBuilder?.showNotification) {
+                    window.websiteBuilder.showNotification('Kaart ververst!', 'success');
+                }
+            };
+            toolbar.insertBefore(refreshBtn, toolbar.firstChild);
+        }
+        
         hero.appendChild(toolbar);
         this.addTypeBadge(hero);
 
@@ -3503,7 +3520,6 @@ class ComponentFactory {
             });
             
             const marker = L.marker([dest.latitude, dest.longitude], { icon })
-                .bindPopup(`<b>${dest.name}</b><br>Dag ${dest.fromDay}${dest.toDay !== dest.fromDay ? ` - ${dest.toDay}` : ''}`)
                 .addTo(map);
             
             // Click handler to show detail panel
@@ -3518,8 +3534,72 @@ class ComponentFactory {
         const bounds = L.latLngBounds(routeCoords);
         map.fitBounds(bounds, { padding: [50, 50] });
         
-        // Store map reference
+        // Store map reference and destinations
         hero._heroMap = map;
+        hero._heroDestinations = destinations;
+    }
+
+    static refreshTravelHeroMap(hero) {
+        if (!hero._heroMap) return;
+
+        // Get current destinations from timeline
+        const timeline = document.querySelector('.wb-travel-timeline');
+        if (!timeline) return;
+
+        const destinationCards = timeline.querySelectorAll('.wb-travel-card.destination');
+        const newDestinations = [];
+
+        destinationCards.forEach((card, idx) => {
+            if (card._destinationData) {
+                newDestinations.push({
+                    ...card._destinationData,
+                    markerNumber: idx + 1
+                });
+            }
+        });
+
+        if (newDestinations.length === 0) return;
+
+        // Clear existing layers
+        hero._heroMap.eachLayer(layer => {
+            if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+                hero._heroMap.removeLayer(layer);
+            }
+        });
+
+        // Redraw route line
+        const routeCoords = newDestinations.map(d => [d.latitude, d.longitude]);
+        L.polyline(routeCoords, {
+            color: '#ff6b6b',
+            weight: 4,
+            opacity: 0.8,
+            smoothFactor: 1
+        }).addTo(hero._heroMap);
+
+        // Redraw markers
+        newDestinations.forEach((dest, idx) => {
+            const icon = L.divIcon({
+                className: 'hero-route-marker',
+                html: `<div class="hero-route-marker-inner">${idx + 1}</div>`,
+                iconSize: [40, 40]
+            });
+
+            const marker = L.marker([dest.latitude, dest.longitude], { icon })
+                .addTo(hero._heroMap);
+
+            marker.on('click', () => {
+                if (window.ComponentFactory?.showDestinationDetail) {
+                    window.ComponentFactory.showDestinationDetail(dest, idx + 1);
+                }
+            });
+        });
+
+        // Refit bounds
+        const bounds = L.latLngBounds(routeCoords);
+        hero._heroMap.fitBounds(bounds, { padding: [50, 50] });
+
+        // Update stored destinations
+        hero._heroDestinations = newDestinations;
     }
 
     static getStyleName(style) {
