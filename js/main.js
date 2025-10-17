@@ -1015,7 +1015,14 @@ class WebsiteBuilder {
             if (destinations.length > 0 || hotels.length > 0 || transports.length > 0 || transfers.length > 0) {
                 try {
                     // Create route map button if we have destinations with coordinates
-                    const destinationsWithCoords = destinations.filter(d => d.latitude && d.longitude);
+                    const destinationsWithCoords = destinations.filter(d => 
+                        d.geolocation?.latitude && d.geolocation?.longitude
+                    ).map(d => ({
+                        ...d,
+                        latitude: d.geolocation.latitude,
+                        longitude: d.geolocation.longitude
+                    }));
+                    
                     if (destinationsWithCoords.length > 1) {
                         const mapButton = document.createElement('button');
                         mapButton.className = 'wb-route-map-button';
