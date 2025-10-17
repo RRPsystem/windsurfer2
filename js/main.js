@@ -1014,6 +1014,16 @@ class WebsiteBuilder {
             // 3. Create Travel Timeline with TC data
             if (destinations.length > 0 || hotels.length > 0 || transports.length > 0 || transfers.length > 0) {
                 try {
+                    // Create route map button if we have destinations with coordinates
+                    const destinationsWithCoords = destinations.filter(d => d.latitude && d.longitude);
+                    if (destinationsWithCoords.length > 1) {
+                        const mapButton = document.createElement('button');
+                        mapButton.className = 'wb-route-map-button';
+                        mapButton.innerHTML = '<i class="fas fa-map-marked-alt"></i> Bekijk route op kaart';
+                        mapButton.onclick = () => window.websiteBuilder.showRouteMap(destinationsWithCoords);
+                        canvas.appendChild(mapButton);
+                    }
+                    
                     // Create timeline container
                     const timeline = document.createElement('section');
                     timeline.className = 'wb-component wb-travel-timeline';
@@ -1075,6 +1085,50 @@ class WebsiteBuilder {
                         });
                     });
                     
+                    // Translation mapping for common terms
+                    const translations = {
+                        // Facilities
+                        'Free internet': 'Gratis internet',
+                        'Swimming Pool': 'Zwembad',
+                        'Coworking space': 'Coworking ruimte',
+                        'Beach hotels': 'Strandhotels',
+                        'Accessible parking': 'Toegankelijke parkeerplaats',
+                        'Restaurant': 'Restaurant',
+                        'Bar': 'Bar',
+                        'Fitness center': 'Fitnesscentrum',
+                        'Spa': 'Spa',
+                        'Air conditioning': 'Airconditioning',
+                        'Parking': 'Parkeren',
+                        'WiFi': 'WiFi',
+                        'Pool': 'Zwembad',
+                        'Gym': 'Sportschool',
+                        'Breakfast': 'Ontbijt',
+                        'Room service': 'Roomservice',
+                        'Concierge': 'Conciërge',
+                        'Laundry': 'Wasservice',
+                        'Safe': 'Kluis',
+                        'Minibar': 'Minibar',
+                        // Room types
+                        'Guest Room': 'Standaard kamer',
+                        'Standard Room': 'Standaard kamer',
+                        'Deluxe Room': 'Deluxe kamer',
+                        'Suite': 'Suite',
+                        'Double Room': 'Tweepersoonskamer',
+                        'Twin Room': 'Kamer met 2 aparte bedden',
+                        'Family Room': 'Familiekamer',
+                        // Meal plans
+                        'BED AND BREAKFAST': 'Bed & Breakfast',
+                        'HALF BOARD': 'Halfpension',
+                        'FULL BOARD': 'Volpension',
+                        'ALL INCLUSIVE': 'All-inclusive',
+                        'ROOM ONLY': 'Alleen kamer'
+                    };
+                    
+                    const translate = (text) => {
+                        if (!text) return text;
+                        return translations[text] || text;
+                    };
+                    
                     // Add hotels
                     hotels.forEach(hotel => {
                         // Get ALL hotel images (not just 5)
@@ -1092,7 +1146,7 @@ class WebsiteBuilder {
                                 .slice(0, 6)
                                 .map(f => ({
                                     icon: f.icon || 'fa-regular fa-check',
-                                    description: f.description
+                                    description: translate(f.description)
                                 }));
                         }
                         
@@ -1104,8 +1158,8 @@ class WebsiteBuilder {
                                 stars: hotel.hotelData?.category?.replace('S', '') || hotel.stars || 3,
                                 nights: hotel.nights || 1,
                                 persons: hotel.pax || 2,
-                                roomType: hotel.roomTypes?.split(',')[0] || 'Standaard kamer',
-                                meals: hotel.mealPlan || 'Ontbijt inbegrepen',
+                                roomType: translate(hotel.roomTypes?.split(',')[0] || 'Standaard kamer'),
+                                meals: translate(hotel.mealPlan || 'Ontbijt inbegrepen'),
                                 description: hotel.hotelData?.description || '',
                                 facilities: facilities,
                                 images: hotelImages
@@ -2016,6 +2070,76 @@ window.addEventListener('error', (event) => {
         window.websiteBuilder.showErrorMessage('Er is een onverwachte fout opgetreden.');
     }
 });
+
+// Route Map functionality
+window.websiteBuilder.showRouteMap = function(destinations) {
+    // Create slide-in panel
+    const panel = document.createElement('div');
+    panel.className = 'wb-route-map-panel';
+    panel.innerHTML = `
+        <div class="route-map-header">
+            <h2><i class="fas fa-route"></i> Reisroute</h2>
+            <button class="route-map-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="routeMap" class="route-map-container"></div>
+    `;
+    document.body.appendChild(panel);
+    
+    // Close button
+    panel.querySelector('.route-map-close').onclick = () => {
+        panel.classList.remove('active');
+        setTimeout(() => panel.remove(), 300);
+    };
+    
+    // Animate in
+    setTimeout(() => panel.classList.add('active'), 10);
+    
+    // Initialize map after panel is visible
+    setTimeout(() => {
+        // Calculate center and bounds
+        const lats = destinations.map(d => d.latitude);
+        const lngs = destinations.map(d => d.longitude);
+        const centerLat = (Math.max(...lats) + Math.min(...lats)) / 2;
+        const centerLng = (Math.max(...lngs) + Math.min(...lngs)) / 2;
+        
+        // Create map
+        const map = L.map('routeMap').setView([centerLat, centerLng], 6);
+        
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18
+        }).addTo(map);
+        
+        // Create route line coordinates
+        const routeCoords = destinations.map(d => [d.latitude, d.longitude]);
+        
+        // Draw route line
+        L.polyline(routeCoords, {
+            color: '#3b82f6',
+            weight: 3,
+            opacity: 0.7,
+            smoothFactor: 1
+        }).addTo(map);
+        
+        // Add numbered markers
+        destinations.forEach((dest, idx) => {
+            const icon = L.divIcon({
+                className: 'route-marker',
+                html: `<div class="route-marker-inner">${idx + 1}</div>`,
+                iconSize: [32, 32]
+            });
+            
+            L.marker([dest.latitude, dest.longitude], { icon })
+                .bindPopup(`<b>${dest.name}</b><br>Dag ${dest.fromDay}${dest.toDay !== dest.fromDay ? ` - ${dest.toDay}` : ''}`)
+                .addTo(map);
+        });
+        
+        // Fit bounds to show all markers
+        const bounds = L.latLngBounds(routeCoords);
+        map.fitBounds(bounds, { padding: [50, 50] });
+    }, 350);
+};
 
 // Add some helpful global functions
 window.wb = {
