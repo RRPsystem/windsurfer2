@@ -1084,20 +1084,35 @@ class WebsiteBuilder {
             // 3. Create Travel Timeline with TC data
             if (destinations.length > 0 || hotels.length > 0 || transports.length > 0 || transfers.length > 0) {
                 try {
-                    // Create route map button if we have destinations with coordinates
-                    const destinationsWithCoords = destinations.filter(d => 
-                        d.geolocation?.latitude && d.geolocation?.longitude
-                    ).map(d => ({
-                        ...d,
-                        latitude: d.geolocation.latitude,
-                        longitude: d.geolocation.longitude
-                    }));
+                    // Create route map button (will read destinations from timeline when clicked)
+                    const hasDestinations = destinations.some(d => d.geolocation?.latitude && d.geolocation?.longitude);
                     
-                    if (destinationsWithCoords.length > 1) {
+                    if (hasDestinations) {
                         const mapButton = document.createElement('button');
                         mapButton.className = 'wb-route-map-button';
                         mapButton.innerHTML = '<i class="fas fa-map-marked-alt"></i> Bekijk route op kaart';
-                        mapButton.onclick = () => window.websiteBuilder.showRouteMap(destinationsWithCoords);
+                        mapButton.onclick = () => {
+                            // Read destinations from timeline dynamically
+                            const timelineDestinations = Array.from(canvas.querySelectorAll('.wb-travel-card.destination'))
+                                .map(card => {
+                                    const destData = destinations.find(d => 
+                                        card.textContent.includes(d.name)
+                                    );
+                                    if (destData?.geolocation) {
+                                        return {
+                                            ...destData,
+                                            latitude: destData.geolocation.latitude,
+                                            longitude: destData.geolocation.longitude
+                                        };
+                                    }
+                                    return null;
+                                })
+                                .filter(d => d !== null);
+                            
+                            if (timelineDestinations.length > 1) {
+                                window.websiteBuilder.showRouteMap(timelineDestinations);
+                            }
+                        };
                         canvas.appendChild(mapButton);
                     }
                     
