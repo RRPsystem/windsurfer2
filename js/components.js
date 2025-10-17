@@ -2248,6 +2248,7 @@ class ComponentFactory {
         const dayNumber = options.dayNumber || 1;
         const dayTitle = options.dayTitle || `Dag ${dayNumber}`;
         const dayDescription = options.dayDescription || 'Aankomst en check-in';
+        const displayMode = options.displayMode || 'standard';
 
         const content = document.createElement('div');
         content.innerHTML = `
@@ -2256,11 +2257,68 @@ class ComponentFactory {
                 <h2 contenteditable="true">${dayTitle}</h2>
                 <p contenteditable="true">${dayDescription}</p>
             </div>
+            <div class="wb-travel-day-mode-selector">
+                <select class="day-display-mode" data-day="${dayNumber}">
+                    <option value="standard" ${displayMode === 'standard' ? 'selected' : ''}>📋 Standaard</option>
+                    <option value="accordion" ${displayMode === 'accordion' ? 'selected' : ''}>📁 Harmonica</option>
+                    <option value="compact" ${displayMode === 'compact' ? 'selected' : ''}>📦 Compact</option>
+                </select>
+            </div>
         `;
         header.appendChild(content);
 
+        // Store display mode
+        header._displayMode = displayMode;
+
+        // Handle display mode change
+        const select = header.querySelector('.day-display-mode');
+        select.addEventListener('change', (e) => {
+            const newMode = e.target.value;
+            header._displayMode = newMode;
+            this.applyDayDisplayMode(header, newMode);
+        });
+
         this.makeSelectable(header);
         return header;
+    }
+
+    static applyDayDisplayMode(dayHeader, mode) {
+        // Find all cards between this day header and the next one
+        const cards = [];
+        let nextElement = dayHeader.nextElementSibling;
+        
+        while (nextElement && !nextElement.classList.contains('wb-travel-day-header')) {
+            if (nextElement.classList.contains('wb-travel-card')) {
+                cards.push(nextElement);
+            }
+            nextElement = nextElement.nextElementSibling;
+        }
+
+        // Apply mode to cards
+        cards.forEach(card => {
+            card.classList.remove('display-standard', 'display-accordion', 'display-compact');
+            card.classList.add(`display-${mode}`);
+        });
+
+        // For accordion mode, add toggle functionality
+        if (mode === 'accordion') {
+            dayHeader.classList.add('accordion-mode');
+            dayHeader.onclick = (e) => {
+                if (e.target.closest('.toolbar-btn') || e.target.closest('.day-display-mode')) return;
+                dayHeader.classList.toggle('expanded');
+                cards.forEach(card => {
+                    card.style.display = dayHeader.classList.contains('expanded') ? 'block' : 'none';
+                });
+            };
+            // Start collapsed
+            if (!dayHeader.classList.contains('expanded')) {
+                cards.forEach(card => card.style.display = 'none');
+            }
+        } else {
+            dayHeader.classList.remove('accordion-mode', 'expanded');
+            dayHeader.onclick = null;
+            cards.forEach(card => card.style.display = 'block');
+        }
     }
 
     // Travel Timeline Container
