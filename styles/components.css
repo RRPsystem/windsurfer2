@@ -1779,43 +1779,83 @@
 
 /* Travel Hero */
 .wb-travel-hero {
-    min-height: 400px;
+    min-height: 500px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 12px;
     overflow: hidden;
+    position: relative;
 }
 
 .travel-hero-container {
-    padding: 30px;
+    height: 100%;
+    position: relative;
 }
 
-.travel-hero-preview {
+/* Interactive Map Style */
+.travel-hero-preview[data-style="interactive-map"] {
+    height: 500px;
+    position: relative;
+    overflow: hidden;
+}
+
+.travel-hero-map-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+}
+
+.travel-hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.4) 100%);
+    z-index: 2;
+    pointer-events: none;
+}
+
+.travel-hero-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: white;
+    z-index: 3;
+    pointer-events: none;
+    max-width: 800px;
+    padding: 0 20px;
+}
+
+.travel-hero-content h1 {
+    font-size: 56px;
+    font-weight: 800;
+    margin-bottom: 16px;
+    text-shadow: 0 4px 30px rgba(0,0,0,0.5);
+    letter-spacing: -1px;
+}
+
+.travel-hero-content p {
+    font-size: 22px;
+    margin-bottom: 0;
+    opacity: 0.95;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+    font-weight: 500;
+}
+
+/* Placeholder for other styles */
+.travel-hero-preview:not([data-style="interactive-map"]) {
     background: rgba(255,255,255,0.1);
     border-radius: 12px;
-    min-height: 300px;
+    min-height: 400px;
     display: flex;
     align-items: center;
     justify-content: center;
     backdrop-filter: blur(10px);
-}
-
-.travel-hero-content {
-    text-align: center;
-    color: white;
-    padding: 40px;
-}
-
-.travel-hero-content h1 {
-    font-size: 48px;
-    font-weight: 700;
-    margin-bottom: 16px;
-    text-shadow: 0 2px 20px rgba(0,0,0,0.3);
-}
-
-.travel-hero-content p {
-    font-size: 20px;
-    margin-bottom: 30px;
-    opacity: 0.9;
 }
 
 .travel-hero-placeholder {
@@ -1823,6 +1863,8 @@
     padding: 40px;
     border-radius: 12px;
     border: 2px dashed rgba(255,255,255,0.3);
+    text-align: center;
+    color: white;
 }
 
 .travel-hero-placeholder i {
@@ -1839,6 +1881,34 @@
 .travel-hero-placeholder small {
     font-size: 14px;
     opacity: 0.7;
+}
+
+/* Custom map markers for hero */
+.hero-route-marker {
+    background: transparent;
+    border: none;
+}
+
+.hero-route-marker-inner {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 18px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    border: 4px solid white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.hero-route-marker-inner:hover {
+    transform: scale(1.2);
+    box-shadow: 0 6px 25px rgba(0,0,0,0.5);
 }
 
 /* Travel Timeline Container */
