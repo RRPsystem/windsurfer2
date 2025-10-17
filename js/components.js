@@ -2249,25 +2249,171 @@ class ComponentFactory {
         const dayTitle = options.dayTitle || `Dag ${dayNumber}`;
         const dayDescription = options.dayDescription || 'Aankomst en check-in';
         const displayMode = options.displayMode || 'standard';
+        const backgroundType = options.backgroundType || 'gradient';
+        const destinations = options.destinations || [];
+
+        // Store settings
+        header._displayMode = displayMode;
+        header._backgroundType = backgroundType;
+        header._backgroundColor = options.backgroundColor || '#667eea';
+        header._backgroundImage = options.backgroundImage || '';
+        header._backgroundVideo = options.backgroundVideo || '';
+        header._overlayOpacity = options.overlayOpacity || 0.3;
+        header._destinations = destinations;
 
         const content = document.createElement('div');
+        content.className = 'day-header-content';
         content.innerHTML = `
-            <div class="wb-travel-day-number">${dayNumber}</div>
-            <div class="wb-travel-day-info">
-                <h2 contenteditable="true">${dayTitle}</h2>
-                <p contenteditable="true">${dayDescription}</p>
+            <div class="day-header-background">
+                <div class="day-header-bg-layer"></div>
+                <div class="day-header-overlay"></div>
+            </div>
+            <div class="day-header-foreground">
+                <div class="day-mini-roadmap"></div>
+                <div class="day-header-info">
+                    <div class="wb-travel-day-number">${dayNumber}</div>
+                    <div class="wb-travel-day-info">
+                        <h2 contenteditable="true">${dayTitle}</h2>
+                        <p contenteditable="true">${dayDescription}</p>
+                    </div>
+                </div>
             </div>
         `;
         header.appendChild(content);
 
-        // Store display mode
-        header._displayMode = displayMode;
+        // Initialize background
+        this.updateDayHeaderBackground(header);
+        
+        // Initialize mini roadmap
+        this.updateMiniRoadmap(header, dayNumber, destinations);
         
         // Apply initial display mode
         setTimeout(() => this.applyDayDisplayMode(header, displayMode), 100);
 
         this.makeSelectable(header);
         return header;
+    }
+
+    static updateDayHeaderBackground(header) {
+        const bgLayer = header.querySelector('.day-header-bg-layer');
+        const overlay = header.querySelector('.day-header-overlay');
+        const bgType = header._backgroundType || 'gradient';
+
+        if (!bgLayer || !overlay) return;
+
+        // Clear previous content
+        bgLayer.innerHTML = '';
+        bgLayer.style.background = '';
+
+        // Set overlay opacity
+        overlay.style.opacity = header._overlayOpacity || 0.3;
+
+        switch(bgType) {
+            case 'color':
+                bgLayer.style.background = header._backgroundColor || '#667eea';
+                break;
+            
+            case 'gradient':
+                bgLayer.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                break;
+            
+            case 'image':
+                if (header._backgroundImage) {
+                    bgLayer.style.backgroundImage = `url('${header._backgroundImage}')`;
+                    bgLayer.style.backgroundSize = 'cover';
+                    bgLayer.style.backgroundPosition = 'center';
+                }
+                break;
+            
+            case 'map':
+                bgLayer.innerHTML = '<div class="day-header-map" id="day-map-' + header.id + '"></div>';
+                setTimeout(() => this.initializeDayHeaderMap(header), 100);
+                break;
+            
+            case 'video':
+                if (header._backgroundVideo) {
+                    const videoId = header._backgroundVideo.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\?]+)/)?.[1] || header._backgroundVideo;
+                    bgLayer.innerHTML = `
+                        <iframe 
+                            src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1"
+                            frameborder="0"
+                            allow="autoplay; encrypted-media"
+                            style="position: absolute; top: 50%; left: 50%; width: 100vw; height: 100vh; transform: translate(-50%, -50%); pointer-events: none;"
+                        ></iframe>
+                    `;
+                }
+                break;
+        }
+    }
+
+    static initializeDayHeaderMap(header) {
+        const mapContainer = header.querySelector('.day-header-map');
+        if (!mapContainer || !window.L) return;
+
+        const destinations = header._destinations || [];
+        if (destinations.length === 0) return;
+
+        // Create map
+        const map = L.map(mapContainer.id, {
+            zoomControl: false,
+            attributionControl: false,
+            dragging: false,
+            scrollWheelZoom: false,
+            doubleClickZoom: false,
+            touchZoom: false
+        });
+
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18
+        }).addTo(map);
+
+        // Add route line
+        const routeCoords = destinations.map(d => [d.latitude, d.longitude]);
+        L.polyline(routeCoords, {
+            color: '#ff6b6b',
+            weight: 3,
+            opacity: 0.8
+        }).addTo(map);
+
+        // Fit bounds
+        const bounds = L.latLngBounds(routeCoords);
+        map.fitBounds(bounds, { padding: [20, 20] });
+
+        header._dayMap = map;
+    }
+
+    static updateMiniRoadmap(header, currentDay, destinations) {
+        const roadmap = header.querySelector('.day-mini-roadmap');
+        if (!roadmap || destinations.length === 0) return;
+
+        let html = '<div class="roadmap-dots">';
+        
+        destinations.forEach((dest, idx) => {
+            const isActive = currentDay >= dest.fromDay && currentDay <= dest.toDay;
+            const isPast = currentDay > dest.toDay;
+            const isFuture = currentDay < dest.fromDay;
+            
+            let dotClass = 'roadmap-dot';
+            if (isActive) dotClass += ' active';
+            if (isPast) dotClass += ' past';
+            if (isFuture) dotClass += ' future';
+            
+            html += `
+                <div class="roadmap-item">
+                    <div class="${dotClass}">${idx + 1}</div>
+                    <span class="roadmap-label">${dest.name}</span>
+                </div>
+            `;
+            
+            // Add connector line if not last
+            if (idx < destinations.length - 1) {
+                html += '<div class="roadmap-line"></div>';
+            }
+        });
+        
+        html += '</div>';
+        roadmap.innerHTML = html;
     }
 
     static applyDayDisplayMode(dayHeader, mode) {
