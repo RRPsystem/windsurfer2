@@ -2072,6 +2072,7 @@ window.addEventListener('error', (event) => {
 });
 
 // Route Map functionality
+if (!window.websiteBuilder) window.websiteBuilder = {};
 window.websiteBuilder.showRouteMap = function(destinations) {
     // Create slide-in panel
     const panel = document.createElement('div');
