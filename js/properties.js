@@ -39,6 +39,51 @@ class PropertiesPanel {
         this.panel.appendChild(del);
     }
 
+    createTravelDayHeaderProperties(component) {
+        const h2 = component.querySelector('h2');
+        const p = component.querySelector('p');
+        const dayNumber = component.querySelector('.wb-travel-day-number')?.textContent || '1';
+
+        // Day Title
+        this.createTextInput('Dag Titel', h2?.textContent || '', (value) => {
+            if (h2) h2.textContent = value;
+        });
+
+        // Day Description
+        this.createTextInput('Beschrijving', p?.textContent || '', (value) => {
+            if (p) p.textContent = value;
+        });
+
+        // Display Mode Selector
+        const currentMode = component._displayMode || 'standard';
+        this.createSelectInput('Weergave Modus', currentMode, [
+            { value: 'standard', label: '📋 Standaard - Volledig' },
+            { value: 'accordion', label: '📁 Harmonica - Inklapbaar' },
+            { value: 'compact', label: '📦 Compact - Alleen titels' }
+        ], (value) => {
+            component._displayMode = value;
+            if (window.ComponentFactory?.applyDayDisplayMode) {
+                window.ComponentFactory.applyDayDisplayMode(component, value);
+            }
+        });
+
+        // Info text
+        const info = document.createElement('div');
+        info.style.fontSize = '12px';
+        info.style.color = '#6b7280';
+        info.style.padding = '12px';
+        info.style.background = '#f8fafc';
+        info.style.borderRadius = '6px';
+        info.style.marginTop = '12px';
+        info.innerHTML = `
+            <strong>ℹ️ Weergave Modi:</strong><br>
+            <strong>Standaard:</strong> Alle cards volledig zichtbaar<br>
+            <strong>Harmonica:</strong> Klik op dag om uit/in te klappen<br>
+            <strong>Compact:</strong> Alleen titels, klik op card voor details
+        `;
+        this.panel.appendChild(info);
+    }
+
     createTravelHeroProperties(component) {
         const select = component.querySelector('.travel-hero-style-select');
         const preview = component.querySelector('.travel-hero-preview');
@@ -1291,6 +1336,9 @@ class PropertiesPanel {
         
         // Generate properties based on component type
         switch (componentType) {
+            case 'travel-day-header':
+                this.createTravelDayHeaderProperties(component);
+                break;
             case 'travel-hero':
                 this.createTravelHeroProperties(component);
                 break;
