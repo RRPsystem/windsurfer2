@@ -1036,10 +1036,10 @@ class WebsiteBuilder {
                     transports.forEach((transport, idx) => {
                         console.log('[loadTravelIdea] Adding transport:', transport);
                         const card = ComponentFactory.createComponent('travel-card-transport', {
-                            departure: transport.departureCity || transport.from || '',
-                            arrival: transport.arrivalCity || transport.to || '',
-                            airline: transport.airline || transport.carrier || '',
-                            flightNumber: transport.flightNumber || transport.number || '',
+                            departure: transport.originName || transport.originCode || transport.from || '',
+                            arrival: transport.destinationName || transport.destinationCode || transport.to || '',
+                            airline: transport.carrierName || transport.airline || '',
+                            flightNumber: transport.carrierCode ? `${transport.carrierCode} ${transport.flightNumber || ''}` : '',
                             departureTime: transport.departureTime || '',
                             arrivalTime: transport.arrivalTime || '',
                             duration: transport.duration || '',
@@ -1052,10 +1052,13 @@ class WebsiteBuilder {
                     // Add all transfers
                     transfers.forEach((transfer, idx) => {
                         console.log('[loadTravelIdea] Adding transfer:', transfer);
+                        const transferType = transfer.type === 'IN' ? 'Aankomst transfer' : 
+                                           transfer.type === 'OUT' ? 'Vertrek transfer' : 
+                                           transfer.productType || 'Transfer';
                         const card = ComponentFactory.createComponent('travel-card-transfer', {
-                            from: transfer.from || transfer.departureCity || 'Luchthaven',
-                            to: transfer.to || transfer.arrivalCity || 'Hotel',
-                            transferType: transfer.type || 'Private transfer',
+                            from: transfer.originName || transfer.from || 'Luchthaven',
+                            to: transfer.destinationName || transfer.to || 'Hotel',
+                            transferType: transferType,
                             duration: transfer.duration || '30 minuten',
                             price: transfer.price ? `€ ${transfer.price}` : '',
                             priceLabel: 'per rit'
@@ -1067,12 +1070,12 @@ class WebsiteBuilder {
                     hotels.forEach((hotel, idx) => {
                         console.log('[loadTravelIdea] Adding hotel:', hotel);
                         const card = ComponentFactory.createComponent('travel-card-hotel', {
-                            hotelName: hotel.name || hotel.hotelName || 'Hotel',
-                            stars: hotel.stars || hotel.rating || 3,
+                            hotelName: hotel.accommodationName || hotel.name || hotel.hotelName || 'Hotel',
+                            stars: hotel.stars || hotel.rating || hotel.category || 3,
                             nights: hotel.nights || hotel.numberOfNights || 1,
-                            persons: hotel.persons || hotel.numberOfPersons || 2,
-                            roomType: hotel.roomType || hotel.accommodationType || 'Standaard kamer',
-                            meals: hotel.meals || hotel.mealPlan || 'Ontbijt inbegrepen',
+                            persons: hotel.pax || hotel.persons || hotel.numberOfPersons || 2,
+                            roomType: hotel.roomTypeName || hotel.roomType || hotel.accommodationType || 'Standaard kamer',
+                            meals: hotel.boardName || hotel.meals || hotel.mealPlan || 'Ontbijt inbegrepen',
                             price: hotel.price ? `€ ${hotel.price}` : '',
                             priceLabel: 'totaal'
                         });
@@ -1082,12 +1085,13 @@ class WebsiteBuilder {
                     // Add all destinations
                     destinations.forEach((destination, idx) => {
                         console.log('[loadTravelIdea] Adding destination:', destination);
+                        const days = destination.toDay - destination.fromDay + 1;
                         const card = ComponentFactory.createComponent('travel-card-destination', {
                             activityName: destination.name || destination.title || 'Bestemming',
-                            day: 'Dag 1',
-                            location: destination.location || destination.city || '',
-                            duration: destination.duration || '1 dag',
-                            includes: destination.includes || destination.description || '',
+                            day: `Dag ${destination.fromDay}${destination.toDay !== destination.fromDay ? ` - ${destination.toDay}` : ''}`,
+                            location: destination.country || destination.location || '',
+                            duration: days > 1 ? `${days} dagen` : '1 dag',
+                            includes: destination.description || destination.includes || '',
                             price: destination.price ? `€ ${destination.price}` : '',
                             priceLabel: 'per persoon'
                         });
