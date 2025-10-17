@@ -1053,10 +1053,7 @@ class WebsiteBuilder {
                                 flightNumber: transport.transportNumber || '',
                                 departureTime: transport.departureTime || '',
                                 arrivalTime: transport.arrivalTime || '',
-                                duration: transport.duration || '',
-                                price: transport.priceBreakdown?.totalPrice?.microsite?.amount ? 
-                                       `€ ${Math.round(transport.priceBreakdown.totalPrice.microsite.amount)}` : '',
-                                priceLabel: 'per persoon'
+                                duration: transport.duration || ''
                             }
                         });
                     });
@@ -1073,31 +1070,30 @@ class WebsiteBuilder {
                                 from: transfer.from?.name || 'Luchthaven',
                                 to: transfer.to?.name || 'Hotel',
                                 transferType: `${transferType} - ${transfer.vehicleType || 'Minibus'}`,
-                                duration: transfer.duration || '30 minuten',
-                                price: transfer.priceBreakdown?.totalPrice?.microsite?.amount ? 
-                                       `€ ${Math.round(transfer.priceBreakdown.totalPrice.microsite.amount)}` : '',
-                                priceLabel: 'per rit',
-                                imageUrl: transfer.imageUrl || ''
+                                duration: transfer.duration || '30 minuten'
                             }
                         });
                     });
                     
                     // Add hotels
                     hotels.forEach(hotel => {
+                        // Get ALL hotel images (not just 5)
                         let hotelImages = [];
                         if (hotel.hotelData?.images?.length > 0) {
-                            const preferredTypes = ['ROOM', 'POOL', 'TERRACE', 'RESTAURANT_OR_BAR', 'LOBBY_OR_RECEPTION'];
-                            preferredTypes.forEach(type => {
-                                const img = hotel.hotelData.images.find(img => img.classification?.type === type);
-                                if (img && hotelImages.length < 5) hotelImages.push(img.url);
-                            });
-                            if (hotelImages.length < 5) {
-                                hotel.hotelData.images.slice(0, 5).forEach(img => {
-                                    if (!hotelImages.includes(img.url) && hotelImages.length < 5) {
-                                        hotelImages.push(img.url);
-                                    }
-                                });
-                            }
+                            hotelImages = hotel.hotelData.images.map(img => img.url);
+                        }
+                        
+                        // Get top facilities (max 6)
+                        let facilities = [];
+                        if (hotel.hotelData?.facilities?.otherFacilities) {
+                            facilities = hotel.hotelData.facilities.otherFacilities
+                                .filter(f => f.priority > 50)
+                                .sort((a, b) => b.priority - a.priority)
+                                .slice(0, 6)
+                                .map(f => ({
+                                    icon: f.icon || 'fa-regular fa-check',
+                                    description: f.description
+                                }));
                         }
                         
                         timelineItems.push({
@@ -1110,9 +1106,8 @@ class WebsiteBuilder {
                                 persons: hotel.pax || 2,
                                 roomType: hotel.roomTypes?.split(',')[0] || 'Standaard kamer',
                                 meals: hotel.mealPlan || 'Ontbijt inbegrepen',
-                                price: hotel.priceBreakdown?.totalPrice?.microsite?.amount ? 
-                                       `€ ${Math.round(hotel.priceBreakdown.totalPrice.microsite.amount)}` : '',
-                                priceLabel: 'totaal',
+                                description: hotel.hotelData?.description || '',
+                                facilities: facilities,
                                 images: hotelImages
                             }
                         });
@@ -1129,10 +1124,8 @@ class WebsiteBuilder {
                                 day: `Dag ${destination.fromDay}${destination.toDay !== destination.fromDay ? ` - ${destination.toDay}` : ''}`,
                                 location: destination.country || '',
                                 duration: days > 1 ? `${days} dagen` : '1 dag',
-                                includes: destination.description || '',
-                                price: destination.price ? `€ ${destination.price}` : '',
-                                priceLabel: 'per persoon',
-                                images: destination.imageUrls?.slice(0, 5) || []
+                                description: destination.description || '',
+                                images: destination.imageUrls || []
                             }
                         });
                     });
