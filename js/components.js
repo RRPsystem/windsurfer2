@@ -2041,11 +2041,13 @@ class ComponentFactory {
         const meals = options.meals || 'Ontbijt inbegrepen';
         const price = options.price || '€ 450';
         const priceLabel = options.priceLabel || 'totaal';
+        const imageUrl = options.imageUrl || '';
 
         const starsHtml = '⭐'.repeat(stars);
 
         const content = document.createElement('div');
         content.innerHTML = `
+            ${imageUrl ? `<div class="wb-travel-card-image" style="background-image: url('${imageUrl}');"></div>` : ''}
             <div class="wb-travel-card-header">
                 <div class="wb-travel-card-icon">
                     <i class="fas fa-hotel"></i>
@@ -2100,9 +2102,11 @@ class ComponentFactory {
         const includes = options.includes || 'inclusief gids';
         const price = options.price || '€ 45';
         const priceLabel = options.priceLabel || 'per persoon';
+        const imageUrl = options.imageUrl || '';
 
         const content = document.createElement('div');
         content.innerHTML = `
+            ${imageUrl ? `<div class="wb-travel-card-image" style="background-image: url('${imageUrl}');"></div>` : ''}
             <div class="wb-travel-card-header">
                 <div class="wb-travel-card-icon">
                     <i class="fas fa-map-marker-alt"></i>
@@ -2152,9 +2156,11 @@ class ComponentFactory {
         const duration = options.duration || '30 minuten';
         const price = options.price || '€ 35';
         const priceLabel = options.priceLabel || 'per rit';
+        const imageUrl = options.imageUrl || '';
 
         const content = document.createElement('div');
         content.innerHTML = `
+            ${imageUrl ? `<div class="wb-travel-card-image" style="background-image: url('${imageUrl}');"></div>` : ''}
             <div class="wb-travel-card-header">
                 <div class="wb-travel-card-icon">
                     <i class="fas fa-car"></i>
