@@ -44,7 +44,6 @@ class PropertiesPanel {
         const preview = component.querySelector('.travel-hero-preview');
         const h1 = component.querySelector('.travel-hero-content h1');
         const p = component.querySelector('.travel-hero-content p');
-        const placeholder = component.querySelector('.travel-hero-placeholder p');
 
         // Hero Style Selector
         const currentStyle = select?.value || 'interactive-map';
@@ -56,16 +55,50 @@ class PropertiesPanel {
             { value: 'globe-3d', label: '🌍 3D Globe' }
         ], (value) => {
             if (select) select.value = value;
-            if (preview) preview.setAttribute('data-style', value);
-            if (placeholder) {
-                const names = {
-                    'interactive-map': '🗺️ Interactive Map',
-                    'timeline-slider': '🎯 Timeline Slider',
-                    'video-overlay': '🎬 Video Overlay',
-                    'parallax-photos': '📸 Parallax Photos',
-                    'globe-3d': '🌍 3D Globe'
-                };
-                placeholder.innerHTML = `Hero Style: <strong>${names[value]}</strong>`;
+            if (preview) {
+                preview.setAttribute('data-style', value);
+                
+                // Rebuild preview content based on style
+                const title = h1?.textContent || 'Thailand Rondreis';
+                const subtitle = p?.textContent || '20 dagen door het land van de glimlach';
+                
+                if (value === 'interactive-map') {
+                    preview.innerHTML = `
+                        <div class="travel-hero-map-container" id="hero-map-${component.id}"></div>
+                        <div class="travel-hero-overlay"></div>
+                        <div class="travel-hero-content">
+                            <h1 contenteditable="true">${title}</h1>
+                            <p contenteditable="true">${subtitle}</p>
+                        </div>
+                    `;
+                    
+                    // Reinitialize map
+                    setTimeout(() => {
+                        if (window.ComponentFactory?.initializeTravelHeroMap) {
+                            // Get destinations from timeline if available
+                            const destinations = this.getDestinationsFromTimeline();
+                            window.ComponentFactory.initializeTravelHeroMap(component, destinations);
+                        }
+                    }, 100);
+                } else {
+                    const names = {
+                        'timeline-slider': '🎯 Timeline Slider',
+                        'video-overlay': '🎬 Video Overlay',
+                        'parallax-photos': '📸 Parallax Photos',
+                        'globe-3d': '🌍 3D Globe'
+                    };
+                    preview.innerHTML = `
+                        <div class="travel-hero-content">
+                            <h1 contenteditable="true">${title}</h1>
+                            <p contenteditable="true">${subtitle}</p>
+                            <div class="travel-hero-placeholder">
+                                <i class="fas fa-image"></i>
+                                <p>Hero Style: <strong>${names[value]}</strong></p>
+                                <small>Bewerk in eigenschappen panel →</small>
+                            </div>
+                        </div>
+                    `;
+                }
             }
         });
 
@@ -87,8 +120,33 @@ class PropertiesPanel {
         info.style.background = '#f8fafc';
         info.style.borderRadius = '6px';
         info.style.marginTop = '12px';
-        info.innerHTML = '<strong>ℹ️ Info:</strong> Elke style wordt later volledig uitgewerkt met unieke features. Voor nu zie je een placeholder.';
+        info.innerHTML = '<strong>ℹ️ Info:</strong> Interactive Map toont automatisch de route uit de timeline. Andere styles worden later uitgewerkt.';
         this.panel.appendChild(info);
+    }
+
+    getDestinationsFromTimeline() {
+        const timeline = document.querySelector('.wb-travel-timeline');
+        if (!timeline) return [];
+
+        const destinationCards = timeline.querySelectorAll('.wb-travel-card.destination');
+        const destinations = [];
+
+        destinationCards.forEach(card => {
+            const nameEl = card.querySelector('.travel-card-title');
+            const dayEl = card.querySelector('.travel-card-day');
+            
+            if (nameEl && card._destinationData) {
+                destinations.push({
+                    name: nameEl.textContent,
+                    latitude: card._destinationData.latitude,
+                    longitude: card._destinationData.longitude,
+                    fromDay: card._destinationData.fromDay,
+                    toDay: card._destinationData.toDay
+                });
+            }
+        });
+
+        return destinations;
     }
 
     createContentFlexProperties(component) {

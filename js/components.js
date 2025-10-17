@@ -2175,6 +2175,17 @@ class ComponentFactory {
         `;
         card.appendChild(content);
 
+        // Store destination data for map integration
+        if (options.latitude && options.longitude) {
+            card._destinationData = {
+                name: activityName,
+                latitude: options.latitude,
+                longitude: options.longitude,
+                fromDay: options.fromDay || 1,
+                toDay: options.toDay || 1
+            };
+        }
+
         this.makeSelectable(card);
         return card;
     }
@@ -3404,21 +3415,116 @@ class ComponentFactory {
                     <option value="globe-3d" ${currentStyle === 'globe-3d' ? 'selected' : ''}>🌍 3D Globe</option>
                 </select>
                 <div class="travel-hero-preview" data-style="${currentStyle}">
-                    <div class="travel-hero-content">
-                        <h1 contenteditable="true">${title}</h1>
-                        <p contenteditable="true">${subtitle}</p>
-                        <div class="travel-hero-placeholder">
-                            <i class="fas fa-image"></i>
-                            <p>Hero Style: <strong>${this.getStyleName(currentStyle)}</strong></p>
-                            <small>Bewerk in eigenschappen panel →</small>
+                    ${currentStyle === 'interactive-map' ? `
+                        <div class="travel-hero-map-container" id="hero-map-${hero.id}"></div>
+                        <div class="travel-hero-overlay"></div>
+                        <div class="travel-hero-content">
+                            <h1 contenteditable="true">${title}</h1>
+                            <p contenteditable="true">${subtitle}</p>
                         </div>
-                    </div>
+                    ` : `
+                        <div class="travel-hero-content">
+                            <h1 contenteditable="true">${title}</h1>
+                            <p contenteditable="true">${subtitle}</p>
+                            <div class="travel-hero-placeholder">
+                                <i class="fas fa-image"></i>
+                                <p>Hero Style: <strong>${this.getStyleName(currentStyle)}</strong></p>
+                                <small>Bewerk in eigenschappen panel →</small>
+                            </div>
+                        </div>
+                    `}
                 </div>
             </div>
         `;
+        hero.appendChild(content);
+
+        // Initialize map for interactive-map style
+        if (currentStyle === 'interactive-map') {
+            setTimeout(() => this.initializeTravelHeroMap(hero, options.destinations || []), 100);
+        }
 
         this.makeSelectable(hero);
         return hero;
+    }
+
+    static initializeTravelHeroMap(hero, destinations) {
+        const mapContainer = hero.querySelector('.travel-hero-map-container');
+        if (!mapContainer || typeof L === 'undefined') return;
+
+        const mapId = mapContainer.id;
+        
+        // If no destinations, show default view of Thailand
+        if (!destinations || destinations.length === 0) {
+            const map = L.map(mapId, {
+                zoomControl: false,
+                attributionControl: false
+            }).setView([13.7563, 100.5018], 6); // Bangkok center
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18
+            }).addTo(map);
+            
+            hero._heroMap = map;
+            return;
+        }
+
+        // Calculate center and bounds from destinations
+        const lats = destinations.map(d => d.latitude);
+        const lngs = destinations.map(d => d.longitude);
+        const centerLat = (Math.max(...lats) + Math.min(...lats)) / 2;
+        const centerLng = (Math.max(...lngs) + Math.min(...lngs)) / 2;
+        
+        // Create map
+        const map = L.map(mapId, {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([centerLat, centerLng], 6);
+        
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18
+        }).addTo(map);
+        
+        // Create route line
+        const routeCoords = destinations.map(d => [d.latitude, d.longitude]);
+        L.polyline(routeCoords, {
+            color: '#ff6b6b',
+            weight: 4,
+            opacity: 0.8,
+            smoothFactor: 1
+        }).addTo(map);
+        
+        // Add numbered markers
+        destinations.forEach((dest, idx) => {
+            const icon = L.divIcon({
+                className: 'hero-route-marker',
+                html: `<div class="hero-route-marker-inner">${idx + 1}</div>`,
+                iconSize: [40, 40]
+            });
+            
+            const marker = L.marker([dest.latitude, dest.longitude], { icon })
+                .bindPopup(`<b>${dest.name}</b><br>Dag ${dest.fromDay}${dest.toDay !== dest.fromDay ? ` - ${dest.toDay}` : ''}`)
+                .addTo(map);
+            
+            // Click handler to scroll to timeline
+            marker.on('click', () => {
+                const timeline = document.querySelector('.wb-travel-timeline');
+                if (timeline) {
+                    const dayHeader = Array.from(timeline.querySelectorAll('.wb-day-header'))
+                        .find(h => h.textContent.includes(`Dag ${dest.fromDay}`));
+                    if (dayHeader) {
+                        dayHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            });
+        });
+        
+        // Fit bounds
+        const bounds = L.latLngBounds(routeCoords);
+        map.fitBounds(bounds, { padding: [50, 50] });
+        
+        // Store map reference
+        hero._heroMap = map;
     }
 
     static getStyleName(style) {

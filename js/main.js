@@ -1067,7 +1067,32 @@ class WebsiteBuilder {
                 }
             }
 
-            // 2. Add intro text
+            // 2. Add Travel Hero with Interactive Map
+            const destinationsWithCoords = destinations
+                .filter(d => d.geolocation?.latitude && d.geolocation?.longitude)
+                .map(d => ({
+                    name: d.name,
+                    latitude: d.geolocation.latitude,
+                    longitude: d.geolocation.longitude,
+                    fromDay: d.fromDay,
+                    toDay: d.toDay
+                }));
+
+            if (destinationsWithCoords.length > 0) {
+                try {
+                    const travelHero = ComponentFactory.createComponent('travel-hero', {
+                        style: 'interactive-map',
+                        title: title || 'Jouw Reis',
+                        subtitle: `${destinations.length} bestemmingen • ${Math.max(...destinations.map(d => d.toDay))} dagen`,
+                        destinations: destinationsWithCoords
+                    });
+                    if (travelHero) canvas.appendChild(travelHero);
+                } catch (e) {
+                    console.warn('Failed to create travel hero', e);
+                }
+            }
+
+            // 3. Add intro text
             if (description) {
                 try {
                     const intro = ComponentFactory.createComponent('content-flex', {
@@ -1081,7 +1106,7 @@ class WebsiteBuilder {
                 }
             }
 
-            // 3. Create Travel Timeline with TC data
+            // 4. Create Travel Timeline with TC data
             if (destinations.length > 0 || hotels.length > 0 || transports.length > 0 || transfers.length > 0) {
                 try {
                     // Create route map button (will read destinations from timeline when clicked)
