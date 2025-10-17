@@ -1079,11 +1079,25 @@ class WebsiteBuilder {
                     hotels.forEach((hotel, idx) => {
                         console.log('[loadTravelIdea] Adding hotel:', hotel);
                         
-                        // Get first hotel image (prefer ROOM type)
-                        let hotelImage = '';
+                        // Get hotel images (prefer ROOM, POOL, TERRACE types, max 5)
+                        let hotelImages = [];
                         if (hotel.hotelData?.images?.length > 0) {
-                            const roomImage = hotel.hotelData.images.find(img => img.classification?.type === 'ROOM');
-                            hotelImage = roomImage?.url || hotel.hotelData.images[0].url;
+                            const preferredTypes = ['ROOM', 'POOL', 'TERRACE', 'RESTAURANT_OR_BAR', 'LOBBY_OR_RECEPTION'];
+                            
+                            // First add preferred types
+                            preferredTypes.forEach(type => {
+                                const img = hotel.hotelData.images.find(img => img.classification?.type === type);
+                                if (img && hotelImages.length < 5) hotelImages.push(img.url);
+                            });
+                            
+                            // Fill up to 5 with any remaining images
+                            if (hotelImages.length < 5) {
+                                hotel.hotelData.images.slice(0, 5).forEach(img => {
+                                    if (!hotelImages.includes(img.url) && hotelImages.length < 5) {
+                                        hotelImages.push(img.url);
+                                    }
+                                });
+                            }
                         }
                         
                         const card = ComponentFactory.createComponent('travel-card-hotel', {
@@ -1096,7 +1110,7 @@ class WebsiteBuilder {
                             price: hotel.priceBreakdown?.totalPrice?.microsite?.amount ? 
                                    `€ ${Math.round(hotel.priceBreakdown.totalPrice.microsite.amount)}` : '',
                             priceLabel: 'totaal',
-                            imageUrl: hotelImage
+                            images: hotelImages
                         });
                         if (card) timeline.appendChild(card);
                     });
@@ -1113,7 +1127,7 @@ class WebsiteBuilder {
                             includes: destination.description?.substring(0, 200) || destination.includes || '',
                             price: destination.price ? `€ ${destination.price}` : '',
                             priceLabel: 'per persoon',
-                            imageUrl: destination.imageUrls?.[0] || ''
+                            images: destination.imageUrls?.slice(0, 5) || []
                         });
                         if (card) timeline.appendChild(card);
                     });
