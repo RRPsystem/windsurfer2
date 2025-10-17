@@ -54,6 +54,52 @@ class PropertiesPanel {
             if (p) p.textContent = value;
         });
 
+        // Background Type Selector
+        const currentBgType = component._backgroundType || 'gradient';
+        this.createSelectInput('Achtergrond Type', currentBgType, [
+            { value: 'gradient', label: '🎨 Gradient' },
+            { value: 'color', label: '🎨 Kleur' },
+            { value: 'image', label: '🖼️ Foto' },
+            { value: 'map', label: '🗺️ Kaart' },
+            { value: 'video', label: '🎬 YouTube Video' }
+        ], (value) => {
+            component._backgroundType = value;
+            if (window.ComponentFactory?.updateDayHeaderBackground) {
+                window.ComponentFactory.updateDayHeaderBackground(component);
+            }
+        });
+
+        // Background Image (if type is image)
+        if (currentBgType === 'image') {
+            const imgBtn = this.createButton('📸 Foto Kiezen', async () => {
+                if (!window.MediaPicker) return;
+                const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
+                const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
+                if (src) {
+                    component._backgroundImage = src;
+                    window.ComponentFactory?.updateDayHeaderBackground(component);
+                }
+            });
+            imgBtn.style.background = '#667eea';
+            imgBtn.style.color = 'white';
+            this.panel.appendChild(imgBtn);
+        }
+
+        // Background Video (if type is video)
+        if (currentBgType === 'video') {
+            this.createTextInput('YouTube URL/ID', component._backgroundVideo || '', (value) => {
+                component._backgroundVideo = value;
+                window.ComponentFactory?.updateDayHeaderBackground(component);
+            });
+        }
+
+        // Overlay Opacity
+        this.createRangeInput('Overlay Donkerheid', (component._overlayOpacity || 0.3) * 100, 0, 100, (value) => {
+            component._overlayOpacity = value / 100;
+            const overlay = component.querySelector('.day-header-overlay');
+            if (overlay) overlay.style.opacity = value / 100;
+        });
+
         // Display Mode Selector
         const currentMode = component._displayMode || 'standard';
         this.createSelectInput('Weergave Modus', currentMode, [
@@ -76,10 +122,8 @@ class PropertiesPanel {
         info.style.borderRadius = '6px';
         info.style.marginTop = '12px';
         info.innerHTML = `
-            <strong>ℹ️ Weergave Modi:</strong><br>
-            <strong>Standaard:</strong> Alle cards volledig zichtbaar<br>
-            <strong>Harmonica:</strong> Klik op dag om uit/in te klappen<br>
-            <strong>Compact:</strong> Alleen titels, klik op card voor details
+            <strong>🗺️ Mini Roadmap:</strong> Toont automatisch de route met gekleurde bolletjes!<br>
+            <strong>📸 Achtergrond:</strong> Kies tussen gradient, foto, kaart of video
         `;
         this.panel.appendChild(info);
     }
