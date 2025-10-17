@@ -215,7 +215,7 @@
       try {
         // Determine API endpoint
         const apiBase = this.getApiBase();
-        const url = `${apiBase}/api/ideas/${encodeURIComponent(ideaId)}?micrositeId=${encodeURIComponent(micrositeId)}&info=true`;
+        const url = `${apiBase}/api/ideas/${encodeURIComponent(ideaId)}?micrositeId=${encodeURIComponent(micrositeId)}`;
 
         console.log('[TravelView] Loading travel from:', url);
 
