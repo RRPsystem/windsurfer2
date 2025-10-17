@@ -84,6 +84,147 @@ class PropertiesPanel {
         this.panel.appendChild(info);
     }
 
+    createTravelCardProperties(component) {
+        const carousel = component.querySelector('.wb-travel-card-carousel');
+        const carouselImages = carousel?.querySelector('.carousel-images');
+        
+        // Image Management Section
+        const imageSection = document.createElement('div');
+        imageSection.style.marginBottom = '20px';
+        
+        const imageTitle = document.createElement('h5');
+        imageTitle.textContent = '🖼️ Foto\'s Beheren';
+        imageTitle.style.marginBottom = '12px';
+        imageTitle.style.fontSize = '14px';
+        imageTitle.style.fontWeight = '600';
+        imageSection.appendChild(imageTitle);
+        
+        // Current images list
+        const imagesList = document.createElement('div');
+        imagesList.style.marginBottom = '12px';
+        
+        const updateImagesList = () => {
+            imagesList.innerHTML = '';
+            const images = carouselImages?.querySelectorAll('.carousel-image') || [];
+            
+            if (images.length === 0) {
+                imagesList.innerHTML = '<p style="color: #6b7280; font-size: 13px;">Geen foto\'s toegevoegd</p>';
+            } else {
+                images.forEach((img, idx) => {
+                    const imgRow = document.createElement('div');
+                    imgRow.style.display = 'flex';
+                    imgRow.style.alignItems = 'center';
+                    imgRow.style.gap = '8px';
+                    imgRow.style.padding = '8px';
+                    imgRow.style.background = '#f9fafb';
+                    imgRow.style.borderRadius = '6px';
+                    imgRow.style.marginBottom = '8px';
+                    
+                    const thumb = document.createElement('div');
+                    thumb.style.width = '40px';
+                    thumb.style.height = '40px';
+                    thumb.style.borderRadius = '4px';
+                    thumb.style.backgroundImage = img.style.backgroundImage;
+                    thumb.style.backgroundSize = 'cover';
+                    thumb.style.backgroundPosition = 'center';
+                    
+                    const label = document.createElement('span');
+                    label.textContent = `Foto ${idx + 1}`;
+                    label.style.flex = '1';
+                    label.style.fontSize = '13px';
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                    deleteBtn.style.background = '#ef4444';
+                    deleteBtn.style.color = 'white';
+                    deleteBtn.style.border = 'none';
+                    deleteBtn.style.padding = '6px 10px';
+                    deleteBtn.style.borderRadius = '4px';
+                    deleteBtn.style.cursor = 'pointer';
+                    deleteBtn.onclick = () => {
+                        img.remove();
+                        updateImagesList();
+                        // Update dots
+                        const dots = carousel?.querySelectorAll('.dot');
+                        if (dots && dots[idx]) dots[idx].remove();
+                    };
+                    
+                    imgRow.appendChild(thumb);
+                    imgRow.appendChild(label);
+                    imgRow.appendChild(deleteBtn);
+                    imagesList.appendChild(imgRow);
+                });
+            }
+        };
+        
+        updateImagesList();
+        imageSection.appendChild(imagesList);
+        
+        // Add image button
+        const addImageBtn = this.createButton('➕ Foto Toevoegen', async () => {
+            if (!window.MediaPicker) {
+                alert('Media picker niet beschikbaar');
+                return;
+            }
+            
+            const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
+            const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
+            
+            if (!src) return;
+            
+            // Create carousel if it doesn't exist
+            if (!carousel) {
+                const newCarousel = document.createElement('div');
+                newCarousel.className = 'wb-travel-card-carousel';
+                newCarousel.innerHTML = `
+                    <div class="carousel-images"></div>
+                    <button class="carousel-prev" onclick="event.stopPropagation(); this.closest('.wb-travel-card-carousel').querySelector('.carousel-images').scrollBy({left: -300, behavior: 'smooth'})">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="carousel-next" onclick="event.stopPropagation(); this.closest('.wb-travel-card-carousel').querySelector('.carousel-images').scrollBy({left: 300, behavior: 'smooth'})">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <div class="carousel-dots"></div>
+                `;
+                component.insertBefore(newCarousel, component.firstChild.nextSibling);
+            }
+            
+            // Add image
+            const carouselImgs = component.querySelector('.carousel-images');
+            const newImg = document.createElement('div');
+            newImg.className = 'carousel-image';
+            newImg.style.backgroundImage = `url('${src}')`;
+            carouselImgs.appendChild(newImg);
+            
+            // Add dot
+            const dots = component.querySelector('.carousel-dots');
+            if (dots) {
+                const dot = document.createElement('span');
+                dot.className = 'dot';
+                dots.appendChild(dot);
+            }
+            
+            updateImagesList();
+        });
+        
+        addImageBtn.style.background = '#667eea';
+        addImageBtn.style.borderColor = '#667eea';
+        addImageBtn.style.color = 'white';
+        imageSection.appendChild(addImageBtn);
+        
+        this.panel.appendChild(imageSection);
+        
+        // Info
+        const info = document.createElement('div');
+        info.style.fontSize = '12px';
+        info.style.color = '#6b7280';
+        info.style.padding = '12px';
+        info.style.background = '#f8fafc';
+        info.style.borderRadius = '6px';
+        info.innerHTML = '<strong>💡 Tip:</strong> Voeg meerdere foto\'s toe voor een mooie carousel!';
+        this.panel.appendChild(info);
+    }
+
     createTravelHeroProperties(component) {
         const select = component.querySelector('.travel-hero-style-select');
         const preview = component.querySelector('.travel-hero-preview');
@@ -1338,6 +1479,10 @@ class PropertiesPanel {
         switch (componentType) {
             case 'travel-day-header':
                 this.createTravelDayHeaderProperties(component);
+                break;
+            case 'travel-card-destination':
+            case 'travel-card-hotel':
+                this.createTravelCardProperties(component);
                 break;
             case 'travel-hero':
                 this.createTravelHeroProperties(component);
