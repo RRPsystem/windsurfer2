@@ -1063,12 +1063,14 @@ class WebsiteBuilder {
                                            transfer.type === 'OUT' ? 'Vertrek transfer' : 
                                            transfer.productType || 'Transfer';
                         const card = ComponentFactory.createComponent('travel-card-transfer', {
-                            from: transfer.originName || transfer.from || 'Luchthaven',
-                            to: transfer.destinationName || transfer.to || 'Hotel',
-                            transferType: transferType,
+                            from: transfer.from?.name || transfer.originName || 'Luchthaven',
+                            to: transfer.to?.name || transfer.destinationName || 'Hotel',
+                            transferType: `${transferType} - ${transfer.vehicleType || 'Minibus'}`,
                             duration: transfer.duration || '30 minuten',
-                            price: transfer.price ? `€ ${transfer.price}` : '',
-                            priceLabel: 'per rit'
+                            price: transfer.priceBreakdown?.totalPrice?.microsite?.amount ? 
+                                   `€ ${Math.round(transfer.priceBreakdown.totalPrice.microsite.amount)}` : '',
+                            priceLabel: 'per rit',
+                            imageUrl: transfer.imageUrl || ''
                         });
                         if (card) timeline.appendChild(card);
                     });
@@ -1076,15 +1078,25 @@ class WebsiteBuilder {
                     // Add all hotels
                     hotels.forEach((hotel, idx) => {
                         console.log('[loadTravelIdea] Adding hotel:', hotel);
+                        
+                        // Get first hotel image (prefer ROOM type)
+                        let hotelImage = '';
+                        if (hotel.hotelData?.images?.length > 0) {
+                            const roomImage = hotel.hotelData.images.find(img => img.classification?.type === 'ROOM');
+                            hotelImage = roomImage?.url || hotel.hotelData.images[0].url;
+                        }
+                        
                         const card = ComponentFactory.createComponent('travel-card-hotel', {
-                            hotelName: hotel.accommodationName || hotel.name || hotel.hotelName || 'Hotel',
-                            stars: hotel.stars || hotel.rating || hotel.category || 3,
+                            hotelName: hotel.hotelData?.name || hotel.accommodationName || hotel.name || 'Hotel',
+                            stars: hotel.hotelData?.category?.replace('S', '') || hotel.stars || 3,
                             nights: hotel.nights || hotel.numberOfNights || 1,
-                            persons: hotel.pax || hotel.persons || hotel.numberOfPersons || 2,
-                            roomType: hotel.roomTypeName || hotel.roomType || hotel.accommodationType || 'Standaard kamer',
-                            meals: hotel.boardName || hotel.meals || hotel.mealPlan || 'Ontbijt inbegrepen',
-                            price: hotel.price ? `€ ${hotel.price}` : '',
-                            priceLabel: 'totaal'
+                            persons: hotel.pax || hotel.persons || 2,
+                            roomType: hotel.roomTypes?.split(',')[0] || hotel.roomType || 'Standaard kamer',
+                            meals: hotel.mealPlan || hotel.meals || 'Ontbijt inbegrepen',
+                            price: hotel.priceBreakdown?.totalPrice?.microsite?.amount ? 
+                                   `€ ${Math.round(hotel.priceBreakdown.totalPrice.microsite.amount)}` : '',
+                            priceLabel: 'totaal',
+                            imageUrl: hotelImage
                         });
                         if (card) timeline.appendChild(card);
                     });
@@ -1098,9 +1110,10 @@ class WebsiteBuilder {
                             day: `Dag ${destination.fromDay}${destination.toDay !== destination.fromDay ? ` - ${destination.toDay}` : ''}`,
                             location: destination.country || destination.location || '',
                             duration: days > 1 ? `${days} dagen` : '1 dag',
-                            includes: destination.description || destination.includes || '',
+                            includes: destination.description?.substring(0, 200) || destination.includes || '',
                             price: destination.price ? `€ ${destination.price}` : '',
-                            priceLabel: 'per persoon'
+                            priceLabel: 'per persoon',
+                            imageUrl: destination.imageUrls?.[0] || ''
                         });
                         if (card) timeline.appendChild(card);
                     });
