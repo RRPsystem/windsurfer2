@@ -72,16 +72,22 @@ class PropertiesPanel {
         // Background Image (if type is image)
         if (currentBgType === 'image') {
             const imgBtn = this.createButton('📸 Foto Kiezen', async () => {
-                if (!window.MediaPicker) return;
+                if (!window.MediaPicker) {
+                    alert('Media Picker niet beschikbaar');
+                    return;
+                }
                 const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
                 const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
                 if (src) {
                     component._backgroundImage = src;
-                    window.ComponentFactory?.updateDayHeaderBackground(component);
+                    if (window.ComponentFactory?.updateDayHeaderBackground) {
+                        window.ComponentFactory.updateDayHeaderBackground(component);
+                    }
                 }
             });
             imgBtn.style.background = '#667eea';
             imgBtn.style.color = 'white';
+            imgBtn.style.marginBottom = '12px';
             this.panel.appendChild(imgBtn);
         }
 
