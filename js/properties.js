@@ -143,7 +143,7 @@ class PropertiesPanel {
         imageSection.style.marginBottom = '20px';
         
         const imageTitle = document.createElement('h5');
-        imageTitle.textContent = '🖼️ Foto\'s Beheren';
+        imageTitle.textContent = '🖼️ Fotos Beheren';
         imageTitle.style.marginBottom = '12px';
         imageTitle.style.fontSize = '14px';
         imageTitle.style.fontWeight = '600';
@@ -521,7 +521,7 @@ class PropertiesPanel {
         
         // Photo selectors for airplane-window style
         if (currentStyle === 'airplane-window') {
-            const addPhotoBtn = this.createButton('📸 Foto's Toevoegen', async () => {
+            const addPhotoBtn = this.createButton('📸 Foto\'s Toevoegen', async () => {
                 if (!window.MediaPicker) return;
                 const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
                 const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
