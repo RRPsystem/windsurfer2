@@ -267,44 +267,68 @@ async function loadPageContent(ctx) {
       installEdgeCtx(newsEdgeCtx);
     }
     
-    // Load content into builder
-    document.addEventListener('DOMContentLoaded', () => {
+    // Store data for later loading
+    window._pendingPageLoad = {
+      data: data,
+      loaded: false
+    };
+    
+    // Load content into builder - wait a bit longer to ensure builder is ready
+    const loadContent = () => {
       try {
-        if (data.content_json && window.websiteBuilder) {
-          // Load the content - check both html and htmlSnapshot
-          const canvas = document.getElementById('canvas');
-          const htmlContent = data.content_json.html || data.content_json.htmlSnapshot || data.body_html;
-          
-          if (canvas && htmlContent) {
-            canvas.innerHTML = htmlContent;
-            log('Content HTML loaded into canvas');
-          } else {
-            warn('No HTML content found in response. Keys:', Object.keys(data.content_json || {}));
-          }
-          
-          // Update page title/slug inputs
-          const titleInput = document.getElementById('pageTitleInput');
-          const slugInput = document.getElementById('pageSlugInput');
-          if (titleInput && data.title) {
-            titleInput.value = data.title;
-            log('Title set to:', data.title);
-          }
-          if (slugInput && data.slug) {
-            slugInput.value = data.slug;
-            log('Slug set to:', data.slug);
-          }
-          
-          // Reattach event listeners
-          if (window.websiteBuilder.reattachEventListeners) {
-            window.websiteBuilder.reattachEventListeners();
-          }
-          
-          log('Content loaded into builder');
+        if (window._pendingPageLoad.loaded) return;
+        
+        const canvas = document.getElementById('canvas');
+        if (!canvas) {
+          // Canvas not ready yet, try again
+          setTimeout(loadContent, 100);
+          return;
         }
+        
+        const data = window._pendingPageLoad.data;
+        
+        // Load the content - check both html and htmlSnapshot
+        const htmlContent = data.content_json.html || data.content_json.htmlSnapshot || data.body_html;
+        
+        if (htmlContent) {
+          canvas.innerHTML = htmlContent;
+          log('Content HTML loaded into canvas');
+          window._pendingPageLoad.loaded = true;
+        } else {
+          warn('No HTML content found in response. Keys:', Object.keys(data.content_json || {}));
+        }
+        
+        // Update page title/slug inputs
+        const titleInput = document.getElementById('pageTitleInput');
+        const slugInput = document.getElementById('pageSlugInput');
+        if (titleInput && data.title) {
+          titleInput.value = data.title;
+          log('Title set to:', data.title);
+        }
+        if (slugInput && data.slug) {
+          slugInput.value = data.slug;
+          log('Slug set to:', data.slug);
+        }
+        
+        // Reattach event listeners
+        if (window.websiteBuilder && window.websiteBuilder.reattachEventListeners) {
+          window.websiteBuilder.reattachEventListeners();
+        }
+        
+        log('Content loaded into builder');
       } catch (e) {
         warn('Failed to load content into builder:', e);
       }
-    });
+    };
+    
+    // Start loading after DOM is ready + small delay
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(loadContent, 500);
+      });
+    } else {
+      setTimeout(loadContent, 500);
+    }
     
   } catch (error) {
     warn('Error loading page content:', error);
