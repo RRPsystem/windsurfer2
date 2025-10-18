@@ -271,17 +271,28 @@ async function loadPageContent(ctx) {
     document.addEventListener('DOMContentLoaded', () => {
       try {
         if (data.content_json && window.websiteBuilder) {
-          // Load the content
+          // Load the content - check both html and htmlSnapshot
           const canvas = document.getElementById('canvas');
-          if (canvas && data.content_json.html) {
-            canvas.innerHTML = data.content_json.html;
+          const htmlContent = data.content_json.html || data.content_json.htmlSnapshot || data.body_html;
+          
+          if (canvas && htmlContent) {
+            canvas.innerHTML = htmlContent;
+            log('Content HTML loaded into canvas');
+          } else {
+            warn('No HTML content found in response. Keys:', Object.keys(data.content_json || {}));
           }
           
           // Update page title/slug inputs
           const titleInput = document.getElementById('pageTitleInput');
           const slugInput = document.getElementById('pageSlugInput');
-          if (titleInput && data.title) titleInput.value = data.title;
-          if (slugInput && data.slug) slugInput.value = data.slug;
+          if (titleInput && data.title) {
+            titleInput.value = data.title;
+            log('Title set to:', data.title);
+          }
+          if (slugInput && data.slug) {
+            slugInput.value = data.slug;
+            log('Slug set to:', data.slug);
+          }
           
           // Reattach event listeners
           if (window.websiteBuilder.reattachEventListeners) {
