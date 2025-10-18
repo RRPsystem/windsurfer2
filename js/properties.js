@@ -400,6 +400,29 @@ class PropertiesPanel {
             if (p) p.textContent = value;
         });
 
+        // Video URL for video-overlay style
+        if (currentStyle === 'video-overlay') {
+            const videoIframe = component.querySelector('.video-background iframe');
+            const currentVideoUrl = videoIframe?.src || '';
+            const videoId = currentVideoUrl.match(/embed\/([^?]+)/)?.[1] || '';
+            
+            this.createTextInput('YouTube Video ID', videoId, (value) => {
+                if (videoIframe && value) {
+                    videoIframe.src = `https://www.youtube.com/embed/${value}?autoplay=1&mute=1&loop=1&playlist=${value}&controls=0&showinfo=0&rel=0&modestbranding=1`;
+                }
+            });
+            
+            const videoInfo = document.createElement('div');
+            videoInfo.style.fontSize = '12px';
+            videoInfo.style.color = '#6b7280';
+            videoInfo.style.padding = '12px';
+            videoInfo.style.background = '#f8fafc';
+            videoInfo.style.borderRadius = '6px';
+            videoInfo.style.marginTop = '12px';
+            videoInfo.innerHTML = '<strong>💡 Tip:</strong> Plak alleen de Video ID (bijv: dQw4w9WgXcQ) of de volledige YouTube URL.';
+            this.panel.appendChild(videoInfo);
+        }
+
         // Info text
         const info = document.createElement('div');
         info.style.fontSize = '12px';
@@ -408,7 +431,7 @@ class PropertiesPanel {
         info.style.background = '#f8fafc';
         info.style.borderRadius = '6px';
         info.style.marginTop = '12px';
-        info.innerHTML = '<strong>ℹ️ Info:</strong> Interactive Map toont automatisch de route uit de timeline. Andere styles worden later uitgewerkt.';
+        info.innerHTML = '<strong>ℹ️ Info:</strong> Kies een hero style en pas de instellingen aan in dit panel.';
         this.panel.appendChild(info);
     }
 
