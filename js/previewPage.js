@@ -35,22 +35,27 @@
   // 2) Fetch page HTML by slug (or fallback to local storage/opener)
   async function fetchPageHtml(){
     // First try: get from opener window (if opened from builder)
-    if (window.opener && window.opener.document) {
+    if (window.opener) {
       try {
         const canvas = window.opener.document.getElementById('canvas');
-        if (canvas) {
-          const html = canvas.innerHTML;
-          if (html && html.trim()) {
-            console.log('✅ Using content from builder canvas');
-            return html;
-          }
+        if (canvas && canvas.innerHTML && canvas.innerHTML.trim()) {
+          console.log('✅ Using content from builder canvas');
+          return canvas.innerHTML;
+        } else {
+          console.warn('Canvas is empty or not found');
         }
       } catch (e) {
-        console.warn('Cannot access opener:', e);
+        console.error('Cannot access opener:', e);
       }
+    } else {
+      console.warn('No window.opener available');
     }
     
     // Second try: API
+    if (!api || !brandId) {
+      return '<div class="pv-main" style="padding:40px;text-align:center;"><h2>Preview niet beschikbaar</h2><p>Open preview vanuit de builder om je pagina te zien.</p></div>';
+    }
+    
     let u = `${api}/pages-api/get?brand_id=${encodeURIComponent(brandId)}`;
     if (pageSlug) u += `&slug=${encodeURIComponent(pageSlug)}`;
     try {
