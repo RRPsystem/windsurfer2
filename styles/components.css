@@ -1653,8 +1653,150 @@
     background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
     color: white;
 }
+
 .wb-travel-card.activity .wb-travel-card-header {
-border-bottom-color: #fce7f3;
+    border-bottom-color: #fce7f3;
+}
+
+/* Travel Hero */
+.wb-travel-hero {
+    position: relative;
+    min-height: 500px;
+    background: #f8f9fa;
+    overflow: hidden;
+    border-radius: 12px;
+    margin-bottom: 30px;
+}
+
+/* Timeline Slider Hero Style */
+.timeline-slider-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 40px 0;
+}
+
+.timeline-slider-track {
+    display: flex;
+    gap: 20px;
+    padding: 0 60px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.timeline-slider-track::-webkit-scrollbar {
+    display: none;
+}
+
+.timeline-day-card {
+    flex: 0 0 260px;
+    height: 320px;
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.timeline-day-card:hover {
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+}
+
+.timeline-day-image {
+    width: 100%;
+    height: 220px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.timeline-day-info {
+    padding: 16px;
+    text-align: center;
+}
+
+.timeline-day-number {
+    font-size: 14px;
+    font-weight: 600;
+    color: #667eea;
+    margin-bottom: 4px;
+}
+
+.timeline-day-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.timeline-slider-prev,
+.timeline-slider-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.timeline-slider-prev {
+    left: 20px;
+}
+
+.timeline-slider-next {
+    right: 20px;
+}
+
+.timeline-slider-prev:hover,
+.timeline-slider-next:hover {
+    background: white;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+.timeline-slider-prev i,
+.timeline-slider-next i {
+    font-size: 20px;
+    color: #667eea;
+}
+
+.timeline-slider-content {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    color: #1f2937;
+    width: 90%;
+    max-width: 800px;
+}
+
+.timeline-slider-content h1 {
+    font-size: 48px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.timeline-slider-content p {
+    font-size: 20px;
+    font-weight: 500;
+    color: #4b5563;
 }
 
 /* Travel Day Header */
