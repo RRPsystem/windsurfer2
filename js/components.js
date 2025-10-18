@@ -3667,6 +3667,52 @@ class ComponentFactory {
                             <h1 contenteditable="true">${title}</h1>
                             <p contenteditable="true">${subtitle}</p>
                         </div>
+                    ` : currentStyle === 'video-overlay' ? `
+                        <div class="video-overlay-container">
+                            <div class="video-background" id="video-bg-${hero.id}">
+                                <iframe 
+                                    src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&loop=1&playlist=dQw4w9WgXcQ&controls=0&showinfo=0&rel=0&modestbranding=1"
+                                    frameborder="0"
+                                    allow="autoplay; encrypted-media"
+                                ></iframe>
+                            </div>
+                            <div class="video-overlay-dark"></div>
+                            <div class="travel-hero-content video-overlay-content">
+                                <h1 contenteditable="true">${title}</h1>
+                                <p contenteditable="true">${subtitle}</p>
+                                <button class="hero-cta-button">
+                                    <i class="fas fa-play-circle"></i> Bekijk Video
+                                </button>
+                            </div>
+                        </div>
+                    ` : currentStyle === 'parallax-photos' ? `
+                        <div class="parallax-photos-container" id="parallax-${hero.id}">
+                            <div class="parallax-layer parallax-bg"></div>
+                            <div class="parallax-layer parallax-mid"></div>
+                            <div class="parallax-layer parallax-front"></div>
+                            <div class="travel-hero-content parallax-content">
+                                <h1 contenteditable="true">${title}</h1>
+                                <p contenteditable="true">${subtitle}</p>
+                            </div>
+                        </div>
+                    ` : currentStyle === 'globe-3d' ? `
+                        <div class="globe-3d-container">
+                            <div class="globe-canvas" id="globe-${hero.id}"></div>
+                            <div class="travel-hero-content globe-content">
+                                <h1 contenteditable="true">${title}</h1>
+                                <p contenteditable="true">${subtitle}</p>
+                                <div class="globe-stats">
+                                    <div class="globe-stat">
+                                        <span class="stat-number">8</span>
+                                        <span class="stat-label">Bestemmingen</span>
+                                    </div>
+                                    <div class="globe-stat">
+                                        <span class="stat-number">20</span>
+                                        <span class="stat-label">Dagen</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     ` : `
                         <div class="travel-hero-content">
                             <h1 contenteditable="true">${title}</h1>
@@ -3692,9 +3738,85 @@ class ComponentFactory {
         if (currentStyle === 'timeline-slider') {
             setTimeout(() => this.initializeTimelineSlider(hero, options.destinations || []), 100);
         }
+        
+        // Initialize parallax for parallax-photos style
+        if (currentStyle === 'parallax-photos') {
+            setTimeout(() => this.initializeParallaxPhotos(hero, options.destinations || []), 100);
+        }
+        
+        // Initialize globe for globe-3d style
+        if (currentStyle === 'globe-3d') {
+            setTimeout(() => this.initializeGlobe3D(hero, options.destinations || []), 100);
+        }
 
         this.makeSelectable(hero);
         return hero;
+    }
+
+    static initializeParallaxPhotos(hero, destinations) {
+        const container = hero.querySelector('.parallax-photos-container');
+        if (!container) return;
+
+        const bgLayer = container.querySelector('.parallax-bg');
+        const midLayer = container.querySelector('.parallax-mid');
+        const frontLayer = container.querySelector('.parallax-front');
+
+        // Set background images from destinations
+        if (destinations && destinations.length > 0) {
+            if (destinations[0]?.images?.[0]) bgLayer.style.backgroundImage = `url('${destinations[0].images[0]}')`;
+            if (destinations[1]?.images?.[0]) midLayer.style.backgroundImage = `url('${destinations[1].images[0]}')`;
+            if (destinations[2]?.images?.[0]) frontLayer.style.backgroundImage = `url('${destinations[2].images[0]}')`;
+        }
+
+        // Parallax scroll effect
+        let ticking = false;
+        const handleScroll = () => {
+            const scrolled = window.pageYOffset;
+            const heroRect = hero.getBoundingClientRect();
+            
+            if (heroRect.top < window.innerHeight && heroRect.bottom > 0) {
+                const offset = scrolled * 0.5;
+                bgLayer.style.transform = `translateY(${offset * 0.3}px)`;
+                midLayer.style.transform = `translateY(${offset * 0.6}px)`;
+                frontLayer.style.transform = `translateY(${offset * 0.9}px)`;
+            }
+            ticking = false;
+        };
+
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                window.requestAnimationFrame(handleScroll);
+                ticking = true;
+            }
+        });
+    }
+
+    static initializeGlobe3D(hero, destinations) {
+        const canvas = hero.querySelector('.globe-canvas');
+        if (!canvas) return;
+
+        // Simple animated globe visualization using CSS
+        canvas.innerHTML = `
+            <div class="globe-sphere">
+                <div class="globe-marker" style="top: 30%; left: 40%;">
+                    <div class="marker-pulse"></div>
+                </div>
+                <div class="globe-marker" style="top: 50%; left: 60%;">
+                    <div class="marker-pulse"></div>
+                </div>
+                <div class="globe-marker" style="top: 70%; left: 35%;">
+                    <div class="marker-pulse"></div>
+                </div>
+            </div>
+        `;
+
+        // Rotate animation
+        const sphere = canvas.querySelector('.globe-sphere');
+        let rotation = 0;
+        setInterval(() => {
+            rotation += 0.2;
+            sphere.style.transform = `rotateY(${rotation}deg)`;
+        }, 50);
     }
 
     static initializeTimelineSlider(hero, destinations) {
