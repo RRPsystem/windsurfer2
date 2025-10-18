@@ -3651,6 +3651,22 @@ class ComponentFactory {
                             <h1 contenteditable="true">${title}</h1>
                             <p contenteditable="true">${subtitle}</p>
                         </div>
+                    ` : currentStyle === 'timeline-slider' ? `
+                        <div class="timeline-slider-container">
+                            <div class="timeline-slider-track" id="timeline-slider-${hero.id}">
+                                <!-- Day cards will be added here -->
+                            </div>
+                            <button class="timeline-slider-prev">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="timeline-slider-next">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="travel-hero-content timeline-slider-content">
+                            <h1 contenteditable="true">${title}</h1>
+                            <p contenteditable="true">${subtitle}</p>
+                        </div>
                     ` : `
                         <div class="travel-hero-content">
                             <h1 contenteditable="true">${title}</h1>
@@ -3671,9 +3687,109 @@ class ComponentFactory {
         if (currentStyle === 'interactive-map') {
             setTimeout(() => this.initializeTravelHeroMap(hero, options.destinations || []), 100);
         }
+        
+        // Initialize timeline slider for timeline-slider style
+        if (currentStyle === 'timeline-slider') {
+            setTimeout(() => this.initializeTimelineSlider(hero, options.destinations || []), 100);
+        }
 
         this.makeSelectable(hero);
         return hero;
+    }
+
+    static initializeTimelineSlider(hero, destinations) {
+        const track = hero.querySelector('.timeline-slider-track');
+        const prevBtn = hero.querySelector('.timeline-slider-prev');
+        const nextBtn = hero.querySelector('.timeline-slider-next');
+        
+        if (!track) return;
+
+        // Get destinations from timeline if not provided
+        if (!destinations || destinations.length === 0) {
+            const timeline = document.querySelector('.wb-travel-timeline');
+            if (timeline) {
+                const destinationCards = timeline.querySelectorAll('.wb-travel-card.destination');
+                destinations = Array.from(destinationCards).map((card, idx) => ({
+                    name: card.querySelector('.travel-card-title h3')?.textContent || `Dag ${idx + 1}`,
+                    day: idx + 1,
+                    image: card.querySelector('.carousel-image')?.style.backgroundImage?.replace(/url\(['"](.+)['"]\)/, '$1') || 
+                           'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800'
+                }));
+            }
+        }
+
+        // Create day cards
+        track.innerHTML = '';
+        destinations.forEach((dest, idx) => {
+            const card = document.createElement('div');
+            card.className = 'timeline-day-card';
+            card.innerHTML = `
+                <div class="timeline-day-image" style="background-image: url('${dest.image || dest.images?.[0] || 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800'}')"></div>
+                <div class="timeline-day-info">
+                    <div class="timeline-day-number">Dag ${dest.fromDay || dest.day || idx + 1}</div>
+                    <div class="timeline-day-name">${dest.name}</div>
+                </div>
+            `;
+            
+            // Click to scroll to timeline
+            card.onclick = () => {
+                const timeline = document.querySelector('.wb-travel-timeline');
+                if (timeline) {
+                    const dayHeaders = timeline.querySelectorAll('.wb-travel-day-header');
+                    const targetDay = dayHeaders[idx];
+                    if (targetDay) {
+                        targetDay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            };
+            
+            track.appendChild(card);
+        });
+
+        // Scroll functionality
+        let currentScroll = 0;
+        const cardWidth = 280; // card width + gap
+        
+        if (prevBtn) {
+            prevBtn.onclick = (e) => {
+                e.stopPropagation();
+                currentScroll = Math.max(0, currentScroll - cardWidth * 2);
+                track.scrollTo({ left: currentScroll, behavior: 'smooth' });
+            };
+        }
+        
+        if (nextBtn) {
+            nextBtn.onclick = (e) => {
+                e.stopPropagation();
+                const maxScroll = track.scrollWidth - track.clientWidth;
+                currentScroll = Math.min(maxScroll, currentScroll + cardWidth * 2);
+                track.scrollTo({ left: currentScroll, behavior: 'smooth' });
+            };
+        }
+
+        // Auto-scroll animation
+        let autoScrollInterval;
+        const startAutoScroll = () => {
+            autoScrollInterval = setInterval(() => {
+                const maxScroll = track.scrollWidth - track.clientWidth;
+                if (currentScroll >= maxScroll) {
+                    currentScroll = 0;
+                } else {
+                    currentScroll += cardWidth;
+                }
+                track.scrollTo({ left: currentScroll, behavior: 'smooth' });
+            }, 3000);
+        };
+
+        // Start auto-scroll
+        startAutoScroll();
+
+        // Pause on hover
+        track.onmouseenter = () => clearInterval(autoScrollInterval);
+        track.onmouseleave = () => startAutoScroll();
+
+        // Store reference
+        hero._timelineSlider = { track, prevBtn, nextBtn, autoScrollInterval };
     }
 
     static initializeTravelHeroMap(hero, destinations) {
