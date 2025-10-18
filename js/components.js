@@ -3642,6 +3642,7 @@ class ComponentFactory {
                     <option value="video-overlay" ${currentStyle === 'video-overlay' ? 'selected' : ''}>🎬 Video Overlay</option>
                     <option value="parallax-photos" ${currentStyle === 'parallax-photos' ? 'selected' : ''}>📸 Parallax Photos</option>
                     <option value="airplane-window" ${currentStyle === 'airplane-window' ? 'selected' : ''}>✈️ Airplane Window</option>
+                    <option value="split-hero" ${currentStyle === 'split-hero' ? 'selected' : ''}>📍 Split Hero</option>
                 </select>
                 <div class="travel-hero-preview" data-style="${currentStyle}">
                     ${currentStyle === 'interactive-map' ? `
@@ -3732,6 +3733,30 @@ class ComponentFactory {
                                 </div>
                             </div>
                         </div>
+                    ` : currentStyle === 'split-hero' ? `
+                        <div class="split-hero-container">
+                            <div class="split-hero-map" id="split-map-${hero.id}"></div>
+                            <div class="split-hero-content">
+                                <h1 contenteditable="true">${title}</h1>
+                                <p class="split-subtitle" contenteditable="true">${subtitle}</p>
+                                <div class="split-destinations"></div>
+                                <div class="split-highlights">
+                                    <div class="highlight-item" contenteditable="true">
+                                        <i class="fas fa-check"></i>
+                                        <span>8 Bestemmingen</span>
+                                    </div>
+                                    <div class="highlight-item" contenteditable="true">
+                                        <i class="fas fa-check"></i>
+                                        <span>Alle hotels inclusief</span>
+                                    </div>
+                                    <div class="highlight-item" contenteditable="true">
+                                        <i class="fas fa-check"></i>
+                                        <span>Ontbijt dagelijks</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="split-hero-photos" id="split-photos-${hero.id}"></div>
+                        </div>
                     ` : `
                         <div class="travel-hero-content">
                             <h1 contenteditable="true">${title}</h1>
@@ -3766,6 +3791,11 @@ class ComponentFactory {
         // Initialize airplane window for airplane-window style
         if (currentStyle === 'airplane-window') {
             setTimeout(() => this.initializeAirplaneWindow(hero, options.destinations || []), 100);
+        }
+        
+        // Initialize split hero for split-hero style
+        if (currentStyle === 'split-hero') {
+            setTimeout(() => this.initializeSplitHero(hero, options.destinations || []), 100);
         }
 
         this.makeSelectable(hero);
@@ -3808,6 +3838,99 @@ class ComponentFactory {
                 ticking = true;
             }
         });
+    }
+
+    static initializeSplitHero(hero, destinations) {
+        const mapContainer = hero.querySelector('.split-hero-map');
+        const destinationsDiv = hero.querySelector('.split-destinations');
+        const photosContainer = hero.querySelector('.split-hero-photos');
+        
+        if (!mapContainer) return;
+
+        // Get destinations from timeline if not provided
+        if (!destinations || destinations.length === 0) {
+            const timeline = document.querySelector('.wb-travel-timeline');
+            if (timeline) {
+                const destinationCards = timeline.querySelectorAll('.wb-travel-card.destination');
+                destinations = Array.from(destinationCards).map((card, idx) => ({
+                    name: card.querySelector('.travel-card-title h3')?.textContent || `Bestemming ${idx + 1}`,
+                    images: Array.from(card.querySelectorAll('.carousel-image')).map(img => 
+                        img.style.backgroundImage?.replace(/url\(['"](.+)['"]\)/, '$1')
+                    ).filter(Boolean)
+                }));
+            }
+        }
+
+        // Build destinations list
+        if (destinationsDiv && destinations.length > 0) {
+            const destNames = destinations.map(d => d.name).join(' | ');
+            destinationsDiv.textContent = destNames;
+        }
+
+        // Build mini map with Leaflet
+        if (typeof L !== 'undefined' && destinations.length > 0) {
+            const map = L.map(mapContainer.id, {
+                zoomControl: false,
+                attributionControl: false,
+                dragging: false,
+                scrollWheelZoom: false
+            }).setView([13.7563, 100.5018], 6);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18
+            }).addTo(map);
+
+            // Add route line (mock coordinates for now)
+            const routeCoords = [
+                [13.7563, 100.5018], // Bangkok
+                [18.7883, 98.9853],  // Chiang Mai
+                [7.8804, 98.3923]    // Phuket
+            ];
+            
+            L.polyline(routeCoords, {
+                color: '#667eea',
+                weight: 3,
+                opacity: 0.8
+            }).addTo(map);
+
+            // Add markers
+            routeCoords.forEach((coord, idx) => {
+                L.circleMarker(coord, {
+                    radius: 6,
+                    fillColor: '#667eea',
+                    color: '#fff',
+                    weight: 2,
+                    fillOpacity: 1
+                }).addTo(map);
+            });
+        }
+
+        // Build photo collage
+        if (photosContainer && destinations.length > 0) {
+            const allPhotos = [];
+            destinations.forEach(dest => {
+                if (dest.images && dest.images.length > 0) {
+                    allPhotos.push(...dest.images);
+                }
+            });
+
+            // Use first 3 photos
+            const photos = allPhotos.slice(0, 3);
+            if (photos.length === 0) {
+                photos.push(
+                    'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=600',
+                    'https://images.unsplash.com/photo-1563492065213-f0e6c0a19e1f?w=600',
+                    'https://images.unsplash.com/photo-1528181304800-259b08848526?w=600'
+                );
+            }
+
+            photos.forEach((photo, idx) => {
+                const img = document.createElement('div');
+                img.className = 'split-photo';
+                img.style.backgroundImage = `url('${photo}')`;
+                photosContainer.appendChild(img);
+            });
+        }
     }
 
     static initializeAirplaneWindow(hero, destinations) {
@@ -4093,7 +4216,8 @@ class ComponentFactory {
             'timeline-slider': '🎯 Timeline Slider',
             'video-overlay': '🎬 Video Overlay',
             'parallax-photos': '📸 Parallax Photos',
-            'airplane-window': '✈️ Airplane Window'
+            'airplane-window': '✈️ Airplane Window',
+            'split-hero': '📍 Split Hero'
         };
         return names[style] || style;
     }
