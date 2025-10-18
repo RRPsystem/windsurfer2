@@ -2057,6 +2057,100 @@
     text-align: center;
 }
 
+/* Split Hero Style */
+.split-hero-container {
+    display: grid;
+    grid-template-columns: 300px 1fr 400px;
+    gap: 40px;
+    width: 100%;
+    height: 100%;
+    padding: 60px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.split-hero-map {
+    width: 100%;
+    height: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+.split-hero-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 20px;
+}
+
+.split-hero-content h1 {
+    font-size: 48px;
+    font-weight: 900;
+    color: #1f2937;
+    margin-bottom: 12px;
+    line-height: 1.1;
+}
+
+.split-subtitle {
+    font-size: 18px;
+    font-weight: 400;
+    color: #6b7280;
+    margin-bottom: 20px;
+}
+
+.split-destinations {
+    font-size: 10px;
+    font-weight: 500;
+    color: #9ca3af;
+    letter-spacing: 0.5px;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+}
+
+.split-highlights {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.highlight-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.highlight-item i {
+    color: #667eea;
+    font-size: 18px;
+}
+
+.split-hero-photos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 12px;
+    height: 100%;
+}
+
+.split-photo {
+    background-size: cover;
+    background-position: center;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.split-photo:first-child {
+    grid-column: 1 / 3;
+}
+
+.split-photo:hover {
+    transform: scale(1.05);
+}
+
 /* Travel Day Header */
 .wb-travel-day-header {
     position: relative;
