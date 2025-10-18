@@ -1,4 +1,4 @@
-﻿// js/previewPage.js
+// js/previewPage.js
 // Compose a full page preview: header + page content + footer for the given brand
 (async function(){
   function qs(name){ try { return new URL(location.href).searchParams.get(name); } catch (e) { return null; } }
@@ -32,8 +32,25 @@
     }
   }
 
-  // 2) Fetch page HTML by slug (or fallback to homepage)
+  // 2) Fetch page HTML by slug (or fallback to local storage/opener)
   async function fetchPageHtml(){
+    // First try: get from opener window (if opened from builder)
+    if (window.opener && window.opener.document) {
+      try {
+        const canvas = window.opener.document.getElementById('canvas');
+        if (canvas) {
+          const html = canvas.innerHTML;
+          if (html && html.trim()) {
+            console.log('✅ Using content from builder canvas');
+            return html;
+          }
+        }
+      } catch (e) {
+        console.warn('Cannot access opener:', e);
+      }
+    }
+    
+    // Second try: API
     let u = `${api}/pages-api/get?brand_id=${encodeURIComponent(brandId)}`;
     if (pageSlug) u += `&slug=${encodeURIComponent(pageSlug)}`;
     try {
