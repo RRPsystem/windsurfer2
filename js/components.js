@@ -3641,7 +3641,7 @@ class ComponentFactory {
                     <option value="timeline-slider" ${currentStyle === 'timeline-slider' ? 'selected' : ''}>🎯 Timeline Slider</option>
                     <option value="video-overlay" ${currentStyle === 'video-overlay' ? 'selected' : ''}>🎬 Video Overlay</option>
                     <option value="parallax-photos" ${currentStyle === 'parallax-photos' ? 'selected' : ''}>📸 Parallax Photos</option>
-                    <option value="globe-3d" ${currentStyle === 'globe-3d' ? 'selected' : ''}>🌍 3D Globe</option>
+                    <option value="airplane-window" ${currentStyle === 'airplane-window' ? 'selected' : ''}>✈️ Airplane Window</option>
                 </select>
                 <div class="travel-hero-preview" data-style="${currentStyle}">
                     ${currentStyle === 'interactive-map' ? `
@@ -3695,21 +3695,40 @@ class ComponentFactory {
                                 <p contenteditable="true">${subtitle}</p>
                             </div>
                         </div>
-                    ` : currentStyle === 'globe-3d' ? `
-                        <div class="globe-3d-container">
-                            <div class="globe-canvas" id="globe-${hero.id}"></div>
-                            <div class="travel-hero-content globe-content">
+                    ` : currentStyle === 'airplane-window' ? `
+                        <div class="airplane-window-container">
+                            <div class="airplane-window-frame">
+                                <svg class="window-shape" viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+                                    <defs>
+                                        <clipPath id="window-clip-${hero.id}">
+                                            <rect x="50" y="50" width="300" height="400" rx="150" />
+                                        </clipPath>
+                                    </defs>
+                                    <rect x="40" y="40" width="320" height="420" rx="160" fill="#e5e7eb" stroke="#9ca3af" stroke-width="8"/>
+                                    <rect x="50" y="50" width="300" height="400" rx="150" fill="#fff" stroke="#d1d5db" stroke-width="4"/>
+                                </svg>
+                                <div class="window-photos" id="window-photos-${hero.id}" style="clip-path: url(#window-clip-${hero.id});"></div>
+                            </div>
+                            <div class="travel-hero-content airplane-content">
                                 <h1 contenteditable="true">${title}</h1>
                                 <p contenteditable="true">${subtitle}</p>
-                                <div class="globe-stats">
-                                    <div class="globe-stat">
-                                        <span class="stat-number">8</span>
-                                        <span class="stat-label">Bestemmingen</span>
-                                    </div>
-                                    <div class="globe-stat">
-                                        <span class="stat-number">20</span>
-                                        <span class="stat-label">Dagen</span>
-                                    </div>
+                            </div>
+                            <div class="airplane-features">
+                                <div class="feature-item">
+                                    <i class="fas fa-map-marked-alt"></i>
+                                    <span>8 Bestemmingen</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>20 Dagen</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-hotel"></i>
+                                    <span>Hotels Inclusief</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-utensils"></i>
+                                    <span>Ontbijt Dagelijks</span>
                                 </div>
                             </div>
                         </div>
@@ -3744,9 +3763,9 @@ class ComponentFactory {
             setTimeout(() => this.initializeParallaxPhotos(hero, options.destinations || []), 100);
         }
         
-        // Initialize globe for globe-3d style
-        if (currentStyle === 'globe-3d') {
-            setTimeout(() => this.initializeGlobe3D(hero, options.destinations || []), 100);
+        // Initialize airplane window for airplane-window style
+        if (currentStyle === 'airplane-window') {
+            setTimeout(() => this.initializeAirplaneWindow(hero, options.destinations || []), 100);
         }
 
         this.makeSelectable(hero);
@@ -3791,32 +3810,48 @@ class ComponentFactory {
         });
     }
 
-    static initializeGlobe3D(hero, destinations) {
-        const canvas = hero.querySelector('.globe-canvas');
-        if (!canvas) return;
+    static initializeAirplaneWindow(hero, destinations) {
+        const photosContainer = hero.querySelector('.window-photos');
+        if (!photosContainer) return;
 
-        // Simple animated globe visualization using CSS
-        canvas.innerHTML = `
-            <div class="globe-sphere">
-                <div class="globe-marker" style="top: 30%; left: 40%;">
-                    <div class="marker-pulse"></div>
-                </div>
-                <div class="globe-marker" style="top: 50%; left: 60%;">
-                    <div class="marker-pulse"></div>
-                </div>
-                <div class="globe-marker" style="top: 70%; left: 35%;">
-                    <div class="marker-pulse"></div>
-                </div>
-            </div>
-        `;
+        // Get photos from destinations
+        const photos = [];
+        if (destinations && destinations.length > 0) {
+            destinations.forEach(dest => {
+                if (dest.images && dest.images.length > 0) {
+                    photos.push(...dest.images);
+                } else if (dest.image) {
+                    photos.push(dest.image);
+                }
+            });
+        }
 
-        // Rotate animation
-        const sphere = canvas.querySelector('.globe-sphere');
-        let rotation = 0;
+        // Default photos if none provided
+        if (photos.length === 0) {
+            photos.push(
+                'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800',
+                'https://images.unsplash.com/photo-1563492065213-f0e6c0a19e1f?w=800',
+                'https://images.unsplash.com/photo-1528181304800-259b08848526?w=800'
+            );
+        }
+
+        // Create photo slides
+        photos.forEach((photo, idx) => {
+            const slide = document.createElement('div');
+            slide.className = 'window-slide';
+            slide.style.backgroundImage = `url('${photo}')`;
+            if (idx === 0) slide.classList.add('active');
+            photosContainer.appendChild(slide);
+        });
+
+        // Auto-slide animation
+        let currentSlide = 0;
         setInterval(() => {
-            rotation += 0.2;
-            sphere.style.transform = `rotateY(${rotation}deg)`;
-        }, 50);
+            const slides = photosContainer.querySelectorAll('.window-slide');
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active');
+        }, 3000);
     }
 
     static initializeTimelineSlider(hero, destinations) {
@@ -4058,7 +4093,7 @@ class ComponentFactory {
             'timeline-slider': '🎯 Timeline Slider',
             'video-overlay': '🎬 Video Overlay',
             'parallax-photos': '📸 Parallax Photos',
-            'globe-3d': '🌍 3D Globe'
+            'airplane-window': '✈️ Airplane Window'
         };
         return names[style] || style;
     }
