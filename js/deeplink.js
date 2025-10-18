@@ -195,7 +195,111 @@
 
   // Always local-first save behavior
   installSaveMonkeyPatch();
+  
+  // Auto-load content if page_id is present
+  if (ctx.page_id && ctx.api && ctx.token) {
+    loadPageContent(ctx);
+  }
 })();
+
+// Load page content from pages-api and auto-detect content_type
+async function loadPageContent(ctx) {
+  try {
+    const api = (ctx.api || '').replace(/\/$/, '');
+    const pageId = ctx.page_id;
+    const brandId = ctx.brand_id;
+    
+    if (!api || !pageId) return;
+    
+    log('Loading page content for page_id:', pageId);
+    
+    // Build URL
+    let url = `${api}/pages-api?page_id=${encodeURIComponent(pageId)}`;
+    if (brandId) url += `&brand_id=${encodeURIComponent(brandId)}`;
+    
+    // Build headers
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (ctx.token) {
+      headers['Authorization'] = `Bearer ${ctx.token}`;
+    }
+    if (ctx.apikey) {
+      headers['apikey'] = ctx.apikey;
+    }
+    
+    // Fetch page data
+    const response = await fetch(url, { headers });
+    
+    if (!response.ok) {
+      warn('Failed to load page:', response.status, response.statusText);
+      return;
+    }
+    
+    const data = await response.json();
+    log('Page data loaded:', data);
+    
+    // Check content_type and switch mode if needed
+    if (data.content_type === 'news_items') {
+      log('Detected news content, switching to news mode');
+      
+      // Update hash to news mode
+      if (location.hash !== '#/mode/news') {
+        location.hash = '#/mode/news';
+      }
+      
+      // Update mode selector if present
+      document.addEventListener('DOMContentLoaded', () => {
+        const modeSelect = document.getElementById('topModeSelect');
+        if (modeSelect && modeSelect.value !== 'news') {
+          modeSelect.value = 'news';
+        }
+      });
+      
+      // Update edgeCtx to news mode
+      const newsEdgeCtx = {
+        api: ctx.api,
+        token: ctx.token,
+        kind: 'news',
+        key: data.slug || ctx.news_slug || ctx.slug || ''
+      };
+      installEdgeCtx(newsEdgeCtx);
+    }
+    
+    // Load content into builder
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        if (data.content_json && window.websiteBuilder) {
+          // Load the content
+          const canvas = document.getElementById('canvas');
+          if (canvas && data.content_json.html) {
+            canvas.innerHTML = data.content_json.html;
+          }
+          
+          // Update page title/slug inputs
+          const titleInput = document.getElementById('pageTitleInput');
+          const slugInput = document.getElementById('pageSlugInput');
+          if (titleInput && data.title) titleInput.value = data.title;
+          if (slugInput && data.slug) slugInput.value = data.slug;
+          
+          // Reattach event listeners
+          if (window.websiteBuilder.reattachEventListeners) {
+            window.websiteBuilder.reattachEventListeners();
+          }
+          
+          log('Content loaded into builder');
+        }
+      } catch (e) {
+        warn('Failed to load content into builder:', e);
+      }
+    });
+    
+  } catch (error) {
+    warn('Error loading page content:', error);
+  }
+}
+
 })();
 
 
