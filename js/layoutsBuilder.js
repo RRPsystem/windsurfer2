@@ -202,12 +202,12 @@ ${body}
       href.placeholder = '/pad-of-url';
       href.style.width = '40%';
       href.value = item.href || '';
-      const addBtn = btn('âž•', 'Add child');
-      const upBtn = btn('â¬†ï¸', 'Move up');
-      const downBtn = btn('â¬‡ï¸', 'Move down');
-      const indentBtn = btn('â†³', 'Indent');
-      const outdentBtn = btn('â†°', 'Outdent');
-      const delBtn = btn('ðŸ—‘ï¸', 'Delete');
+      const addBtn = btn('➕', 'Add child');
+      const upBtn = btn('⬆️', 'Move up');
+      const downBtn = btn('⬇️', 'Move down');
+      const indentBtn = btn('↳', 'Indent');
+      const outdentBtn = btn('↰', 'Outdent');
+      const delBtn = btn('🗑️', 'Delete');
 
       label.oninput = () => { item.label = label.value; };
       href.oninput = () => { item.href = href.value; };
@@ -323,7 +323,7 @@ ${body}
       } else if (action === 'publish') {
         const html = exportHeaderAsHTML(json);
         const r = await window.BuilderPublishAPI.publishHeader({ brand_id, body_html: html });
-        window.websiteBuilder?.showNotification(`ðŸš€ Header gepubliceerd (v${r.version ?? '-'})`, 'success');
+        window.websiteBuilder?.showNotification(`🚀 Header gepubliceerd (v${r.version ?? '-'})`, 'success');
       }
     } catch (e) {
       console.error('Header publish error', e);
@@ -345,7 +345,7 @@ ${body}
       } else if (action === 'publish') {
         const html = exportFooterAsHTML(json);
         const r = await window.BuilderPublishAPI.publishFooter({ brand_id, body_html: html });
-        window.websiteBuilder?.showNotification(`ðŸš€ Footer gepubliceerd (v${r.version ?? '-'})`, 'success');
+        window.websiteBuilder?.showNotification(`🚀 Footer gepubliceerd (v${r.version ?? '-'})`, 'success');
       }
     } catch (e) {
       console.error('Footer publish error', e);
@@ -368,7 +368,7 @@ ${body}
         try { window.MenuPreview?.render(menuData); } catch (e) {}
       } else if (action === 'publish') {
         const r = await window.BuilderPublishAPI.publishMenu({ brand_id });
-        window.websiteBuilder?.showNotification(`ðŸš€ Menu gepubliceerd (v${r.version ?? '-'})`, 'success');
+        window.websiteBuilder?.showNotification(`🚀 Menu gepubliceerd (v${r.version ?? '-'})`, 'success');
         try { window.MenuPreview?.render(menuData); } catch (e) {}
       }
     } catch (e) {
