@@ -310,24 +310,82 @@ class PropertiesPanel {
                             window.ComponentFactory.initializeTravelHeroMap(component, destinations);
                         }
                     }, 100);
-                } else {
-                    const names = {
-                        'timeline-slider': '🎯 Timeline Slider',
-                        'video-overlay': '🎬 Video Overlay',
-                        'parallax-photos': '📸 Parallax Photos',
-                        'globe-3d': '🌍 3D Globe'
-                    };
+                } else if (value === 'timeline-slider') {
                     preview.innerHTML = `
-                        <div class="travel-hero-content">
+                        <div class="timeline-slider-container">
+                            <div class="timeline-slider-track" id="timeline-slider-${component.id}"></div>
+                            <button class="timeline-slider-prev"><i class="fas fa-chevron-left"></i></button>
+                            <button class="timeline-slider-next"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div class="travel-hero-content timeline-slider-content">
                             <h1 contenteditable="true">${title}</h1>
                             <p contenteditable="true">${subtitle}</p>
-                            <div class="travel-hero-placeholder">
-                                <i class="fas fa-image"></i>
-                                <p>Hero Style: <strong>${names[value]}</strong></p>
-                                <small>Bewerk in eigenschappen panel →</small>
+                        </div>
+                    `;
+                    setTimeout(() => {
+                        if (window.ComponentFactory?.initializeTimelineSlider) {
+                            const destinations = this.getDestinationsFromTimeline();
+                            window.ComponentFactory.initializeTimelineSlider(component, destinations);
+                        }
+                    }, 100);
+                } else if (value === 'video-overlay') {
+                    preview.innerHTML = `
+                        <div class="video-overlay-container">
+                            <div class="video-background" id="video-bg-${component.id}">
+                                <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&loop=1&playlist=dQw4w9WgXcQ&controls=0&showinfo=0&rel=0&modestbranding=1" frameborder="0" allow="autoplay; encrypted-media"></iframe>
+                            </div>
+                            <div class="video-overlay-dark"></div>
+                            <div class="travel-hero-content video-overlay-content">
+                                <h1 contenteditable="true">${title}</h1>
+                                <p contenteditable="true">${subtitle}</p>
+                                <button class="hero-cta-button"><i class="fas fa-play-circle"></i> Bekijk Video</button>
                             </div>
                         </div>
                     `;
+                } else if (value === 'parallax-photos') {
+                    preview.innerHTML = `
+                        <div class="parallax-photos-container" id="parallax-${component.id}">
+                            <div class="parallax-layer parallax-bg"></div>
+                            <div class="parallax-layer parallax-mid"></div>
+                            <div class="parallax-layer parallax-front"></div>
+                            <div class="travel-hero-content parallax-content">
+                                <h1 contenteditable="true">${title}</h1>
+                                <p contenteditable="true">${subtitle}</p>
+                            </div>
+                        </div>
+                    `;
+                    setTimeout(() => {
+                        if (window.ComponentFactory?.initializeParallaxPhotos) {
+                            const destinations = this.getDestinationsFromTimeline();
+                            window.ComponentFactory.initializeParallaxPhotos(component, destinations);
+                        }
+                    }, 100);
+                } else if (value === 'globe-3d') {
+                    preview.innerHTML = `
+                        <div class="globe-3d-container">
+                            <div class="globe-canvas" id="globe-${component.id}"></div>
+                            <div class="travel-hero-content globe-content">
+                                <h1 contenteditable="true">${title}</h1>
+                                <p contenteditable="true">${subtitle}</p>
+                                <div class="globe-stats">
+                                    <div class="globe-stat">
+                                        <span class="stat-number">8</span>
+                                        <span class="stat-label">Bestemmingen</span>
+                                    </div>
+                                    <div class="globe-stat">
+                                        <span class="stat-number">20</span>
+                                        <span class="stat-label">Dagen</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    setTimeout(() => {
+                        if (window.ComponentFactory?.initializeGlobe3D) {
+                            const destinations = this.getDestinationsFromTimeline();
+                            window.ComponentFactory.initializeGlobe3D(component, destinations);
+                        }
+                    }, 100);
                 }
             }
         });
