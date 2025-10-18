@@ -463,16 +463,75 @@ class PropertiesPanel {
                     videoIframe.src = `https://www.youtube.com/embed/${value}?autoplay=1&mute=1&loop=1&playlist=${value}&controls=0&showinfo=0&rel=0&modestbranding=1`;
                 }
             });
+        }
+        
+        // Photo selectors for parallax-photos style
+        if (currentStyle === 'parallax-photos') {
+            const bgLayer = component.querySelector('.parallax-bg');
+            const midLayer = component.querySelector('.parallax-mid');
+            const frontLayer = component.querySelector('.parallax-front');
             
-            const videoInfo = document.createElement('div');
-            videoInfo.style.fontSize = '12px';
-            videoInfo.style.color = '#6b7280';
-            videoInfo.style.padding = '12px';
-            videoInfo.style.background = '#f8fafc';
-            videoInfo.style.borderRadius = '6px';
-            videoInfo.style.marginTop = '12px';
-            videoInfo.innerHTML = '<strong>💡 Tip:</strong> Plak alleen de Video ID (bijv: dQw4w9WgXcQ) of de volledige YouTube URL.';
-            this.panel.appendChild(videoInfo);
+            // Background layer photo
+            const bgBtn = this.createButton('📸 Achtergrond Foto', async () => {
+                if (!window.MediaPicker) return;
+                const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
+                const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
+                if (src && bgLayer) {
+                    bgLayer.style.backgroundImage = `url('${src}')`;
+                }
+            });
+            bgBtn.style.background = '#667eea';
+            bgBtn.style.color = 'white';
+            bgBtn.style.marginBottom = '8px';
+            this.panel.appendChild(bgBtn);
+            
+            // Middle layer photo
+            const midBtn = this.createButton('📸 Midden Foto', async () => {
+                if (!window.MediaPicker) return;
+                const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
+                const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
+                if (src && midLayer) {
+                    midLayer.style.backgroundImage = `url('${src}')`;
+                }
+            });
+            midBtn.style.background = '#667eea';
+            midBtn.style.color = 'white';
+            midBtn.style.marginBottom = '8px';
+            this.panel.appendChild(midBtn);
+            
+            // Front layer photo
+            const frontBtn = this.createButton('📸 Voorgrond Foto', async () => {
+                if (!window.MediaPicker) return;
+                const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
+                const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
+                if (src && frontLayer) {
+                    frontLayer.style.backgroundImage = `url('${src}')`;
+                }
+            });
+            frontBtn.style.background = '#667eea';
+            frontBtn.style.color = 'white';
+            this.panel.appendChild(frontBtn);
+        }
+        
+        // Photo selectors for airplane-window style
+        if (currentStyle === 'airplane-window') {
+            const addPhotoBtn = this.createButton('📸 Foto's Toevoegen', async () => {
+                if (!window.MediaPicker) return;
+                const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
+                const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
+                if (src) {
+                    const photosContainer = component.querySelector('.window-photos');
+                    if (photosContainer) {
+                        const slide = document.createElement('div');
+                        slide.className = 'window-slide';
+                        slide.style.backgroundImage = `url('${src}')`;
+                        photosContainer.appendChild(slide);
+                    }
+                }
+            });
+            addPhotoBtn.style.background = '#667eea';
+            addPhotoBtn.style.color = 'white';
+            this.panel.appendChild(addPhotoBtn);
         }
 
         // Info text
