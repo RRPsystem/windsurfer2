@@ -34,9 +34,11 @@ class ExportManager {
             const brandId = window.CURRENT_BRAND_ID || curUrl.searchParams.get('brand_id') || '';
             const apiBase = (window.BOLT_API && window.BOLT_API.baseUrl) || curUrl.searchParams.get('api') || '';
             const token = window.CURRENT_TOKEN || curUrl.searchParams.get('token') || '';
+            const apikey = curUrl.searchParams.get('apikey') || '';
             if (brandId) params.set('brand_id', brandId);
             if (apiBase) params.set('api', apiBase);
             if (token) params.set('token', token);
+            if (apikey) params.set('apikey', apikey);
             // Default behavior: homepage; if user holds Shift/Alt, include current page slug
             const wantCurrentPage = !!(evt && (evt.shiftKey || evt.altKey));
             if (wantCurrentPage && slug) params.set('page', slug);
