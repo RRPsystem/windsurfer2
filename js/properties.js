@@ -282,7 +282,8 @@ class PropertiesPanel {
             { value: 'timeline-slider', label: '🎯 Timeline Slider' },
             { value: 'video-overlay', label: '🎬 Video Overlay' },
             { value: 'parallax-photos', label: '📸 Parallax Photos' },
-            { value: 'globe-3d', label: '🌍 3D Globe' }
+            { value: 'airplane-window', label: '✈️ Airplane Window' },
+            { value: 'split-hero', label: '📍 Split Hero' }
         ], (value) => {
             if (select) select.value = value;
             if (preview) {
@@ -360,30 +361,81 @@ class PropertiesPanel {
                             window.ComponentFactory.initializeParallaxPhotos(component, destinations);
                         }
                     }, 100);
-                } else if (value === 'globe-3d') {
+                } else if (value === 'airplane-window') {
                     preview.innerHTML = `
-                        <div class="globe-3d-container">
-                            <div class="globe-canvas" id="globe-${component.id}"></div>
-                            <div class="travel-hero-content globe-content">
+                        <div class="airplane-window-container">
+                            <div class="airplane-window-frame">
+                                <svg class="window-shape" viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+                                    <defs>
+                                        <clipPath id="window-clip-${component.id}">
+                                            <rect x="50" y="50" width="300" height="400" rx="150" />
+                                        </clipPath>
+                                    </defs>
+                                    <rect x="40" y="40" width="320" height="420" rx="160" fill="#e5e7eb" stroke="#9ca3af" stroke-width="8"/>
+                                    <rect x="50" y="50" width="300" height="400" rx="150" fill="#fff" stroke="#d1d5db" stroke-width="4"/>
+                                </svg>
+                                <div class="window-photos" id="window-photos-${component.id}" style="clip-path: url(#window-clip-${component.id});"></div>
+                            </div>
+                            <div class="travel-hero-content airplane-content">
                                 <h1 contenteditable="true">${title}</h1>
                                 <p contenteditable="true">${subtitle}</p>
-                                <div class="globe-stats">
-                                    <div class="globe-stat">
-                                        <span class="stat-number">8</span>
-                                        <span class="stat-label">Bestemmingen</span>
-                                    </div>
-                                    <div class="globe-stat">
-                                        <span class="stat-number">20</span>
-                                        <span class="stat-label">Dagen</span>
-                                    </div>
+                            </div>
+                            <div class="airplane-features">
+                                <div class="feature-item">
+                                    <i class="fas fa-map-marked-alt"></i>
+                                    <span>8 Bestemmingen</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>20 Dagen</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-hotel"></i>
+                                    <span>Hotels Inclusief</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-utensils"></i>
+                                    <span>Ontbijt Dagelijks</span>
                                 </div>
                             </div>
                         </div>
                     `;
                     setTimeout(() => {
-                        if (window.ComponentFactory?.initializeGlobe3D) {
+                        if (window.ComponentFactory?.initializeAirplaneWindow) {
                             const destinations = this.getDestinationsFromTimeline();
-                            window.ComponentFactory.initializeGlobe3D(component, destinations);
+                            window.ComponentFactory.initializeAirplaneWindow(component, destinations);
+                        }
+                    }, 100);
+                } else if (value === 'split-hero') {
+                    preview.innerHTML = `
+                        <div class="split-hero-container">
+                            <div class="split-hero-map" id="split-map-${component.id}"></div>
+                            <div class="split-hero-content">
+                                <h1 contenteditable="true">${title}</h1>
+                                <p class="split-subtitle" contenteditable="true">${subtitle}</p>
+                                <div class="split-destinations"></div>
+                                <div class="split-highlights">
+                                    <div class="highlight-item" contenteditable="true">
+                                        <i class="fas fa-check"></i>
+                                        <span>8 Bestemmingen</span>
+                                    </div>
+                                    <div class="highlight-item" contenteditable="true">
+                                        <i class="fas fa-check"></i>
+                                        <span>Alle hotels inclusief</span>
+                                    </div>
+                                    <div class="highlight-item" contenteditable="true">
+                                        <i class="fas fa-check"></i>
+                                        <span>Ontbijt dagelijks</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="split-hero-photos" id="split-photos-${component.id}"></div>
+                        </div>
+                    `;
+                    setTimeout(() => {
+                        if (window.ComponentFactory?.initializeSplitHero) {
+                            const destinations = this.getDestinationsFromTimeline();
+                            window.ComponentFactory.initializeSplitHero(component, destinations);
                         }
                     }, 100);
                 }
