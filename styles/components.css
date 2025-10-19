@@ -1598,14 +1598,36 @@
 }
 
 .wb-travel-card-description {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid #f3f4f6;
-    font-size: 14px;
-    line-height: 1.6;
-    color: #374151;
-    max-height: 200px;
-    overflow-y: auto;
+margin-top: 12px;
+padding-top: 12px;
+border-top: 1px solid #f3f4f6;
+font-size: 14px;
+line-height: 1.6;
+color: #374151;
+max-height: 200px;
+overflow-y: auto;
+}
+
+.wb-travel-card-price {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 16px 20px;
+margin-top: 16px;
+background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+border-top: 1px solid #e5e7eb;
+}
+
+.wb-travel-card-price-amount {
+font-size: 24px;
+font-weight: 700;
+color: #111827;
+}
+
+.wb-travel-card-price-label {
+font-size: 12px;
+color: #6b7280;
+margin-top: 2px;
 }
 
 /* Transport Card - Blue */
@@ -2152,15 +2174,157 @@
     border-radius: 12px;
     margin: 30px 0 20px 0;
     overflow: hidden;
-    min-height: 150px;
-    height: 150px; /* Fixed height for consistent look */
+    min-height: 200px;
+    background: #ffffff;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 1px solid #e5e7eb;
 }
 
 .day-header-content {
     position: relative;
     width: 100%;
     height: 100%;
+}
+
+/* New split layout */
+.day-header-split {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-height: 200px;
+}
+
+.day-header-left {
+    flex: 1;
+    padding: 24px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.day-header-day-number {
+    font-size: 48px;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1;
+    min-width: 60px;
+    text-align: center;
+}
+
+.day-header-info {
+    flex: 1;
+}
+
+.day-header-info h2 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+}
+
+.day-header-info p {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.5;
+}
+
+.day-header-route {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.route-locations {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.route-from,
+.route-to {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+}
+
+.route-locations > i {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+}
+
+.route-details {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.route-distance,
+.route-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.15);
+    padding: 4px 12px;
+    border-radius: 6px;
+}
+
+.route-distance i,
+.route-time i {
+    font-size: 12px;
+}
+
+.day-header-right {
+    flex: 1;
+    min-width: 300px;
+    max-width: 50%;
+    position: relative;
+}
+
+.day-header-map-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.day-header-map {
+    width: 100%;
+    height: 100%;
+    min-height: 200px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .day-header-split {
+        flex-direction: column;
+    }
+    
+    .day-header-left {
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .day-header-right {
+        max-width: 100%;
+        min-height: 250px;
+    }
+    
+    .day-header-day-number {
+        font-size: 36px;
+        min-width: 50px;
+    }
+    
+    .day-header-info h2 {
+        font-size: 20px;
+    }
 }
 
 .day-header-background {
@@ -2303,10 +2467,19 @@ transform: rotate(180deg);
     min-height: auto;
     position: relative;
     transition: all 0.3s ease;
+    margin: 8px 0;
 }
 
 .wb-travel-card.display-compact .wb-travel-card-header {
     margin-bottom: 0;
+    padding: 0;
+    border-bottom: none;
+}
+
+.wb-travel-card.display-compact .wb-travel-card-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
 }
 
 .wb-travel-card.display-compact .wb-travel-card-title h3 {
@@ -2323,6 +2496,10 @@ transform: rotate(180deg);
 }
 
 .wb-travel-card.display-compact .wb-travel-card-carousel {
+    display: none;
+}
+
+.wb-travel-card.display-compact .wb-travel-card-price {
     display: none;
 }
 
@@ -2358,6 +2535,14 @@ transform: rotate(180deg);
 
 .wb-travel-card.display-compact.expanded .wb-travel-card-header {
     margin-bottom: 16px;
+    padding: 0 0 12px 0;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.wb-travel-card.display-compact.expanded .wb-travel-card-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
 }
 
 .wb-travel-card.display-compact.expanded .wb-travel-card-title h3 {
@@ -2366,11 +2551,17 @@ transform: rotate(180deg);
 }
 
 .wb-travel-card.display-compact.expanded .wb-travel-card-body {
-    display: block;
+    display: flex;
+    padding: 0;
+    margin-top: 16px;
 }
 
 .wb-travel-card.display-compact.expanded .wb-travel-card-carousel {
     display: block;
+}
+
+.wb-travel-card.display-compact.expanded .wb-travel-card-price {
+    display: flex;
 }
 
 /* Accordion display mode */

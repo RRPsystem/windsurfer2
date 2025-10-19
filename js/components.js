@@ -2264,18 +2264,40 @@ class ComponentFactory {
 
         const content = document.createElement('div');
         content.className = 'day-header-content';
+        
+        // Get from/to locations from options
+        const fromLocation = options.fromLocation || '';
+        const toLocation = options.toLocation || '';
+        const distance = options.distance || ''; // km for road trips
+        const travelTime = options.travelTime || ''; // travel time
+        
         content.innerHTML = `
-            <div class="day-header-background">
-                <div class="day-header-bg-layer"></div>
-                <div class="day-header-overlay"></div>
-            </div>
-            <div class="day-header-foreground">
-                <div class="day-mini-roadmap"></div>
-                <div class="day-header-info">
-                    <div class="wb-travel-day-number">${dayNumber}</div>
-                    <div class="wb-travel-day-info">
+            <div class="day-header-split">
+                <div class="day-header-left">
+                    <div class="day-header-day-number">${dayNumber}</div>
+                    <div class="day-header-info">
                         <h2 contenteditable="true">${dayTitle}</h2>
                         <p contenteditable="true">${dayDescription}</p>
+                        ${fromLocation && toLocation ? `
+                            <div class="day-header-route">
+                                <div class="route-locations">
+                                    <span class="route-from"><i class="fas fa-map-marker-alt"></i> ${fromLocation}</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                    <span class="route-to"><i class="fas fa-map-marker-alt"></i> ${toLocation}</span>
+                                </div>
+                                ${distance || travelTime ? `
+                                    <div class="route-details">
+                                        ${distance ? `<span class="route-distance"><i class="fas fa-road"></i> ${distance} km</span>` : ''}
+                                        ${travelTime ? `<span class="route-time"><i class="fas fa-clock"></i> ${travelTime}</span>` : ''}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="day-header-right">
+                    <div class="day-header-map-container">
+                        <div class="day-header-map" id="day-map-${header.id}"></div>
                     </div>
                 </div>
             </div>
@@ -2291,14 +2313,8 @@ class ComponentFactory {
             }
         }
 
-        // Initialize background
-        this.updateDayHeaderBackground(header);
-        
-        // Initialize mini roadmap
-        this.updateMiniRoadmap(header, dayNumber, header._destinations || destinations);
-        
-        // Apply initial display mode
-        setTimeout(() => this.applyDayDisplayMode(header, displayMode), 100);
+        // Initialize map in the right panel
+        setTimeout(() => this.initializeDayHeaderMap(header), 100);
 
         this.makeSelectable(header);
         return header;
@@ -2375,12 +2391,13 @@ class ComponentFactory {
                             src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1"
                             frameborder="0"
                             allow="autoplay; encrypted-media"
-                            style="position: absolute; top: 50%; left: 50%; width: 100vw; height: 100vh; transform: translate(-50%, -50%); pointer-events: none;"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; object-fit: cover;"
                         ></iframe>
                     `;
                     console.log('[Day Header BG] Applied video:', videoId);
                 } else {
                     console.warn('[Day Header BG] No video ID set!');
+                    bgLayer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:white;background:rgba(0,0,0,0.3);font-size:14px;">🎬 Klik "Video Kiezen" om een achtergrond video te selecteren</div>';
                 }
                 break;
         }

@@ -1384,14 +1384,54 @@ class WebsiteBuilder {
                     
                     // Add items to timeline with day headers
                     let currentDay = -1;
-                    timelineItems.forEach(item => {
+                    timelineItems.forEach((item, idx) => {
                         // Add day header if new day
                         if (item.day !== currentDay && item.day > 0) {
                             currentDay = item.day;
+                            
+                            // Find from/to locations for this day
+                            let fromLocation = '';
+                            let toLocation = '';
+                            let distance = '';
+                            let travelTime = '';
+                            
+                            // Get transport info for this day
+                            const dayTransport = transports.find(t => t.day === currentDay);
+                            if (dayTransport) {
+                                const firstSegment = dayTransport.segment && dayTransport.segment[0];
+                                fromLocation = firstSegment?.departureAirportName || dayTransport.originCode || '';
+                                toLocation = firstSegment?.arrivalAirportName || dayTransport.targetCode || '';
+                                travelTime = dayTransport.duration || '';
+                            }
+                            
+                            // Get destination info for this day
+                            const dayDestination = consolidatedDestinations.find(d => d.fromDay === currentDay);
+                            if (dayDestination) {
+                                if (!fromLocation && idx > 0) {
+                                    // Use previous destination as from
+                                    const prevDest = consolidatedDestinations.find(d => d.toDay === currentDay - 1);
+                                    fromLocation = prevDest?.name || '';
+                                }
+                                toLocation = dayDestination.name || toLocation;
+                                
+                                // Check if there's distance/duration data (for road trips)
+                                if (dayDestination.distance) {
+                                    distance = dayDestination.distance;
+                                }
+                                if (dayDestination.duration && !travelTime) {
+                                    travelTime = dayDestination.duration;
+                                }
+                            }
+                            
                             const dayHeader = ComponentFactory.createComponent('travel-day-header', {
                                 dayNumber: currentDay,
                                 dayTitle: `Dag ${currentDay}`,
-                                dayDescription: ''
+                                dayDescription: '',
+                                fromLocation: fromLocation,
+                                toLocation: toLocation,
+                                distance: distance,
+                                travelTime: travelTime,
+                                destinations: destinationsWithCoords
                             });
                             if (dayHeader) timeline.appendChild(dayHeader);
                         }

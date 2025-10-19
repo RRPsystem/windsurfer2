@@ -181,12 +181,13 @@ class PropertiesPanel {
         });
 
         // Overlay Opacity
-        this.createRangeInput('Overlay Transparantie (%)', (component._overlayOpacity || 0.5) * 100, 0, 100, (value) => {
-            component._overlayOpacity = value / 100;
+        this.createRangeInput('Overlay Transparantie (%)', String(Math.round((component._overlayOpacity || 0.5) * 100)), '0', '100', '1', (value) => {
+            const numValue = parseInt(value, 10) || 0;
+            component._overlayOpacity = numValue / 100;
             const overlay = component.querySelector('.day-header-overlay');
             if (overlay) {
                 const color = component._overlayColor || '#000000';
-                overlay.style.background = this.hexToRgba(color, value / 100);
+                overlay.style.background = this.hexToRgba(color, numValue / 100);
             }
         });
 
@@ -202,41 +203,36 @@ class PropertiesPanel {
         // Title Color
         this.createColorInput('Titel Kleur', component._titleColor || '#ffffff', (value) => {
             component._titleColor = value;
-            const h2 = component.querySelector('h2');
+            const h2 = component.querySelector('.day-header-info h2');
             if (h2) h2.style.color = value;
         });
 
         // Title Size
-        this.createRangeInput('Titel Grootte (px)', parseInt(component._titleSize) || 28, 16, 60, (value) => {
-            component._titleSize = value + 'px';
-            const h2 = component.querySelector('h2');
-            if (h2) h2.style.fontSize = value + 'px';
+        const titleSizeValue = parseInt(component._titleSize) || 24;
+        this.createRangeInput('Titel Grootte (px)', String(titleSizeValue), '16', '60', '1px', (value) => {
+            component._titleSize = value;
+            const h2 = component.querySelector('.day-header-info h2');
+            if (h2) {
+                h2.style.fontSize = value;
+                console.log('[Title Size]', value, h2);
+            }
         });
 
         // Subtitle Color
         this.createColorInput('Subtitel Kleur', component._subtitleColor || '#ffffff', (value) => {
             component._subtitleColor = value;
-            const p = component.querySelector('p');
+            const p = component.querySelector('.day-header-info p');
             if (p) p.style.color = value;
         });
 
         // Subtitle Size
-        this.createRangeInput('Subtitel Grootte (px)', parseInt(component._subtitleSize) || 16, 12, 32, (value) => {
-            component._subtitleSize = value + 'px';
-            const p = component.querySelector('p');
-            if (p) p.style.fontSize = value + 'px';
-        });
-
-        // Display Mode Selector
-        const currentMode = component._displayMode || 'standard';
-        this.createSelectInput('Weergave Modus', currentMode, [
-            { value: 'standard', label: '📋 Standaard - Volledig' },
-            { value: 'accordion', label: '📁 Harmonica - Inklapbaar' },
-            { value: 'compact', label: '📦 Compact - Alleen titels' }
-        ], (value) => {
-            component._displayMode = value;
-            if (window.ComponentFactory?.applyDayDisplayMode) {
-                window.ComponentFactory.applyDayDisplayMode(component, value);
+        const subtitleSizeValue = parseInt(component._subtitleSize) || 14;
+        this.createRangeInput('Subtitel Grootte (px)', String(subtitleSizeValue), '12', '32', '1px', (value) => {
+            component._subtitleSize = value;
+            const p = component.querySelector('.day-header-info p');
+            if (p) {
+                p.style.fontSize = value;
+                console.log('[Subtitle Size]', value, p);
             }
         });
 
@@ -249,8 +245,9 @@ class PropertiesPanel {
         info.style.borderRadius = '6px';
         info.style.marginTop = '12px';
         info.innerHTML = `
-            <strong>🗺️ Mini Roadmap:</strong> Toont automatisch de route met gekleurde bolletjes!<br>
-            <strong>📸 Achtergrond:</strong> Kies tussen gradient, foto, kaart of video
+            <strong>🗺️ Nieuwe Layout:</strong> Links zie je de dag info met van-naar locaties, rechts de route kaart!<br>
+            <strong>🚗 Auto Rondreizen:</strong> Km en reistijd worden automatisch getoond als beschikbaar<br>
+            <strong>📍 Route Kaart:</strong> Toont automatisch de route met bestemmingen uit Travel Compositor
         `;
         this.panel.appendChild(info);
     }
