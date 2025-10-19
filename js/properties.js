@@ -3572,26 +3572,29 @@ class PropertiesPanel {
         hintOverlap.textContent = 'Overlap: schuif dit blok iets onder het vorige (negatieve waarde = omhoog).';
         this.panel.appendChild(hintOverlap);
 
-        // Background color (section)
-        this.createColorInput('Achtergrondkleur sectie', component.style.backgroundColor || '#ffffff', (value) => {
-            component.style.backgroundColor = value;
-        });
+        // Background color (section) - Skip for travel-day-header (has own background system)
+        const componentType = component.dataset.wbComponent || component.dataset.component || '';
+        if (componentType !== 'travel-day-header') {
+            this.createColorInput('Achtergrondkleur sectie', component.style.backgroundColor || '#ffffff', (value) => {
+                component.style.backgroundColor = value;
+            });
 
-        // Background image (section)
-        const bgMediaBtn = this.createButton('Sectie achtergrond (Media)', async () => {
-            if (!window.MediaPicker) { alert('Media Picker niet geladen. Ververs de pagina.'); return; }
-            const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
-            const src = (res && (res.fullUrl || res.regularUrl || res.url || res.dataUrl)) || '';
-            if (!src) return;
-            component.style.backgroundImage = `url("${src}")`;
-            component.style.backgroundSize = 'cover';
-            component.style.backgroundPosition = 'center';
-        });
-        bgMediaBtn.style.backgroundColor = '#ff7700';
-        bgMediaBtn.style.borderColor = '#ff7700';
-        bgMediaBtn.style.color = '#fff';
-        bgMediaBtn.style.fontWeight = '700';
-        this.panel.appendChild(bgMediaBtn);
+            // Background image (section)
+            const bgMediaBtn = this.createButton('Sectie achtergrond (Media)', async () => {
+                if (!window.MediaPicker) { alert('Media Picker niet geladen. Ververs de pagina.'); return; }
+                const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
+                const src = (res && (res.fullUrl || res.regularUrl || res.url || res.dataUrl)) || '';
+                if (!src) return;
+                component.style.backgroundImage = `url("${src}")`;
+                component.style.backgroundSize = 'cover';
+                component.style.backgroundPosition = 'center';
+            });
+            bgMediaBtn.style.backgroundColor = '#ff7700';
+            bgMediaBtn.style.borderColor = '#ff7700';
+            bgMediaBtn.style.color = '#fff';
+            bgMediaBtn.style.fontWeight = '700';
+            this.panel.appendChild(bgMediaBtn);
+        }
 
         // Reset to defaults
         const resetBtn = this.createButton('Herstel standaard', () => {

@@ -26,6 +26,13 @@ class ExportManager {
     showPreview(evt) {
         // Open full web-based preview in a new tab using preview.html
         try {
+            // Save canvas content to sessionStorage for preview
+            const canvas = document.getElementById('canvas');
+            if (canvas && canvas.innerHTML) {
+                sessionStorage.setItem('wb_preview_content', canvas.innerHTML);
+                console.log('✅ Saved canvas content to sessionStorage');
+            }
+            
             const meta = getCurrentPageMeta();
             const slug = meta.slug || '';
             const params = new URLSearchParams();
@@ -45,15 +52,8 @@ class ExportManager {
             // Cache bust for dev
             params.set('v', 'preview-' + Date.now());
             const previewUrl = `preview.html?${params.toString()}`;
-            // Prefer anchor click over window.open to reduce popup blocking
-            const a = document.createElement('a');
-            a.href = previewUrl;
-            a.target = '_blank';
-            a.rel = 'noopener';
-            a.style.display = 'none';
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => { try { document.body.removeChild(a); } catch (e) {} }, 1000);
+            // Use window.open to maintain opener relationship
+            window.open(previewUrl, '_blank', 'noopener=no');
             return;
         } catch (e) {
             console.warn('Fallback inline preview due to error:', e);
