@@ -2452,21 +2452,46 @@ class ComponentFactory {
             return;
         }
 
+        // Get current day number
+        const dayNumberEl = header.querySelector('.day-header-day-number');
+        const currentDay = dayNumberEl ? parseInt(dayNumberEl.textContent) : 1;
+
         // Try to get destinations from header, or from Travel Hero
-        let destinations = header._destinations || [];
+        let allDestinations = header._destinations || [];
         
-        if (destinations.length === 0) {
+        if (allDestinations.length === 0) {
             // Try to find Travel Hero and get destinations from there
             const travelHero = document.querySelector('.wb-travel-hero');
             if (travelHero && travelHero._destinations) {
-                destinations = travelHero._destinations;
-                console.log('[Day Header Map] Using destinations from Travel Hero:', destinations.length);
+                allDestinations = travelHero._destinations;
+                console.log('[Day Header Map] Using destinations from Travel Hero:', allDestinations.length);
             }
         }
         
-        if (destinations.length === 0) {
+        if (allDestinations.length === 0) {
             console.warn('[Day Header Map] No destinations found!');
             mapContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:white;text-align:center;padding:20px;background:rgba(0,0,0,0.3);font-size:14px;">🗺️ Kaart wordt automatisch geladen met bestemmingen uit Travel Compositor</div>';
+            return;
+        }
+
+        // Filter destinations for this specific day
+        // Find destinations that are active on this day (fromDay <= currentDay <= toDay)
+        const dayDestinations = allDestinations.filter(d => 
+            d.fromDay <= currentDay && d.toDay >= currentDay
+        );
+        
+        // Also include previous day's destination as starting point
+        const prevDayDest = allDestinations.find(d => d.toDay === currentDay - 1);
+        
+        let routePoints = [];
+        if (prevDayDest && prevDayDest.latitude && prevDayDest.longitude) {
+            routePoints.push(prevDayDest);
+        }
+        routePoints = routePoints.concat(dayDestinations);
+
+        if (routePoints.length === 0) {
+            console.warn('[Day Header Map] No destinations for day', currentDay);
+            mapContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#666;text-align:center;padding:20px;font-size:14px;">🗺️ Geen route beschikbaar voor deze dag</div>';
             return;
         }
 
@@ -2486,18 +2511,46 @@ class ComponentFactory {
         }).addTo(map);
 
         // Add route line
-        const routeCoords = destinations.map(d => [d.latitude, d.longitude]);
-        L.polyline(routeCoords, {
-            color: '#ff6b6b',
-            weight: 3,
-            opacity: 0.8
-        }).addTo(map);
+        const routeCoords = routePoints.map(d => [d.latitude, d.longitude]);
+        if (routeCoords.length > 1) {
+            L.polyline(routeCoords, {
+                color: '#ff6b6b',
+                weight: 3,
+                opacity: 0.8
+            }).addTo(map);
+        }
+
+        // Add markers for start and end
+        if (routeCoords.length > 0) {
+            // Start marker (green)
+            L.circleMarker(routeCoords[0], {
+                radius: 8,
+                fillColor: '#10b981',
+                color: '#fff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.9
+            }).addTo(map);
+            
+            // End marker (red) - only if different from start
+            if (routeCoords.length > 1) {
+                L.circleMarker(routeCoords[routeCoords.length - 1], {
+                    radius: 8,
+                    fillColor: '#ef4444',
+                    color: '#fff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.9
+                }).addTo(map);
+            }
+        }
 
         // Fit bounds
         const bounds = L.latLngBounds(routeCoords);
-        map.fitBounds(bounds, { padding: [20, 20] });
+        map.fitBounds(bounds, { padding: [30, 30] });
 
         header._dayMap = map;
+        console.log('[Day Header Map] Created map for day', currentDay, 'with', routePoints.length, 'points');
     }
 
     static updateMiniRoadmap(header, currentDay, destinations) {
