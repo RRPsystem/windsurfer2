@@ -3964,6 +3964,7 @@ class ComponentFactory {
 
     // Travel Hero - with 5 style options
     static createTravelHero(options = {}) {
+        console.log('🔥 NIEUWE TRAVEL HERO CODE VERSIE 2.0 - 20 OKT 2025');
         const hero = document.createElement('div');
         hero.className = 'wb-component wb-travel-hero';
         hero.setAttribute('data-component', 'travel-hero');
