@@ -425,13 +425,67 @@ class PropertiesPanel {
         // Refresh Hero Button
         const refreshBtn = this.createButton('🔄 Ververs Hero Layout', () => {
             const currentValue = select?.value || 'timeline-slider';
-            // Trigger rebuild by switching style
-            if (select) {
-                const event = new Event('change');
-                select.dispatchEvent(event);
-            }
-            if (window.websiteBuilder?.showNotification) {
-                window.websiteBuilder.showNotification('Hero layout ververst!', 'success');
+            const title = h1?.textContent || 'Ierland Rondreis';
+            const subtitle = p?.textContent || '8 dagen door het groene eiland';
+            
+            // Force rebuild by changing to different style and back
+            if (preview && select) {
+                // First switch to a different style
+                const tempStyle = currentValue === 'interactive-map' ? 'timeline-slider' : 'interactive-map';
+                select.value = tempStyle;
+                
+                // Rebuild with temp style
+                if (tempStyle === 'timeline-slider') {
+                    preview.innerHTML = `
+                        <div class="timeline-slider-background" style="background-image: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600');"></div>
+                        <div class="timeline-slider-overlay"></div>
+                        <div class="travel-hero-content timeline-slider-header">
+                            <h1 contenteditable="true">${title}</h1>
+                            <p contenteditable="true">${subtitle}</p>
+                        </div>
+                        <div class="timeline-slider-container">
+                            <div class="timeline-slider-track" id="timeline-slider-${component.id}"></div>
+                            <button class="timeline-slider-prev"><i class="fas fa-chevron-left"></i></button>
+                            <button class="timeline-slider-next"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    `;
+                    setTimeout(() => {
+                        if (window.ComponentFactory?.initializeTimelineSlider) {
+                            const destinations = this.getDestinationsFromTimeline();
+                            window.ComponentFactory.initializeTimelineSlider(component, destinations);
+                        }
+                    }, 100);
+                }
+                
+                // Then switch back to original
+                setTimeout(() => {
+                    select.value = currentValue;
+                    if (currentValue === 'timeline-slider') {
+                        preview.innerHTML = `
+                            <div class="timeline-slider-background" style="background-image: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600');"></div>
+                            <div class="timeline-slider-overlay"></div>
+                            <div class="travel-hero-content timeline-slider-header">
+                                <h1 contenteditable="true">${title}</h1>
+                                <p contenteditable="true">${subtitle}</p>
+                            </div>
+                            <div class="timeline-slider-container">
+                                <div class="timeline-slider-track" id="timeline-slider-${component.id}"></div>
+                                <button class="timeline-slider-prev"><i class="fas fa-chevron-left"></i></button>
+                                <button class="timeline-slider-next"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                        `;
+                        setTimeout(() => {
+                            if (window.ComponentFactory?.initializeTimelineSlider) {
+                                const destinations = this.getDestinationsFromTimeline();
+                                window.ComponentFactory.initializeTimelineSlider(component, destinations);
+                            }
+                        }, 100);
+                    }
+                    
+                    if (window.websiteBuilder?.showNotification) {
+                        window.websiteBuilder.showNotification('Hero layout ververst!', 'success');
+                    }
+                }, 200);
             }
         });
         refreshBtn.style.background = '#10b981';
