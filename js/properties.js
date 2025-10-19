@@ -133,35 +133,98 @@ class PropertiesPanel {
         }
         
         if (currentBgType === 'video') {
-            // Video URL input
-            this.createTextInput('YouTube Video ID', component._backgroundVideo || '', (value) => {
-                component._backgroundVideo = value;
+            // Video Media Selector button
+            const videoBtn = this.createButton('🎬 Video Kiezen (Media)', async () => {
+                if (!window.MediaPicker) {
+                    alert('Media Picker niet beschikbaar');
+                    return;
+                }
+                const res = await window.MediaPicker.openVideo({ defaultTab: 'youtube' });
+                if (!res || !res.videoId) return;
+                
+                component._backgroundVideo = res.videoId;
                 window.ComponentFactory?.updateDayHeaderBackground(component);
             });
+            videoBtn.style.background = '#8b5cf6';
+            videoBtn.style.color = 'white';
+            videoBtn.style.marginBottom = '12px';
+            this.panel.appendChild(videoBtn);
             
             const videoInfo = document.createElement('div');
             videoInfo.style.fontSize = '12px';
             videoInfo.style.color = '#6b7280';
             videoInfo.style.padding = '8px';
-            videoInfo.style.background = '#fef3c7';
+            videoInfo.style.background = '#f0f9ff';
             videoInfo.style.borderRadius = '6px';
             videoInfo.style.marginBottom = '12px';
-            videoInfo.innerHTML = '💡 Tip: Gebruik alleen het video ID (bijv. "dQw4w9WgXcQ")';
+            videoInfo.innerHTML = '🎬 Kies een YouTube video als achtergrond';
             this.panel.appendChild(videoInfo);
         }
 
-        // Overlay Opacity
-        this.createRangeInput('Overlay Donkerheid', (component._overlayOpacity || 0.5) * 100, 0, 100, (value) => {
-            component._overlayOpacity = value / 100;
+        // === OVERLAY INSTELLINGEN ===
+        const overlayHeader = document.createElement('h5');
+        overlayHeader.textContent = '🎨 Overlay';
+        overlayHeader.style.marginTop = '20px';
+        overlayHeader.style.marginBottom = '12px';
+        overlayHeader.style.fontSize = '14px';
+        overlayHeader.style.fontWeight = '600';
+        this.panel.appendChild(overlayHeader);
+
+        // Overlay Color
+        this.createColorInput('Overlay Kleur', component._overlayColor || '#000000', (value) => {
+            component._overlayColor = value;
             const overlay = component.querySelector('.day-header-overlay');
-            if (overlay) overlay.style.opacity = value / 100;
+            if (overlay) {
+                const opacity = component._overlayOpacity || 0.5;
+                overlay.style.background = this.hexToRgba(value, opacity);
+            }
         });
 
-        // Text Color
-        this.createColorInput('Tekst Kleur', component._textColor || '#ffffff', (value) => {
-            component._textColor = value;
-            const foreground = component.querySelector('.day-header-foreground');
-            if (foreground) foreground.style.color = value;
+        // Overlay Opacity
+        this.createRangeInput('Overlay Transparantie (%)', (component._overlayOpacity || 0.5) * 100, 0, 100, (value) => {
+            component._overlayOpacity = value / 100;
+            const overlay = component.querySelector('.day-header-overlay');
+            if (overlay) {
+                const color = component._overlayColor || '#000000';
+                overlay.style.background = this.hexToRgba(color, value / 100);
+            }
+        });
+
+        // === TEKST INSTELLINGEN ===
+        const textHeader = document.createElement('h5');
+        textHeader.textContent = '✏️ Tekst Styling';
+        textHeader.style.marginTop = '20px';
+        textHeader.style.marginBottom = '12px';
+        textHeader.style.fontSize = '14px';
+        textHeader.style.fontWeight = '600';
+        this.panel.appendChild(textHeader);
+
+        // Title Color
+        this.createColorInput('Titel Kleur', component._titleColor || '#ffffff', (value) => {
+            component._titleColor = value;
+            const h2 = component.querySelector('h2');
+            if (h2) h2.style.color = value;
+        });
+
+        // Title Size
+        this.createRangeInput('Titel Grootte (px)', parseInt(component._titleSize) || 28, 16, 60, (value) => {
+            component._titleSize = value + 'px';
+            const h2 = component.querySelector('h2');
+            if (h2) h2.style.fontSize = value + 'px';
+        });
+
+        // Subtitle Color
+        this.createColorInput('Subtitel Kleur', component._subtitleColor || '#ffffff', (value) => {
+            component._subtitleColor = value;
+            const p = component.querySelector('p');
+            if (p) p.style.color = value;
+        });
+
+        // Subtitle Size
+        this.createRangeInput('Subtitel Grootte (px)', parseInt(component._subtitleSize) || 16, 12, 32, (value) => {
+            component._subtitleSize = value + 'px';
+            const p = component.querySelector('p');
+            if (p) p.style.fontSize = value + 'px';
         });
 
         // Display Mode Selector
@@ -3812,6 +3875,14 @@ class PropertiesPanel {
         
         group.appendChild(labelEl);
         return group;
+    }
+
+    hexToRgba(hex, alpha) {
+        // Convert hex to RGB
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 }
 
