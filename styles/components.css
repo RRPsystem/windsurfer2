@@ -2184,6 +2184,7 @@ margin-top: 2px;
     position: relative;
     width: 100%;
     height: 100%;
+    min-height: 200px;
 }
 
 /* New split layout */
@@ -2384,6 +2385,7 @@ margin-top: 2px;
     left: 0;
     width: 100%;
     height: 100%;
+    min-height: 200px;
     z-index: 1;
 }
 
@@ -2393,6 +2395,7 @@ margin-top: 2px;
     left: 0;
     width: 100%;
     height: 100%;
+    min-height: 200px;
     /* No default background - set via JS */
 }
 

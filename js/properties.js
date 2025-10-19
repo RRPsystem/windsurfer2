@@ -203,7 +203,7 @@ class PropertiesPanel {
         // Title Color
         this.createColorInput('Titel Kleur', component._titleColor || '#ffffff', (value) => {
             component._titleColor = value;
-            const h2 = component.querySelector('.day-header-info h2');
+            const h2 = component.querySelector('.day-header-info h2') || component.querySelector('.day-header-text h2');
             if (h2) h2.style.color = value;
         });
 
@@ -211,7 +211,7 @@ class PropertiesPanel {
         const titleSizeValue = parseInt(component._titleSize) || 24;
         this.createRangeInput('Titel Grootte (px)', String(titleSizeValue), '16', '60', '1px', (value) => {
             component._titleSize = value;
-            const h2 = component.querySelector('.day-header-info h2');
+            const h2 = component.querySelector('.day-header-info h2') || component.querySelector('.day-header-text h2');
             if (h2) {
                 h2.style.fontSize = value;
                 console.log('[Title Size]', value, h2);
@@ -221,7 +221,7 @@ class PropertiesPanel {
         // Subtitle Color
         this.createColorInput('Subtitel Kleur', component._subtitleColor || '#ffffff', (value) => {
             component._subtitleColor = value;
-            const p = component.querySelector('.day-header-info p');
+            const p = component.querySelector('.day-header-info p') || component.querySelector('.day-header-text p');
             if (p) p.style.color = value;
         });
 
@@ -229,7 +229,7 @@ class PropertiesPanel {
         const subtitleSizeValue = parseInt(component._subtitleSize) || 14;
         this.createRangeInput('Subtitel Grootte (px)', String(subtitleSizeValue), '12', '32', '1px', (value) => {
             component._subtitleSize = value;
-            const p = component.querySelector('.day-header-info p');
+            const p = component.querySelector('.day-header-info p') || component.querySelector('.day-header-text p');
             if (p) {
                 p.style.fontSize = value;
                 console.log('[Subtitle Size]', value, p);
