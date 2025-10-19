@@ -133,6 +133,12 @@ class PropertiesPanel {
         }
         
         if (currentBgType === 'video') {
+            // Direct YouTube URL/ID input
+            this.createTextInput('YouTube Video ID of URL', component._backgroundVideo || '', (value) => {
+                component._backgroundVideo = value;
+                window.ComponentFactory?.updateDayHeaderBackground(component);
+            });
+            
             // Video Media Selector button
             const videoBtn = this.createButton('🎬 Video Kiezen (Media)', async () => {
                 if (!window.MediaPicker) {
@@ -144,6 +150,8 @@ class PropertiesPanel {
                 
                 component._backgroundVideo = res.videoId;
                 window.ComponentFactory?.updateDayHeaderBackground(component);
+                // Refresh properties to show the video ID
+                this.showProperties(component);
             });
             videoBtn.style.background = '#8b5cf6';
             videoBtn.style.color = 'white';
@@ -157,7 +165,7 @@ class PropertiesPanel {
             videoInfo.style.background = '#f0f9ff';
             videoInfo.style.borderRadius = '6px';
             videoInfo.style.marginBottom = '12px';
-            videoInfo.innerHTML = '🎬 Kies een YouTube video als achtergrond';
+            videoInfo.innerHTML = '🎬 Plak een YouTube URL of kies een video uit de media bibliotheek.<br>Bijvoorbeeld: <code>dQw4w9WgXcQ</code> of <code>https://youtube.com/watch?v=dQw4w9WgXcQ</code>';
             this.panel.appendChild(videoInfo);
         }
 

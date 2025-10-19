@@ -2494,18 +2494,24 @@ class ComponentFactory {
             case 'video':
                 if (header._backgroundVideo) {
                     const videoId = header._backgroundVideo.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\?]+)/)?.[1] || header._backgroundVideo;
+                    console.log('[Day Header BG] Creating video iframe for:', videoId);
+                    bgLayer.style.position = 'absolute';
+                    bgLayer.style.top = '0';
+                    bgLayer.style.left = '0';
+                    bgLayer.style.width = '100%';
+                    bgLayer.style.height = '100%';
                     bgLayer.innerHTML = `
                         <iframe 
                             src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1"
                             frameborder="0"
                             allow="autoplay; encrypted-media"
-                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; object-fit: cover;"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
                         ></iframe>
                     `;
-                    console.log('[Day Header BG] Applied video:', videoId);
+                    console.log('[Day Header BG] Video iframe created');
                 } else {
                     console.warn('[Day Header BG] No video ID set!');
-                    bgLayer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:white;background:rgba(0,0,0,0.3);font-size:14px;">🎬 Klik "Video Kiezen" om een achtergrond video te selecteren</div>';
+                    bgLayer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#666;background:#f3f4f6;font-size:14px;">🎬 Klik "Video Kiezen" om een achtergrond video te selecteren</div>';
                 }
                 break;
         }
