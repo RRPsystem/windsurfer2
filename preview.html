@@ -6,28 +6,34 @@
   <title>Voorbeeld</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="stylesheet" href="styles/main.css">
-  <link rel="stylesheet" href="styles/components.css?v=20251018-23">
+  <link rel="stylesheet" href="styles/components.css?v=20251018-24">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    body{ background:#f3f4f6; margin:0; }
-    .pv-container{ max-width:1100px; margin:16px auto; padding:0 12px; }
-    .pv-panel{ background:#fff; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; }
-    .pv-main{ background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:16px; min-height:360px; }
+    body{ background:#fff; margin:0; padding:0; }
+    /* Header and footer full-width */
+    #pv-header, #pv-footer { width: 100%; }
+    /* Main content with max-width container like real site */
+    #pv-body { 
+      max-width: 1100px; 
+      margin: 0 auto; 
+      padding: 0 16px;
+    }
+    /* Remove builder-specific styles for real preview */
+    .wb-component { margin: 0 !important; }
+    .wb-travel-hero { margin-bottom: 0 !important; }
   </style>
 </head>
 <body>
-  <div class="pv-container">
-    <div id="pv-header" class="pv-panel"></div>
-    <main id="pv-body" class="pv-main"></main>
-    <div id="pv-footer" class="pv-panel" style="margin-top:12px;"></div>
-  </div>
+  <div id="pv-header"></div>
+  <main id="pv-body"></main>
+  <div id="pv-footer"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="js/fnClient.js?v=preview"></script>
   <script src="js/menuRender.js?v=preview"></script>
   <script src="js/layoutsBuilder.js?v=preview"></script>
   <script src="js/brandHydrator.js?v=preview"></script>
-  <script src="js/components.js?v=20251018-23"></script>
+  <script src="js/components.js?v=20251018-24"></script>
   <script src="js/previewPage.js?v=preview"></script>
   <script src="js/main.js?v=20251014-7" defer></script>
 </body>

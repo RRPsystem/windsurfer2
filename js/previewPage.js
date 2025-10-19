@@ -87,9 +87,9 @@
   const [headerHtml, pageHtml, footerHtml] = await Promise.all([
     fetchLayout('header'), fetchPageHtml(), fetchLayout('footer')
   ]);
-  document.getElementById('pv-header').innerHTML = headerHtml || '<div style="padding:12px;color:#64748b;">(Geen header)</div>';
-  document.getElementById('pv-body').innerHTML = pageHtml || '<div style="padding:12px;color:#64748b;">(Geen pagina)</div>';
-  document.getElementById('pv-footer').innerHTML = footerHtml || '<div style="padding:12px;color:#64748b;">(Geen footer)</div>';
+  document.getElementById('pv-header').innerHTML = headerHtml || '';
+  document.getElementById('pv-body').innerHTML = pageHtml || '<div style="padding:40px;text-align:center;color:#64748b;"><h2>Geen content</h2><p>Open preview vanuit de builder om je pagina te zien.</p></div>';
+  document.getElementById('pv-footer').innerHTML = footerHtml || '';
 
   // 4) Hydrate menus using BrandHydrator (header/footer contain nav[data-menu-key])
   try { await window.BrandHydrator.hydrate(); } catch (e){ console.warn('hydrate failed', e); }
