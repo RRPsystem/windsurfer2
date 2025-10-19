@@ -67,10 +67,33 @@ class PropertiesPanel {
             if (window.ComponentFactory?.updateDayHeaderBackground) {
                 window.ComponentFactory.updateDayHeaderBackground(component);
             }
+            // Refresh properties to show relevant controls
+            this.showProperties(component);
         });
 
-        // Background Image (if type is image)
+        // Background controls based on type
+        if (currentBgType === 'gradient') {
+            // Gradient color pickers
+            this.createColorInput('Gradient Start', component._gradientStart || '#667eea', (value) => {
+                component._gradientStart = value;
+                window.ComponentFactory?.updateDayHeaderBackground(component);
+            });
+            this.createColorInput('Gradient Eind', component._gradientEnd || '#764ba2', (value) => {
+                component._gradientEnd = value;
+                window.ComponentFactory?.updateDayHeaderBackground(component);
+            });
+        }
+        
+        if (currentBgType === 'color') {
+            // Single color picker
+            this.createColorInput('Achtergrondkleur', component._backgroundColor || '#667eea', (value) => {
+                component._backgroundColor = value;
+                window.ComponentFactory?.updateDayHeaderBackground(component);
+            });
+        }
+        
         if (currentBgType === 'image') {
+            // Image picker button
             const imgBtn = this.createButton('📸 Foto Kiezen', async () => {
                 if (!window.MediaPicker) {
                     alert('Media Picker niet beschikbaar');
@@ -90,13 +113,41 @@ class PropertiesPanel {
             imgBtn.style.marginBottom = '12px';
             this.panel.appendChild(imgBtn);
         }
-
-        // Background Video (if type is video)
+        
+        if (currentBgType === 'map') {
+            // Map description input
+            this.createTextInput('Route Beschrijving', component._mapDescription || 'Vandaag reizen we van Amsterdam naar Bangkok', (value) => {
+                component._mapDescription = value;
+            });
+            
+            // Map coordinates (optional)
+            const mapInfo = document.createElement('div');
+            mapInfo.style.fontSize = '12px';
+            mapInfo.style.color = '#6b7280';
+            mapInfo.style.padding = '8px';
+            mapInfo.style.background = '#f0f9ff';
+            mapInfo.style.borderRadius = '6px';
+            mapInfo.style.marginBottom = '12px';
+            mapInfo.innerHTML = '🗺️ De kaart toont automatisch de route met bestemmingen uit je dagkaarten!';
+            this.panel.appendChild(mapInfo);
+        }
+        
         if (currentBgType === 'video') {
-            this.createTextInput('YouTube URL/ID', component._backgroundVideo || '', (value) => {
+            // Video URL input
+            this.createTextInput('YouTube Video ID', component._backgroundVideo || '', (value) => {
                 component._backgroundVideo = value;
                 window.ComponentFactory?.updateDayHeaderBackground(component);
             });
+            
+            const videoInfo = document.createElement('div');
+            videoInfo.style.fontSize = '12px';
+            videoInfo.style.color = '#6b7280';
+            videoInfo.style.padding = '8px';
+            videoInfo.style.background = '#fef3c7';
+            videoInfo.style.borderRadius = '6px';
+            videoInfo.style.marginBottom = '12px';
+            videoInfo.innerHTML = '💡 Tip: Gebruik alleen het video ID (bijv. "dQw4w9WgXcQ")';
+            this.panel.appendChild(videoInfo);
         }
 
         // Overlay Opacity

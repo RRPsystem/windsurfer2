@@ -2314,7 +2314,9 @@ class ComponentFactory {
                 break;
             
             case 'gradient':
-                bgLayer.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                const gradStart = header._gradientStart || '#667eea';
+                const gradEnd = header._gradientEnd || '#764ba2';
+                bgLayer.style.background = `linear-gradient(135deg, ${gradStart} 0%, ${gradEnd} 100%)`;
                 break;
             
             case 'image':
