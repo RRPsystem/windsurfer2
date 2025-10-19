@@ -2271,12 +2271,15 @@ class ComponentFactory {
         const distance = options.distance || ''; // km for road trips
         const travelTime = options.travelTime || ''; // travel time
         
+        // Extract just the description from title if it contains "Dag X"
+        const titleText = dayTitle.replace(/^Dag\s+\d+\s*[-:]?\s*/i, '').trim() || dayTitle;
+        
         content.innerHTML = `
             <div class="day-header-split">
                 <div class="day-header-left">
                     <div class="day-header-day-number">${dayNumber}</div>
                     <div class="day-header-info">
-                        <h2 contenteditable="true">${dayTitle}</h2>
+                        <h2 contenteditable="true">${titleText || 'Dag ' + dayNumber}</h2>
                         <p contenteditable="true">${dayDescription}</p>
                         ${fromLocation && toLocation ? `
                             <div class="day-header-route">
