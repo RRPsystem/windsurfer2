@@ -1843,17 +1843,22 @@ class PropertiesPanel {
                 this.createHeroPageProperties(component);
                 break;
             case 'hero-travel-video':
-                // Add a prominent top-level media button for Hero video background
+                // Add Media Selector button for Hero video background
                 (function addTopHeroVideoMediaButton(self, comp){
-                    const btn = self.createButton('Video kiezen (YouTube ID)', async () => {
-                        const currentId = comp.querySelector('iframe')?.src?.match(/embed\/([^?]+)/)?.[1] || '';
-                        const newId = prompt('Voer YouTube video ID in:', currentId);
-                        if (!newId) return;
+                    const btn = self.createButton('🎬 Achtergrond kiezen (Media)', async () => {
+                        if (!window.MediaPicker) {
+                            alert('Media Picker niet beschikbaar');
+                            return;
+                        }
+                        
+                        const res = await window.MediaPicker.openVideo({ defaultTab: 'youtube' });
+                        if (!res || !res.videoId) return;
                         
                         const iframe = comp.querySelector('iframe');
                         const videoWrap = comp.querySelector('.hero-video');
                         if (iframe && videoWrap) {
-                            const start = parseInt(prompt('Start tijd (seconden, optioneel):', '0') || '0', 10);
+                            const newId = res.videoId;
+                            const start = 0; // Can be extended later
                             const baseUrl = `https://www.youtube.com/embed/${newId}`;
                             const common = `${start>0?`&start=${start}`:''}&mute=1&controls=0&playsinline=1`;
                             const isEditMode = !!(document.body?.dataset?.wbMode === 'edit');

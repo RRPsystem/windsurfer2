@@ -87,16 +87,33 @@ class MediaPicker {
         drawer.classList.add('open');
       });
 
-      const close = () => {
+      const close = (e) => {
+        if (e) e.stopPropagation();
         overlay.classList.remove('open');
         drawer.classList.remove('open');
         setTimeout(() => {
-          if (overlay.parentNode) document.body.removeChild(overlay);
-          if (drawer.parentNode) document.body.removeChild(drawer);
+          try {
+            if (overlay && overlay.parentNode) document.body.removeChild(overlay);
+            if (drawer && drawer.parentNode) document.body.removeChild(drawer);
+          } catch (err) {
+            console.warn('Media Picker close error:', err);
+          }
         }, 200);
+        resolve(null); // Resolve with null when closed
       };
-      header.querySelector('.mp-close').onclick = close;
-      overlay.onclick = close;
+      
+      const closeBtn = header.querySelector('.mp-close');
+      if (closeBtn) {
+        closeBtn.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          close(e);
+        };
+      }
+      
+      overlay.onclick = (e) => {
+        if (e.target === overlay) close(e);
+      };
 
       // Tabs behavior
       const tabs = Array.from(body.querySelectorAll('.tab-btn'));
