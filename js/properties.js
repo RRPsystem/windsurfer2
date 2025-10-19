@@ -423,42 +423,58 @@ class PropertiesPanel {
         const p = component.querySelector('.travel-hero-content p');
 
         // Refresh Hero Button - FORCE REBUILD
-        const refreshBtn = this.createButton('🔄 Herbouw Hero (Timeline Slider)', () => {
+        const refreshBtn = this.createButton('🔄 Herbouw Hero (Huidige Style)', () => {
             const title = h1?.textContent || 'Ierland Rondreis';
             const subtitle = p?.textContent || '8 dagen door het groene eiland';
+            const currentValue = select?.value || 'timeline-slider';
+            
+            console.log('[Herbouw Hero] Current style:', currentValue);
             
             if (preview) {
                 // FORCE complete rebuild
                 preview.innerHTML = '';
                 
                 setTimeout(() => {
-                    preview.innerHTML = `
-                        <div class="timeline-slider-background" style="background-image: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600');"></div>
-                        <div class="timeline-slider-overlay"></div>
-                        <div class="travel-hero-content timeline-slider-header">
-                            <h1 contenteditable="true">${title}</h1>
-                            <p contenteditable="true">${subtitle}</p>
-                        </div>
-                        <div class="timeline-slider-container">
-                            <div class="timeline-slider-track" id="timeline-slider-${component.id}"></div>
-                            <button class="timeline-slider-prev"><i class="fas fa-chevron-left"></i></button>
-                            <button class="timeline-slider-next"><i class="fas fa-chevron-right"></i></button>
-                        </div>
-                    `;
+                    if (currentValue === 'timeline-slider') {
+                        preview.innerHTML = `
+                            <div class="timeline-slider-background" style="background-image: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600');"></div>
+                            <div class="timeline-slider-overlay"></div>
+                            <div class="travel-hero-content timeline-slider-header">
+                                <h1 contenteditable="true">${title}</h1>
+                                <p contenteditable="true">${subtitle}</p>
+                            </div>
+                            <div class="timeline-slider-container">
+                                <div class="timeline-slider-track" id="timeline-slider-${component.id}"></div>
+                                <button class="timeline-slider-prev"><i class="fas fa-chevron-left"></i></button>
+                                <button class="timeline-slider-next"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                        `;
+                        setTimeout(() => {
+                            if (window.ComponentFactory?.initializeTimelineSlider) {
+                                const destinations = this.getDestinationsFromTimeline();
+                                window.ComponentFactory.initializeTimelineSlider(component, destinations);
+                            }
+                        }, 100);
+                    } else if (currentValue === 'video-overlay') {
+                        preview.innerHTML = `
+                            <div class="video-overlay-container">
+                                <div class="video-background" id="video-bg-${component.id}"></div>
+                                <div class="video-overlay-dark"></div>
+                            </div>
+                        `;
+                    }
                     
-                    if (select) select.value = 'timeline-slider';
-                    preview.setAttribute('data-style', 'timeline-slider');
+                    if (select) select.value = currentValue;
+                    preview.setAttribute('data-style', currentValue);
                     
+                    if (window.websiteBuilder?.showNotification) {
+                        window.websiteBuilder.showNotification('Hero herbouwd!', 'success');
+                    }
+                    
+                    // Refresh properties panel to show new controls
                     setTimeout(() => {
-                        if (window.ComponentFactory?.initializeTimelineSlider) {
-                            const destinations = this.getDestinationsFromTimeline();
-                            window.ComponentFactory.initializeTimelineSlider(component, destinations);
-                        }
-                        
-                        if (window.websiteBuilder?.showNotification) {
-                            window.websiteBuilder.showNotification('Hero herbouwd met nieuwe layout!', 'success');
-                        }
-                    }, 100);
+                        this.showProperties(component);
+                    }, 200);
                 }, 50);
             }
         });
