@@ -2290,19 +2290,17 @@ class ComponentFactory {
                         <div class="day-header-info">
                             <h2 contenteditable="true">${titleText || 'Dag ' + dayNumber}</h2>
                             <p contenteditable="true">${dayDescription}</p>
-                            ${fromLocation && toLocation ? `
+                            ${fromLocation || toLocation ? `
                                 <div class="day-header-route">
                                     <div class="route-locations">
-                                        <span class="route-from"><i class="fas fa-map-marker-alt"></i> ${fromLocation}</span>
-                                        <i class="fas fa-arrow-right"></i>
-                                        <span class="route-to"><i class="fas fa-map-marker-alt"></i> ${toLocation}</span>
+                                        ${fromLocation ? `<span class="route-from"><i class="fas fa-map-marker-alt"></i> ${fromLocation}</span>` : ''}
+                                        ${fromLocation && toLocation ? `<i class="fas fa-arrow-right"></i>` : ''}
+                                        ${toLocation ? `<span class="route-to"><i class="fas fa-map-marker-alt"></i> ${toLocation}</span>` : ''}
                                     </div>
-                                    ${distance || travelTime ? `
-                                        <div class="route-details">
-                                            ${distance ? `<span class="route-distance"><i class="fas fa-road"></i> ${distance} km</span>` : ''}
-                                            ${travelTime ? `<span class="route-time"><i class="fas fa-clock"></i> ${travelTime}</span>` : ''}
-                                        </div>
-                                    ` : ''}
+                                    <div class="route-details">
+                                        <span class="route-distance"><i class="fas fa-road"></i> ${distance || '...'} km</span>
+                                        <span class="route-time"><i class="fas fa-clock"></i> ${travelTime || '...'}</span>
+                                    </div>
                                 </div>
                             ` : ''}
                         </div>
@@ -2604,7 +2602,7 @@ class ComponentFactory {
             if (isCarRoute) {
                 // Try to get driving route
                 console.log('[Day Header Map] Fetching driving route...');
-                this.fetchDrivingRoute(routeCoords, map);
+                this.fetchDrivingRoute(routeCoords, map, header);
             } else {
                 // Draw straight line for flights
                 L.polyline(routeCoords, {
@@ -2661,17 +2659,13 @@ class ComponentFactory {
         return R * c;
     }
 
-    static async fetchDrivingRoute(routeCoords, map) {
+    static async fetchDrivingRoute(routeCoords, map, header) {
         if (routeCoords.length < 2) return;
         
         try {
             // Use OpenRouteService for driving directions
             const start = routeCoords[0];
             const end = routeCoords[routeCoords.length - 1];
-            
-            // Format: longitude,latitude for ORS
-            const coords = `${start[1]},${start[0]}|${end[1]},${end[0]}`;
-            const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=5b3ce3597851110001cf6248d5b0c7e3c3f04d6e9b5b3e3e3e3e3e3e&start=${start[1]},${start[0]}&end=${end[1]},${end[0]}`;
             
             // For now, use a simpler approach with OSRM (no API key needed)
             const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson`;
@@ -2690,9 +2684,31 @@ class ComponentFactory {
                     opacity: 0.8
                 }).addTo(map);
                 
-                // Calculate distance in km
+                // Calculate distance in km and duration
                 const distanceKm = (route.distance / 1000).toFixed(0);
-                console.log('[Day Header Map] Driving route:', distanceKm, 'km');
+                const durationMinutes = Math.round(route.duration / 60);
+                const hours = Math.floor(durationMinutes / 60);
+                const minutes = durationMinutes % 60;
+                const durationText = hours > 0 ? `${hours}u ${minutes}min` : `${minutes}min`;
+                
+                console.log('[Day Header Map] Driving route:', distanceKm, 'km,', durationText);
+                
+                // Update the header with distance and duration
+                if (header) {
+                    header._distance = distanceKm;
+                    header._travelTime = durationText;
+                    
+                    // Update the UI
+                    const distanceEl = header.querySelector('.route-distance');
+                    const timeEl = header.querySelector('.route-time');
+                    
+                    if (distanceEl) {
+                        distanceEl.innerHTML = `<i class="fas fa-road"></i> ${distanceKm} km`;
+                    }
+                    if (timeEl) {
+                        timeEl.innerHTML = `<i class="fas fa-clock"></i> ${durationText}`;
+                    }
+                }
                 
             } else {
                 // Fallback to straight line
