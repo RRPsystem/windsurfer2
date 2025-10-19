@@ -526,15 +526,8 @@ class PropertiesPanel {
                 } else if (value === 'video-overlay') {
                     preview.innerHTML = `
                         <div class="video-overlay-container">
-                            <div class="video-background" id="video-bg-${component.id}">
-                                <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&loop=1&playlist=dQw4w9WgXcQ&controls=0&showinfo=0&rel=0&modestbranding=1" frameborder="0" allow="autoplay; encrypted-media"></iframe>
-                            </div>
+                            <div class="video-background" id="video-bg-${component.id}"></div>
                             <div class="video-overlay-dark"></div>
-                            <div class="travel-hero-content video-overlay-content">
-                                <h1 contenteditable="true">${title}</h1>
-                                <p contenteditable="true">${subtitle}</p>
-                                <button class="hero-cta-button"><i class="fas fa-play-circle"></i> Bekijk Video</button>
-                            </div>
                         </div>
                     `;
                 } else if (value === 'parallax-photos') {
@@ -646,17 +639,49 @@ class PropertiesPanel {
             if (p) p.textContent = value;
         });
 
-        // Video URL for video-overlay style
+        // Video selector for video-overlay style
         if (currentStyle === 'video-overlay') {
-            const videoIframe = component.querySelector('.video-background iframe');
-            const currentVideoUrl = videoIframe?.src || '';
-            const videoId = currentVideoUrl.match(/embed\/([^?]+)/)?.[1] || '';
+            const videoContainer = component.querySelector('.video-background');
             
-            this.createTextInput('YouTube Video ID', videoId, (value) => {
-                if (videoIframe && value) {
-                    videoIframe.src = `https://www.youtube.com/embed/${value}?autoplay=1&mute=1&loop=1&playlist=${value}&controls=0&showinfo=0&rel=0&modestbranding=1`;
+            // Video Media Selector button
+            const videoBtn = this.createButton('🎬 Video Kiezen', async () => {
+                if (!window.MediaPicker) {
+                    alert('Media Picker niet beschikbaar');
+                    return;
+                }
+                const res = await window.MediaPicker.openVideo({ defaultTab: 'youtube' });
+                if (!res || !res.videoId) return;
+                
+                // Create iframe with autoplay
+                if (videoContainer) {
+                    videoContainer.innerHTML = `
+                        <iframe 
+                            src="https://www.youtube.com/embed/${res.videoId}?autoplay=1&mute=1&loop=1&playlist=${res.videoId}&controls=0&showinfo=0&rel=0&modestbranding=1"
+                            frameborder="0"
+                            allow="autoplay; encrypted-media"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+                        ></iframe>
+                    `;
+                }
+                
+                if (window.websiteBuilder?.showNotification) {
+                    window.websiteBuilder.showNotification('Video toegevoegd!', 'success');
                 }
             });
+            videoBtn.style.background = '#8b5cf6';
+            videoBtn.style.color = 'white';
+            videoBtn.style.marginBottom = '12px';
+            this.panel.appendChild(videoBtn);
+            
+            const videoInfo = document.createElement('div');
+            videoInfo.style.fontSize = '12px';
+            videoInfo.style.color = '#6b7280';
+            videoInfo.style.padding = '8px';
+            videoInfo.style.background = '#f0f9ff';
+            videoInfo.style.borderRadius = '6px';
+            videoInfo.style.marginBottom = '12px';
+            videoInfo.innerHTML = '🎬 Selecteer een YouTube video die automatisch afspeelt als achtergrond';
+            this.panel.appendChild(videoInfo);
         }
         
         // Photo selectors for parallax-photos style
