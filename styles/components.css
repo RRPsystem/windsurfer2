@@ -1691,14 +1691,61 @@ margin-top: 2px;
 }
 
 /* Timeline Slider Hero Style */
-.timeline-slider-container {
+.timeline-slider-background {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    height: 60%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 40px 0;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    z-index: 1;
+}
+
+.timeline-slider-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.6) 100%);
+    z-index: 2;
+}
+
+.timeline-slider-header {
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    color: white;
+    z-index: 3;
+    width: 90%;
+    max-width: 800px;
+}
+
+.timeline-slider-header h1 {
+    font-size: 56px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    color: white;
+}
+
+.timeline-slider-header p {
+    font-size: 22px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.95);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.timeline-slider-container {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    width: 100%;
+    padding: 0;
+    z-index: 3;
 }
 
 .timeline-slider-track {

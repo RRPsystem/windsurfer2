@@ -4014,6 +4014,12 @@ class ComponentFactory {
                             <p contenteditable="true">${subtitle}</p>
                         </div>
                     ` : currentStyle === 'timeline-slider' ? `
+                        <div class="timeline-slider-background" style="background-image: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600');"></div>
+                        <div class="timeline-slider-overlay"></div>
+                        <div class="travel-hero-content timeline-slider-header">
+                            <h1 contenteditable="true">${title}</h1>
+                            <p contenteditable="true">${subtitle}</p>
+                        </div>
                         <div class="timeline-slider-container">
                             <div class="timeline-slider-track" id="timeline-slider-${hero.id}">
                                 <!-- Day cards will be added here -->
@@ -4024,10 +4030,6 @@ class ComponentFactory {
                             <button class="timeline-slider-next">
                                 <i class="fas fa-chevron-right"></i>
                             </button>
-                        </div>
-                        <div class="travel-hero-content timeline-slider-content">
-                            <h1 contenteditable="true">${title}</h1>
-                            <p contenteditable="true">${subtitle}</p>
                         </div>
                     ` : currentStyle === 'video-overlay' ? `
                         <div class="video-overlay-container">
@@ -4359,15 +4361,46 @@ class ComponentFactory {
             }
         }
 
+        // Group consecutive destinations with same name
+        const groupedDestinations = [];
+        let currentGroup = null;
+        
+        destinations.forEach((dest, idx) => {
+            const dayNum = dest.fromDay || dest.day || idx + 1;
+            const name = dest.name;
+            
+            if (currentGroup && currentGroup.name === name) {
+                // Extend current group
+                currentGroup.toDay = dest.toDay || dayNum;
+            } else {
+                // Start new group
+                if (currentGroup) groupedDestinations.push(currentGroup);
+                currentGroup = {
+                    name: name,
+                    fromDay: dayNum,
+                    toDay: dest.toDay || dayNum,
+                    image: dest.image || dest.images?.[0] || 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800',
+                    originalIndex: idx
+                };
+            }
+        });
+        if (currentGroup) groupedDestinations.push(currentGroup);
+
         // Create day cards
         track.innerHTML = '';
-        destinations.forEach((dest, idx) => {
+        groupedDestinations.forEach((dest) => {
             const card = document.createElement('div');
             card.className = 'timeline-day-card';
+            
+            // Format day label
+            const dayLabel = dest.fromDay === dest.toDay 
+                ? `Dag ${dest.fromDay}` 
+                : `Dag ${dest.fromDay}-${dest.toDay}`;
+            
             card.innerHTML = `
-                <div class="timeline-day-image" style="background-image: url('${dest.image || dest.images?.[0] || 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800'}')"></div>
+                <div class="timeline-day-image" style="background-image: url('${dest.image}')"></div>
                 <div class="timeline-day-info">
-                    <div class="timeline-day-number">Dag ${dest.fromDay || dest.day || idx + 1}</div>
+                    <div class="timeline-day-number">${dayLabel}</div>
                     <div class="timeline-day-name">${dest.name}</div>
                 </div>
             `;
@@ -4377,7 +4410,7 @@ class ComponentFactory {
                 const timeline = document.querySelector('.wb-travel-timeline');
                 if (timeline) {
                     const dayHeaders = timeline.querySelectorAll('.wb-travel-day-header');
-                    const targetDay = dayHeaders[idx];
+                    const targetDay = dayHeaders[dest.originalIndex];
                     if (targetDay) {
                         targetDay.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
