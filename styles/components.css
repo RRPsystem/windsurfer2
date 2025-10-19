@@ -1683,7 +1683,7 @@ margin-top: 2px;
 /* Travel Hero */
 .wb-travel-hero {
     position: relative;
-    min-height: 500px;
+    min-height: 600px;
     background: #f8f9fa;
     overflow: hidden;
     border-radius: 12px;
@@ -1714,12 +1714,12 @@ margin-top: 2px;
 
 .timeline-slider-header {
     position: absolute;
-    top: 60px;
+    top: 80px;
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
     color: white;
-    z-index: 3;
+    z-index: 10;
     width: 90%;
     max-width: 800px;
 }
@@ -1727,25 +1727,26 @@ margin-top: 2px;
 .timeline-slider-header h1 {
     font-size: 56px;
     font-weight: 800;
-    margin-bottom: 12px;
-    text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    margin: 0 0 12px 0;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.5);
     color: white;
 }
 
 .timeline-slider-header p {
     font-size: 22px;
     font-weight: 500;
+    margin: 0;
     color: rgba(255,255,255,0.95);
-    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
 }
 
 .timeline-slider-container {
     position: absolute;
-    bottom: 40px;
+    bottom: 60px;
     left: 0;
     width: 100%;
     padding: 0;
-    z-index: 3;
+    z-index: 5;
 }
 
 .timeline-slider-track {
@@ -1789,19 +1790,23 @@ margin-top: 2px;
 .timeline-day-info {
     padding: 16px;
     text-align: center;
+    background: white;
 }
 
 .timeline-day-number {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: #667eea;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .timeline-day-name {
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 700;
     color: #1f2937;
+    margin: 0;
 }
 
 .timeline-slider-prev,
