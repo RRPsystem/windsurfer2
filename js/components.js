@@ -2249,7 +2249,7 @@ class ComponentFactory {
         const dayTitle = options.dayTitle || `Dag ${dayNumber}`;
         const dayDescription = options.dayDescription || 'Aankomst en check-in';
         const displayMode = options.displayMode || 'standard';
-        const backgroundType = options.backgroundType || 'gradient';
+        const backgroundType = options.backgroundType || 'image'; // Default to image instead of gradient
         const destinations = options.destinations || [];
 
         // Store settings
@@ -2258,7 +2258,8 @@ class ComponentFactory {
         header._backgroundColor = options.backgroundColor || '#667eea';
         header._backgroundImage = options.backgroundImage || '';
         header._backgroundVideo = options.backgroundVideo || '';
-        header._overlayOpacity = options.overlayOpacity || 0.3;
+        header._overlayOpacity = options.overlayOpacity || 0.5; // Higher default for better text readability
+        header._textColor = options.textColor || '#ffffff'; // Default white text
         header._destinations = destinations;
 
         const content = document.createElement('div');
@@ -2281,11 +2282,20 @@ class ComponentFactory {
         `;
         header.appendChild(content);
 
+        // Auto-fetch destinations from Travel Hero if not provided
+        if (destinations.length === 0) {
+            const travelHero = document.querySelector('.wb-travel-hero');
+            if (travelHero && travelHero._destinations && travelHero._destinations.length > 0) {
+                header._destinations = travelHero._destinations;
+                console.log('[Day Header] Auto-fetched destinations from Travel Hero:', travelHero._destinations.length);
+            }
+        }
+
         // Initialize background
         this.updateDayHeaderBackground(header);
         
         // Initialize mini roadmap
-        this.updateMiniRoadmap(header, dayNumber, destinations);
+        this.updateMiniRoadmap(header, dayNumber, header._destinations || destinations);
         
         // Apply initial display mode
         setTimeout(() => this.applyDayDisplayMode(header, displayMode), 100);

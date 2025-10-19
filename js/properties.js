@@ -151,10 +151,17 @@ class PropertiesPanel {
         }
 
         // Overlay Opacity
-        this.createRangeInput('Overlay Donkerheid', (component._overlayOpacity || 0.3) * 100, 0, 100, (value) => {
+        this.createRangeInput('Overlay Donkerheid', (component._overlayOpacity || 0.5) * 100, 0, 100, (value) => {
             component._overlayOpacity = value / 100;
             const overlay = component.querySelector('.day-header-overlay');
             if (overlay) overlay.style.opacity = value / 100;
+        });
+
+        // Text Color
+        this.createColorInput('Tekst Kleur', component._textColor || '#ffffff', (value) => {
+            component._textColor = value;
+            const foreground = component.querySelector('.day-header-foreground');
+            if (foreground) foreground.style.color = value;
         });
 
         // Display Mode Selector
