@@ -460,14 +460,16 @@ class PropertiesPanel {
                     }, 100);
                 } else if (value === 'timeline-slider') {
                     preview.innerHTML = `
+                        <div class="timeline-slider-background" style="background-image: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600');"></div>
+                        <div class="timeline-slider-overlay"></div>
+                        <div class="travel-hero-content timeline-slider-header">
+                            <h1 contenteditable="true">${title}</h1>
+                            <p contenteditable="true">${subtitle}</p>
+                        </div>
                         <div class="timeline-slider-container">
                             <div class="timeline-slider-track" id="timeline-slider-${component.id}"></div>
                             <button class="timeline-slider-prev"><i class="fas fa-chevron-left"></i></button>
                             <button class="timeline-slider-next"><i class="fas fa-chevron-right"></i></button>
-                        </div>
-                        <div class="travel-hero-content timeline-slider-content">
-                            <h1 contenteditable="true">${title}</h1>
-                            <p contenteditable="true">${subtitle}</p>
                         </div>
                     `;
                     setTimeout(() => {
