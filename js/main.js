@@ -1431,7 +1431,8 @@ class WebsiteBuilder {
                                 toLocation: toLocation,
                                 distance: distance,
                                 travelTime: travelTime,
-                                destinations: destinationsWithCoords
+                                destinations: destinationsWithCoords,
+                                backgroundType: 'map'
                             });
                             if (dayHeader) timeline.appendChild(dayHeader);
                         }

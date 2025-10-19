@@ -161,35 +161,37 @@ class PropertiesPanel {
             this.panel.appendChild(videoInfo);
         }
 
-        // === OVERLAY INSTELLINGEN ===
-        const overlayHeader = document.createElement('h5');
-        overlayHeader.textContent = '🎨 Overlay';
-        overlayHeader.style.marginTop = '20px';
-        overlayHeader.style.marginBottom = '12px';
-        overlayHeader.style.fontSize = '14px';
-        overlayHeader.style.fontWeight = '600';
-        this.panel.appendChild(overlayHeader);
+        // === OVERLAY INSTELLINGEN === (only for full card layouts)
+        if (currentBgType !== 'map' && currentBgType !== 'video') {
+            const overlayHeader = document.createElement('h5');
+            overlayHeader.textContent = '🎨 Overlay';
+            overlayHeader.style.marginTop = '20px';
+            overlayHeader.style.marginBottom = '12px';
+            overlayHeader.style.fontSize = '14px';
+            overlayHeader.style.fontWeight = '600';
+            this.panel.appendChild(overlayHeader);
 
-        // Overlay Color
-        this.createColorInput('Overlay Kleur', component._overlayColor || '#000000', (value) => {
-            component._overlayColor = value;
-            const overlay = component.querySelector('.day-header-overlay');
-            if (overlay) {
-                const opacity = component._overlayOpacity || 0.5;
-                overlay.style.background = this.hexToRgba(value, opacity);
-            }
-        });
+            // Overlay Color
+            this.createColorInput('Overlay Kleur', component._overlayColor || '#000000', (value) => {
+                component._overlayColor = value;
+                const overlay = component.querySelector('.day-header-overlay');
+                if (overlay) {
+                    const opacity = component._overlayOpacity || 0.5;
+                    overlay.style.background = this.hexToRgba(value, opacity);
+                }
+            });
 
-        // Overlay Opacity
-        this.createRangeInput('Overlay Transparantie (%)', String(Math.round((component._overlayOpacity || 0.5) * 100)), '0', '100', '1', (value) => {
-            const numValue = parseInt(value, 10) || 0;
-            component._overlayOpacity = numValue / 100;
-            const overlay = component.querySelector('.day-header-overlay');
-            if (overlay) {
-                const color = component._overlayColor || '#000000';
-                overlay.style.background = this.hexToRgba(color, numValue / 100);
-            }
-        });
+            // Overlay Opacity
+            this.createRangeInput('Overlay Transparantie (%)', String(Math.round((component._overlayOpacity || 0.5) * 100)), '0', '100', '1', (value) => {
+                const numValue = parseInt(value, 10) || 0;
+                component._overlayOpacity = numValue / 100;
+                const overlay = component.querySelector('.day-header-overlay');
+                if (overlay) {
+                    const color = component._overlayColor || '#000000';
+                    overlay.style.background = this.hexToRgba(color, numValue / 100);
+                }
+            });
+        }
 
         // === TEKST INSTELLINGEN ===
         const textHeader = document.createElement('h5');
