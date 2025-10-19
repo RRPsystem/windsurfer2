@@ -4033,21 +4033,8 @@ class ComponentFactory {
                         </div>
                     ` : currentStyle === 'video-overlay' ? `
                         <div class="video-overlay-container">
-                            <div class="video-background" id="video-bg-${hero.id}">
-                                <iframe 
-                                    src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&loop=1&playlist=dQw4w9WgXcQ&controls=0&showinfo=0&rel=0&modestbranding=1"
-                                    frameborder="0"
-                                    allow="autoplay; encrypted-media"
-                                ></iframe>
-                            </div>
+                            <div class="video-background" id="video-bg-${hero.id}"></div>
                             <div class="video-overlay-dark"></div>
-                            <div class="travel-hero-content video-overlay-content">
-                                <h1 contenteditable="true">${title}</h1>
-                                <p contenteditable="true">${subtitle}</p>
-                                <button class="hero-cta-button">
-                                    <i class="fas fa-play-circle"></i> Bekijk Video
-                                </button>
-                            </div>
                         </div>
                     ` : currentStyle === 'parallax-photos' ? `
                         <div class="parallax-photos-container" id="parallax-${hero.id}">
