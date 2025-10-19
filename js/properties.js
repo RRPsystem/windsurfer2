@@ -417,9 +417,68 @@ class PropertiesPanel {
     }
 
     createTravelHeroProperties(component) {
+        const select = component.querySelector('.travel-hero-style-select');
         const preview = component.querySelector('.travel-hero-preview');
         const h1 = component.querySelector('.travel-hero-content h1');
         const p = component.querySelector('.travel-hero-content p');
+
+        // Hero Style Selector
+        const currentStyle = select?.value || 'interactive-map';
+        this.createSelectInput('Hero Style', currentStyle, [
+            { value: 'interactive-map', label: '🗺️ Interactive Map' },
+            { value: 'image-hero', label: '📸 Image Hero' },
+            { value: 'video-hero', label: '🎬 Video Hero' }
+        ], (value) => {
+            if (select) select.value = value;
+            if (preview) {
+                preview.setAttribute('data-style', value);
+                
+                // Rebuild preview content based on style
+                const title = h1?.textContent || 'Ierland Rondreis';
+                const subtitle = p?.textContent || '8 dagen door het groene eiland';
+                
+                if (value === 'interactive-map') {
+                    preview.innerHTML = `
+                        <div class="travel-hero-map-container" id="hero-map-${component.id}"></div>
+                        <div class="travel-hero-overlay"></div>
+                        <div class="travel-hero-content">
+                            <h1 contenteditable="true">${title}</h1>
+                            <p contenteditable="true">${subtitle}</p>
+                        </div>
+                    `;
+                    // Reinitialize map
+                    setTimeout(() => {
+                        if (window.ComponentFactory?.initializeTravelHeroMap) {
+                            const destinations = this.getDestinationsFromTimeline();
+                            window.ComponentFactory.initializeTravelHeroMap(component, destinations);
+                        }
+                    }, 100);
+                } else if (value === 'image-hero') {
+                    preview.innerHTML = `
+                        <div class="image-hero-background" style="background-image: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600');"></div>
+                        <div class="image-hero-overlay"></div>
+                        <div class="travel-hero-content">
+                            <h1 contenteditable="true">${title}</h1>
+                            <p contenteditable="true">${subtitle}</p>
+                        </div>
+                    `;
+                } else if (value === 'video-hero') {
+                    preview.innerHTML = `
+                        <div class="video-hero-container">
+                            <div class="video-hero-background" id="video-bg-${component.id}"></div>
+                            <div class="video-hero-overlay"></div>
+                            <div class="travel-hero-content">
+                                <h1 contenteditable="true">${title}</h1>
+                                <p contenteditable="true">${subtitle}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Refresh properties to show style-specific controls
+                setTimeout(() => this.showProperties(component), 100);
+            }
+        });
 
         // Title
         this.createTextInput('Titel', h1?.textContent || '', (value) => {
@@ -431,16 +490,73 @@ class PropertiesPanel {
             if (p) p.textContent = value;
         });
 
-        // Info
-        const info = document.createElement('div');
-        info.style.fontSize = '12px';
-        info.style.color = '#6b7280';
-        info.style.padding = '8px';
-        info.style.background = '#f0f9ff';
-        info.style.borderRadius = '6px';
-        info.style.marginTop = '12px';
-        info.innerHTML = '🗺️ De kaart toont automatisch alle bestemmingen uit je timeline. Klik op de refresh knop in de toolbar om de kaart te verversen.';
-        this.panel.appendChild(info);
+        // Image selector for image-hero style
+        if (currentStyle === 'image-hero') {
+            const bgDiv = component.querySelector('.image-hero-background');
+            
+            const imgBtn = this.createButton('📸 Achtergrond Foto Kiezen', async () => {
+                if (!window.MediaPicker) {
+                    alert('Media Picker niet beschikbaar');
+                    return;
+                }
+                const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
+                const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
+                if (src && bgDiv) {
+                    bgDiv.style.backgroundImage = `url('${src}')`;
+                    if (window.websiteBuilder?.showNotification) {
+                        window.websiteBuilder.showNotification('Foto toegevoegd!', 'success');
+                    }
+                }
+            });
+            imgBtn.style.background = '#667eea';
+            imgBtn.style.color = 'white';
+            imgBtn.style.marginBottom = '12px';
+            this.panel.appendChild(imgBtn);
+        }
+
+        // Video selector for video-hero style
+        if (currentStyle === 'video-hero') {
+            const videoContainer = component.querySelector('.video-hero-background');
+            
+            const videoBtn = this.createButton('🎬 Video Kiezen', async () => {
+                if (!window.MediaPicker) {
+                    alert('Media Picker niet beschikbaar');
+                    return;
+                }
+                const res = await window.MediaPicker.openVideo({ defaultTab: 'youtube' });
+                if (!res || !res.videoId) return;
+                
+                // Create iframe with autoplay
+                if (videoContainer) {
+                    videoContainer.innerHTML = `
+                        <iframe 
+                            src="https://www.youtube.com/embed/${res.videoId}?autoplay=1&mute=1&loop=1&playlist=${res.videoId}&controls=0&showinfo=0&rel=0&modestbranding=1"
+                            frameborder="0"
+                            allow="autoplay; encrypted-media"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+                        ></iframe>
+                    `;
+                }
+                
+                if (window.websiteBuilder?.showNotification) {
+                    window.websiteBuilder.showNotification('Video toegevoegd!', 'success');
+                }
+            });
+            videoBtn.style.background = '#8b5cf6';
+            videoBtn.style.color = 'white';
+            videoBtn.style.marginBottom = '12px';
+            this.panel.appendChild(videoBtn);
+            
+            const videoInfo = document.createElement('div');
+            videoInfo.style.fontSize = '12px';
+            videoInfo.style.color = '#6b7280';
+            videoInfo.style.padding = '8px';
+            videoInfo.style.background = '#f0f9ff';
+            videoInfo.style.borderRadius = '6px';
+            videoInfo.style.marginBottom = '12px';
+            videoInfo.innerHTML = '🎬 Selecteer een YouTube video die automatisch afspeelt als achtergrond';
+            this.panel.appendChild(videoInfo);
+        }
     }
 
     createTravelHeroPropertiesOLD_BACKUP(component) {

@@ -3962,56 +3962,79 @@ class ComponentFactory {
         }
     }
 
-    // Travel Hero - ALLEEN Interactive Map
+    // Travel Hero - Interactive Map, Image, Video
     static createTravelHero(options = {}) {
-        console.log('🔥 TRAVEL HERO - INTERACTIVE MAP ONLY - 20 OKT 2025');
+        console.log('🔥 TRAVEL HERO V3 - MAP/IMAGE/VIDEO - 20 OKT 2025');
         const hero = document.createElement('div');
         hero.className = 'wb-component wb-travel-hero';
         hero.setAttribute('data-component', 'travel-hero');
         hero.id = this.generateId('travel_hero');
 
         const toolbar = this.createToolbar();
-        
-        // Add refresh button
-        const refreshBtn = document.createElement('button');
-        refreshBtn.className = 'toolbar-btn';
-        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
-        refreshBtn.title = 'Ververs kaart';
-        refreshBtn.onclick = (e) => {
-            e.stopPropagation();
-            this.refreshTravelHeroMap(hero);
-            if (window.websiteBuilder?.showNotification) {
-                window.websiteBuilder.showNotification('Kaart ververst!', 'success');
-            }
-        };
-        toolbar.insertBefore(refreshBtn, toolbar.firstChild);
-        
         hero.appendChild(toolbar);
         this.addTypeBadge(hero);
 
+        const currentStyle = options.style || 'interactive-map';
         const title = options.title || 'Ierland Rondreis';
         const subtitle = options.subtitle || '8 dagen door het groene eiland';
 
         const content = document.createElement('div');
         content.innerHTML = `
             <div class="travel-hero-container">
-                <div class="travel-hero-preview" data-style="interactive-map">
-                    <div class="travel-hero-map-container" id="hero-map-${hero.id}"></div>
-                    <div class="travel-hero-overlay"></div>
-                    <div class="travel-hero-content">
-                        <h1 contenteditable="true">${title}</h1>
-                        <p contenteditable="true">${subtitle}</p>
-                    </div>
+                <select class="travel-hero-style-select" style="display:none;">
+                    <option value="interactive-map" ${currentStyle === 'interactive-map' ? 'selected' : ''}>🗺️ Interactive Map</option>
+                    <option value="image-hero" ${currentStyle === 'image-hero' ? 'selected' : ''}>📸 Image Hero</option>
+                    <option value="video-hero" ${currentStyle === 'video-hero' ? 'selected' : ''}>🎬 Video Hero</option>
+                </select>
+                <div class="travel-hero-preview" data-style="${currentStyle}">
+                    ${this.getTravelHeroHTML(currentStyle, hero.id, title, subtitle)}
                 </div>
             </div>
         `;
         hero.appendChild(content);
 
-        // Initialize map
-        setTimeout(() => this.initializeTravelHeroMap(hero, options.destinations || []), 100);
+        // Initialize based on style
+        setTimeout(() => {
+            if (currentStyle === 'interactive-map') {
+                this.initializeTravelHeroMap(hero, options.destinations || []);
+            }
+        }, 100);
 
         this.makeSelectable(hero);
         return hero;
+    }
+
+    static getTravelHeroHTML(style, heroId, title, subtitle) {
+        if (style === 'interactive-map') {
+            return `
+                <div class="travel-hero-map-container" id="hero-map-${heroId}"></div>
+                <div class="travel-hero-overlay"></div>
+                <div class="travel-hero-content">
+                    <h1 contenteditable="true">${title}</h1>
+                    <p contenteditable="true">${subtitle}</p>
+                </div>
+            `;
+        } else if (style === 'image-hero') {
+            return `
+                <div class="image-hero-background" style="background-image: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600');"></div>
+                <div class="image-hero-overlay"></div>
+                <div class="travel-hero-content">
+                    <h1 contenteditable="true">${title}</h1>
+                    <p contenteditable="true">${subtitle}</p>
+                </div>
+            `;
+        } else if (style === 'video-hero') {
+            return `
+                <div class="video-hero-container">
+                    <div class="video-hero-background" id="video-bg-${heroId}"></div>
+                    <div class="video-hero-overlay"></div>
+                    <div class="travel-hero-content">
+                        <h1 contenteditable="true">${title}</h1>
+                        <p contenteditable="true">${subtitle}</p>
+                    </div>
+                </div>
+            `;
+        }
     }
 
     // VERWIJDER ALLE ANDERE HERO STYLES - we beginnen opnieuw
