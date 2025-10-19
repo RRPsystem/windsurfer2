@@ -1169,15 +1169,17 @@ class WebsiteBuilder {
                 }
             }
 
-            // 3. Add intro text
+            // 3. Add intro text - centered, no title
             if (description) {
                 try {
-                    const intro = ComponentFactory.createComponent('content-flex', {
-                        title: 'Over deze reis',
-                        body: `<p>${description}</p>`,
-                        layout: 'none'
+                    const intro = ComponentFactory.createComponent('text-block', {
+                        content: `<p style="text-align: center; font-size: 18px; line-height: 1.8; max-width: 800px; margin: 0 auto; color: #374151;">${description}</p>`
                     });
-                    if (intro) canvas.appendChild(intro);
+                    if (intro) {
+                        intro.style.padding = '40px 20px';
+                        intro.style.textAlign = 'center';
+                        canvas.appendChild(intro);
+                    }
                 } catch (e) {
                     console.warn('Failed to create intro', e);
                 }
