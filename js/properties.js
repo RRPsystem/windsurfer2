@@ -422,6 +422,23 @@ class PropertiesPanel {
         const h1 = component.querySelector('.travel-hero-content h1');
         const p = component.querySelector('.travel-hero-content p');
 
+        // Refresh Hero Button
+        const refreshBtn = this.createButton('🔄 Ververs Hero Layout', () => {
+            const currentValue = select?.value || 'timeline-slider';
+            // Trigger rebuild by switching style
+            if (select) {
+                const event = new Event('change');
+                select.dispatchEvent(event);
+            }
+            if (window.websiteBuilder?.showNotification) {
+                window.websiteBuilder.showNotification('Hero layout ververst!', 'success');
+            }
+        });
+        refreshBtn.style.background = '#10b981';
+        refreshBtn.style.color = 'white';
+        refreshBtn.style.marginBottom = '16px';
+        this.panel.appendChild(refreshBtn);
+
         // Hero Style Selector
         const currentStyle = select?.value || 'interactive-map';
         this.createSelectInput('Hero Style', currentStyle, [
