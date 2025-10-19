@@ -133,12 +133,6 @@ class PropertiesPanel {
         }
         
         if (currentBgType === 'video') {
-            // Direct YouTube URL/ID input
-            this.createTextInput('YouTube Video ID of URL', component._backgroundVideo || '', (value) => {
-                component._backgroundVideo = value;
-                window.ComponentFactory?.updateDayHeaderBackground(component);
-            });
-            
             // Video Media Selector button
             const videoBtn = this.createButton('🎬 Video Kiezen (Media)', async () => {
                 if (!window.MediaPicker) {
@@ -149,14 +143,26 @@ class PropertiesPanel {
                 if (!res || !res.videoId) return;
                 
                 component._backgroundVideo = res.videoId;
+                console.log('[Properties] Video selected:', res.videoId);
                 window.ComponentFactory?.updateDayHeaderBackground(component);
-                // Refresh properties to show the video ID
-                this.showProperties(component);
             });
             videoBtn.style.background = '#8b5cf6';
             videoBtn.style.color = 'white';
             videoBtn.style.marginBottom = '12px';
             this.panel.appendChild(videoBtn);
+            
+            // Show current video if set
+            if (component._backgroundVideo) {
+                const currentVideo = document.createElement('div');
+                currentVideo.style.fontSize = '12px';
+                currentVideo.style.color = '#059669';
+                currentVideo.style.padding = '8px';
+                currentVideo.style.background = '#d1fae5';
+                currentVideo.style.borderRadius = '6px';
+                currentVideo.style.marginBottom = '12px';
+                currentVideo.innerHTML = `✅ Video geselecteerd: <code>${component._backgroundVideo}</code>`;
+                this.panel.appendChild(currentVideo);
+            }
             
             const videoInfo = document.createElement('div');
             videoInfo.style.fontSize = '12px';
@@ -165,7 +171,7 @@ class PropertiesPanel {
             videoInfo.style.background = '#f0f9ff';
             videoInfo.style.borderRadius = '6px';
             videoInfo.style.marginBottom = '12px';
-            videoInfo.innerHTML = '🎬 Plak een YouTube URL of kies een video uit de media bibliotheek.<br>Bijvoorbeeld: <code>dQw4w9WgXcQ</code> of <code>https://youtube.com/watch?v=dQw4w9WgXcQ</code>';
+            videoInfo.innerHTML = '🎬 Klik op de knop om een YouTube video te selecteren uit de media bibliotheek';
             this.panel.appendChild(videoInfo);
         }
 
