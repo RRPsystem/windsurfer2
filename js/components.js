@@ -2406,8 +2406,8 @@ class ComponentFactory {
         }
         
         if (destinations.length === 0) {
-            console.warn('[Day Header Map] No destinations found! Add destinations to Travel Hero first.');
-            mapContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:white;text-align:center;padding:20px;background:rgba(0,0,0,0.3);">🗺️ Voeg eerst bestemmingen toe aan de Travel Hero bovenaan de pagina</div>';
+            console.warn('[Day Header Map] No destinations found!');
+            mapContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:white;text-align:center;padding:20px;background:rgba(0,0,0,0.3);font-size:14px;">🗺️ Kaart wordt automatisch geladen met bestemmingen uit Travel Compositor</div>';
             return;
         }
 
