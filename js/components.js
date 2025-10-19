@@ -2567,14 +2567,14 @@ class ComponentFactory {
             return;
         }
 
-        // Create map
+        // Create map with zoom controls enabled
         const map = L.map(mapContainer.id, {
-            zoomControl: false,
+            zoomControl: true,
             attributionControl: false,
-            dragging: false,
-            scrollWheelZoom: false,
-            doubleClickZoom: false,
-            touchZoom: false
+            dragging: true,
+            scrollWheelZoom: true,
+            doubleClickZoom: true,
+            touchZoom: true
         });
 
         // Add tile layer
@@ -2584,12 +2584,25 @@ class ComponentFactory {
 
         // Add route line
         const routeCoords = routePoints.map(d => [d.latitude, d.longitude]);
+        
+        // Check if this is a car/road route by looking at transport type or distance
+        const isCarRoute = header._fromLocation && header._toLocation && 
+                          (header._distance || routePoints.some(p => p.transportType === 'car' || p.transportType === 'road'));
+        
         if (routeCoords.length > 1) {
-            L.polyline(routeCoords, {
-                color: '#ff6b6b',
-                weight: 3,
-                opacity: 0.8
-            }).addTo(map);
+            if (isCarRoute) {
+                // Try to get driving route from OpenRouteService
+                console.log('[Day Header Map] Fetching driving route...');
+                this.fetchDrivingRoute(routeCoords, map);
+            } else {
+                // Draw straight line for flights
+                L.polyline(routeCoords, {
+                    color: '#ff6b6b',
+                    weight: 3,
+                    opacity: 0.8,
+                    dashArray: '10, 10' // Dashed for flights
+                }).addTo(map);
+            }
         }
 
         // Add markers for start and end
@@ -2623,6 +2636,59 @@ class ComponentFactory {
 
         header._dayMap = map;
         console.log('[Day Header Map] Created map for day', currentDay, 'with', routePoints.length, 'points');
+    }
+
+    static async fetchDrivingRoute(routeCoords, map) {
+        if (routeCoords.length < 2) return;
+        
+        try {
+            // Use OpenRouteService for driving directions
+            const start = routeCoords[0];
+            const end = routeCoords[routeCoords.length - 1];
+            
+            // Format: longitude,latitude for ORS
+            const coords = `${start[1]},${start[0]}|${end[1]},${end[0]}`;
+            const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=5b3ce3597851110001cf6248d5b0c7e3c3f04d6e9b5b3e3e3e3e3e3e&start=${start[1]},${start[0]}&end=${end[1]},${end[0]}`;
+            
+            // For now, use a simpler approach with OSRM (no API key needed)
+            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson`;
+            
+            const response = await fetch(osrmUrl);
+            const data = await response.json();
+            
+            if (data.code === 'Ok' && data.routes && data.routes[0]) {
+                const route = data.routes[0];
+                const coordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                
+                // Draw the driving route
+                L.polyline(coordinates, {
+                    color: '#3b82f6',
+                    weight: 4,
+                    opacity: 0.8
+                }).addTo(map);
+                
+                // Calculate distance in km
+                const distanceKm = (route.distance / 1000).toFixed(0);
+                console.log('[Day Header Map] Driving route:', distanceKm, 'km');
+                
+            } else {
+                // Fallback to straight line
+                console.warn('[Day Header Map] Could not fetch driving route, using straight line');
+                L.polyline(routeCoords, {
+                    color: '#3b82f6',
+                    weight: 3,
+                    opacity: 0.8
+                }).addTo(map);
+            }
+        } catch (error) {
+            console.error('[Day Header Map] Error fetching driving route:', error);
+            // Fallback to straight line
+            L.polyline(routeCoords, {
+                color: '#3b82f6',
+                weight: 3,
+                opacity: 0.8
+            }).addTo(map);
+        }
     }
 
     static updateMiniRoadmap(header, currentDay, destinations) {
