@@ -2286,10 +2286,12 @@ class ComponentFactory {
             content.innerHTML = `
                 <div class="day-header-split">
                     <div class="day-header-left">
-                        <div class="day-header-day-number">${dayNumber}</div>
+                        <div class="day-header-top">
+                            <div class="day-header-day-number">${dayNumber}</div>
+                            <h2 contenteditable="true">Dag ${dayNumber}</h2>
+                        </div>
                         <div class="day-header-info">
-                            <h2 contenteditable="true">${titleText || 'Dag ' + dayNumber}</h2>
-                            <p contenteditable="true">${dayDescription}</p>
+                            <p class="day-header-subtitle" contenteditable="true">${dayDescription}</p>
                             ${fromLocation || toLocation ? `
                                 <div class="day-header-route">
                                     <div class="route-locations">
