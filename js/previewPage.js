@@ -34,12 +34,24 @@
 
   // 2) Fetch page HTML by slug (or fallback to local storage/opener)
   async function fetchPageHtml(){
-    // First try: get from opener window (if opened from builder)
+    // First try: sessionStorage (works even without opener)
+    try {
+      const stored = sessionStorage.getItem('wb_preview_content');
+      if (stored && stored.trim()) {
+        console.log('✅ Using content from sessionStorage');
+        sessionStorage.removeItem('wb_preview_content'); // Clean up
+        return stored;
+      }
+    } catch (e) {
+      console.warn('sessionStorage not available:', e);
+    }
+    
+    // Second try: get from opener window (if opened from builder)
     if (window.opener) {
       try {
         const canvas = window.opener.document.getElementById('canvas');
         if (canvas && canvas.innerHTML && canvas.innerHTML.trim()) {
-          console.log('✅ Using content from builder canvas');
+          console.log('✅ Using content from builder canvas (opener)');
           return canvas.innerHTML;
         } else {
           console.warn('Canvas is empty or not found');
