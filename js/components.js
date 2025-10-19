@@ -2299,24 +2299,45 @@ class ComponentFactory {
         const overlay = header.querySelector('.day-header-overlay');
         const bgType = header._backgroundType || 'gradient';
 
-        if (!bgLayer || !overlay) return;
+        console.log('[Day Header BG]', {
+            bgType,
+            hasLayer: !!bgLayer,
+            hasOverlay: !!overlay,
+            gradientStart: header._gradientStart,
+            gradientEnd: header._gradientEnd,
+            backgroundColor: header._backgroundColor,
+            backgroundImage: header._backgroundImage,
+            backgroundVideo: header._backgroundVideo
+        });
+
+        if (!bgLayer || !overlay) {
+            console.warn('[Day Header BG] Missing layers!', { bgLayer, overlay });
+            return;
+        }
 
         // Clear previous content
         bgLayer.innerHTML = '';
         bgLayer.style.background = '';
+        bgLayer.style.backgroundImage = '';
+        bgLayer.style.backgroundSize = '';
+        bgLayer.style.backgroundPosition = '';
 
         // Set overlay opacity
         overlay.style.opacity = header._overlayOpacity || 0.3;
 
         switch(bgType) {
             case 'color':
-                bgLayer.style.background = header._backgroundColor || '#667eea';
+                const color = header._backgroundColor || '#667eea';
+                bgLayer.style.background = color;
+                console.log('[Day Header BG] Applied color:', color);
                 break;
             
             case 'gradient':
                 const gradStart = header._gradientStart || '#667eea';
                 const gradEnd = header._gradientEnd || '#764ba2';
-                bgLayer.style.background = `linear-gradient(135deg, ${gradStart} 0%, ${gradEnd} 100%)`;
+                const gradient = `linear-gradient(135deg, ${gradStart} 0%, ${gradEnd} 100%)`;
+                bgLayer.style.background = gradient;
+                console.log('[Day Header BG] Applied gradient:', gradient);
                 break;
             
             case 'image':
@@ -2324,11 +2345,15 @@ class ComponentFactory {
                     bgLayer.style.backgroundImage = `url('${header._backgroundImage}')`;
                     bgLayer.style.backgroundSize = 'cover';
                     bgLayer.style.backgroundPosition = 'center';
+                    console.log('[Day Header BG] Applied image:', header._backgroundImage);
+                } else {
+                    console.warn('[Day Header BG] No image URL set!');
                 }
                 break;
             
             case 'map':
                 bgLayer.innerHTML = '<div class="day-header-map" id="day-map-' + header.id + '"></div>';
+                console.log('[Day Header BG] Creating map...');
                 setTimeout(() => this.initializeDayHeaderMap(header), 100);
                 break;
             
@@ -2343,6 +2368,9 @@ class ComponentFactory {
                             style="position: absolute; top: 50%; left: 50%; width: 100vw; height: 100vh; transform: translate(-50%, -50%); pointer-events: none;"
                         ></iframe>
                     `;
+                    console.log('[Day Header BG] Applied video:', videoId);
+                } else {
+                    console.warn('[Day Header BG] No video ID set!');
                 }
                 break;
         }
@@ -2350,10 +2378,28 @@ class ComponentFactory {
 
     static initializeDayHeaderMap(header) {
         const mapContainer = header.querySelector('.day-header-map');
-        if (!mapContainer || !window.L) return;
+        if (!mapContainer || !window.L) {
+            console.warn('[Day Header Map] Missing container or Leaflet');
+            return;
+        }
 
-        const destinations = header._destinations || [];
-        if (destinations.length === 0) return;
+        // Try to get destinations from header, or from Travel Hero
+        let destinations = header._destinations || [];
+        
+        if (destinations.length === 0) {
+            // Try to find Travel Hero and get destinations from there
+            const travelHero = document.querySelector('.wb-travel-hero');
+            if (travelHero && travelHero._destinations) {
+                destinations = travelHero._destinations;
+                console.log('[Day Header Map] Using destinations from Travel Hero:', destinations.length);
+            }
+        }
+        
+        if (destinations.length === 0) {
+            console.warn('[Day Header Map] No destinations found! Add destinations to Travel Hero first.');
+            mapContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:white;text-align:center;padding:20px;background:rgba(0,0,0,0.3);">🗺️ Voeg eerst bestemmingen toe aan de Travel Hero bovenaan de pagina</div>';
+            return;
+        }
 
         // Create map
         const map = L.map(mapContainer.id, {
