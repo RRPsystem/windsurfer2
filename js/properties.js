@@ -422,20 +422,16 @@ class PropertiesPanel {
         const h1 = component.querySelector('.travel-hero-content h1');
         const p = component.querySelector('.travel-hero-content p');
 
-        // Refresh Hero Button
-        const refreshBtn = this.createButton('🔄 Ververs Hero Layout', () => {
-            const currentValue = select?.value || 'timeline-slider';
+        // Refresh Hero Button - FORCE REBUILD
+        const refreshBtn = this.createButton('🔄 Herbouw Hero (Timeline Slider)', () => {
             const title = h1?.textContent || 'Ierland Rondreis';
             const subtitle = p?.textContent || '8 dagen door het groene eiland';
             
-            // Force rebuild by changing to different style and back
-            if (preview && select) {
-                // First switch to a different style
-                const tempStyle = currentValue === 'interactive-map' ? 'timeline-slider' : 'interactive-map';
-                select.value = tempStyle;
+            if (preview) {
+                // FORCE complete rebuild
+                preview.innerHTML = '';
                 
-                // Rebuild with temp style
-                if (tempStyle === 'timeline-slider') {
+                setTimeout(() => {
                     preview.innerHTML = `
                         <div class="timeline-slider-background" style="background-image: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600');"></div>
                         <div class="timeline-slider-overlay"></div>
@@ -449,43 +445,21 @@ class PropertiesPanel {
                             <button class="timeline-slider-next"><i class="fas fa-chevron-right"></i></button>
                         </div>
                     `;
+                    
+                    if (select) select.value = 'timeline-slider';
+                    preview.setAttribute('data-style', 'timeline-slider');
+                    
                     setTimeout(() => {
                         if (window.ComponentFactory?.initializeTimelineSlider) {
                             const destinations = this.getDestinationsFromTimeline();
                             window.ComponentFactory.initializeTimelineSlider(component, destinations);
                         }
+                        
+                        if (window.websiteBuilder?.showNotification) {
+                            window.websiteBuilder.showNotification('Hero herbouwd met nieuwe layout!', 'success');
+                        }
                     }, 100);
-                }
-                
-                // Then switch back to original
-                setTimeout(() => {
-                    select.value = currentValue;
-                    if (currentValue === 'timeline-slider') {
-                        preview.innerHTML = `
-                            <div class="timeline-slider-background" style="background-image: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600');"></div>
-                            <div class="timeline-slider-overlay"></div>
-                            <div class="travel-hero-content timeline-slider-header">
-                                <h1 contenteditable="true">${title}</h1>
-                                <p contenteditable="true">${subtitle}</p>
-                            </div>
-                            <div class="timeline-slider-container">
-                                <div class="timeline-slider-track" id="timeline-slider-${component.id}"></div>
-                                <button class="timeline-slider-prev"><i class="fas fa-chevron-left"></i></button>
-                                <button class="timeline-slider-next"><i class="fas fa-chevron-right"></i></button>
-                            </div>
-                        `;
-                        setTimeout(() => {
-                            if (window.ComponentFactory?.initializeTimelineSlider) {
-                                const destinations = this.getDestinationsFromTimeline();
-                                window.ComponentFactory.initializeTimelineSlider(component, destinations);
-                            }
-                        }, 100);
-                    }
-                    
-                    if (window.websiteBuilder?.showNotification) {
-                        window.websiteBuilder.showNotification('Hero layout ververst!', 'success');
-                    }
-                }, 200);
+                }, 50);
             }
         });
         refreshBtn.style.background = '#10b981';
