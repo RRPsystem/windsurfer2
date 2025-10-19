@@ -2252,6 +2252,12 @@ class ComponentFactory {
         const backgroundType = options.backgroundType || 'gradient'; // Default to gradient
         const destinations = options.destinations || [];
 
+        // Get from/to locations from options
+        const fromLocation = options.fromLocation || '';
+        const toLocation = options.toLocation || '';
+        const distance = options.distance || ''; // km for road trips
+        const travelTime = options.travelTime || ''; // travel time
+        
         // Store settings
         header._displayMode = displayMode;
         header._backgroundType = backgroundType;
@@ -2261,15 +2267,13 @@ class ComponentFactory {
         header._overlayOpacity = options.overlayOpacity || 0.5; // Higher default for better text readability
         header._textColor = options.textColor || '#ffffff'; // Default white text
         header._destinations = destinations;
+        header._fromLocation = fromLocation;
+        header._toLocation = toLocation;
+        header._distance = distance;
+        header._travelTime = travelTime;
 
         const content = document.createElement('div');
         content.className = 'day-header-content';
-        
-        // Get from/to locations from options
-        const fromLocation = options.fromLocation || '';
-        const toLocation = options.toLocation || '';
-        const distance = options.distance || ''; // km for road trips
-        const travelTime = options.travelTime || ''; // travel time
         
         // Extract just the description from title if it contains "Dag X"
         const titleText = dayTitle.replace(/^Dag\s+\d+\s*[-:]?\s*/i, '').trim() || dayTitle;
@@ -2585,13 +2589,20 @@ class ComponentFactory {
         // Add route line
         const routeCoords = routePoints.map(d => [d.latitude, d.longitude]);
         
-        // Check if this is a car/road route by looking at transport type or distance
-        const isCarRoute = header._fromLocation && header._toLocation && 
-                          (header._distance || routePoints.some(p => p.transportType === 'car' || p.transportType === 'road'));
+        // Check if this is a car/road route
+        // Heuristic: if distance between points is < 500km, assume it's a road trip
+        let isCarRoute = false;
+        if (routeCoords.length === 2) {
+            const lat1 = routeCoords[0][0], lon1 = routeCoords[0][1];
+            const lat2 = routeCoords[1][0], lon2 = routeCoords[1][1];
+            const distance = this.calculateDistance(lat1, lon1, lat2, lon2);
+            isCarRoute = distance < 500; // Less than 500km = likely road trip
+            console.log('[Day Header Map] Distance:', distance.toFixed(0), 'km, isCarRoute:', isCarRoute);
+        }
         
         if (routeCoords.length > 1) {
             if (isCarRoute) {
-                // Try to get driving route from OpenRouteService
+                // Try to get driving route
                 console.log('[Day Header Map] Fetching driving route...');
                 this.fetchDrivingRoute(routeCoords, map);
             } else {
@@ -2636,6 +2647,18 @@ class ComponentFactory {
 
         header._dayMap = map;
         console.log('[Day Header Map] Created map for day', currentDay, 'with', routePoints.length, 'points');
+    }
+
+    static calculateDistance(lat1, lon1, lat2, lon2) {
+        // Haversine formula to calculate distance between two points
+        const R = 6371; // Earth radius in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
     }
 
     static async fetchDrivingRoute(routeCoords, map) {
