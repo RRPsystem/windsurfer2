@@ -2243,7 +2243,7 @@ margin-top: 2px;
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
     flex-wrap: wrap;
 }
 
@@ -2252,20 +2252,20 @@ margin-top: 2px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     color: white;
 }
 
 .route-locations > i {
     color: rgba(255, 255, 255, 0.7);
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .route-details {
     display: flex;
     gap: 16px;
-    margin-top: 8px;
+    margin-top: 0;
 }
 
 .route-distance,
