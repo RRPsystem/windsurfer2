@@ -115,9 +115,16 @@ class PropertiesPanel {
         }
         
         if (currentBgType === 'map') {
-            // Map description input
-            this.createTextInput('Route Beschrijving', component._mapDescription || 'Vandaag reizen we van Amsterdam naar Bangkok', (value) => {
-                component._mapDescription = value;
+            // Map Zoom Level
+            const currentZoom = component._mapZoom || 7;
+            this.createRangeInput('Kaart Zoom Level', String(currentZoom), '3', '15', '1', (value) => {
+                component._mapZoom = parseInt(value);
+                // Update the map if it exists
+                if (component._dayMap) {
+                    const bounds = component._dayMap.getBounds();
+                    const center = bounds.getCenter();
+                    component._dayMap.setView(center, parseInt(value));
+                }
             });
             
             // Map coordinates (optional)
@@ -128,7 +135,7 @@ class PropertiesPanel {
             mapInfo.style.background = '#f0f9ff';
             mapInfo.style.borderRadius = '6px';
             mapInfo.style.marginBottom = '12px';
-            mapInfo.innerHTML = '🗺️ De kaart toont automatisch de route met bestemmingen uit je dagkaarten!';
+            mapInfo.innerHTML = '🗺️ De kaart toont automatisch de route met bestemmingen uit je dagkaarten!<br><small>Zoom: 3=wereld, 7=land, 10=regio, 15=stad</small>';
             this.panel.appendChild(mapInfo);
         }
         

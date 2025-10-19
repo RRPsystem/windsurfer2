@@ -2639,9 +2639,21 @@ class ComponentFactory {
             }
         }
 
-        // Fit bounds
+        // Fit bounds with better padding to show the whole route
         const bounds = L.latLngBounds(routeCoords);
-        map.fitBounds(bounds, { padding: [30, 30] });
+        const zoomLevel = header._mapZoom || null; // Use custom zoom if set
+        
+        if (zoomLevel) {
+            // Use custom zoom level
+            const center = bounds.getCenter();
+            map.setView(center, zoomLevel);
+        } else {
+            // Auto-fit with generous padding
+            map.fitBounds(bounds, { 
+                padding: [50, 50],
+                maxZoom: 10 // Don't zoom in too much
+            });
+        }
 
         header._dayMap = map;
         console.log('[Day Header Map] Created map for day', currentDay, 'with', routePoints.length, 'points');
