@@ -417,12 +417,39 @@ class PropertiesPanel {
     }
 
     createTravelHeroProperties(component) {
+        const preview = component.querySelector('.travel-hero-preview');
+        const h1 = component.querySelector('.travel-hero-content h1');
+        const p = component.querySelector('.travel-hero-content p');
+
+        // Title
+        this.createTextInput('Titel', h1?.textContent || '', (value) => {
+            if (h1) h1.textContent = value;
+        });
+
+        // Subtitle
+        this.createTextInput('Subtitel', p?.textContent || '', (value) => {
+            if (p) p.textContent = value;
+        });
+
+        // Info
+        const info = document.createElement('div');
+        info.style.fontSize = '12px';
+        info.style.color = '#6b7280';
+        info.style.padding = '8px';
+        info.style.background = '#f0f9ff';
+        info.style.borderRadius = '6px';
+        info.style.marginTop = '12px';
+        info.innerHTML = '🗺️ De kaart toont automatisch alle bestemmingen uit je timeline. Klik op de refresh knop in de toolbar om de kaart te verversen.';
+        this.panel.appendChild(info);
+    }
+
+    createTravelHeroPropertiesOLD_BACKUP(component) {
         const select = component.querySelector('.travel-hero-style-select');
         const preview = component.querySelector('.travel-hero-preview');
         const h1 = component.querySelector('.travel-hero-content h1');
         const p = component.querySelector('.travel-hero-content p');
 
-        // Refresh Hero Button - FORCE REBUILD
+        // Refresh Hero Button - FORCE REBUILD - OUDE CODE
         const refreshBtn = this.createButton('🔄 Herbouw Hero (Huidige Style)', () => {
             const title = h1?.textContent || 'Ierland Rondreis';
             const subtitle = p?.textContent || '8 dagen door het groene eiland';

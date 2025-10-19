@@ -3962,9 +3962,9 @@ class ComponentFactory {
         }
     }
 
-    // Travel Hero - with 5 style options
+    // Travel Hero - ALLEEN Interactive Map
     static createTravelHero(options = {}) {
-        console.log('🔥 NIEUWE TRAVEL HERO CODE VERSIE 2.0 - 20 OKT 2025');
+        console.log('🔥 TRAVEL HERO - INTERACTIVE MAP ONLY - 20 OKT 2025');
         const hero = document.createElement('div');
         hero.className = 'wb-component wb-travel-hero';
         hero.setAttribute('data-component', 'travel-hero');
@@ -3972,25 +3972,52 @@ class ComponentFactory {
 
         const toolbar = this.createToolbar();
         
-        // Add refresh button for interactive map
-        if (options.style === 'interactive-map' || !options.style) {
-            const refreshBtn = document.createElement('button');
-            refreshBtn.className = 'toolbar-btn';
-            refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
-            refreshBtn.title = 'Ververs kaart';
-            refreshBtn.onclick = (e) => {
-                e.stopPropagation();
-                this.refreshTravelHeroMap(hero);
-                if (window.websiteBuilder?.showNotification) {
-                    window.websiteBuilder.showNotification('Kaart ververst!', 'success');
-                }
-            };
-            toolbar.insertBefore(refreshBtn, toolbar.firstChild);
-        }
+        // Add refresh button
+        const refreshBtn = document.createElement('button');
+        refreshBtn.className = 'toolbar-btn';
+        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+        refreshBtn.title = 'Ververs kaart';
+        refreshBtn.onclick = (e) => {
+            e.stopPropagation();
+            this.refreshTravelHeroMap(hero);
+            if (window.websiteBuilder?.showNotification) {
+                window.websiteBuilder.showNotification('Kaart ververst!', 'success');
+            }
+        };
+        toolbar.insertBefore(refreshBtn, toolbar.firstChild);
         
         hero.appendChild(toolbar);
         this.addTypeBadge(hero);
 
+        const title = options.title || 'Ierland Rondreis';
+        const subtitle = options.subtitle || '8 dagen door het groene eiland';
+
+        const content = document.createElement('div');
+        content.innerHTML = `
+            <div class="travel-hero-container">
+                <div class="travel-hero-preview" data-style="interactive-map">
+                    <div class="travel-hero-map-container" id="hero-map-${hero.id}"></div>
+                    <div class="travel-hero-overlay"></div>
+                    <div class="travel-hero-content">
+                        <h1 contenteditable="true">${title}</h1>
+                        <p contenteditable="true">${subtitle}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        hero.appendChild(content);
+
+        // Initialize map
+        setTimeout(() => this.initializeTravelHeroMap(hero, options.destinations || []), 100);
+
+        this.makeSelectable(hero);
+        return hero;
+    }
+
+    // VERWIJDER ALLE ANDERE HERO STYLES - we beginnen opnieuw
+    static createTravelHeroOLD_BACKUP(options = {}) {
+        // Oude code als backup
+        const hero = document.createElement('div');
         const currentStyle = options.style || 'interactive-map';
         const title = options.title || 'Thailand Rondreis';
         const subtitle = options.subtitle || '20 dagen door het land van de glimlach';
@@ -3998,23 +4025,8 @@ class ComponentFactory {
         const content = document.createElement('div');
         content.innerHTML = `
             <div class="travel-hero-container">
-                <select class="travel-hero-style-select" style="display:none;">
-                    <option value="interactive-map" ${currentStyle === 'interactive-map' ? 'selected' : ''}>🗺️ Interactive Map</option>
-                    <option value="timeline-slider" ${currentStyle === 'timeline-slider' ? 'selected' : ''}>🎯 Timeline Slider</option>
-                    <option value="video-overlay" ${currentStyle === 'video-overlay' ? 'selected' : ''}>🎬 Video Overlay</option>
-                    <option value="parallax-photos" ${currentStyle === 'parallax-photos' ? 'selected' : ''}>📸 Parallax Photos</option>
-                    <option value="airplane-window" ${currentStyle === 'airplane-window' ? 'selected' : ''}>✈️ Airplane Window</option>
-                    <option value="split-hero" ${currentStyle === 'split-hero' ? 'selected' : ''}>📍 Split Hero</option>
-                </select>
                 <div class="travel-hero-preview" data-style="${currentStyle}">
-                    ${currentStyle === 'interactive-map' ? `
-                        <div class="travel-hero-map-container" id="hero-map-${hero.id}"></div>
-                        <div class="travel-hero-overlay"></div>
-                        <div class="travel-hero-content">
-                            <h1 contenteditable="true">${title}</h1>
-                            <p contenteditable="true">${subtitle}</p>
-                        </div>
-                    ` : currentStyle === 'timeline-slider' ? `
+                    ${currentStyle === 'timeline-slider' ? `
                         <div class="timeline-slider-background" style="background-image: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600');"></div>
                         <div class="timeline-slider-overlay"></div>
                         <div class="travel-hero-content timeline-slider-header">
