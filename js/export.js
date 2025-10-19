@@ -19,7 +19,7 @@ class ExportManager {
                 this.showPreview(e);
             });
             // Tooltip hint for users
-            try { previewBtn.title = 'Preview (klik = homepage, Shift/Alt = huidige pagina)'; } catch (e) {}
+            try { previewBtn.title = 'Preview (alleen voor controle, niet delen! Gebruik Publiceer voor deelbare link)'; } catch (e) {}
         }
     }
 
