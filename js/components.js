@@ -2361,20 +2361,86 @@ class ComponentFactory {
     }
 
     static updateDayHeaderBackground(header) {
-        const bgLayer = header.querySelector('.day-header-bg-layer');
-        const overlay = header.querySelector('.day-header-overlay');
         const bgType = header._backgroundType || 'gradient';
+        const currentLayout = header.querySelector('.day-header-split') ? 'split' : 'full';
+        const needsSplitLayout = bgType === 'map' || bgType === 'video';
+        const needsFullLayout = !needsSplitLayout;
 
         console.log('[Day Header BG]', {
             bgType,
-            hasLayer: !!bgLayer,
-            hasOverlay: !!overlay,
-            gradientStart: header._gradientStart,
-            gradientEnd: header._gradientEnd,
-            backgroundColor: header._backgroundColor,
-            backgroundImage: header._backgroundImage,
-            backgroundVideo: header._backgroundVideo
+            currentLayout,
+            needsSplitLayout,
+            needsFullLayout
         });
+
+        // If layout type needs to change, rebuild the entire content
+        if ((currentLayout === 'split' && needsFullLayout) || (currentLayout === 'full' && needsSplitLayout)) {
+            console.log('[Day Header BG] Layout change needed, rebuilding...');
+            
+            // Get current values
+            const dayNumberEl = header.querySelector('.day-header-day-number');
+            const h2 = header.querySelector('h2');
+            const p = header.querySelector('p');
+            const routeDiv = header.querySelector('.day-header-route');
+            
+            const dayNumber = dayNumberEl ? dayNumberEl.textContent : '1';
+            const titleText = h2 ? h2.textContent : 'Dag 1';
+            const description = p ? p.textContent : '';
+            const routeHTML = routeDiv ? routeDiv.outerHTML : '';
+            
+            // Remove old content
+            const content = header.querySelector('.day-header-content');
+            if (content) {
+                content.remove();
+            }
+            
+            // Rebuild with correct layout
+            const newContent = document.createElement('div');
+            newContent.className = 'day-header-content';
+            
+            if (needsSplitLayout) {
+                // Split layout
+                newContent.innerHTML = `
+                    <div class="day-header-split">
+                        <div class="day-header-left">
+                            <div class="day-header-day-number">${dayNumber}</div>
+                            <div class="day-header-info">
+                                <h2 contenteditable="true">${titleText}</h2>
+                                <p contenteditable="true">${description}</p>
+                                ${routeHTML}
+                            </div>
+                        </div>
+                        <div class="day-header-right">
+                            <div class="day-header-bg-layer"></div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Full card layout
+                newContent.innerHTML = `
+                    <div class="day-header-background">
+                        <div class="day-header-bg-layer"></div>
+                        <div class="day-header-overlay"></div>
+                    </div>
+                    <div class="day-header-foreground">
+                        <div class="day-header-info-full">
+                            <div class="day-header-day-number">${dayNumber}</div>
+                            <div class="day-header-text">
+                                <h2 contenteditable="true">${titleText}</h2>
+                                <p contenteditable="true">${description}</p>
+                                ${routeHTML}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            header.appendChild(newContent);
+        }
+
+        // Now update the background
+        const bgLayer = header.querySelector('.day-header-bg-layer');
+        const overlay = header.querySelector('.day-header-overlay');
 
         if (!bgLayer) {
             console.warn('[Day Header BG] Missing bg layer!');
