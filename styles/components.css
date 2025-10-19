@@ -2200,23 +2200,45 @@ margin-top: 2px;
     flex: 1;
     padding: 24px;
     display: flex;
-    gap: 20px;
-    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
 }
 
+.day-header-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
 .day-header-day-number {
-    font-size: 48px;
+    font-size: 56px;
     font-weight: 900;
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.95);
     line-height: 1;
-    min-width: 60px;
-    text-align: center;
+}
+
+.day-header-top h2 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    line-height: 1;
 }
 
 .day-header-info {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.day-header-subtitle {
+    margin: 0;
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.4;
 }
 
 .day-header-info h2 {
@@ -2234,9 +2256,9 @@ margin-top: 2px;
 }
 
 .day-header-route {
-    margin-top: 12px;
+    margin-top: 0;
     padding-top: 12px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .route-locations {
