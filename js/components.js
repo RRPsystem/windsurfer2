@@ -4005,6 +4005,8 @@ class ComponentFactory {
     }
 
     static getTravelHeroHTML(style, heroId, title, subtitle) {
+        console.log('[getTravelHeroHTML] Style:', style, 'HeroId:', heroId);
+        
         if (style === 'interactive-map') {
             return `
                 <div class="travel-hero-map-container" id="hero-map-${heroId}"></div>
@@ -4015,6 +4017,7 @@ class ComponentFactory {
                 </div>
             `;
         } else if (style === 'image-hero') {
+            console.log('[getTravelHeroHTML] Returning IMAGE HERO HTML');
             return `
                 <div class="image-hero-background" style="background-image: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600');"></div>
                 <div class="image-hero-overlay"></div>
@@ -4024,6 +4027,7 @@ class ComponentFactory {
                 </div>
             `;
         } else if (style === 'video-hero') {
+            console.log('[getTravelHeroHTML] Returning VIDEO HERO HTML');
             return `
                 <div class="video-hero-container">
                     <div class="video-hero-background" id="video-bg-${heroId}"></div>
