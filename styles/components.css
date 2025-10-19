@@ -2302,6 +2302,57 @@ margin-top: 2px;
     min-height: 200px;
 }
 
+/* Full card layout (for gradient/color/image backgrounds) */
+.day-header-foreground {
+    position: relative;
+    z-index: 3;
+    padding: 24px;
+    color: white;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.day-header-info-full {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.day-header-info-full .day-header-day-number {
+    font-size: 48px;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1;
+    min-width: 60px;
+    text-align: center;
+}
+
+.day-header-text {
+    flex: 1;
+}
+
+.day-header-text h2 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+}
+
+.day-header-text p {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.5;
+}
+
+.day-header-text .day-header-route {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .day-header-split {

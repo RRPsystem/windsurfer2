@@ -2249,7 +2249,7 @@ class ComponentFactory {
         const dayTitle = options.dayTitle || `Dag ${dayNumber}`;
         const dayDescription = options.dayDescription || 'Aankomst en check-in';
         const displayMode = options.displayMode || 'standard';
-        const backgroundType = options.backgroundType || 'image'; // Default to image instead of gradient
+        const backgroundType = options.backgroundType || 'gradient'; // Default to gradient
         const destinations = options.destinations || [];
 
         // Store settings
@@ -2274,37 +2274,74 @@ class ComponentFactory {
         // Extract just the description from title if it contains "Dag X"
         const titleText = dayTitle.replace(/^Dag\s+\d+\s*[-:]?\s*/i, '').trim() || dayTitle;
         
-        content.innerHTML = `
-            <div class="day-header-split">
-                <div class="day-header-left">
-                    <div class="day-header-day-number">${dayNumber}</div>
-                    <div class="day-header-info">
-                        <h2 contenteditable="true">${titleText || 'Dag ' + dayNumber}</h2>
-                        <p contenteditable="true">${dayDescription}</p>
-                        ${fromLocation && toLocation ? `
-                            <div class="day-header-route">
-                                <div class="route-locations">
-                                    <span class="route-from"><i class="fas fa-map-marker-alt"></i> ${fromLocation}</span>
-                                    <i class="fas fa-arrow-right"></i>
-                                    <span class="route-to"><i class="fas fa-map-marker-alt"></i> ${toLocation}</span>
-                                </div>
-                                ${distance || travelTime ? `
-                                    <div class="route-details">
-                                        ${distance ? `<span class="route-distance"><i class="fas fa-road"></i> ${distance} km</span>` : ''}
-                                        ${travelTime ? `<span class="route-time"><i class="fas fa-clock"></i> ${travelTime}</span>` : ''}
+        // Check if we need split layout (map or video)
+        const useSplitLayout = backgroundType === 'map' || backgroundType === 'video';
+        
+        if (useSplitLayout) {
+            // Split layout: info left, map/video right
+            content.innerHTML = `
+                <div class="day-header-split">
+                    <div class="day-header-left">
+                        <div class="day-header-day-number">${dayNumber}</div>
+                        <div class="day-header-info">
+                            <h2 contenteditable="true">${titleText || 'Dag ' + dayNumber}</h2>
+                            <p contenteditable="true">${dayDescription}</p>
+                            ${fromLocation && toLocation ? `
+                                <div class="day-header-route">
+                                    <div class="route-locations">
+                                        <span class="route-from"><i class="fas fa-map-marker-alt"></i> ${fromLocation}</span>
+                                        <i class="fas fa-arrow-right"></i>
+                                        <span class="route-to"><i class="fas fa-map-marker-alt"></i> ${toLocation}</span>
                                     </div>
-                                ` : ''}
-                            </div>
-                        ` : ''}
+                                    ${distance || travelTime ? `
+                                        <div class="route-details">
+                                            ${distance ? `<span class="route-distance"><i class="fas fa-road"></i> ${distance} km</span>` : ''}
+                                            ${travelTime ? `<span class="route-time"><i class="fas fa-clock"></i> ${travelTime}</span>` : ''}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div class="day-header-right">
+                        <div class="day-header-bg-layer"></div>
                     </div>
                 </div>
-                <div class="day-header-right">
-                    <div class="day-header-map-container">
-                        <div class="day-header-map" id="day-map-${header.id}"></div>
+            `;
+        } else {
+            // Full card layout: background with overlay
+            content.innerHTML = `
+                <div class="day-header-background">
+                    <div class="day-header-bg-layer"></div>
+                    <div class="day-header-overlay"></div>
+                </div>
+                <div class="day-header-foreground">
+                    <div class="day-header-info-full">
+                        <div class="day-header-day-number">${dayNumber}</div>
+                        <div class="day-header-text">
+                            <h2 contenteditable="true">${titleText || 'Dag ' + dayNumber}</h2>
+                            <p contenteditable="true">${dayDescription}</p>
+                            ${fromLocation && toLocation ? `
+                                <div class="day-header-route">
+                                    <div class="route-locations">
+                                        <span class="route-from"><i class="fas fa-map-marker-alt"></i> ${fromLocation}</span>
+                                        <i class="fas fa-arrow-right"></i>
+                                        <span class="route-to"><i class="fas fa-map-marker-alt"></i> ${toLocation}</span>
+                                    </div>
+                                    ${distance || travelTime ? `
+                                        <div class="route-details">
+                                            ${distance ? `<span class="route-distance"><i class="fas fa-road"></i> ${distance} km</span>` : ''}
+                                            ${travelTime ? `<span class="route-time"><i class="fas fa-clock"></i> ${travelTime}</span>` : ''}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
+        }
+        
         header.appendChild(content);
 
         // Auto-fetch destinations from Travel Hero if not provided
@@ -2316,8 +2353,8 @@ class ComponentFactory {
             }
         }
 
-        // Initialize map in the right panel
-        setTimeout(() => this.initializeDayHeaderMap(header), 100);
+        // Initialize background
+        this.updateDayHeaderBackground(header);
 
         this.makeSelectable(header);
         return header;
@@ -2339,8 +2376,8 @@ class ComponentFactory {
             backgroundVideo: header._backgroundVideo
         });
 
-        if (!bgLayer || !overlay) {
-            console.warn('[Day Header BG] Missing layers!', { bgLayer, overlay });
+        if (!bgLayer) {
+            console.warn('[Day Header BG] Missing bg layer!');
             return;
         }
 
@@ -2351,8 +2388,10 @@ class ComponentFactory {
         bgLayer.style.backgroundSize = '';
         bgLayer.style.backgroundPosition = '';
 
-        // Set overlay opacity
-        overlay.style.opacity = header._overlayOpacity || 0.3;
+        // Set overlay opacity (only for full card layouts)
+        if (overlay) {
+            overlay.style.opacity = header._overlayOpacity || 0.3;
+        }
 
         switch(bgType) {
             case 'color':
