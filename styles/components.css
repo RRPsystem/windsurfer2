@@ -3061,6 +3061,17 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     position: relative;
 }
 
+/* Full-screen hero mode */
+.wb-travel-hero.hero-fullscreen {
+    min-height: 100vh;
+    border-radius: 0;
+    margin: 0;
+}
+
+.wb-travel-hero.hero-fullscreen .travel-hero-preview {
+    height: 100vh !important;
+}
+
 .travel-hero-container {
     height: 100%;
     position: relative;
