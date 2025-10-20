@@ -1,4 +1,4 @@
-// Vercel Serverless Function: GET /api/accommodations/[id]/datasheet
+// Vercel Serverless Function: GET /api/accommodation-detail?id=123&lang=NL
 // Get hotel details from Travel Compositor
 
 export default async function handler(req, res) {

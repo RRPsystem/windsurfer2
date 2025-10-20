@@ -144,7 +144,7 @@ class HotelPicker {
               selectBtn.disabled = true;
               selectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
               
-              const detailResponse = await fetch(`/api/accommodations/${hotel.id}/datasheet?lang=NL`);
+              const detailResponse = await fetch(`/api/accommodation-detail?id=${hotel.id}&lang=NL`);
               if (!detailResponse.ok) throw new Error('Failed to fetch hotel details');
               
               const hotelData = await detailResponse.json();
