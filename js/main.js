@@ -1067,6 +1067,44 @@ class WebsiteBuilder {
                 }
             }
 
+            // 1.5. Add intro text block with optional "Bekijk Route" button
+            try {
+                const textBlock = ComponentFactory.createComponent('content-block', {});
+                if (textBlock) {
+                    // Add intro text
+                    const textContent = textBlock.querySelector('.wb-content-text');
+                    if (textContent) {
+                        textContent.innerHTML = `
+                            <h2 style="margin-bottom: 16px;">Over deze reis</h2>
+                            <p style="font-size: 16px; line-height: 1.6; color: #374151; margin-bottom: 24px;">
+                                ${description || 'Ontdek de mooiste plekken en beleef een onvergetelijke reis vol avontuur en ontspanning.'}
+                            </p>
+                            <button id="showRouteBtn" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 16px;">
+                                <i class="fas fa-route"></i> Bekijk Route
+                            </button>
+                        `;
+                        
+                        // Add event listener for route button
+                        setTimeout(() => {
+                            const routeBtn = document.getElementById('showRouteBtn');
+                            if (routeBtn) {
+                                routeBtn.addEventListener('click', () => {
+                                    // Open route in sidebar or modal
+                                    if (window.showRouteOverview) {
+                                        window.showRouteOverview(data);
+                                    } else {
+                                        alert('Route overzicht functie wordt binnenkort toegevoegd!');
+                                    }
+                                });
+                            }
+                        }, 100);
+                    }
+                    canvas.appendChild(textBlock);
+                }
+            } catch (e) {
+                console.warn('Failed to create intro text block', e);
+            }
+
             // 2. Add Travel Hero with Interactive Map
             console.log('[DEBUG] Destinations:', destinations);
             console.log('[DEBUG] Hotels:', hotels);
