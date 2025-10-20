@@ -279,24 +279,6 @@ class PropertiesPanel {
         const carousel = component.querySelector('.wb-travel-card-carousel');
         const carouselImages = carousel?.querySelector('.carousel-images');
         
-        // Hotel Search Button (only for hotel cards)
-        const componentType = component.getAttribute('data-component');
-        if (componentType === 'travel-card-hotel' && window.HotelPicker) {
-            const hotelSearchBtn = this.createButton('🏨 Hotel Zoeken', async () => {
-                try {
-                    const result = await window.HotelPicker.open();
-                    if (result && result.hotel) {
-                        console.log('[Properties] Hotel selected:', result.hotel);
-                        alert('Hotel geselecteerd: ' + result.hotel.name + '\\n\\nNOTE: Auto-fill functionaliteit komt binnenkort!');
-                    }
-                } catch (error) {
-                    console.error('[Hotel Picker] Error:', error);
-                }
-            });
-            hotelSearchBtn.style.marginBottom = '20px';
-            this.panel.appendChild(hotelSearchBtn);
-        }
-        
         // Image Management Section
         const imageSection = document.createElement('div');
         imageSection.style.marginBottom = '20px';

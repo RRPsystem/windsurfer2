@@ -240,42 +240,6 @@ app.get('/api/tickets/preferred', async (req, res) => {
     res.status(err?.response?.status || 500).json({ error: 'Failed to fetch preferred tickets', detail: err?.response?.data || err.message });
   }
 });
-// ------- Accommodations (Hotels) -------
-// GET /api/accommodations - List all hotels
-app.get('/api/accommodations', async (req, res) => {
-  try {
-    const hdr = await getAuthHeader();
-    const first = clampInt(req.query.first, 0, 100000, 0);
-    const limit = clampInt(req.query.limit, 1, 20000, 100);
-    const params = { first, limit };
-    const url = `${TC_BASE_URL}/accommodations`;
-    console.log('[Proxy] GET', url, 'params=', params);
-    const r = await axios.get(url, { params, headers: { Accept: 'application/json', 'Accept-Encoding': 'gzip', ...hdr } });
-    applyCacheHeaders(res, 3600);
-    return res.json(r.data);
-  } catch (err) {
-    console.error('[TC] /api/accommodations error', err?.response?.status, err?.response?.data || err.message);
-    res.status(err?.response?.status || 500).json({ error: 'Failed to fetch accommodations', detail: err?.response?.data || err.message });
-  }
-});
-
-// GET /api/accommodations/:id/datasheet - Get hotel details
-app.get('/api/accommodations/:id/datasheet', async (req, res) => {
-  try {
-    const hdr = await getAuthHeader();
-    const { id } = req.params;
-    const url = `${TC_BASE_URL}/accommodations/${encodeURIComponent(id)}/datasheet`;
-    const params = { lang: req.query.lang || 'NL' };
-    console.log('[Proxy] GET', url, 'params=', params);
-    const r = await axios.get(url, { params, headers: { Accept: 'application/json', 'Accept-Encoding': 'gzip', ...hdr } });
-    applyCacheHeaders(res, 3600);
-    return res.json(r.data);
-  } catch (err) {
-    console.error('[TC] /api/accommodations/:id/datasheet error', err?.response?.status, err?.response?.data || err.message);
-    res.status(err?.response?.status || 500).json({ error: 'Failed to fetch accommodation detail', detail: err?.response?.data || err.message });
-  }
-});
-
 // Transport bases (list)
 app.get('/api/transportbases', async (req, res) => {
   try {
