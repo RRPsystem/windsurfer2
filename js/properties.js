@@ -533,7 +533,7 @@ class PropertiesPanel {
                             src="https://www.youtube.com/embed/${res.videoId}?autoplay=1&mute=1&loop=1&playlist=${res.videoId}&controls=0&showinfo=0&rel=0&modestbranding=1"
                             frameborder="0"
                             allow="autoplay; encrypted-media"
-                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+                            style="position: absolute; top: 50%; left: 50%; width: 177.77777778vh; height: 100%; min-width: 100%; min-height: 56.25vw; transform: translate(-50%, -50%); pointer-events: none; border: none;"
                         ></iframe>
                     `;
                 }
