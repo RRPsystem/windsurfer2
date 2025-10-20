@@ -3055,7 +3055,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 /* Travel Hero */
 .wb-travel-hero {
     min-height: 500px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: transparent;
     border-radius: 12px;
     overflow: hidden;
     position: relative;
@@ -3120,6 +3120,30 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     opacity: 0.95;
     text-shadow: 0 2px 20px rgba(0,0,0,0.5);
     font-weight: 500;
+}
+
+.travel-hero-content .hero-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+.travel-hero-content .hero-buttons .btn {
+    pointer-events: auto;
+    padding: 12px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.travel-hero-content .hero-buttons .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
 }
 
 /* Placeholder for other styles */
