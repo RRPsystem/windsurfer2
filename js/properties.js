@@ -557,6 +557,146 @@ class PropertiesPanel {
             videoInfo.innerHTML = '🎬 Selecteer een YouTube video die automatisch afspeelt als achtergrond';
             this.panel.appendChild(videoInfo);
         }
+
+        // === ACHTERGROND KLEUR (voor alle styles) ===
+        const bgHeader = document.createElement('h5');
+        bgHeader.textContent = '🎨 Achtergrond';
+        bgHeader.style.marginTop = '20px';
+        bgHeader.style.marginBottom = '12px';
+        bgHeader.style.fontSize = '14px';
+        bgHeader.style.fontWeight = '600';
+        this.panel.appendChild(bgHeader);
+
+        // Background color picker
+        const currentBgColor = component._backgroundColor || '#667eea';
+        this.createColorInput('Achtergrondkleur', currentBgColor, (value) => {
+            component._backgroundColor = value;
+            component.style.background = value;
+        });
+
+        // === OVERLAY INSTELLINGEN ===
+        const overlayHeader = document.createElement('h5');
+        overlayHeader.textContent = '🌫️ Overlay';
+        overlayHeader.style.marginTop = '20px';
+        overlayHeader.style.marginBottom = '12px';
+        overlayHeader.style.fontSize = '14px';
+        overlayHeader.style.fontWeight = '600';
+        this.panel.appendChild(overlayHeader);
+
+        const overlayDiv = component.querySelector('.image-hero-overlay, .video-hero-overlay, .travel-hero-overlay');
+        
+        // Overlay Color
+        const currentOverlayColor = component._overlayColor || '#000000';
+        this.createColorInput('Overlay Kleur', currentOverlayColor, (value) => {
+            component._overlayColor = value;
+            if (overlayDiv) {
+                const opacity = component._overlayOpacity || 0.5;
+                overlayDiv.style.background = this.hexToRgba(value, opacity);
+            }
+        });
+
+        // Overlay Opacity
+        const currentOverlayOpacity = Math.round((component._overlayOpacity || 0.5) * 100);
+        this.createRangeInput('Overlay Transparantie (%)', String(currentOverlayOpacity), '0', '100', '1', (value) => {
+            const numValue = parseInt(value, 10) || 0;
+            component._overlayOpacity = numValue / 100;
+            if (overlayDiv) {
+                const color = component._overlayColor || '#000000';
+                overlayDiv.style.background = this.hexToRgba(color, numValue / 100);
+            }
+        });
+
+        // === BUTTONS ===
+        const btnHeader = document.createElement('h5');
+        btnHeader.textContent = '🔘 Call-to-Action Buttons';
+        btnHeader.style.marginTop = '20px';
+        btnHeader.style.marginBottom = '12px';
+        btnHeader.style.fontSize = '14px';
+        btnHeader.style.fontWeight = '600';
+        this.panel.appendChild(btnHeader);
+
+        const addButtonBtn = this.createButton('➕ Button Toevoegen', () => {
+            const contentDiv = component.querySelector('.travel-hero-content');
+            if (!contentDiv) return;
+
+            // Check if button container exists
+            let btnContainer = contentDiv.querySelector('.hero-buttons');
+            if (!btnContainer) {
+                btnContainer = document.createElement('div');
+                btnContainer.className = 'hero-buttons';
+                btnContainer.style.cssText = 'display: flex; gap: 12px; justify-content: center; margin-top: 24px; flex-wrap: wrap;';
+                contentDiv.appendChild(btnContainer);
+            }
+
+            // Add new button
+            const newBtn = document.createElement('a');
+            newBtn.href = '#';
+            newBtn.className = 'btn btn-primary';
+            newBtn.textContent = 'Nieuwe Button';
+            newBtn.contentEditable = 'true';
+            newBtn.style.cssText = 'padding: 12px 32px; font-size: 16px; font-weight: 600; pointer-events: auto;';
+            btnContainer.appendChild(newBtn);
+
+            if (window.websiteBuilder?.showNotification) {
+                window.websiteBuilder.showNotification('Button toegevoegd!', 'success');
+            }
+
+            // Refresh properties
+            setTimeout(() => this.showProperties(component), 100);
+        });
+        addButtonBtn.style.background = '#10b981';
+        addButtonBtn.style.color = 'white';
+        addButtonBtn.style.marginBottom = '12px';
+        this.panel.appendChild(addButtonBtn);
+
+        // Show existing buttons
+        const existingButtons = component.querySelectorAll('.hero-buttons .btn');
+        if (existingButtons.length > 0) {
+            const btnList = document.createElement('div');
+            btnList.style.marginTop = '12px';
+            btnList.style.padding = '12px';
+            btnList.style.background = '#f9fafb';
+            btnList.style.borderRadius = '6px';
+            
+            const btnTitle = document.createElement('div');
+            btnTitle.textContent = `${existingButtons.length} button(s) aanwezig`;
+            btnTitle.style.fontWeight = '600';
+            btnTitle.style.marginBottom = '8px';
+            btnTitle.style.fontSize = '13px';
+            btnList.appendChild(btnTitle);
+
+            existingButtons.forEach((btn, idx) => {
+                const btnRow = document.createElement('div');
+                btnRow.style.display = 'flex';
+                btnRow.style.alignItems = 'center';
+                btnRow.style.gap = '8px';
+                btnRow.style.marginBottom = '6px';
+
+                const label = document.createElement('span');
+                label.textContent = btn.textContent || `Button ${idx + 1}`;
+                label.style.flex = '1';
+                label.style.fontSize = '12px';
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                deleteBtn.style.background = '#ef4444';
+                deleteBtn.style.color = 'white';
+                deleteBtn.style.border = 'none';
+                deleteBtn.style.padding = '4px 8px';
+                deleteBtn.style.borderRadius = '4px';
+                deleteBtn.style.cursor = 'pointer';
+                deleteBtn.onclick = () => {
+                    btn.remove();
+                    this.showProperties(component);
+                };
+
+                btnRow.appendChild(label);
+                btnRow.appendChild(deleteBtn);
+                btnList.appendChild(btnRow);
+            });
+
+            this.panel.appendChild(btnList);
+        }
     }
 
     createTravelHeroPropertiesOLD_BACKUP(component) {
