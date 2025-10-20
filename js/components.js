@@ -4028,9 +4028,18 @@ class ComponentFactory {
             `;
         } else if (style === 'video-hero') {
             console.log('[getTravelHeroHTML] Returning VIDEO HERO HTML');
+            // Default video: Beautiful Ireland landscape (Ierland)
+            const defaultVideoId = 'Yocja_N5s1I';
             return `
                 <div class="video-hero-container">
-                    <div class="video-hero-background" id="video-bg-${heroId}"></div>
+                    <div class="video-hero-background" id="video-bg-${heroId}">
+                        <iframe 
+                            src="https://www.youtube.com/embed/${defaultVideoId}?autoplay=1&mute=1&loop=1&playlist=${defaultVideoId}&controls=0&showinfo=0&rel=0&modestbranding=1"
+                            frameborder="0"
+                            allow="autoplay; encrypted-media"
+                            style="position: absolute; top: 50%; left: 50%; width: 177.77777778vh; height: 100%; min-width: 100%; min-height: 56.25vw; transform: translate(-50%, -50%); pointer-events: none; border: none;"
+                        ></iframe>
+                    </div>
                     <div class="video-hero-overlay"></div>
                     <div class="travel-hero-content">
                         <h1 contenteditable="true">${title}</h1>
