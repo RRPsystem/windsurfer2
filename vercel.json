@@ -2,6 +2,26 @@
   "rewrites": [
     { "source": "/:brandSlug/:pageSlug", "destination": "/api/pages/:brandSlug/:pageSlug" }
   ],
+  "headers": [
+    {
+      "source": "/js/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ],
   "installCommand": "echo Skip install",
   "buildCommand": "echo Skip build",
   "outputDirectory": "."
