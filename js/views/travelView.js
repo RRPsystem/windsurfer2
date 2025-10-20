@@ -124,7 +124,9 @@
               <button 
                 id="loadTravelBtn" 
                 class="btn btn-primary"
-                style="height: 40px; padding: 0 24px; background: #667eea; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap;"
+                style="height: 48px; padding: 0 32px; background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); transition: all 0.2s ease; font-size: 16px;"
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(239, 68, 68, 0.4)';"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(239, 68, 68, 0.3)';"
               >
                 <i class="fas fa-download"></i> Reis laden
               </button>
