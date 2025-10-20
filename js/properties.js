@@ -463,9 +463,17 @@ class PropertiesPanel {
                         </div>
                     `;
                 } else if (value === 'video-hero') {
+                    const defaultVideoId = 'Yocja_N5s1I';
                     preview.innerHTML = `
                         <div class="video-hero-container">
-                            <div class="video-hero-background" id="video-bg-${component.id}"></div>
+                            <div class="video-hero-background" id="video-bg-${component.id}">
+                                <iframe 
+                                    src="https://www.youtube.com/embed/${defaultVideoId}?autoplay=1&mute=1&loop=1&playlist=${defaultVideoId}&controls=0&showinfo=0&rel=0&modestbranding=1"
+                                    frameborder="0"
+                                    allow="autoplay; encrypted-media"
+                                    style="position: absolute; top: 50%; left: 50%; width: 177.77777778vh; height: 100%; min-width: 100%; min-height: 56.25vw; transform: translate(-50%, -50%); pointer-events: none; border: none;"
+                                ></iframe>
+                            </div>
                             <div class="video-hero-overlay"></div>
                             <div class="travel-hero-content">
                                 <h1 contenteditable="true">${title}</h1>
@@ -512,6 +520,44 @@ class PropertiesPanel {
             imgBtn.style.color = 'white';
             imgBtn.style.marginBottom = '12px';
             this.panel.appendChild(imgBtn);
+
+            // Height control for image-hero
+            const heightHeader = document.createElement('h5');
+            heightHeader.textContent = '📏 Hoogte';
+            heightHeader.style.marginTop = '20px';
+            heightHeader.style.marginBottom = '12px';
+            heightHeader.style.fontSize = '14px';
+            heightHeader.style.fontWeight = '600';
+            this.panel.appendChild(heightHeader);
+
+            // Full-screen toggle
+            const isFullScreen = component.classList.contains('hero-fullscreen');
+            this.createSelectInput('Hoogte Modus', isFullScreen ? 'fullscreen' : 'custom', [
+                { value: 'custom', label: '📐 Aangepaste Hoogte' },
+                { value: 'fullscreen', label: '🖥️ Full Screen (100vh)' }
+            ], (value) => {
+                if (value === 'fullscreen') {
+                    component.classList.add('hero-fullscreen');
+                    component.style.minHeight = '100vh';
+                    preview.style.height = '100vh';
+                } else {
+                    component.classList.remove('hero-fullscreen');
+                    const customHeight = component._heroHeight || 600;
+                    component.style.minHeight = customHeight + 'px';
+                    preview.style.height = customHeight + 'px';
+                }
+                setTimeout(() => this.showProperties(component), 100);
+            });
+
+            // Custom height slider (only show if not fullscreen)
+            if (!isFullScreen) {
+                const currentHeight = component._heroHeight || 600;
+                this.createRangeInput('Hoogte (px)', String(currentHeight), '400', '1200', '50', (value) => {
+                    component._heroHeight = parseInt(value, 10);
+                    component.style.minHeight = value + 'px';
+                    if (preview) preview.style.height = value + 'px';
+                });
+            }
         }
 
         // Video selector for video-hero style
@@ -556,6 +602,44 @@ class PropertiesPanel {
             videoInfo.style.marginBottom = '12px';
             videoInfo.innerHTML = '🎬 Selecteer een YouTube video die automatisch afspeelt als achtergrond';
             this.panel.appendChild(videoInfo);
+
+            // Height control for video-hero
+            const heightHeader = document.createElement('h5');
+            heightHeader.textContent = '📏 Hoogte';
+            heightHeader.style.marginTop = '20px';
+            heightHeader.style.marginBottom = '12px';
+            heightHeader.style.fontSize = '14px';
+            heightHeader.style.fontWeight = '600';
+            this.panel.appendChild(heightHeader);
+
+            // Full-screen toggle
+            const isFullScreen = component.classList.contains('hero-fullscreen');
+            this.createSelectInput('Hoogte Modus', isFullScreen ? 'fullscreen' : 'custom', [
+                { value: 'custom', label: '📐 Aangepaste Hoogte' },
+                { value: 'fullscreen', label: '🖥️ Full Screen (100vh)' }
+            ], (value) => {
+                if (value === 'fullscreen') {
+                    component.classList.add('hero-fullscreen');
+                    component.style.minHeight = '100vh';
+                    preview.style.height = '100vh';
+                } else {
+                    component.classList.remove('hero-fullscreen');
+                    const customHeight = component._heroHeight || 600;
+                    component.style.minHeight = customHeight + 'px';
+                    preview.style.height = customHeight + 'px';
+                }
+                setTimeout(() => this.showProperties(component), 100);
+            });
+
+            // Custom height slider (only show if not fullscreen)
+            if (!isFullScreen) {
+                const currentHeight = component._heroHeight || 600;
+                this.createRangeInput('Hoogte (px)', String(currentHeight), '400', '1200', '50', (value) => {
+                    component._heroHeight = parseInt(value, 10);
+                    component.style.minHeight = value + 'px';
+                    if (preview) preview.style.height = value + 'px';
+                });
+            }
         }
 
         // === ACHTERGROND KLEUR (voor alle styles) ===
