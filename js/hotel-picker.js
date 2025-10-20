@@ -92,8 +92,14 @@ class HotelPicker {
           searchHotels();
         } catch (error) {
           console.error('[Hotel Picker] Error:', error);
-          noteEl.textContent = 'Error: Werkt alleen lokaal met npm run dev';
-          resultsDiv.innerHTML = '<p style="color: #ff6b6b; padding: 20px; background: #fff5f5; border-radius: 8px; border: 1px solid #ffc9c9;"><strong>⚠️ Hotel Picker werkt alleen lokaal</strong><br><br>Start de development server met <code style="background: #f1f3f5; padding: 2px 6px; border-radius: 4px;">npm run dev</code> om hotels te kunnen zoeken.</p>';
+          noteEl.textContent = 'Error: API niet beschikbaar';
+          resultsDiv.innerHTML = `
+            <div style="color: #ff6b6b; padding: 20px; background: #fff5f5; border-radius: 8px; border: 1px solid #ffc9c9;">
+              <strong>⚠️ Accommodation API niet beschikbaar</strong><br><br>
+              De API route geeft een error: ${error.message}<br><br>
+              <small>Probeer de pagina te verversen of neem contact op met support.</small>
+            </div>
+          `;
         } finally {
           searchBtn.disabled = false;
           searchBtn.innerHTML = '<i class="fas fa-search"></i> Zoeken';
