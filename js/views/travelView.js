@@ -65,7 +65,62 @@
                   style="width: 100%; height: 40px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;"
                 />
               </div>
+            </div>
 
+            <!-- Template Selector -->
+            <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+              <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 14px;">
+                <i class="fas fa-palette"></i> Kies Reis Template
+              </label>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                <!-- Template 1 -->
+                <div class="template-card" data-template="1" style="border: 2px solid #667eea; border-radius: 12px; padding: 12px; cursor: pointer; transition: all 0.2s; background: #f8f9ff;">
+                  <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 700;">
+                    <i class="fas fa-plane-departure"></i>
+                  </div>
+                  <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                      <div style="font-weight: 600; color: #374151; font-size: 14px;">Template 1</div>
+                      <div style="font-size: 12px; color: #6b7280;">Standaard</div>
+                    </div>
+                    <div style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid #667eea; background: #667eea; display: flex; align-items: center; justify-content: center;">
+                      <i class="fas fa-check" style="color: white; font-size: 12px;"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Template 2 -->
+                <div class="template-card" data-template="2" style="border: 2px solid #e5e7eb; border-radius: 12px; padding: 12px; cursor: pointer; transition: all 0.2s; background: white;">
+                  <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 700;">
+                    <i class="fas fa-mountain"></i>
+                  </div>
+                  <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                      <div style="font-weight: 600; color: #374151; font-size: 14px;">Template 2</div>
+                      <div style="font-size: 12px; color: #6b7280;">Avontuur</div>
+                    </div>
+                    <div style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid #d1d5db; background: white;"></div>
+                  </div>
+                </div>
+
+                <!-- Template 3 -->
+                <div class="template-card" data-template="3" style="border: 2px solid #e5e7eb; border-radius: 12px; padding: 12px; cursor: pointer; transition: all 0.2s; background: white;">
+                  <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 700;">
+                    <i class="fas fa-umbrella-beach"></i>
+                  </div>
+                  <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                      <div style="font-weight: 600; color: #374151; font-size: 14px;">Template 3</div>
+                      <div style="font-size: 12px; color: #6b7280;">Strand & Zon</div>
+                    </div>
+                    <div style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid #d1d5db; background: white;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;">
               <button 
                 id="loadTravelBtn" 
                 class="btn btn-primary"
@@ -124,6 +179,37 @@
       const testApiBtn = container.querySelector('#testApiBtn');
       const ideaInput = container.querySelector('#tcIdeaIdInput');
       const micrositeInput = container.querySelector('#tcMicrositeIdInput');
+      const templateCards = container.querySelectorAll('.template-card');
+
+      // Template selection
+      this.selectedTemplate = '1'; // Default
+      templateCards.forEach(card => {
+        card.addEventListener('click', () => {
+          // Remove selection from all cards
+          templateCards.forEach(c => {
+            c.style.border = '2px solid #e5e7eb';
+            c.style.background = 'white';
+            const checkmark = c.querySelector('.fas.fa-check');
+            if (checkmark) {
+              checkmark.parentElement.style.background = 'white';
+              checkmark.parentElement.style.borderColor = '#d1d5db';
+            }
+          });
+          
+          // Add selection to clicked card
+          const template = card.dataset.template;
+          this.selectedTemplate = template;
+          card.style.border = '2px solid #667eea';
+          card.style.background = '#f8f9ff';
+          const checkmark = card.querySelector('.fas.fa-check');
+          if (checkmark) {
+            checkmark.parentElement.style.background = '#667eea';
+            checkmark.parentElement.style.borderColor = '#667eea';
+          }
+          
+          console.log('[TravelView] Template selected:', template);
+        });
+      });
 
       if (testApiBtn) {
         testApiBtn.addEventListener('click', async () => {
@@ -146,11 +232,13 @@
             return;
           }
 
-          // Save microsite ID for future use
+          // Save microsite ID and template for future use
           this.micrositeId = micrositeId;
           localStorage.setItem('tc_microsite_id', micrositeId);
+          localStorage.setItem('tc_selected_template', this.selectedTemplate);
 
-          await this.loadTravel(ideaId, micrositeId);
+          console.log('[TravelView] Loading with template:', this.selectedTemplate);
+          await this.loadTravel(ideaId, micrositeId, this.selectedTemplate);
         });
       }
 
@@ -209,8 +297,8 @@
       }
     },
 
-    async loadTravel(ideaId, micrositeId) {
-      this.showStatus('loading', '<i class="fas fa-circle-notch fa-spin"></i> Reis aan het laden...');
+    async loadTravel(ideaId, micrositeId, template = '1') {
+      this.showStatus('loading', `<i class="fas fa-circle-notch fa-spin"></i> Reis aan het laden met Template ${template}...`);
 
       try {
         // Determine API endpoint
