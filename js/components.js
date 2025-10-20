@@ -2263,7 +2263,7 @@ class ComponentFactory {
         header._backgroundType = backgroundType;
         header._backgroundColor = options.backgroundColor || '#667eea';
         header._backgroundImage = options.backgroundImage || '';
-        header._backgroundVideo = options.backgroundVideo || '';
+        header._backgroundVideo = options.backgroundVideo || (backgroundType === 'video' ? 'fd36b09' : ''); // Default Iceland video
         header._overlayOpacity = options.overlayOpacity || 0.5; // Higher default for better text readability
         header._textColor = options.textColor || '#ffffff'; // Default white text
         header._destinations = destinations;
