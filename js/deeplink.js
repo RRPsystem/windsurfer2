@@ -359,8 +359,8 @@ async function loadNewsContent(ctx) {
     
     log('Loading news content for slug:', newsSlug);
     
-    // Build URL - use content-api list endpoint and filter by slug
-    let url = `${api}/content-api/list?type=news_items&brand_id=${encodeURIComponent(brandId)}&slug=${encodeURIComponent(newsSlug)}`;
+    // Build URL - use content-api base endpoint with slug parameter (as per API docs)
+    let url = `${api}/content-api?type=news_items&brand_id=${encodeURIComponent(brandId)}&slug=${encodeURIComponent(newsSlug)}`;
     
     // Build headers
     const headers = {
@@ -393,12 +393,17 @@ async function loadNewsContent(ctx) {
     let data = await response.json();
     log('News data loaded:', data);
     
-    // If list endpoint returns array, take first item
-    if (Array.isArray(data) && data.length > 0) {
-      data = data[0];
-      log('Using first item from list:', data);
-    } else if (Array.isArray(data) && data.length === 0) {
-      warn('No news found with slug:', newsSlug);
+    // Handle both single object and array responses
+    if (Array.isArray(data)) {
+      if (data.length > 0) {
+        data = data[0];
+        log('Using first item from array:', data);
+      } else {
+        warn('No news found with slug:', newsSlug);
+        return;
+      }
+    } else if (!data || !data.id) {
+      warn('Invalid news data received:', data);
       return;
     }
     
