@@ -188,16 +188,11 @@ class WebsiteBuilder {
                         });
                     } catch (e) {}
 
-                    // Insert mini menu if missing
+                    // Old Bouwtype dropdown removed - using buildTypeSelect in header instead
                     const headerRight = document.querySelector('.app-header .header-right');
                     if (headerRight && !document.getElementById('topModeSelect')){
-                        const wrap = document.createElement('div');
-                        wrap.style.cssText='display:flex;align-items:center;gap:8px';
-                        const lbl = document.createElement('label'); lbl.textContent = 'Bouwtype'; lbl.style.cssText='color:#f8fafc;font-size:12px;opacity:.9;';
-                        const sel = document.createElement('select'); sel.id='topModeSelect'; sel.className='form-control';
-                        sel.innerHTML = '<option value="page">Web pagina</option><option value="travel">Reizen</option><option value="news">Nieuwsartikel</option><option value="destination">Bestemmingspagina</option><option value="menu">Menu & footer</option>';
-                        wrap.appendChild(lbl); wrap.appendChild(sel);
-                        headerRight.insertBefore(wrap, headerRight.firstChild);
+                        // Disabled - using new buildTypeSelect
+                        const sel = { value: 'page' }; // Dummy for compatibility
                         // Determine initial mode from deeplink/hash/localStorage
                         try {
                             const ct = (href.searchParams.get('content_type')||'').toLowerCase();
