@@ -444,9 +444,28 @@ async function loadNewsContent(ctx) {
           log('News slug set to:', data.slug);
         }
         
-        // Reattach event listeners
-        if (window.websiteBuilder && window.websiteBuilder.reattachEventListeners) {
-          window.websiteBuilder.reattachEventListeners();
+        // Reattach event listeners and reinitialize components
+        if (window.websiteBuilder) {
+          // Reattach event listeners
+          if (window.websiteBuilder.reattachEventListeners) {
+            window.websiteBuilder.reattachEventListeners();
+          }
+          
+          // Make all components selectable
+          const components = canvas.querySelectorAll('[data-component]');
+          components.forEach(comp => {
+            if (window.websiteBuilder.makeSelectable) {
+              window.websiteBuilder.makeSelectable(comp);
+            }
+          });
+          
+          // Trigger a canvas update event
+          try {
+            const event = new CustomEvent('canvasUpdated');
+            canvas.dispatchEvent(event);
+          } catch (e) {}
+          
+          log('Components reinitialized:', components.length);
         }
         
         log('News content loaded into builder');
