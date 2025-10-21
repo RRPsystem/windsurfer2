@@ -370,7 +370,15 @@ async function loadNewsContent(ctx) {
     const response = await fetch(url, { headers });
     
     if (!response.ok) {
-      warn('Failed to load news:', response.status, response.statusText);
+      let errorData = null;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        try {
+          errorData = await response.text();
+        } catch (e2) {}
+      }
+      warn('Failed to load news:', response.status, response.statusText, errorData);
       return;
     }
     
