@@ -1063,11 +1063,14 @@ class WebsiteBuilder {
             }
 
             // 1.5. Add intro text block with optional "Bekijk Route" button
+            console.log('[loadTravelIdea] Creating intro text block...');
             try {
                 const textBlock = ComponentFactory.createComponent('content-block', {});
+                console.log('[loadTravelIdea] Text block created:', !!textBlock);
                 if (textBlock) {
                     // Add intro text
                     const textContent = textBlock.querySelector('.wb-content-text');
+                    console.log('[loadTravelIdea] Text content element:', !!textContent);
                     if (textContent) {
                         textContent.innerHTML = `
                             <h2 style="margin-bottom: 16px;">Over deze reis</h2>
@@ -1094,10 +1097,12 @@ class WebsiteBuilder {
                             }
                         }, 100);
                     }
+                    console.log('[loadTravelIdea] Appending text block to canvas...');
                     canvas.appendChild(textBlock);
+                    console.log('[loadTravelIdea] Text block appended successfully!');
                 }
             } catch (e) {
-                console.warn('Failed to create intro text block', e);
+                console.error('[loadTravelIdea] Failed to create intro text block:', e);
             }
 
             // 2. Add Travel Hero with Interactive Map
