@@ -1753,8 +1753,11 @@ class WebsiteBuilder {
                         try {
                             const h1 = document.querySelector('.na-title');
                             const t = (h1 && h1.textContent) ? h1.textContent.trim() : '';
+                            console.debug('[WB/save] News title detection', { h1Found: !!h1, h1Text: t, fallbackTitle: safeTitle });
                             if (t) safeTitle = t;
-                        } catch (e) {}
+                        } catch (e) {
+                            console.warn('[WB/save] Error detecting news title', e);
+                        }
                     }
                     const safeSlug = slugify(contentJson.slug || slugInput?.value || safeTitle);
                     contentJson.title = safeTitle;
