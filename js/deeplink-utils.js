@@ -1,4 +1,4 @@
-﻿// Deeplink URL generator + Copy UI
+// Deeplink URL generator + Copy UI
 (function(){
   'use strict';
   const qsVal = (u,k) => { try { return u.searchParams.get(k) || ''; } catch (e) { return ''; } };
@@ -137,18 +137,19 @@
   }
 
   function ensureHeaderButton(){
-    document.addEventListener('DOMContentLoaded', () => {
-      const right = document.querySelector('.app-header .header-right');
-      if (!right) return;
-      if (document.getElementById('deeplinkCopyBtn')) return;
-      const btn = document.createElement('button');
-      btn.id = 'deeplinkCopyBtn';
-      btn.className = 'btn btn-secondary';
-      btn.style.marginLeft = '8px';
-      btn.innerHTML = '<i class="fas fa-link"></i> Link';
-      btn.onclick = showPopup;
-      right.appendChild(btn);
-    });
+    // Link button disabled - not needed for now
+    // document.addEventListener('DOMContentLoaded', () => {
+    //   const right = document.querySelector('.app-header .header-right');
+    //   if (!right) return;
+    //   if (document.getElementById('deeplinkCopyBtn')) return;
+    //   const btn = document.createElement('button');
+    //   btn.id = 'deeplinkCopyBtn';
+    //   btn.className = 'btn btn-secondary';
+    //   btn.style.marginLeft = '8px';
+    //   btn.innerHTML = '<i class="fas fa-link"></i> Link';
+    //   btn.onclick = showPopup;
+    //   right.appendChild(btn);
+    // });
   }
 
   ensureHeaderButton();
