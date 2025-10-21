@@ -96,7 +96,7 @@
                 <h1 style="display:flex;align-items:center;gap:12px;">
                     <i class="fas fa-code" style="font-size:24px;"></i>
                     <span style="font-weight:700;font-size:18px;">Website Builder</span>
-                    <select id="buildTypeSelect" class="form-control" style="height:36px;padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:white;font-weight:600;font-size:14px;cursor:pointer;">
+                    <select id="buildTypeSelect" class="form-control" style="height:36px;padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:white;color:#1f2937;font-weight:600;font-size:14px;cursor:pointer;">
                         <option value="page">📄 Web pagina</option>
                         <option value="travel">✈️ Reizen</option>
                         <option value="news">📰 Nieuwsartikel</option>
@@ -697,27 +697,7 @@
 
           const headerRight = document.querySelector('.app-header .header-right');
 
-          // Insert Bouwtype dropdown (only once)
-          if (headerRight && !document.getElementById('topModeSelect')){
-            const wrap = document.createElement('div');
-            wrap.style.display = 'flex'; wrap.style.alignItems = 'center'; wrap.style.gap = '8px';
-            const lbl = document.createElement('label'); lbl.textContent = 'Bouwtype'; lbl.style.cssText = 'color:#f8fafc;font-size:12px;opacity:.9;';
-            const sel = document.createElement('select'); sel.id = 'topModeSelect'; sel.className = 'form-control'; sel.style.cssText = 'height:28px;padding:4px 8px;border-radius:6px;border:1px solid #cbd5e1;min-width:180px;';
-            sel.innerHTML = `
-              <option value="page">Web pagina</option>
-              <option value="travel">Reizen</option>
-              <option value="news">Nieuwsartikel</option>
-              <option value="destination">Bestemmingspagina</option>
-              <option value="menu">Menu & footer</option>`;
-            wrap.appendChild(lbl); wrap.appendChild(sel);
-            headerRight.insertBefore(wrap, headerRight.firstChild);
-            try {
-              const hashMode = (location.hash.match(/#\/mode\/([a-z]+)/i)||[])[1];
-              const storedMode = localStorage.getItem('wb_mode');
-              const mode = hashMode || storedMode || 'page'; sel.value = mode;
-            } catch (e) {}
-            sel.onchange = () => { try { location.hash = `#/mode/${sel.value}`; } catch (e) {} };
-          }
+          // Old Bouwtype dropdown removed - using new buildTypeSelect in header instead
 
           // Re-apply on hash changes and DOM mutations (e.g., after actions that reflow header)
           if (!window.__WB_hashApplied) {

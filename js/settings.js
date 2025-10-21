@@ -1,4 +1,4 @@
-﻿// Settings modal to configure API credentials and target without deeplinks
+// Settings modal to configure API credentials and target without deeplinks
 (function(){
   'use strict';
   const ls = {
@@ -110,12 +110,13 @@
   }
 
   function ensureButton(){
-    document.addEventListener('DOMContentLoaded', () => {
-      const right = document.querySelector('.app-header .header-right'); if (!right) return;
-      if (document.getElementById('settingsBtn')) return;
-      const btn = document.createElement('button'); btn.id='settingsBtn'; btn.className='btn btn-secondary'; btn.style.marginLeft='8px'; btn.innerHTML='<i class="fas fa-cog"></i> Instellingen';
-      btn.onclick = openSettings; right.appendChild(btn);
-    });
+    // Instellingen button disabled - not needed for now
+    // document.addEventListener('DOMContentLoaded', () => {
+    //   const right = document.querySelector('.app-header .header-right'); if (!right) return;
+    //   if (document.getElementById('settingsBtn')) return;
+    //   const btn = document.createElement('button'); btn.id='settingsBtn'; btn.className='btn btn-secondary'; btn.style.marginLeft='8px'; btn.innerHTML='<i class="fas fa-cog"></i> Instellingen';
+    //   btn.onclick = openSettings; right.appendChild(btn);
+    // });
   }
 
   function bootFromStorage(){
