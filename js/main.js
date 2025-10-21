@@ -1048,21 +1048,22 @@ class WebsiteBuilder {
             });
 
             // 1. Add hero with travel image
+            let heroElement = null;
             if (image) {
                 try {
-                    const hero = ComponentFactory.createComponent('hero-travel', {
+                    heroElement = ComponentFactory.createComponent('hero-travel', {
                         title: title,
                         subtitle: description.substring(0, 150),
                         background: image,
                         height: '400px'
                     });
-                    if (hero) canvas.appendChild(hero);
+                    if (heroElement) canvas.appendChild(heroElement);
                 } catch (e) {
                     console.warn('Failed to create hero', e);
                 }
             }
 
-            // 1.5. Add intro text block with optional "Bekijk Route" button
+            // 1.5. Add intro text block with optional "Bekijk Route" button (AFTER hero)
             console.log('[loadTravelIdea] Creating intro text block...');
             try {
                 const textBlock = ComponentFactory.createComponent('text', {});
