@@ -202,7 +202,15 @@
   }
   
   // Auto-load news content if news_slug is present
-  if (ctx.news_slug && ctx.api && ctx.token) {
+  log('Checking news auto-load:', { 
+    has_news_slug: !!ctx.news_slug, 
+    has_slug: !!ctx.slug,
+    has_api: !!ctx.api, 
+    has_token: !!ctx.token,
+    news_slug: ctx.news_slug,
+    slug: ctx.slug
+  });
+  if ((ctx.news_slug || ctx.slug) && ctx.api && ctx.token) {
     loadNewsContent(ctx);
   }
 })();
