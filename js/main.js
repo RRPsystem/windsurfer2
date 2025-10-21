@@ -1747,19 +1747,37 @@ class WebsiteBuilder {
 
                     try { window.WB_lastSaveDebug = Object.assign(window.WB_lastSaveDebug||{}, { mode }); console.debug('WB/save mode/helpers', mode, { pages: !!(window.BuilderPublishAPI&&window.BuilderPublishAPI.saveDraft), news: !!(window.BuilderPublishAPI&&window.BuilderPublishAPI.news), dest: !!(window.BuilderPublishAPI&&window.BuilderPublishAPI.destinations) }); } catch (e) {}
                     const defaultTitle = (mode === 'page') ? 'Pagina' : (mode === 'destination' ? 'Bestemming' : 'Nieuws');
-                    let safeTitle = (contentJson.title || titleInput?.value || defaultTitle).toString();
-                    // Prefer the H1 from the news-article block when in news mode
+                    // Priority for title: top bar input > contentJson > default
+                    let safeTitle = (titleInput?.value || contentJson.title || defaultTitle).toString().trim();
+                    // Priority for slug: top bar input > contentJson > slugified title
+                    let safeSlug = (slugInput?.value || contentJson.slug || '').toString().trim();
+                    
+                    // In news mode, also check H1 as alternative source
                     if (mode === 'news') {
                         try {
                             const h1 = document.querySelector('.na-title');
-                            const t = (h1 && h1.textContent) ? h1.textContent.trim() : '';
-                            console.debug('[WB/save] News title detection', { h1Found: !!h1, h1Text: t, fallbackTitle: safeTitle });
-                            if (t) safeTitle = t;
+                            const h1Text = (h1 && h1.textContent) ? h1.textContent.trim() : '';
+                            console.debug('[WB/save] News title/slug detection', { 
+                                topBarTitle: titleInput?.value,
+                                topBarSlug: slugInput?.value,
+                                h1Text,
+                                contentJsonTitle: contentJson.title,
+                                finalTitle: safeTitle,
+                                finalSlug: safeSlug
+                            });
+                            // If top bar title is empty but H1 has content, use H1
+                            if (!titleInput?.value && h1Text) {
+                                safeTitle = h1Text;
+                            }
                         } catch (e) {
                             console.warn('[WB/save] Error detecting news title', e);
                         }
                     }
-                    const safeSlug = slugify(contentJson.slug || slugInput?.value || safeTitle);
+                    
+                    // Generate slug from title if still empty
+                    if (!safeSlug) {
+                        safeSlug = slugify(safeTitle);
+                    }
                     contentJson.title = safeTitle;
                     contentJson.slug = safeSlug;
                     // Always save locally as baseline (even when remote is available)
