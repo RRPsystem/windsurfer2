@@ -196,9 +196,14 @@
   // Always local-first save behavior
   installSaveMonkeyPatch();
   
-  // Auto-load content if page_id is present
+  // Auto-load page content if page_id is present
   if (ctx.page_id && ctx.api && ctx.token) {
     loadPageContent(ctx);
+  }
+  
+  // Auto-load news content if news_slug is present
+  if (ctx.news_slug && ctx.api && ctx.token) {
+    loadNewsContent(ctx);
   }
 })();
 
@@ -332,6 +337,110 @@ async function loadPageContent(ctx) {
     
   } catch (error) {
     warn('Error loading page content:', error);
+  }
+}
+
+// Load news content from content-api
+async function loadNewsContent(ctx) {
+  try {
+    const api = (ctx.api || '').replace(/\/$/, '');
+    const newsSlug = ctx.news_slug || ctx.slug;
+    const brandId = ctx.brand_id;
+    
+    if (!api || !newsSlug) return;
+    
+    log('Loading news content for slug:', newsSlug);
+    
+    // Build URL - use content-api to fetch news by slug
+    let url = `${api}/content-api?type=news_items&brand_id=${encodeURIComponent(brandId)}&slug=${encodeURIComponent(newsSlug)}`;
+    
+    // Build headers
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (ctx.token) {
+      headers['Authorization'] = `Bearer ${ctx.token}`;
+    }
+    if (ctx.apikey) {
+      headers['apikey'] = ctx.apikey;
+    }
+    
+    // Fetch news data
+    const response = await fetch(url, { headers });
+    
+    if (!response.ok) {
+      warn('Failed to load news:', response.status, response.statusText);
+      return;
+    }
+    
+    const data = await response.json();
+    log('News data loaded:', data);
+    
+    // Store data for later loading
+    window._pendingPageLoad = {
+      data: data,
+      loaded: false
+    };
+    
+    // Load content into builder
+    const loadContent = () => {
+      try {
+        if (window._pendingPageLoad.loaded) return;
+        
+        const canvas = document.getElementById('canvas');
+        if (!canvas) {
+          setTimeout(loadContent, 100);
+          return;
+        }
+        
+        const data = window._pendingPageLoad.data;
+        
+        // Load the content - check content.html or content.htmlSnapshot
+        const htmlContent = data.content?.html || data.content?.htmlSnapshot || data.body_html;
+        
+        if (htmlContent) {
+          canvas.innerHTML = htmlContent;
+          log('News content HTML loaded into canvas');
+          window._pendingPageLoad.loaded = true;
+        } else {
+          warn('No HTML content found in news response. Keys:', Object.keys(data.content || {}));
+        }
+        
+        // Update title/slug inputs
+        const titleInput = document.getElementById('pageTitleInput');
+        const slugInput = document.getElementById('pageSlugInput');
+        if (titleInput && data.title) {
+          titleInput.value = data.title;
+          log('News title set to:', data.title);
+        }
+        if (slugInput && data.slug) {
+          slugInput.value = data.slug;
+          log('News slug set to:', data.slug);
+        }
+        
+        // Reattach event listeners
+        if (window.websiteBuilder && window.websiteBuilder.reattachEventListeners) {
+          window.websiteBuilder.reattachEventListeners();
+        }
+        
+        log('News content loaded into builder');
+      } catch (e) {
+        warn('Failed to load news content into builder:', e);
+      }
+    };
+    
+    // Start loading after DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(loadContent, 500);
+      });
+    } else {
+      setTimeout(loadContent, 500);
+    }
+    
+  } catch (error) {
+    warn('Error loading news content:', error);
   }
 }
 
