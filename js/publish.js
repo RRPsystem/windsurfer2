@@ -479,8 +479,8 @@ function readQueryParam(name) {
 async function newsSaveDraft({ brand_id, id, title, slug, content, excerpt, featured_image, status = 'draft', author_type: arg_author_type, author_id: arg_author_id }) {
   const base = contentApiBase();
   if (!base) throw new Error('content-api base URL ontbreekt');
-  // Use explicit news save endpoint per requirement
-  const url = `${base}/content-api/news/save`;
+  // Use standard content-api endpoint with type parameter
+  const url = `${base}/content-api/save?type=news_items`;
   const baseBody = { brand_id, title, slug, content: content || {}, excerpt: excerpt || '', featured_image: featured_image || '', status };
   // Tags support: from content.meta.tags (array) or URL ?tags=comma,separated
   try {
