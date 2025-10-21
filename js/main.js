@@ -1065,38 +1065,39 @@ class WebsiteBuilder {
             // 1.5. Add intro text block with optional "Bekijk Route" button
             console.log('[loadTravelIdea] Creating intro text block...');
             try {
-                const textBlock = ComponentFactory.createComponent('content-block', {});
+                const textBlock = ComponentFactory.createComponent('text', {});
                 console.log('[loadTravelIdea] Text block created:', !!textBlock);
                 if (textBlock) {
-                    // Add intro text
-                    const textContent = textBlock.querySelector('.wb-content-text');
-                    console.log('[loadTravelIdea] Text content element:', !!textContent);
-                    if (textContent) {
-                        textContent.innerHTML = `
-                            <h2 style="margin-bottom: 16px;">Over deze reis</h2>
+                    // Add intro text and button
+                    textBlock.innerHTML = `
+                        <div style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
+                            <h2 style="margin-bottom: 16px; font-size: 28px; font-weight: 700; color: #111827;">Over deze reis</h2>
                             <p style="font-size: 16px; line-height: 1.6; color: #374151; margin-bottom: 24px;">
                                 ${description || 'Ontdek de mooiste plekken en beleef een onvergetelijke reis vol avontuur en ontspanning.'}
                             </p>
                             <button id="showRouteBtn" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 16px;">
                                 <i class="fas fa-route"></i> Bekijk Route
                             </button>
-                        `;
-                        
-                        // Add event listener for route button
-                        setTimeout(() => {
-                            const routeBtn = document.getElementById('showRouteBtn');
-                            if (routeBtn) {
-                                routeBtn.addEventListener('click', () => {
-                                    // Open route in sidebar or modal
-                                    if (window.showRouteOverview) {
-                                        window.showRouteOverview(data);
-                                    } else {
-                                        alert('Route overzicht functie wordt binnenkort toegevoegd!');
-                                    }
-                                });
-                            }
-                        }, 100);
-                    }
+                        </div>
+                    `;
+                    
+                    // Add event listener for route button
+                    setTimeout(() => {
+                        const routeBtn = document.getElementById('showRouteBtn');
+                        console.log('[loadTravelIdea] Route button found:', !!routeBtn);
+                        if (routeBtn) {
+                            routeBtn.addEventListener('click', () => {
+                                console.log('[loadTravelIdea] Route button clicked!');
+                                // Open route in sidebar or modal
+                                if (window.showRouteOverview) {
+                                    window.showRouteOverview(data);
+                                } else {
+                                    alert('Route overzicht functie wordt binnenkort toegevoegd!');
+                                }
+                            });
+                        }
+                    }, 100);
+                    
                     console.log('[loadTravelIdea] Appending text block to canvas...');
                     canvas.appendChild(textBlock);
                     console.log('[loadTravelIdea] Text block appended successfully!');
