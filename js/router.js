@@ -78,37 +78,28 @@
   }
 
   function ensureMiniMenu(){
-    if (document.getElementById('miniMenuBar')) return document.getElementById('miniMenuBar');
-    // In Bolt deeplink context gebruiken we de dropdown in de header (#topModeSelect)
-    // en maken we GEEN extra mini-balk aan.
-    try {
-      if ((window.BOLT_API && window.BOLT_API.baseUrl) || document.getElementById('topModeSelect')) return null;
-    } catch (e) {}
-    const header = document.querySelector('.app-header');
-    const bar = document.createElement('div');
-    bar.id = 'miniMenuBar';
-    bar.style.cssText = 'display:flex;align-items:center;gap:12px;padding:8px 12px;background:#f8fafc;border-bottom:1px solid #e5e7eb;';
-
-    const label = document.createElement('div');
-    label.textContent = 'Bouwtype:';
-    label.style.cssText = 'font-size:12px;color:#334155;font-weight:600;';
-
-    const sel = document.createElement('select');
-    sel.id = 'modeSelect';
-    sel.className = 'form-control';
-    sel.style.cssText = 'height:30px;min-width:220px;';
-    sel.innerHTML = MODES.map(m=>`<option value="${m.value}">${m.label}</option>`).join('');
-
-    const right = document.createElement('div');
-    right.style.cssText = 'margin-left:auto;display:flex;gap:8px;';
-
-    bar.appendChild(label);
-    bar.appendChild(sel);
-    bar.appendChild(right);
-
-    const container = document.querySelector('.app-container') || document.body;
-    container.insertBefore(bar, container.children[1] || null);
-    return bar;
+    // Mini menu bar disabled - using buildTypeSelect in header instead
+    return null;
+    // if (document.getElementById('miniMenuBar')) return document.getElementById('miniMenuBar');
+    // const bar = document.createElement('div');
+    // bar.id = 'miniMenuBar';
+    // bar.style.cssText = 'display:flex;align-items:center;gap:12px;padding:8px 12px;background:#f8fafc;border-bottom:1px solid #e5e7eb;';
+    // const label = document.createElement('div');
+    // label.textContent = 'Bouwtype:';
+    // label.style.cssText = 'font-size:12px;color:#334155;font-weight:600;';
+    // const sel = document.createElement('select');
+    // sel.id = 'modeSelect';
+    // sel.className = 'form-control';
+    // sel.style.cssText = 'height:30px;min-width:220px;';
+    // sel.innerHTML = MODES.map(m=>`<option value="${m.value}">${m.label}</option>`).join('');
+    // const right = document.createElement('div');
+    // right.style.cssText = 'margin-left:auto;display:flex;gap:8px;';
+    // bar.appendChild(label);
+    // bar.appendChild(sel);
+    // bar.appendChild(right);
+    // const container = document.querySelector('.app-container') || document.body;
+    // container.insertBefore(bar, container.children[1] || null);
+    // return bar;
   }
 
   function ensureModeView(){
