@@ -1812,48 +1812,8 @@ class ComponentFactory {
         const targetSrc = videoId ? `${baseUrl}?${isEditMode ? paramsEdit : paramsView}` : 'about:blank';
         try { iframe.dataset.src = targetSrc; } catch (e) { /* older browsers */ }
         
-        // In edit mode: show preview button instead of loading iframe
-        if (isEditMode && videoId) {
-            const previewBtn = document.createElement('button');
-            previewBtn.type = 'button';
-            previewBtn.className = 'video-preview-btn';
-            previewBtn.innerHTML = '<i class="fas fa-play-circle"></i> Preview Video';
-            previewBtn.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;background:rgba(139,92,246,0.95);color:#fff;border:none;padding:16px 32px;border-radius:50px;font-size:18px;font-weight:600;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,0.3);transition:all 0.2s;';
-            previewBtn.onmouseover = () => { previewBtn.style.background = 'rgba(139,92,246,1)'; previewBtn.style.transform = 'translate(-50%,-50%) scale(1.05)'; };
-            previewBtn.onmouseout = () => { previewBtn.style.background = 'rgba(139,92,246,0.95)'; previewBtn.style.transform = 'translate(-50%,-50%) scale(1)'; };
-            previewBtn.onclick = (e) => {
-                e.stopPropagation();
-                // Create modal
-                const modal = document.createElement('div');
-                modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
-                const modalContent = document.createElement('div');
-                modalContent.style.cssText = 'position:relative;width:90%;max-width:1200px;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);';
-                const modalIframe = document.createElement('iframe');
-                modalIframe.setAttribute('title', 'Video Preview');
-                modalIframe.setAttribute('frameborder', '0');
-                modalIframe.setAttribute('allow', 'autoplay; fullscreen');
-                modalIframe.setAttribute('allowfullscreen', '');
-                modalIframe.style.cssText = 'width:100%;height:100%;';
-                modalIframe.src = `${baseUrl}?autoplay=1&controls=1&mute=0${start>0?`&start=${start}`:''}`;
-                const closeBtn = document.createElement('button');
-                closeBtn.type = 'button';
-                closeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                closeBtn.style.cssText = 'position:absolute;top:-50px;right:0;background:rgba(255,255,255,0.2);color:#fff;border:none;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:20px;transition:all 0.2s;';
-                closeBtn.onmouseover = () => { closeBtn.style.background = 'rgba(255,255,255,0.3)'; };
-                closeBtn.onmouseout = () => { closeBtn.style.background = 'rgba(255,255,255,0.2)'; };
-                closeBtn.onclick = () => modal.remove();
-                modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-                modalContent.appendChild(modalIframe);
-                modalContent.appendChild(closeBtn);
-                modal.appendChild(modalContent);
-                document.body.appendChild(modal);
-            };
-            videoWrap.appendChild(previewBtn);
-            // Don't load iframe in edit mode
-        } else {
-            // Preview/published mode: load iframe normally
-            videoWrap.appendChild(iframe);
-        }
+        // Always load iframe (even in edit mode) so video is visible
+        videoWrap.appendChild(iframe);
         try {
             const io = new IntersectionObserver((entries, obs) => {
                 entries.forEach(en => {
