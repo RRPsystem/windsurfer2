@@ -211,7 +211,12 @@
     slug: ctx.slug
   });
   if ((ctx.news_slug || ctx.slug) && ctx.api && ctx.token) {
-    loadNewsContent(ctx);
+    const kind = determineKind(ctx);
+    if (kind === 'destination') {
+      loadDestinationContent(ctx);
+    } else {
+      loadNewsContent(ctx);
+    }
   }
 })();
 
@@ -553,6 +558,174 @@ async function loadNewsContent(ctx) {
     
   } catch (error) {
     warn('Error loading news content:', error);
+  }
+}
+
+// Load destination content from content-api
+async function loadDestinationContent(ctx) {
+  try {
+    const api = (ctx.api || '').replace(/\/$/, '');
+    const destinationSlug = ctx.slug;
+    const brandId = ctx.brand_id;
+    
+    if (!api || !destinationSlug) return;
+    
+    log('Loading destination content for slug:', destinationSlug);
+    
+    // Build URL - use content-api with destinations type
+    let url = `${api}/content-api?type=destinations&slug=${encodeURIComponent(destinationSlug)}`;
+    if (brandId) url += `&brand_id=${encodeURIComponent(brandId)}`;
+    
+    // Build headers
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (ctx.token) {
+      headers['Authorization'] = `Bearer ${ctx.token}`;
+    }
+    if (ctx.apikey) {
+      headers['apikey'] = ctx.apikey;
+    }
+    
+    // Fetch destination data
+    const response = await fetch(url, { headers });
+    
+    if (!response.ok) {
+      let errorData = null;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        try {
+          errorData = await response.text();
+        } catch (e2) {}
+      }
+      warn('Failed to load destination:', response.status, response.statusText, errorData);
+      return;
+    }
+    
+    let data = await response.json();
+    log('Destination data loaded:', data);
+    
+    // Handle both single object and array responses
+    if (Array.isArray(data)) {
+      if (data.length > 0) {
+        data = data[0];
+        log('Using first item from array:', data);
+      } else {
+        warn('No destination found with slug:', destinationSlug);
+        return;
+      }
+    } else if (!data || !data.id) {
+      warn('Invalid destination data received:', data);
+      return;
+    }
+    
+    // Store data for later loading
+    window._pendingPageLoad = {
+      data: data,
+      loaded: false
+    };
+    
+    // Load content into builder
+    const loadContent = () => {
+      try {
+        if (window._pendingPageLoad.loaded) return;
+        
+        const canvas = document.getElementById('canvas');
+        if (!canvas) {
+          setTimeout(loadContent, 100);
+          return;
+        }
+        
+        const data = window._pendingPageLoad.data;
+        
+        // Load the content - check content.html or content.htmlSnapshot
+        const htmlContent = data.content?.html || data.content?.htmlSnapshot || data.body_html;
+        
+        if (htmlContent) {
+          canvas.innerHTML = htmlContent;
+          log('Destination content HTML loaded into canvas');
+          window._pendingPageLoad.loaded = true;
+        } else {
+          warn('No HTML content found in destination response. Keys:', Object.keys(data.content || {}));
+        }
+        
+        // Update title/slug inputs
+        const titleInput = document.getElementById('pageTitleInput');
+        const slugInput = document.getElementById('pageSlugInput');
+        if (titleInput && data.title) {
+          titleInput.value = data.title;
+          log('Destination title set to:', data.title);
+        }
+        if (slugInput && data.slug) {
+          slugInput.value = data.slug;
+          log('Destination slug set to:', data.slug);
+        }
+        
+        // Reattach event listeners and reinitialize components
+        if (window.websiteBuilder) {
+          // Reattach event listeners
+          if (window.websiteBuilder.reattachEventListeners) {
+            window.websiteBuilder.reattachEventListeners();
+          }
+          
+          // Make all components selectable and add click handlers
+          const components = canvas.querySelectorAll('[data-component]');
+          components.forEach(comp => {
+            // Make selectable
+            if (window.websiteBuilder.makeSelectable) {
+              window.websiteBuilder.makeSelectable(comp);
+            }
+            
+            // Add click handler for properties panel
+            comp.addEventListener('click', function(e) {
+              // Don't trigger if clicking on a child element's handler
+              if (e.target !== this && e.target.closest('[data-component]') !== this) return;
+              
+              // Deselect all
+              document.querySelectorAll('.wb-component.selected').forEach(el => {
+                el.classList.remove('selected');
+              });
+              
+              // Select this component
+              this.classList.add('selected');
+              
+              // Show properties
+              if (window.PropertiesPanel) {
+                window.PropertiesPanel.showProperties(this);
+              }
+              
+              e.stopPropagation();
+            });
+          });
+          
+          // Trigger a canvas update event
+          try {
+            const event = new CustomEvent('canvasUpdated');
+            canvas.dispatchEvent(event);
+          } catch (e) {}
+          
+          log('Components reinitialized with click handlers:', components.length);
+        }
+        
+        log('Destination content loaded into builder');
+      } catch (e) {
+        warn('Failed to load destination content into builder:', e);
+      }
+    };
+    
+    // Start loading after DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(loadContent, 500);
+      });
+    } else {
+      setTimeout(loadContent, 500);
+    }
+    
+  } catch (error) {
+    warn('Error loading destination content:', error);
   }
 }
 
