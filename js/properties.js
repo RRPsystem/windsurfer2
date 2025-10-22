@@ -2462,6 +2462,9 @@ class PropertiesPanel {
             case 'feature-highlight':
                 this.createFeatureHighlightProperties(component);
                 break;
+            case 'feature-icon-image':
+                this.createFeatureIconImageProperties(component);
+                break;
             case 'content-flex':
                 this.createContentFlexProperties(component);
                 break;
@@ -2515,6 +2518,7 @@ class PropertiesPanel {
             'hero-banner-cta': 'Hero Banner + CTA',
             'feature-media': 'Feature + Media',
             'feature-highlight': 'Feature Highlight',
+            'feature-icon-image': 'Feature Icon & Image',
             'travel-types': 'Soorten Reizen',
             'contact-info': 'Contact Info',
             'contact-map-cta': 'Contact Map + CTA',
@@ -4446,6 +4450,94 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
+
+// Feature Icon Image Properties
+PropertiesPanel.prototype.createFeatureIconImageProperties = function(component) {
+    const img = component.querySelector('.fii-image-wrap img');
+    const label = component.querySelector('.fii-label');
+    const title = component.querySelector('.fii-title');
+    const desc = component.querySelector('.fii-description');
+    const button = component.querySelector('.fii-button');
+    const ctaTitle = component.querySelector('.fii-cta-card h3');
+    const ctaText = component.querySelector('.fii-cta-card p');
+
+    // Image upload
+    const imgBtn = this.createButton('📷 Upload Afbeelding', async () => {
+        if (window.MediaPicker) {
+            const result = await window.MediaPicker.open({ type: 'image' });
+            if (result && result.url && img) {
+                img.src = result.url;
+            }
+        }
+    });
+    imgBtn.style.background = '#8b5cf6';
+    imgBtn.style.borderColor = '#8b5cf6';
+    imgBtn.style.color = '#fff';
+    this.panel.appendChild(imgBtn);
+
+    // Position
+    this.createSelectInput('Foto positie', component.querySelector('.fii-grid').style.gridTemplateColumns.startsWith('1fr 1fr') ? 'right' : 'left', [
+        { value: 'left', label: 'Links' },
+        { value: 'right', label: 'Rechts' }
+    ], (value) => {
+        const grid = component.querySelector('.fii-grid');
+        const textCol = component.querySelector('.fii-text');
+        const imageCol = component.querySelector('.fii-image-col');
+        grid.innerHTML = '';
+        if (value === 'left') {
+            grid.appendChild(imageCol);
+            grid.appendChild(textCol);
+        } else {
+            grid.appendChild(textCol);
+            grid.appendChild(imageCol);
+        }
+    });
+
+    // Label color
+    this.createColorInput('Label kleur', label ? window.getComputedStyle(label).backgroundColor : '#fbbf24', (value) => {
+        if (label) label.style.background = value;
+    });
+
+    // Icon pickers for items
+    const items = component.querySelectorAll('.fii-item');
+    items.forEach((item, idx) => {
+        const iconEl = item.querySelector('.fii-item-icon i');
+        const iconBtn = this.createButton(`🎨 Icoon ${idx + 1}`, async () => {
+            if (window.IconPicker) {
+                const result = await window.IconPicker.open({ current: iconEl.className, compact: true });
+                if (result && result.icon) {
+                    iconEl.className = result.icon;
+                }
+            }
+        });
+        this.panel.appendChild(iconBtn);
+    });
+
+    // CTA Icon picker
+    const ctaIcon = component.querySelector('.fii-cta-card i');
+    const ctaIconBtn = this.createButton('🎨 CTA Icoon', async () => {
+        if (window.IconPicker) {
+            const result = await window.IconPicker.open({ current: ctaIcon.className, compact: true });
+            if (result && result.icon) {
+                ctaIcon.className = result.icon;
+            }
+        }
+    });
+    this.panel.appendChild(ctaIconBtn);
+
+    // Delete button
+    const del = this.createButton('Blok verwijderen', () => {
+        if (confirm('Weet je zeker dat je dit blok wilt verwijderen?')) {
+            component.remove();
+            this.clearProperties();
+        }
+    });
+    del.style.background = '#dc2626';
+    del.style.borderColor = '#dc2626';
+    del.style.color = '#fff';
+    del.style.marginTop = '1rem';
+    this.panel.appendChild(del);
+};
 
 // Initialize properties panel
 window.PropertiesPanel = new PropertiesPanel();
