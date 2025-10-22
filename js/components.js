@@ -1786,7 +1786,8 @@ class ComponentFactory {
         const titleTxt = options.title || 'Waar gaan we heen dit jaar?';
         const subtitleTxt = options.subtitle || 'Ontdek mooie plekken';
         const start = Number(options.start || 0) || 0;
-        const videoId = options.videoId || '';
+        // Default to a beautiful travel video if no videoId provided
+        const videoId = options.videoId || 'yJg-Y5byMMw'; // Stunning 4K Norway video
 
         // Toolbar
         const toolbar = this.createToolbar();
