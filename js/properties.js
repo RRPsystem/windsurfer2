@@ -2387,7 +2387,7 @@ class PropertiesPanel {
             case 'hero-page':
                 this.createHeroPageProperties(component);
                 break;
-            case 'hero-travel-video':
+            case 'hero-travel':
                 // Add Media Selector button for Hero video background
                 (function addTopHeroVideoMediaButton(self, comp){
                     const btn = self.createButton('🎬 Achtergrond kiezen (Media)', async () => {
@@ -2513,7 +2513,6 @@ class PropertiesPanel {
             gallery: 'Galerij',
             'travel-hero': '🎨 Reis Hero',
             'hero-travel': 'Hero Travel',
-            'hero-travel-video': 'Hero Travel Video',
             'hero-page': 'Hero (Pagina)',
             'hero-banner-cta': 'Hero Banner + CTA',
             'feature-media': 'Feature + Media',

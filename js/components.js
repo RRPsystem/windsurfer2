@@ -53,7 +53,6 @@ class ComponentFactory {
             'hero-travel': this.createHeroTravel,
             'hero-page': this.createHeroPage,
             'hero-banner-cta': this.createHeroBannerCta,
-            'hero-travel-video': this.createHeroTravelVideo,
             'feature-media': this.createFeatureMedia,
             'feature-highlight': this.createFeatureHighlight,
             'feature-icon-image': this.createFeatureIconImage,
@@ -1905,159 +1904,6 @@ class ComponentFactory {
 
         // Interactions
         this.makeSelectable(section);
-
-        return section;
-    }
-
-    // Hero Travel Video - like hero-travel but with a video background (YouTube iframe)
-    static createHeroTravelVideo(options = {}) {
-        const section = document.createElement('section');
-        section.className = 'wb-component wb-hero-travel wb-hero-travel-video';
-        section.setAttribute('data-component', 'hero-travel-video');
-        section.id = this.generateId('hero_travel_video');
-
-        const titleTxt = options.title || 'Waar gaan we heen dit jaar?';
-        const subtitleTxt = options.subtitle || 'Ontdek mooie plekken';
-        const start = Number(options.start || 0) || 0;
-        // Default to a beautiful travel video if no videoId provided
-        const videoId = options.videoId || 'yJg-Y5byMMw'; // Stunning 4K Norway video
-
-        // Toolbar
-        const toolbar = this.createToolbar();
-        section.appendChild(toolbar);
-
-        // Video layer
-        const videoWrap = document.createElement('div');
-        videoWrap.className = 'hero-video';
-        const iframe = document.createElement('iframe');
-        iframe.setAttribute('title', 'Hero Background Video');
-        iframe.setAttribute('frameborder', '0');
-        iframe.setAttribute('allow', 'autoplay; fullscreen');
-        iframe.setAttribute('allowfullscreen', '');
-        iframe.style.width = '100%';
-        iframe.style.height = '100%';
-        // Editor-safe autoplay: disable in edit mode, enable in preview; lazy-load when visible
-        const isEditMode = !!(document.body && document.body.dataset && document.body.dataset.wbMode === 'edit');
-        const baseUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : '';
-        const common = `${start>0?`&start=${start}`:''}&mute=1&controls=0&playsinline=1`;
-        const paramsEdit = `autoplay=0&loop=0${common}`;
-        const paramsView = `autoplay=1&loop=1&playlist=${videoId}${common}`;
-        const targetSrc = videoId ? `${baseUrl}?${isEditMode ? paramsEdit : paramsView}` : 'about:blank';
-        try { iframe.dataset.src = targetSrc; } catch (e) { /* older browsers */ }
-        
-        // Always load iframe (even in edit mode) so video is visible
-        videoWrap.appendChild(iframe);
-        try {
-            const io = new IntersectionObserver((entries, obs) => {
-                entries.forEach(en => {
-                    if (en.isIntersecting) {
-                        try {
-                            if (iframe.dataset && iframe.dataset.src && iframe.src !== iframe.dataset.src) {
-                                iframe.src = iframe.dataset.src;
-                            } else if (!iframe.src) {
-                                iframe.src = targetSrc;
-                            }
-                        } catch (e) { try { iframe.src = targetSrc; } catch (e) {} }
-                        try { obs.disconnect(); } catch (e) {}
-                    }
-                });
-            }, { root: null, threshold: 0.1 });
-            io.observe(videoWrap);
-        } catch (e) {
-            // Fallback: set src soon
-            setTimeout(() => { try { if (iframe.dataset && iframe.dataset.src) iframe.src = iframe.dataset.src; else iframe.src = targetSrc; } catch (e) {} }, 0);
-        }
-
-        // Overlay
-        const overlay = document.createElement('div');
-        overlay.className = 'hero-overlay';
-        overlay.style.setProperty('--overlay-opacity', options.overlayOpacity ?? 0.45);
-
-        // Content wrapper
-        const content = document.createElement('div');
-        content.className = 'hero-content';
-
-        // Badge
-        const badge = document.createElement('div');
-        badge.className = 'hero-badge';
-        badge.textContent = "Let's Explore";
-
-        const h1 = document.createElement('h1');
-        h1.className = 'hero-title';
-        h1.textContent = titleTxt;
-        h1.contentEditable = true;
-
-        const p = document.createElement('p');
-        p.className = 'hero-subtitle';
-        p.textContent = subtitleTxt;
-        p.contentEditable = true;
-
-        // Search bar (reuse same UI)
-        const search = document.createElement('div');
-        search.className = 'hero-search';
-        search.innerHTML = `
-            <div class="search-item">
-                <label><i class="fas fa-location-dot"></i> Locatie</label>
-                <div class="value" contenteditable="true">Where to Next?</div>
-            </div>
-            <div class="divider"></div>
-            <div class="search-item">
-                <label><i class="fas fa-shapes"></i> Type</label>
-                <div class="value" contenteditable="true">Trip Types</div>
-            </div>
-            <div class="divider"></div>
-            <div class="search-item">
-                <label><i class="fas fa-clock"></i> Duur</label>
-                <div class="value" contenteditable="true">3 Days - 3 Days</div>
-            </div>
-            <div class="divider"></div>
-            <div class="search-item">
-                <label><i class="fas fa-dollar-sign"></i> Prijs</label>
-                <div class="value" contenteditable="true">$189 - $659</div>
-            </div>
-            <button class="btn btn-primary search-btn"><i class="fas fa-search"></i> Search</button>
-        `;
-
-        // Cards overlap (reuse)
-        const cardsWrap = document.createElement('div');
-        cardsWrap.className = 'hero-cards-wrap';
-        const cards = document.createElement('div');
-        cards.className = 'hero-cards';
-        const defaultCards = options.cards || [
-            { icon: 'fa-campground', title: 'Adventure', text: 'Lorem ipsum is simply sit of free text dolor.' },
-            { icon: 'fa-umbrella-beach', title: 'Beach', text: 'Lorem ipsum is simply sit of free text dolor.' },
-            { icon: 'fa-compass', title: 'Adventure', text: 'Lorem ipsum is simply sit of free text dolor.' },
-            { icon: 'fa-globe', title: 'Discovery', text: 'Lorem ipsum is simply sit of free text dolor.' },
-            { icon: 'fa-person-biking', title: 'Mountain Biking', text: 'Lorem ipsum is simply sit of free text dolor.' }
-        ];
-        defaultCards.forEach(c => {
-            const card = document.createElement('div');
-            card.className = 'hero-card';
-            card.innerHTML = `
-                <div class="icon"><i class="fas ${c.icon}"></i></div>
-                <h4 contenteditable="true">${c.title}</h4>
-                <div class="sep"></div>
-                <p contenteditable="true">${c.text}</p>
-            `;
-            cards.appendChild(card);
-        });
-        cardsWrap.appendChild(cards);
-
-        // Assemble
-        content.appendChild(badge);
-        content.appendChild(h1);
-        content.appendChild(p);
-        content.appendChild(search);
-
-        section.appendChild(videoWrap);
-        section.appendChild(overlay);
-        section.appendChild(content);
-        section.appendChild(cardsWrap);
-
-        // Interactions
-        this.makeSelectable(section);
-        this.makeEditable(h1);
-        this.makeEditable(p);
 
         return section;
     }
@@ -4972,7 +4818,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     } catch (e) { /* noop */ }
 
-    document.querySelectorAll('.wb-hero-travel, .wb-hero-travel-video').forEach(sec => {
+    document.querySelectorAll('.wb-hero-travel').forEach(sec => {
         if (!sec.querySelector('.wb-dev-remove')) {
             const btn = document.createElement('button');
             btn.className = 'wb-dev-remove';
