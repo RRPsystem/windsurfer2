@@ -615,6 +615,24 @@ class ComponentFactory {
         const h1 = document.createElement('h2'); h1.className='cf-title'; h1.textContent = titleTxt; h1.contentEditable = true;
         const h2 = document.createElement('p'); h2.className='cf-subtitle'; h2.textContent = subTxt; h2.contentEditable = true;
         header.appendChild(h1); header.appendChild(h2);
+        
+        // Function to hide header if both title and subtitle are empty
+        const updateHeaderVisibility = () => {
+            const titleEmpty = !h1.textContent.trim();
+            const subtitleEmpty = !h2.textContent.trim();
+            if (titleEmpty && subtitleEmpty) {
+                header.style.display = 'none';
+            } else {
+                header.style.display = '';
+            }
+        };
+        
+        // Check on input
+        h1.addEventListener('input', updateHeaderVisibility);
+        h2.addEventListener('input', updateHeaderVisibility);
+        
+        // Initial check
+        updateHeaderVisibility();
 
         const content = document.createElement('div');
         content.className = 'cf-content';
