@@ -1128,7 +1128,12 @@
 .wb-hero-page .hp-word {
     position: absolute;
     z-index: 2;
-    left: 24px; bottom: -6px; /* default aligns with white area like the screenshot */
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -6px;
+    width: 100%;
+    max-width: 1200px; /* Match content width */
+    padding: 0 20px; /* Match content padding */
     font-weight: 900;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -1137,6 +1142,7 @@
     text-shadow: 0 4px 12px rgba(0,0,0,0.35);
     line-height: 1;
     pointer-events: auto;
+    box-sizing: border-box;
 }
 
 /* ===============================
