@@ -55,9 +55,21 @@
   function mount(container){
     container.innerHTML = '';
 
+    // Full Page Preview Button
+    const fullPreviewBtn = el('button', { 
+      class: 'btn btn-primary', 
+      style: 'margin-bottom:16px;width:100%;padding:12px;font-size:16px;font-weight:700;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border:none;' 
+    }, '<i class="fas fa-eye"></i> Volledige Pagina Preview (Header + Content + Footer)');
+    fullPreviewBtn.onclick = () => {
+      // Open full page preview in new window
+      const previewUrl = `preview.html?${new URLSearchParams(window.location.search).toString()}&v=${Date.now()}`;
+      window.open(previewUrl, '_blank', 'noopener=no');
+    };
+    container.appendChild(fullPreviewBtn);
+
     // Top preview (full width): renders Header (with menu binding)
     const topPreview = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:0;margin-bottom:16px;overflow:visible;' });
-    const topTitle = el('div', { style:'font-weight:700;margin:10px 14px;' }, 'Live preview');
+    const topTitle = el('div', { style:'font-weight:700;margin:10px 14px;' }, 'Header preview');
     const topInner = el('div');
     topPreview.appendChild(topTitle);
     topPreview.appendChild(topInner);
