@@ -323,9 +323,50 @@ async function loadPageContent(ctx) {
           log('Slug set to:', data.slug);
         }
         
-        // Reattach event listeners
-        if (window.websiteBuilder && window.websiteBuilder.reattachEventListeners) {
-          window.websiteBuilder.reattachEventListeners();
+        // Reattach event listeners and reinitialize components
+        if (window.websiteBuilder) {
+          // Reattach event listeners
+          if (window.websiteBuilder.reattachEventListeners) {
+            window.websiteBuilder.reattachEventListeners();
+          }
+          
+          // Make all components selectable and add click handlers
+          const components = canvas.querySelectorAll('[data-component]');
+          components.forEach(comp => {
+            // Make selectable
+            if (window.websiteBuilder.makeSelectable) {
+              window.websiteBuilder.makeSelectable(comp);
+            }
+            
+            // Add click handler for properties panel
+            comp.addEventListener('click', function(e) {
+              // Don't trigger if clicking on a child element's handler
+              if (e.target !== this && e.target.closest('[data-component]') !== this) return;
+              
+              // Deselect all
+              document.querySelectorAll('.wb-component.selected').forEach(el => {
+                el.classList.remove('selected');
+              });
+              
+              // Select this component
+              this.classList.add('selected');
+              
+              // Show properties
+              if (window.PropertiesPanel) {
+                window.PropertiesPanel.showProperties(this);
+              }
+              
+              e.stopPropagation();
+            });
+          });
+          
+          // Trigger a canvas update event
+          try {
+            const event = new CustomEvent('canvasUpdated');
+            canvas.dispatchEvent(event);
+          } catch (e) {}
+          
+          log('Components reinitialized with click handlers:', components.length);
         }
         
         log('Content loaded into builder');
