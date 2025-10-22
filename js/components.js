@@ -53,6 +53,7 @@ class ComponentFactory {
             'hero-travel': this.createHeroTravel,
             'hero-page': this.createHeroPage,
             'hero-banner-cta': this.createHeroBannerCta,
+            'hero-video-cta': this.createHeroVideoCta,
             'feature-media': this.createFeatureMedia,
             'feature-highlight': this.createFeatureHighlight,
             'feature-icon-image': this.createFeatureIconImage,
@@ -1904,6 +1905,234 @@ class ComponentFactory {
 
         // Interactions
         this.makeSelectable(section);
+
+        return section;
+    }
+
+    // Hero Video CTA - Parallax background with video popup and feature buttons
+    static createHeroVideoCta(options = {}) {
+        const section = document.createElement('section');
+        section.className = 'wb-component wb-hero-video-cta';
+        section.setAttribute('data-component', 'hero-video-cta');
+        section.id = this.generateId('hero_video_cta');
+
+        const toolbar = this.createToolbar();
+        section.appendChild(toolbar);
+
+        // Parallax background image
+        const bgImage = options.background || 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=1920';
+        section.style.backgroundImage = `url(${bgImage})`;
+        section.style.backgroundAttachment = 'fixed';
+        section.style.backgroundPosition = 'center';
+        section.style.backgroundSize = 'cover';
+        section.style.minHeight = '600px';
+        section.style.position = 'relative';
+        section.style.display = 'flex';
+        section.style.alignItems = 'center';
+        section.style.padding = '80px 20px';
+
+        // Overlay
+        const overlay = document.createElement('div');
+        overlay.style.position = 'absolute';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.right = '0';
+        overlay.style.bottom = '0';
+        overlay.style.background = 'rgba(0, 0, 0, 0.5)';
+        overlay.style.zIndex = '1';
+        section.appendChild(overlay);
+
+        // Content container
+        const container = document.createElement('div');
+        container.style.maxWidth = '1200px';
+        container.style.margin = '0 auto';
+        container.style.width = '100%';
+        container.style.position = 'relative';
+        container.style.zIndex = '2';
+        container.style.display = 'flex';
+        container.style.gap = '60px';
+        container.style.alignItems = 'center';
+
+        // Left side: Video button + Title + CTA
+        const leftSide = document.createElement('div');
+        leftSide.style.flex = '1';
+        leftSide.style.color = '#fff';
+
+        // Video play button (round, orange)
+        const videoBtn = document.createElement('button');
+        videoBtn.className = 'wb-video-play-btn';
+        videoBtn.innerHTML = '<i class="fas fa-play"></i>';
+        videoBtn.style.width = '80px';
+        videoBtn.style.height = '80px';
+        videoBtn.style.borderRadius = '50%';
+        videoBtn.style.background = '#ff8c00';
+        videoBtn.style.border = 'none';
+        videoBtn.style.color = '#fff';
+        videoBtn.style.fontSize = '24px';
+        videoBtn.style.cursor = 'pointer';
+        videoBtn.style.marginBottom = '30px';
+        videoBtn.style.display = 'flex';
+        videoBtn.style.alignItems = 'center';
+        videoBtn.style.justifyContent = 'center';
+        videoBtn.style.transition = 'transform 0.3s ease';
+        videoBtn.dataset.videoId = options.videoId || 'dQw4w9WgXcQ';
+        
+        videoBtn.addEventListener('click', function() {
+            const videoId = this.dataset.videoId;
+            if (!videoId) return;
+            
+            // Create modal
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.right = '0';
+            modal.style.bottom = '0';
+            modal.style.background = 'rgba(0, 0, 0, 0.9)';
+            modal.style.zIndex = '9999';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.padding = '20px';
+            
+            const videoContainer = document.createElement('div');
+            videoContainer.style.position = 'relative';
+            videoContainer.style.width = '100%';
+            videoContainer.style.maxWidth = '900px';
+            videoContainer.style.aspectRatio = '16/9';
+            
+            const iframe = document.createElement('iframe');
+            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+            iframe.setAttribute('allowfullscreen', '');
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            closeBtn.style.position = 'absolute';
+            closeBtn.style.top = '-40px';
+            closeBtn.style.right = '0';
+            closeBtn.style.background = 'transparent';
+            closeBtn.style.border = 'none';
+            closeBtn.style.color = '#fff';
+            closeBtn.style.fontSize = '32px';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.onclick = () => modal.remove();
+            
+            videoContainer.appendChild(iframe);
+            videoContainer.appendChild(closeBtn);
+            modal.appendChild(videoContainer);
+            modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+            document.body.appendChild(modal);
+        });
+        
+        videoBtn.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.1)';
+        });
+        videoBtn.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+
+        // Title
+        const title = document.createElement('h2');
+        title.textContent = options.title || 'Boek een compleet pakket, inclusief leuke activiteiten';
+        title.contentEditable = true;
+        title.style.fontSize = '42px';
+        title.style.fontWeight = '700';
+        title.style.marginBottom = '30px';
+        title.style.lineHeight = '1.2';
+        title.style.color = '#fff';
+
+        // CTA Button
+        const ctaBtn = document.createElement('button');
+        ctaBtn.className = 'wb-cta-btn';
+        ctaBtn.textContent = options.ctaText || 'Start met plannen';
+        ctaBtn.contentEditable = true;
+        ctaBtn.style.background = '#ff8c00';
+        ctaBtn.style.color = '#fff';
+        ctaBtn.style.border = 'none';
+        ctaBtn.style.padding = '16px 32px';
+        ctaBtn.style.fontSize = '18px';
+        ctaBtn.style.fontWeight = '600';
+        ctaBtn.style.borderRadius = '8px';
+        ctaBtn.style.cursor = 'pointer';
+        ctaBtn.style.transition = 'background 0.3s ease';
+        
+        ctaBtn.addEventListener('mouseenter', function() {
+            this.style.background = '#ff7700';
+        });
+        ctaBtn.addEventListener('mouseleave', function() {
+            this.style.background = '#ff8c00';
+        });
+
+        leftSide.appendChild(videoBtn);
+        leftSide.appendChild(title);
+        leftSide.appendChild(ctaBtn);
+
+        // Right side: Feature buttons (2x2 grid)
+        const rightSide = document.createElement('div');
+        rightSide.style.display = 'grid';
+        rightSide.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        rightSide.style.gap = '20px';
+        rightSide.style.flex = '0 0 400px';
+
+        const features = options.features || [
+            { icon: 'fa-bicycle', label: 'Fiets\nTocht' },
+            { icon: 'fa-route', label: 'Rondvaart\nSeine' },
+            { icon: 'fa-shopping-cart', label: 'Shoppen' },
+            { icon: 'fa-landmark', label: 'Monumenten' }
+        ];
+
+        features.forEach(feature => {
+            const featureBtn = document.createElement('div');
+            featureBtn.className = 'wb-feature-btn';
+            featureBtn.style.background = options.transparentButtons ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 140, 0, 0.9)';
+            featureBtn.style.backdropFilter = 'blur(10px)';
+            featureBtn.style.border = '2px solid rgba(255, 255, 255, 0.3)';
+            featureBtn.style.borderRadius = '12px';
+            featureBtn.style.padding = '30px 20px';
+            featureBtn.style.textAlign = 'center';
+            featureBtn.style.color = '#fff';
+            featureBtn.style.cursor = 'pointer';
+            featureBtn.style.transition = 'all 0.3s ease';
+            
+            const icon = document.createElement('i');
+            icon.className = `fas ${feature.icon}`;
+            icon.style.fontSize = '40px';
+            icon.style.marginBottom = '12px';
+            icon.style.display = 'block';
+            icon.style.color = '#ff8c00';
+            
+            const label = document.createElement('div');
+            label.textContent = feature.label;
+            label.contentEditable = true;
+            label.style.fontSize = '16px';
+            label.style.fontWeight = '600';
+            label.style.whiteSpace = 'pre-line';
+            
+            featureBtn.appendChild(icon);
+            featureBtn.appendChild(label);
+            
+            featureBtn.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.3)';
+            });
+            featureBtn.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'none';
+            });
+            
+            rightSide.appendChild(featureBtn);
+        });
+
+        container.appendChild(leftSide);
+        container.appendChild(rightSide);
+        section.appendChild(container);
+
+        this.makeSelectable(section);
+        this.makeEditable(title);
+        this.makeEditable(ctaBtn);
 
         return section;
     }
