@@ -64,6 +64,7 @@ class ComponentFactory {
             'media-row': this.createMediaRow,
             'dest-tabs': this.createDestTabs,
             'news-article': this.createNewsArticle,
+            'news-overview': this.createNewsOverview,
             'jotform-embed': this.createJotformEmbed,
             'travel-card-transport': this.createTravelCardTransport,
             'travel-card-hotel': this.createTravelCardHotel,
@@ -292,6 +293,294 @@ class ComponentFactory {
 
         this.makeSelectable(section);
         this.makeEditable(header.querySelector('.na-title'));
+        return section;
+    }
+
+    // NEWS OVERVIEW: Grid of news articles with filtering
+    static createNewsOverview(options = {}) {
+        const section = document.createElement('section');
+        section.className = 'wb-component wb-news-overview';
+        section.setAttribute('data-component', 'news-overview');
+        section.id = this.generateId('news_overview');
+
+        const toolbar = this.createToolbar();
+        section.appendChild(toolbar);
+        this.addTypeBadge(section);
+
+        // Container
+        const container = document.createElement('div');
+        container.style.maxWidth = '1200px';
+        container.style.margin = '0 auto';
+        container.style.padding = '60px 20px';
+
+        // Header section
+        const headerSection = document.createElement('div');
+        headerSection.style.marginBottom = '40px';
+
+        const badge = document.createElement('span');
+        badge.textContent = options.badge || 'Nieuwste nieuwsjes';
+        badge.contentEditable = true;
+        badge.style.display = 'inline-block';
+        badge.style.background = '#fff3e0';
+        badge.style.color = '#ff8c00';
+        badge.style.padding = '6px 16px';
+        badge.style.borderRadius = '20px';
+        badge.style.fontSize = '14px';
+        badge.style.fontWeight = '600';
+        badge.style.marginBottom = '16px';
+
+        const title = document.createElement('h2');
+        title.textContent = options.title || 'Blijf op de hoogte en check onze nieuwsberichten';
+        title.contentEditable = true;
+        title.style.fontSize = '42px';
+        title.style.fontWeight = '700';
+        title.style.color = '#1f2937';
+        title.style.marginBottom = '20px';
+        title.style.lineHeight = '1.2';
+
+        const viewAllBtn = document.createElement('button');
+        viewAllBtn.textContent = 'Alle berichten';
+        viewAllBtn.style.position = 'absolute';
+        viewAllBtn.style.top = '0';
+        viewAllBtn.style.right = '0';
+        viewAllBtn.style.background = '#ff8c00';
+        viewAllBtn.style.color = '#fff';
+        viewAllBtn.style.border = 'none';
+        viewAllBtn.style.padding = '12px 24px';
+        viewAllBtn.style.borderRadius = '8px';
+        viewAllBtn.style.fontSize = '16px';
+        viewAllBtn.style.fontWeight = '600';
+        viewAllBtn.style.cursor = 'pointer';
+        viewAllBtn.style.transition = 'background 0.3s ease';
+        viewAllBtn.addEventListener('mouseenter', function() {
+            this.style.background = '#ff7700';
+        });
+        viewAllBtn.addEventListener('mouseleave', function() {
+            this.style.background = '#ff8c00';
+        });
+
+        headerSection.style.position = 'relative';
+        headerSection.appendChild(badge);
+        headerSection.appendChild(title);
+        headerSection.appendChild(viewAllBtn);
+
+        // Filter section (optional)
+        const filterSection = document.createElement('div');
+        filterSection.className = 'news-filters';
+        filterSection.style.display = options.showFilters === false ? 'none' : 'flex';
+        filterSection.style.gap = '12px';
+        filterSection.style.flexWrap = 'wrap';
+        filterSection.style.marginBottom = '40px';
+
+        const filters = options.filters || ['Alle', 'Sport', 'Steden', 'Natuur', 'Cultuur'];
+        filters.forEach((filter, index) => {
+            const filterBtn = document.createElement('button');
+            filterBtn.textContent = filter;
+            filterBtn.className = 'news-filter-btn';
+            filterBtn.dataset.filter = filter.toLowerCase();
+            filterBtn.style.background = index === 0 ? '#ff8c00' : '#f3f4f6';
+            filterBtn.style.color = index === 0 ? '#fff' : '#6b7280';
+            filterBtn.style.border = 'none';
+            filterBtn.style.padding = '10px 20px';
+            filterBtn.style.borderRadius = '20px';
+            filterBtn.style.fontSize = '14px';
+            filterBtn.style.fontWeight = '600';
+            filterBtn.style.cursor = 'pointer';
+            filterBtn.style.transition = 'all 0.3s ease';
+            
+            filterBtn.addEventListener('click', function() {
+                // Update active state
+                filterSection.querySelectorAll('.news-filter-btn').forEach(btn => {
+                    btn.style.background = '#f3f4f6';
+                    btn.style.color = '#6b7280';
+                });
+                this.style.background = '#ff8c00';
+                this.style.color = '#fff';
+                
+                // Filter articles
+                const filterValue = this.dataset.filter;
+                const articles = grid.querySelectorAll('.news-card');
+                articles.forEach(article => {
+                    const tags = article.dataset.tags || '';
+                    if (filterValue === 'alle' || tags.includes(filterValue)) {
+                        article.style.display = 'block';
+                    } else {
+                        article.style.display = 'none';
+                    }
+                });
+            });
+            
+            filterSection.appendChild(filterBtn);
+        });
+
+        // News grid
+        const grid = document.createElement('div');
+        grid.className = 'news-grid';
+        grid.style.display = 'grid';
+        grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(320px, 1fr))';
+        grid.style.gap = '30px';
+
+        // Sample articles (will be replaced with real data)
+        const maxArticles = options.maxArticles || 6;
+        const sampleArticles = options.articles || [
+            { 
+                image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600',
+                date: '18 JUN',
+                location: 'Sport',
+                title: 'Olympische spelen 2024',
+                excerpt: 'De regels de France en de buitenwijken van Parijs',
+                tags: 'sport,parijs'
+            },
+            {
+                image: 'https://images.unsplash.com/photo-1549918864-48ac978761a4?w=600',
+                date: '13 MEI',
+                location: 'Steden',
+                title: 'Dublin',
+                excerpt: 'In Dublin, de bruisende hoofdstad van Ierland, is altijd wel',
+                tags: 'steden,ierland'
+            },
+            {
+                image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600',
+                date: '06 APR',
+                location: 'Steden',
+                title: 'Hoe gaat het met De Notre Dame',
+                excerpt: 'Nieuwsupdate: Herstel van de Notre-Dame-kathedraal in Parijs na de brand',
+                tags: 'steden,parijs,cultuur'
+            }
+        ];
+
+        sampleArticles.slice(0, maxArticles).forEach(article => {
+            const card = document.createElement('div');
+            card.className = 'news-card';
+            card.dataset.tags = article.tags || '';
+            card.style.background = '#fff';
+            card.style.borderRadius = '12px';
+            card.style.overflow = 'hidden';
+            card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            card.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
+            card.style.cursor = 'pointer';
+
+            // Image container
+            const imageContainer = document.createElement('div');
+            imageContainer.style.position = 'relative';
+            imageContainer.style.height = '220px';
+            imageContainer.style.overflow = 'hidden';
+
+            const img = document.createElement('img');
+            img.src = article.image;
+            img.alt = article.title;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            img.style.transition = 'transform 0.3s ease';
+
+            // Date badge
+            const dateBadge = document.createElement('div');
+            dateBadge.textContent = article.date;
+            dateBadge.style.position = 'absolute';
+            dateBadge.style.top = '16px';
+            dateBadge.style.right = '16px';
+            dateBadge.style.background = '#ff8c00';
+            dateBadge.style.color = '#fff';
+            dateBadge.style.padding = '8px 12px';
+            dateBadge.style.borderRadius = '8px';
+            dateBadge.style.fontSize = '12px';
+            dateBadge.style.fontWeight = '700';
+            dateBadge.style.textAlign = 'center';
+            dateBadge.style.lineHeight = '1.2';
+
+            // Location badge
+            const locationBadge = document.createElement('div');
+            locationBadge.textContent = article.location;
+            locationBadge.style.position = 'absolute';
+            locationBadge.style.bottom = '16px';
+            locationBadge.style.left = '16px';
+            locationBadge.style.background = 'rgba(255, 255, 255, 0.95)';
+            locationBadge.style.color = '#1f2937';
+            locationBadge.style.padding = '6px 12px';
+            locationBadge.style.borderRadius = '6px';
+            locationBadge.style.fontSize = '13px';
+            locationBadge.style.fontWeight = '600';
+
+            imageContainer.appendChild(img);
+            imageContainer.appendChild(dateBadge);
+            imageContainer.appendChild(locationBadge);
+
+            // Content
+            const content = document.createElement('div');
+            content.style.padding = '20px';
+
+            // Author/Comments
+            const meta = document.createElement('div');
+            meta.style.display = 'flex';
+            meta.style.gap = '16px';
+            meta.style.marginBottom = '12px';
+            meta.style.fontSize = '13px';
+            meta.style.color = '#6b7280';
+            meta.innerHTML = `
+                <span><i class="fas fa-user" style="color:#ff8c00;margin-right:6px;"></i>FlyerDrive</span>
+                <span><i class="fas fa-comment" style="color:#ff8c00;margin-right:6px;"></i>0 Comments</span>
+            `;
+
+            const cardTitle = document.createElement('h3');
+            cardTitle.textContent = article.title;
+            cardTitle.style.fontSize = '20px';
+            cardTitle.style.fontWeight = '700';
+            cardTitle.style.color = '#1f2937';
+            cardTitle.style.marginBottom = '12px';
+            cardTitle.style.lineHeight = '1.3';
+
+            const excerpt = document.createElement('p');
+            excerpt.textContent = article.excerpt;
+            excerpt.style.fontSize = '14px';
+            excerpt.style.color = '#6b7280';
+            excerpt.style.lineHeight = '1.6';
+            excerpt.style.marginBottom = '16px';
+
+            const readMore = document.createElement('a');
+            readMore.textContent = 'Lees verder';
+            readMore.href = '#';
+            readMore.style.color = '#ff8c00';
+            readMore.style.fontSize = '14px';
+            readMore.style.fontWeight = '600';
+            readMore.style.textDecoration = 'none';
+            readMore.style.display = 'inline-flex';
+            readMore.style.alignItems = 'center';
+            readMore.style.gap = '6px';
+            readMore.innerHTML = 'Lees verder <i class="fas fa-arrow-right"></i>';
+
+            content.appendChild(meta);
+            content.appendChild(cardTitle);
+            content.appendChild(excerpt);
+            content.appendChild(readMore);
+
+            card.appendChild(imageContainer);
+            card.appendChild(content);
+
+            // Hover effects
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px)';
+                this.style.boxShadow = '0 12px 24px rgba(0,0,0,0.15)';
+                img.style.transform = 'scale(1.05)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                img.style.transform = 'scale(1)';
+            });
+
+            grid.appendChild(card);
+        });
+
+        container.appendChild(headerSection);
+        container.appendChild(filterSection);
+        container.appendChild(grid);
+        section.appendChild(container);
+
+        this.makeSelectable(section);
+        this.makeEditable(badge);
+        this.makeEditable(title);
+
         return section;
     }
 
