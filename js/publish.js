@@ -101,7 +101,37 @@ async function saveDraftBolt({ brand_id, page_id, title, slug, content_json, is_
     if (!projectBase) throw new Error('API base URL ontbreekt');
     base = `${projectBase.replace(/\/$/, '')}/functions/v1`;
   }
-  const url = `${base}/pages-api/save`;
+  
+  // Determine endpoint based on content_type from URL
+  let url;
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const contentType = urlParams.get('content_type');
+    const mode = urlParams.get('mode');
+    
+    // Determine correct endpoint
+    if (contentType === 'page' || mode?.includes('template') || is_template) {
+      // For templates and regular pages
+      url = `${base}/pages-api/save`;
+    } else if (contentType === 'news' || contentType === 'news_items') {
+      // For news items
+      url = `${base}/content-api/save?type=news_items`;
+    } else if (contentType === 'destination' || contentType === 'destinations') {
+      url = `${base}/content-api/save?type=destinations`;
+    } else if (contentType === 'trip' || contentType === 'trips') {
+      url = `${base}/content-api/save?type=trips`;
+    } else {
+      // Fallback to pages-api
+      console.warn('[saveDraftBolt] Unknown content_type, defaulting to pages-api. content_type:', contentType);
+      url = `${base}/pages-api/save`;
+    }
+    
+    console.log('[saveDraftBolt] Using endpoint:', url, 'for content_type:', contentType, 'is_template:', is_template);
+  } catch (e) {
+    console.warn('[saveDraftBolt] Error determining endpoint, using pages-api', e);
+    url = `${base}/pages-api/save`;
+  }
+  
   const headers = authHeadersFromUrl();
 
   let res = null; let data = null;
