@@ -84,10 +84,10 @@
     container.appendChild(bottomPreview);
 
     // Grid for sidebar (left) and editor canvas (right)
-    const grid = el('div', { style: 'display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start;' });
+    const grid = el('div', { style: 'display:grid;grid-template-columns:450px 1fr;gap:16px;align-items:start;' });
 
     // Left: compact controls panel
-    const panel = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:14px;max-height:calc(100vh - 220px);overflow:auto;' });
+    const panel = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:14px;overflow-y:auto;' });
     panel.appendChild(el('div', { style:'font-weight:700;font-size:16px;margin-bottom:6px;' }, 'Menu & Footer'));
 
     // Key selector
