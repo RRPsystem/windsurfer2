@@ -1842,7 +1842,8 @@ class ComponentFactory {
         section.appendChild(toolbar);
         this.addTypeBadge(section);
 
-        const mapUrl = options.mapUrl || 'https://www.openstreetmap.org/export/embed.html?bbox=-0.489%2C51.28%2C0.236%2C51.686&layer=mapnik&marker=51.507%2C-0.127';
+        // Default to Google Maps embed (more reliable than OpenStreetMap)
+        const mapUrl = options.mapUrl || 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2483.5389066474447!2d-0.12775908422871687!3d51.50735097963595!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x487604b900d26973%3A0x4291f3172409ea92!2slondon!5e0!3m2!1sen!2snl!4v1234567890';
         const title = options.title || 'Ready to adventure and enjoy natural';
         const subtitle = options.subtitle || 'Feel free to explore';
         const ctaText = options.ctaText || 'Explore More';
@@ -1852,7 +1853,21 @@ class ComponentFactory {
         const mapWrap = document.createElement('div');
         mapWrap.className = 'cmc-map';
         mapWrap.style.height = height;
-        mapWrap.innerHTML = `<iframe src="${mapUrl}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" aria-label="Map"></iframe>`;
+        mapWrap.style.position = 'relative';
+        mapWrap.style.overflow = 'hidden';
+        
+        // Create iframe with proper map attributes
+        const iframe = document.createElement('iframe');
+        iframe.src = mapUrl;
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = '0';
+        iframe.loading = 'lazy';
+        iframe.referrerPolicy = 'no-referrer-when-downgrade';
+        iframe.setAttribute('allowfullscreen', '');
+        iframe.setAttribute('aria-label', 'Map');
+        
+        mapWrap.appendChild(iframe);
 
         const banner = document.createElement('div');
         banner.className = 'cmc-banner';
