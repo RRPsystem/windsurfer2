@@ -206,13 +206,15 @@
     headerBox.appendChild(hdrForm);
     panel.appendChild(headerBox);
 
-    // Footer controls (basic)
-    const footerBox = el('div', { style:'border-top:1px solid #e5e7eb;margin-top:12px;padding-top:12px;' });
-    footerBox.appendChild(el('div', { style:'font-weight:700;margin-bottom:6px;color:#374151;' }, 'Footer'));
-    const ftrForm = el('form', { style:'display:grid;gap:8px;' });
-    const ftrAccent = el('input', { class:'form-control', type:'color', name:'accent', value:'#16a34a', style:'height:32px;padding:0 4px;' });
-    const ftrBgFrom = el('input', { class:'form-control', type:'color', name:'bgFrom', value:'#f8fafc', style:'height:32px;padding:0 4px;' });
-    const ftrBgTo = el('input', { class:'form-control', type:'color', name:'bgTo', value:'#ffffff', style:'height:32px;padding:0 4px;' });
+    // Footer controls (enhanced)
+    const footerBox = el('div', { style:'border-top:2px solid #8b5cf6;margin-top:16px;padding-top:16px;background:linear-gradient(to bottom, #faf5ff 0%, #ffffff 100%);padding:16px;border-radius:8px;' });
+    footerBox.appendChild(el('div', { style:'font-weight:700;margin-bottom:12px;color:#7c3aed;font-size:16px;' }, '🎨 Footer Instellingen'));
+    const ftrForm = el('form', { style:'display:grid;gap:12px;' });
+    // Color section
+    ftrForm.appendChild(el('div', { style:'font-weight:600;color:#6b7280;margin-top:8px;' }, '🎨 Kleuren'));
+    const ftrAccent = el('input', { class:'form-control', type:'color', name:'accent', value:'#16a34a', style:'height:36px;padding:0 4px;' });
+    const ftrBgFrom = el('input', { class:'form-control', type:'color', name:'bgFrom', value:'#f8fafc', style:'height:36px;padding:0 4px;' });
+    const ftrBgTo = el('input', { class:'form-control', type:'color', name:'bgTo', value:'#ffffff', style:'height:36px;padding:0 4px;' });
     const ftrBgImageRow = el('div', { style:'display:flex;gap:8px;align-items:center;' });
     const ftrBgImage = el('input', { class:'form-control', name:'bgImage', placeholder:'Achtergrondafbeelding URL (optioneel)', style:'flex:1;' });
     const ftrBgUpload = el('input', { type:'file', accept:'image/*', style:'display:none' });
@@ -220,6 +222,13 @@
     ftrBgBtn.onclick = () => ftrBgUpload.click();
     ftrBgUpload.onchange = () => { const f = ftrBgUpload.files && ftrBgUpload.files[0]; if (f){ ftrBgImage.value = URL.createObjectURL(f); renderFooter(); }};
     ftrBgImageRow.appendChild(ftrBgImage); ftrBgImageRow.appendChild(ftrBgBtn); ftrBgImageRow.appendChild(ftrBgUpload);
+    // Overlay opacity slider
+    const overlayLabel = el('label', { style:'font-weight:600;color:#6b7280;display:block;margin-top:8px;' }, '🖼️ Achtergrond Overlay Opacity');
+    const ftrOverlay = el('input', { class:'form-control', type:'range', name:'bgOverlay', value:'0.7', min:'0', max:'1', step:'0.05', style:'width:100%;' });
+    const overlayValue = el('span', { style:'margin-left:8px;color:#6b7280;font-size:14px;' }, '70%');
+    ftrOverlay.oninput = () => { overlayValue.textContent = Math.round(ftrOverlay.value * 100) + '%'; renderFooter(); };
+    const overlayRow = el('div', { style:'display:flex;align-items:center;gap:8px;' });
+    overlayRow.appendChild(ftrOverlay); overlayRow.appendChild(overlayValue);
     const ftrMenuKey = el('input', { class:'form-control', name:'menuKey', value:'footer' });
     const ftrSecondMenu = el('input', { class:'form-control', name:'secondMenuKey', placeholder:'Tweede menu key (optioneel)' });
     const ftrLogoRow = el('div', { style:'display:flex;gap:8px;align-items:center;' });
@@ -233,9 +242,9 @@
     const ftrAddress = el('textarea', { class:'form-control', name:'address', placeholder:'Adresgegevens (HTML toegestaan)', style:'height:80px;' });
     // ----- Visual footer columns editor (defines colsWrap + ftrColsHidden) -----
     const ftrColsHidden = el('input', { type:'hidden', name:'cols', value:'[ { "title": "Contact", "links": [ { "label": "Bel ons", "href": "tel:+310000000" } ] } ]' });
-    const colsWrap = el('div', { style:'border:1px dashed #e5e7eb;border-radius:8px;padding:10px;' });
-    const colsHead = el('div', { style:'display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;' });
-    colsHead.appendChild(el('div', { style:'font-weight:700;color:#374151;' }, 'Footer kolommen'));
+    const colsWrap = el('div', { style:'border:2px solid #e5e7eb;border-radius:10px;padding:12px;background:#fafafa;margin-top:12px;' });
+    const colsHead = el('div', { style:'display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;' });
+    colsHead.appendChild(el('div', { style:'font-weight:700;color:#374151;font-size:15px;' }, '📋 Footer Kolommen'));
     const addColBtn = el('button', { type:'button', class:'btn' }, 'Kolom toevoegen');
     colsHead.appendChild(addColBtn);
     const colsList = el('div');
@@ -250,13 +259,18 @@
       colsList.innerHTML='';
       const arr = readCols();
       arr.forEach((col, ci) => {
-        const card = el('div', { style:'border:1px solid #e5e7eb;border-radius:8px;padding:8px;margin:8px 0;' });
-        const row1 = el('div', { style:'display:flex;gap:8px;align-items:center;margin-bottom:6px;' });
-        const title = el('input', { class:'form-control', placeholder:'Kolomtitel', value: col.title||'' });
+        const card = el('div', { style:'border:2px solid #d1d5db;border-radius:10px;padding:12px;margin:10px 0;background:white;box-shadow:0 2px 4px rgba(0,0,0,0.05);' });
+        const row1 = el('div', { style:'display:flex;gap:8px;align-items:center;margin-bottom:10px;' });
+        const typeLabel = el('label', { style:'font-weight:600;color:#6b7280;margin-right:8px;white-space:nowrap;' }, 'Type:');
+        const typeSelect = el('select', { class:'form-control', style:'width:140px;' });
+        typeSelect.innerHTML = '<option value="links">📌 Links</option><option value="text">📝 Tekst</option><option value="newsletter">📧 Nieuwsbrief</option>';
+        typeSelect.value = col.type || 'links';
+        typeSelect.onchange = () => { const a = readCols(); a[ci].type = typeSelect.value; writeCols(a); redrawCols(); };
+        const title = el('input', { class:'form-control', placeholder:'Kolomtitel', value: col.title||'', style:'flex:1;' });
         const delCol = el('button', { type:'button', class:'btn btn-secondary' }, 'Verwijder kolom');
         delCol.onclick = () => { const a = readCols(); a.splice(ci,1); writeCols(a); redrawCols(); };
         title.oninput = () => { const a = readCols(); a[ci].title = title.value; writeCols(a); };
-        row1.appendChild(title); row1.appendChild(delCol);
+        row1.appendChild(typeLabel); row1.appendChild(typeSelect); row1.appendChild(title); row1.appendChild(delCol);
         card.appendChild(row1);
         const linksHead = el('div', { style:'display:flex;justify-content:space-between;align-items:center;margin:6px 0;' });
         linksHead.appendChild(el('div', { style:'font-weight:600;color:#475569;' }, 'Links'));
@@ -290,19 +304,32 @@
     }
     addColBtn.onclick = () => { const a = readCols(); a.push({ title:'Nieuwe kolom', links:[] }); writeCols(a); redrawCols(); };
     redrawCols();
-    const footerActions = el('div', { style:'display:flex;gap:8px;flex-wrap:wrap;' });
+    const footerActions = el('div', { style:'display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;' });
     const ftrSave = el('button', { type:'button', class:'btn btn-secondary' }, 'Opslaan footer');
     const ftrPub = el('button', { type:'button', class:'btn btn-primary' }, 'Publiceer footer');
     footerActions.appendChild(ftrSave); footerActions.appendChild(ftrPub);
+    // Add fields with labels in logical order
+    ftrForm.appendChild(el('label', { style:'font-weight:600;color:#6b7280;margin-top:4px;' }, 'Accent kleur'));
     ftrForm.appendChild(ftrAccent);
+    ftrForm.appendChild(el('label', { style:'font-weight:600;color:#6b7280;margin-top:4px;' }, 'Achtergrond kleur (van)'));
     ftrForm.appendChild(ftrBgFrom);
+    ftrForm.appendChild(el('label', { style:'font-weight:600;color:#6b7280;margin-top:4px;' }, 'Achtergrond kleur (naar)'));
     ftrForm.appendChild(ftrBgTo);
+    ftrForm.appendChild(el('div', { style:'font-weight:600;color:#6b7280;margin-top:12px;' }, '🖼️ Achtergrond Afbeelding'));
     ftrForm.appendChild(ftrBgImageRow);
-    ftrForm.appendChild(ftrMenuKey);
-    ftrForm.appendChild(ftrSecondMenu);
-    ftrForm.appendChild(ftrLogoH);
+    ftrForm.appendChild(overlayLabel);
+    ftrForm.appendChild(overlayRow);
+    ftrForm.appendChild(el('div', { style:'font-weight:600;color:#6b7280;margin-top:12px;' }, '📋 Logo & Content'));
     ftrForm.appendChild(ftrLogoRow);
+    ftrForm.appendChild(el('label', { style:'font-weight:600;color:#6b7280;margin-top:4px;' }, 'Logo hoogte (px)'));
+    ftrForm.appendChild(ftrLogoH);
+    ftrForm.appendChild(el('label', { style:'font-weight:600;color:#6b7280;margin-top:4px;' }, 'Adresgegevens (HTML)'));
     ftrForm.appendChild(ftrAddress);
+    ftrForm.appendChild(el('div', { style:'font-weight:600;color:#6b7280;margin-top:12px;' }, '🔗 Menu Koppelingen'));
+    ftrForm.appendChild(el('label', { style:'font-weight:600;color:#6b7280;margin-top:4px;' }, 'Menu key'));
+    ftrForm.appendChild(ftrMenuKey);
+    ftrForm.appendChild(el('label', { style:'font-weight:600;color:#6b7280;margin-top:4px;' }, 'Tweede menu key (optioneel)'));
+    ftrForm.appendChild(ftrSecondMenu);
     ftrForm.appendChild(colsWrap);
     ftrForm.appendChild(ftrColsHidden);
     ftrForm.appendChild(footerActions);
