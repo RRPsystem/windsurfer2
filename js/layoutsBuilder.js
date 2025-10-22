@@ -576,6 +576,8 @@ ${body}
     // expose for dedicated view
     renderMenuTree,
     importPagesFromBoltIntoForm,
-    doMenuSavePublish
+    doMenuSavePublish,
+    doHeaderSavePublish,
+    doFooterSavePublish
   };
 })();
