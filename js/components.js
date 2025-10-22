@@ -56,6 +56,7 @@ class ComponentFactory {
             'hero-travel-video': this.createHeroTravelVideo,
             'feature-media': this.createFeatureMedia,
             'feature-highlight': this.createFeatureHighlight,
+            'feature-icon-image': this.createFeatureIconImage,
             'content-flex': this.createContentFlex,
             'travel-types': this.createTravelTypes,
             'contact-info': this.createContactInfo,
@@ -1333,6 +1334,138 @@ class ComponentFactory {
         // Interactions
         this.makeSelectable(section);
 
+        return section;
+    }
+
+    // Feature Icon & Image - witte achtergrond, foto links/rechts, iconen tussen tekst en foto, label boven titel
+    static createFeatureIconImage(options = {}) {
+        const section = document.createElement('section');
+        section.className = 'wb-component wb-feature-icon-image';
+        section.setAttribute('data-component', 'feature-icon-image');
+        section.id = this.generateId('feature_icon_image');
+
+        const toolbar = this.createToolbar();
+        section.appendChild(toolbar);
+        this.addTypeBadge(section);
+
+        const position = options.position === 'right' ? 'right' : 'left';
+        const label = options.label || 'Stad van de maand';
+        const title = options.title || "C'est la vie a Paris";
+        const description = options.description || 'Parijs, de stad van de liefde en licht, schittert als de ultieme bestemming voor een stedentrip.';
+        const image = options.image || 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1200&auto=format&fit=crop';
+        const items = options.items || [
+            { icon: 'fa-ticket-alt', title: 'Activiteiten in Parijs', text: 'Boek gelijk je activiteiten mee en sla de wachtrij over.' },
+            { icon: 'fa-hotel', title: 'Hotels in alle prijsklasses', text: 'Van budget hotels tot design en alles wat er tussen zit.' }
+        ];
+        const ctaIcon = options.ctaIcon || 'fa-train';
+        const ctaTitle = options.ctaTitle || 'Met de trein naar Parijs';
+        const ctaText = options.ctaText || 'Reis comfortabel en milieuvriendelijk naar Parijs met de trein!';
+        const ctaButton = options.ctaButton || 'Stel je eigen stedentrip samen';
+
+        const container = document.createElement('div');
+        container.className = 'fii-container';
+        container.style.cssText = 'max-width:1200px;margin:0 auto;padding:60px 20px;';
+
+        const grid = document.createElement('div');
+        grid.className = 'fii-grid';
+        grid.style.cssText = `display:grid;grid-template-columns:${position === 'right' ? '1fr 1fr' : '1fr 1fr'};gap:60px;align-items:start;`;
+
+        // Text column
+        const textCol = document.createElement('div');
+        textCol.className = 'fii-text';
+        
+        const labelEl = document.createElement('div');
+        labelEl.className = 'fii-label';
+        labelEl.contentEditable = 'true';
+        labelEl.textContent = label;
+        labelEl.style.cssText = 'display:inline-block;background:#fbbf24;color:#78350f;padding:6px 16px;border-radius:20px;font-size:14px;font-weight:600;margin-bottom:16px;';
+
+        const titleEl = document.createElement('h2');
+        titleEl.className = 'fii-title';
+        titleEl.contentEditable = 'true';
+        titleEl.textContent = title;
+        titleEl.style.cssText = 'font-size:36px;font-weight:700;color:#1f2937;margin:0 0 20px 0;line-height:1.2;';
+
+        const descEl = document.createElement('p');
+        descEl.className = 'fii-description';
+        descEl.contentEditable = 'true';
+        descEl.textContent = description;
+        descEl.style.cssText = 'font-size:16px;line-height:1.6;color:#6b7280;margin-bottom:32px;';
+
+        const itemsList = document.createElement('div');
+        itemsList.className = 'fii-items';
+        itemsList.style.cssText = 'display:flex;flex-direction:column;gap:24px;margin-bottom:32px;';
+
+        items.forEach(item => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'fii-item';
+            itemEl.style.cssText = 'display:flex;gap:16px;align-items:flex-start;';
+            itemEl.innerHTML = `
+                <div class="fii-item-icon" style="flex-shrink:0;width:48px;height:48px;background:#f97316;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:20px;">
+                    <i class="fas ${item.icon}"></i>
+                </div>
+                <div class="fii-item-content">
+                    <h3 class="fii-item-title" contenteditable="true" style="font-size:18px;font-weight:700;color:#1f2937;margin:0 0 8px 0;">${item.title}</h3>
+                    <p class="fii-item-text" contenteditable="true" style="font-size:14px;color:#6b7280;margin:0;line-height:1.5;">${item.text}</p>
+                </div>
+            `;
+            itemsList.appendChild(itemEl);
+        });
+
+        const buttonEl = document.createElement('button');
+        buttonEl.className = 'fii-button';
+        buttonEl.contentEditable = 'true';
+        buttonEl.textContent = ctaButton;
+        buttonEl.style.cssText = 'background:#1e293b;color:white;border:none;padding:14px 28px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;transition:all 0.2s;';
+
+        textCol.appendChild(labelEl);
+        textCol.appendChild(titleEl);
+        textCol.appendChild(descEl);
+        textCol.appendChild(itemsList);
+        textCol.appendChild(buttonEl);
+
+        // Image column with CTA card
+        const imageCol = document.createElement('div');
+        imageCol.className = 'fii-image-col';
+        imageCol.style.cssText = 'position:relative;';
+
+        const imageWrap = document.createElement('div');
+        imageWrap.className = 'fii-image-wrap';
+        imageWrap.style.cssText = 'border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,0.1);';
+        
+        const img = document.createElement('img');
+        img.src = image;
+        img.alt = title;
+        img.style.cssText = 'width:100%;height:auto;display:block;';
+        imageWrap.appendChild(img);
+
+        const ctaCard = document.createElement('div');
+        ctaCard.className = 'fii-cta-card';
+        ctaCard.style.cssText = 'position:absolute;bottom:20px;left:20px;right:20px;background:#f97316;border-radius:12px;padding:24px;color:white;box-shadow:0 8px 24px rgba(0,0,0,0.2);';
+        ctaCard.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:center;width:64px;height:64px;background:white;border-radius:50%;margin:0 auto 16px;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+                <i class="fas ${ctaIcon}" style="font-size:28px;color:#f97316;"></i>
+            </div>
+            <h3 contenteditable="true" style="font-size:20px;font-weight:700;margin:0 0 12px 0;text-align:center;">${ctaTitle}</h3>
+            <p contenteditable="true" style="font-size:14px;margin:0;text-align:center;opacity:0.95;">${ctaText}</p>
+        `;
+
+        imageCol.appendChild(imageWrap);
+        imageCol.appendChild(ctaCard);
+
+        // Assemble grid
+        if (position === 'left') {
+            grid.appendChild(imageCol);
+            grid.appendChild(textCol);
+        } else {
+            grid.appendChild(textCol);
+            grid.appendChild(imageCol);
+        }
+
+        container.appendChild(grid);
+        section.appendChild(container);
+
+        this.makeSelectable(section);
         return section;
     }
 
@@ -3409,6 +3542,7 @@ class ComponentFactory {
                 'hero-travel': 'fa-mountain-sun',
                 'feature-media': 'fa-square-split-horizontal',
                 'feature-highlight': 'fa-image',
+                'feature-icon-image': 'fa-image-portrait',
                 'travel-types': 'fa-th-large',
                 'contact-info': 'fa-address-card',
                 'contact-map-cta': 'fa-map-location-dot',
