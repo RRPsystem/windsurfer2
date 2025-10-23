@@ -589,6 +589,14 @@ async function loadDestinationContent(ctx) {
       headers['apikey'] = ctx.apikey;
     }
     
+    // Log the full request for debugging
+    log('Fetching destination:', {
+      url: url,
+      headers: Object.keys(headers),
+      hasToken: !!ctx.token,
+      hasApikey: !!ctx.apikey
+    });
+    
     // Fetch destination data
     const response = await fetch(url, { headers });
     
