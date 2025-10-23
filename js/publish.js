@@ -745,3 +745,65 @@ async function destinationsSaveDraft({ brand_id, id, title, slug, content, statu
 window.BuilderPublishAPI.destinations = {
   saveDraft: destinationsSaveDraft
 };
+
+// ==============================
+// Universal Edge Save Function
+// ==============================
+window.websiteBuilder = window.websiteBuilder || {};
+window.websiteBuilder.saveToEdgeIfPresent = async function() {
+  try {
+    const edgeCtx = this._edgeCtx;
+    if (!edgeCtx || this._edgeDisabled) {
+      console.log('[Edge] No edge context or disabled, skipping save');
+      return;
+    }
+
+    const { kind, key } = edgeCtx;
+    console.log('[Edge] Saving to edge:', { kind, key });
+
+    // Get canvas content
+    const canvas = document.getElementById('canvas');
+    if (!canvas) {
+      console.warn('[Edge] No canvas found');
+      return;
+    }
+
+    const htmlContent = canvas.innerHTML;
+    const titleInput = document.getElementById('pageTitleInput');
+    const slugInput = document.getElementById('pageSlugInput');
+    const title = titleInput ? titleInput.value : '';
+    const slug = slugInput ? slugInput.value : key;
+
+    // Get brand_id from URL or context
+    const urlParams = new URLSearchParams(window.location.search);
+    const brand_id = urlParams.get('brand_id') || edgeCtx.brand_id;
+
+    // Save based on content type
+    if (kind === 'destination') {
+      console.log('[Edge] Saving destination:', { slug, title });
+      const result = await window.BuilderPublishAPI.destinations.saveDraft({
+        brand_id,
+        slug,
+        title,
+        content: { html: htmlContent },
+        status: 'draft'
+      });
+      console.log('[Edge] Destination saved:', result);
+    } else if (kind === 'news') {
+      console.log('[Edge] Saving news:', { slug, title });
+      const result = await window.BuilderPublishAPI.news.saveDraft({
+        brand_id,
+        slug,
+        title,
+        content: { html: htmlContent },
+        status: 'draft'
+      });
+      console.log('[Edge] News saved:', result);
+    } else {
+      console.log('[Edge] Page save not implemented yet for kind:', kind);
+    }
+  } catch (error) {
+    console.error('[Edge] Save failed:', error);
+    throw error;
+  }
+};
