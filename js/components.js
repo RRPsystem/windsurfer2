@@ -72,7 +72,8 @@ class ComponentFactory {
             'travel-card-transfer': this.createTravelCardTransfer,
             'travel-day-header': this.createTravelDayHeader,
             'travel-timeline': this.createTravelTimeline,
-            'travel-hero': this.createTravelHero
+            'travel-hero': this.createTravelHero,
+            'route-overview-btn': this.createRouteOverviewButton
         };
 
         
@@ -5422,3 +5423,69 @@ document.addEventListener('keydown', (e) => {
         }
     }
 });
+
+// Route Overview Button Component
+ComponentFactory.createRouteOverviewButton = function(options = {}) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'wb-component wb-route-overview-btn';
+    wrapper.setAttribute('data-component', 'route-overview-btn');
+    wrapper.id = this.generateId('route_overview_btn');
+    
+    const buttonText = options.buttonText || 'Bekijk Route';
+    const buttonIcon = options.buttonIcon || 'fa-route';
+    
+    wrapper.innerHTML = `
+        <button class="route-overview-trigger" style="
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        ">
+            <i class="fas ${buttonIcon}"></i>
+            <span contenteditable="true">${buttonText}</span>
+        </button>
+    `;
+    
+    // Add hover effect
+    const btn = wrapper.querySelector('.route-overview-trigger');
+    btn.addEventListener('mouseenter', () => {
+        btn.style.transform = 'translateY(-2px)';
+        btn.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+    });
+    btn.addEventListener('mouseleave', () => {
+        btn.style.transform = 'translateY(0)';
+        btn.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+    });
+    
+    // Click handler to open route overview panel
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Check if we're in builder mode
+        if (window.location.href.includes('ai-websitestudio.nl') || 
+            window.location.href.includes('localhost')) {
+            // In builder: just show a message
+            alert('Route Overview Panel opent hier op de live website');
+            return;
+        }
+        
+        // On live site: open the route overview panel
+        if (window.openRouteOverview) {
+            window.openRouteOverview();
+        } else {
+            console.warn('Route overview function not available');
+        }
+    });
+    
+    return wrapper;
+};
