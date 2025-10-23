@@ -573,9 +573,9 @@ async function loadDestinationContent(ctx) {
     
     log('Loading destination content for slug:', destinationSlug);
     
-    // Build URL - use content-api with destinations type
-    let url = `${api}/content-api?type=destinations&slug=${encodeURIComponent(destinationSlug)}`;
-    if (brandId) url += `&brand_id=${encodeURIComponent(brandId)}`;
+    // Build URL - use content-api/load endpoint for destinations
+    // /load searches across all destinations (including other brands) and checks assignments
+    let url = `${api}/content-api/load?type=destinations&slug=${encodeURIComponent(destinationSlug)}`;
     
     // Build headers
     const headers = {
