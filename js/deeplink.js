@@ -653,8 +653,25 @@ async function loadDestinationContent(ctx) {
         const htmlContent = data.content?.html || data.content?.htmlSnapshot || data.body_html;
         
         if (htmlContent) {
-          canvas.innerHTML = htmlContent;
-          log('Destination content HTML loaded into canvas');
+          // Create a temporary container to parse HTML
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = htmlContent;
+          
+          // Remove header and footer if present
+          const header = tempDiv.querySelector('[data-component="header"]');
+          const footer = tempDiv.querySelector('[data-component="footer"]');
+          if (header) {
+            header.remove();
+            log('Removed header from destination content');
+          }
+          if (footer) {
+            footer.remove();
+            log('Removed footer from destination content');
+          }
+          
+          // Load cleaned content into canvas
+          canvas.innerHTML = tempDiv.innerHTML;
+          log('Destination content HTML loaded into canvas (header/footer removed)');
           window._pendingPageLoad.loaded = true;
         } else {
           warn('No HTML content found in destination response. Keys:', Object.keys(data.content || {}));
