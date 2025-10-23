@@ -636,6 +636,12 @@ async function loadDestinationContent(ctx) {
       loaded: false
     };
     
+    // Store destination ID in edgeCtx for saving
+    if (window.websiteBuilder && window.websiteBuilder._edgeCtx) {
+      window.websiteBuilder._edgeCtx.contentId = data.id;
+      log('Stored destination ID in edgeCtx:', data.id);
+    }
+    
     // Load content into builder
     const loadContent = () => {
       try {
