@@ -14,22 +14,23 @@
   // --- canonicalSubset (keys alfabetisch, met ?? null) ---
   function canonicalSubset(ctx){
     const canonical = {
-      api:         ctx.api ?? null,
-      apikey:      ctx.apikey ?? null,
-      author_id:   ctx.author_id ?? null,
-      author_type: ctx.author_type ?? null,
-      brand_id:    ctx.brand_id ?? null,
-      content_type:ctx.content_type ?? null,
-      ephemeral:   ctx.ephemeral ?? null,
-      exp:         ctx.exp ?? null,
-      footer_id:   ctx.footer_id ?? null,
-      menu_id:     ctx.menu_id ?? null,
-      mode:        ctx.mode ?? null,
-      news_slug:   ctx.news_slug ?? null,
-      page_id:     ctx.page_id ?? null,
-      slug:        ctx.slug ?? null,
-      template_id: ctx.template_id ?? null,
-      token:       ctx.token ?? null,
+      api:              ctx.api ?? null,
+      apikey:           ctx.apikey ?? null,
+      author_id:        ctx.author_id ?? null,
+      author_type:      ctx.author_type ?? null,
+      brand_id:         ctx.brand_id ?? null,
+      content_type:     ctx.content_type ?? null,
+      destination_slug: ctx.destination_slug ?? null,
+      ephemeral:        ctx.ephemeral ?? null,
+      exp:              ctx.exp ?? null,
+      footer_id:        ctx.footer_id ?? null,
+      menu_id:          ctx.menu_id ?? null,
+      mode:             ctx.mode ?? null,
+      news_slug:        ctx.news_slug ?? null,
+      page_id:          ctx.page_id ?? null,
+      slug:             ctx.slug ?? null,
+      template_id:      ctx.template_id ?? null,
+      token:            ctx.token ?? null,
     };
     return JSON.stringify(canonical);
   }
@@ -90,7 +91,7 @@
     if (!sigOk) { warn('invalid ctx signature'); return {}; }
 
     // 3) Pas HIERNA URL-overrides toe (niet opnieuw verifiëren)
-    ['api','token','apikey','api_key','brand_id','page_id','news_slug','slug','content_type','exp','ephemeral'].forEach(k=>{
+    ['api','token','apikey','api_key','brand_id','page_id','news_slug','slug','destination_slug','content_type','exp','ephemeral'].forEach(k=>{
       const v = getParam(u,k); if (v) ctx[k] = v;
     });
     if (ctx.api_key && !ctx.apikey) ctx.apikey = ctx.api_key;
@@ -565,7 +566,7 @@ async function loadNewsContent(ctx) {
 async function loadDestinationContent(ctx) {
   try {
     const api = (ctx.api || '').replace(/\/$/, '');
-    const destinationSlug = ctx.slug;
+    const destinationSlug = ctx.destination_slug || ctx.slug;  // Accept both parameter names
     const brandId = ctx.brand_id;
     
     if (!api || !destinationSlug) return;
