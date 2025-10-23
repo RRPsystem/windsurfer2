@@ -73,7 +73,8 @@ class ComponentFactory {
             'travel-day-header': this.createTravelDayHeader,
             'travel-timeline': this.createTravelTimeline,
             'travel-hero': this.createTravelHero,
-            'route-overview-btn': this.createRouteOverviewButton
+            'route-overview-btn': this.createRouteOverviewButton,
+            'travel-intro': this.createTravelIntro
         };
 
         
@@ -5488,4 +5489,89 @@ ComponentFactory.createRouteOverviewButton = function(options = {}) {
     });
     
     return wrapper;
+};
+
+// Travel Intro Component (Title + Description + Route Button)
+ComponentFactory.createTravelIntro = function(options = {}) {
+    const section = document.createElement('section');
+    section.className = 'wb-component wb-travel-intro';
+    section.setAttribute('data-component', 'travel-intro');
+    section.id = this.generateId('travel_intro');
+    
+    const title = options.title || 'Over deze reis';
+    const description = options.description || 'Ontdek de mooiste plekken en beleef een onvergetelijke reis vol avontuur en ontspanning.';
+    const buttonText = options.buttonText || 'Bekijk Route';
+    
+    section.style.cssText = `
+        max-width: 1200px;
+        margin: 60px auto;
+        padding: 0 20px;
+    `;
+    
+    section.innerHTML = `
+        <div style="max-width: 800px;">
+            <h2 contenteditable="true" style="
+                font-size: 32px;
+                font-weight: 700;
+                color: #1a202c;
+                margin-bottom: 20px;
+                line-height: 1.3;
+            ">${title}</h2>
+            
+            <p contenteditable="true" style="
+                font-size: 18px;
+                line-height: 1.8;
+                color: #4a5568;
+                margin-bottom: 32px;
+            ">${description}</p>
+            
+            <button class="route-overview-trigger" style="
+                display: inline-flex;
+                align-items: center;
+                gap: 12px;
+                padding: 16px 32px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                border-radius: 12px;
+                font-weight: 600;
+                font-size: 18px;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                transition: all 0.3s ease;
+            ">
+                <i class="fas fa-route"></i>
+                <span contenteditable="true">${buttonText}</span>
+            </button>
+        </div>
+    `;
+    
+    // Add hover effect to button
+    const btn = section.querySelector('.route-overview-trigger');
+    btn.addEventListener('mouseenter', () => {
+        btn.style.transform = 'translateY(-2px)';
+        btn.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+    });
+    btn.addEventListener('mouseleave', () => {
+        btn.style.transform = 'translateY(0)';
+        btn.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+    });
+    
+    // Click handler
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (window.location.href.includes('ai-websitestudio.nl') || 
+            window.location.href.includes('localhost')) {
+            alert('Route Overview Panel opent hier op de live website');
+            return;
+        }
+        
+        if (window.openRouteOverview) {
+            window.openRouteOverview();
+        }
+    });
+    
+    return section;
 };
