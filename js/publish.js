@@ -781,8 +781,13 @@ window.websiteBuilder.saveToEdgeIfPresent = async function() {
     // Save based on content type
     if (kind === 'destination') {
       console.log('[Edge] Saving destination:', { slug, title });
+      
+      // Get the destination ID from the loaded data
+      const destinationId = window._pendingPageLoad?.data?.id || null;
+      
       const result = await window.BuilderPublishAPI.destinations.saveDraft({
         brand_id,
+        id: destinationId,  // Include ID for update
         slug,
         title,
         content: { html: htmlContent },
