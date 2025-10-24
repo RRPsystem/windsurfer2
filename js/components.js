@@ -5425,7 +5425,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Route Overview Button Component - Sticky Left Side
+// Route Overview Button Component - Fixed Left Side
 ComponentFactory.createRouteOverviewButton = function(options = {}) {
     const wrapper = document.createElement('div');
     wrapper.className = 'wb-component wb-route-overview-btn';
@@ -5435,13 +5435,13 @@ ComponentFactory.createRouteOverviewButton = function(options = {}) {
     const buttonText = options.buttonText || 'Bekijk Route';
     const buttonIcon = options.buttonIcon || 'fa-route';
     
-    // Sticky positioning on the left side
+    // Fixed positioning on the left side (works on live site)
     wrapper.style.cssText = `
-        position: sticky;
+        position: fixed;
         top: 50%;
         left: 0;
         transform: translateY(-50%);
-        z-index: 100;
+        z-index: 1000;
         margin: 0;
         padding: 0;
     `;
@@ -5488,12 +5488,19 @@ ComponentFactory.createRouteOverviewButton = function(options = {}) {
         e.preventDefault();
         e.stopPropagation();
         
-        // Always try to open the sliding panel (works in builder preview too)
-        if (window.openRouteOverview) {
-            window.openRouteOverview();
+        // Try to open the sliding panel
+        if (typeof window.showRouteOverview === 'function') {
+            // Collect travel data from page
+            const travelData = {
+                name: document.querySelector('.wb-travel-hero h1')?.textContent || 'Reis Route',
+                destinations: [],
+                hotels: [],
+                transports: []
+            };
+            window.showRouteOverview(travelData);
         } else {
-            // Fallback: show message if function not available
-            alert('Route Overview Panel opent hier op de live website');
+            console.warn('[Route Button] showRouteOverview function not available');
+            alert('Route Overview Panel wordt geladen...');
         }
     });
     
