@@ -2456,6 +2456,18 @@ class PropertiesPanel {
             case 'hero-banner-cta':
                 this.createHeroBannerCtaProperties(component);
                 break;
+            case 'hero-video-cta':
+                this.createHeroVideoCtaProperties(component);
+                break;
+            case 'news-overview':
+                this.createNewsOverviewProperties(component);
+                break;
+            case 'travel-intro':
+                this.createTravelIntroProperties(component);
+                break;
+            case 'route-overview-btn':
+                this.createRouteOverviewBtnProperties(component);
+                break;
             case 'feature-media':
                 this.createFeatureMediaProperties(component);
                 break;
@@ -4536,6 +4548,92 @@ PropertiesPanel.prototype.createFeatureIconImageProperties = function(component)
     del.style.color = '#fff';
     del.style.marginTop = '1rem';
     this.panel.appendChild(del);
+};
+
+// Hero Video CTA Properties
+PropertiesPanel.prototype.createHeroVideoCtaProperties = function(component) {
+    this.addTitle('Hero Video + CTA');
+    
+    const title = component.querySelector('.hero-video-title');
+    if (title) {
+        this.addTextInput('Titel', title.textContent, (val) => {
+            title.textContent = val;
+        });
+    }
+    
+    const subtitle = component.querySelector('.hero-video-subtitle');
+    if (subtitle) {
+        this.addTextInput('Subtitel', subtitle.textContent, (val) => {
+            subtitle.textContent = val;
+        });
+    }
+    
+    const videoBtn = component.querySelector('.video-play-btn');
+    if (videoBtn) {
+        this.addTextInput('Video URL (YouTube/Vimeo)', videoBtn.dataset.videoUrl || '', (val) => {
+            videoBtn.dataset.videoUrl = val;
+        });
+    }
+    
+    this.addDeleteButton(component);
+};
+
+// News Overview Properties
+PropertiesPanel.prototype.createNewsOverviewProperties = function(component) {
+    this.addTitle('Nieuws Overzicht');
+    
+    const title = component.querySelector('h2');
+    if (title) {
+        this.addTextInput('Titel', title.textContent, (val) => {
+            title.textContent = val;
+        });
+    }
+    
+    this.addInfo('Dit component toont automatisch nieuwsartikelen uit de database.');
+    this.addDeleteButton(component);
+};
+
+// Travel Intro Properties
+PropertiesPanel.prototype.createTravelIntroProperties = function(component) {
+    this.addTitle('Reis Intro');
+    
+    const title = component.querySelector('h2');
+    if (title) {
+        this.addTextInput('Titel', title.textContent, (val) => {
+            title.textContent = val;
+        });
+    }
+    
+    const description = component.querySelector('p');
+    if (description) {
+        this.addTextareaInput('Beschrijving', description.textContent, (val) => {
+            description.textContent = val;
+        });
+    }
+    
+    const buttonText = component.querySelector('.route-overview-trigger span');
+    if (buttonText) {
+        this.addTextInput('Button Tekst', buttonText.textContent, (val) => {
+            buttonText.textContent = val;
+        });
+    }
+    
+    this.addDeleteButton(component);
+};
+
+// Route Overview Button Properties
+PropertiesPanel.prototype.createRouteOverviewBtnProperties = function(component) {
+    this.addTitle('Bekijk Route Button');
+    
+    const buttonText = component.querySelector('.route-overview-trigger span');
+    if (buttonText) {
+        this.addTextInput('Button Tekst', buttonText.textContent, (val) => {
+            buttonText.textContent = val;
+        });
+    }
+    
+    this.addInfo('Deze button opent het route overzicht panel op de live website.');
+    this.addDeleteButton(component);
 };
 
 // Initialize properties panel
