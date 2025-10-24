@@ -503,7 +503,7 @@ ${body}
     try {
       // Central fetch helper (adds headers + base /functions/v1)
       const callFn = (window.FnClient && window.FnClient.callFn) || null;
-      const apiBase = (window.FnClient && window.FnClient.functionsBase && window.FnClient.functionsBase()) || ((window.BOLT_API && window.BOLT_API.baseUrl && (window.BOLT_API.baseUrl.replace(/\/$/, '') + '/functions/v1')) || '');
+      const apiBase = (window.FnClient && window.FnClient.functionsBase && window.FnClient.functionsBase()) || '';
       const brand_id = window.CURRENT_BRAND_ID;
       if (!apiBase || !brand_id) throw new Error('Bolt API of brand_id ontbreekt');
       const pathList = `/pages-api/list?brand_id=${encodeURIComponent(brand_id)}${menuKey?`&menu_key=${encodeURIComponent(menuKey)}`:''}`;
