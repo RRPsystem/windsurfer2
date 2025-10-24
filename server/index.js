@@ -6,11 +6,11 @@ const path = require('path');
 const { spawn } = require('child_process');
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: true, credentials: false }));
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
 
-// Serve static files (optional) so you can preview index.html via http://localhost:8080/
+// Serve static files so you can preview index.html
 app.use(express.static(path.join(__dirname, '..')));
 
 // POST /api/git/push { message?: string }
@@ -46,27 +46,14 @@ app.post('/api/git/push', (req, res) => {
   runNext(0);
 });
 
-const port = process.env.PORT || 8080;
-app.listen(port, () => {
-  console.log(`Dev server running at http://localhost:${port}`);
-});
-
 // Simple local dev proxy for Travel Compositor
 // Do NOT expose keys in frontend. Put real keys in server/.env (not committed).
 
-const express = require('express');
-const cors = require('cors');
-const morgan = require('morgan');
 const axios = require('axios');
 const qs = require('querystring');
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
-// Initialize app BEFORE registering any routes
-const app = express();
-const PORT = process.env.PORT || 5050;
 
-app.use(cors({ origin: true, credentials: false }));
-app.use(express.json({ limit: '1mb' }));
-app.use(morgan('dev'));
+const PORT = process.env.PORT || 5050;
 
 // ------- Ideas: Clean proxy routes -------
 // GET /api/ideas?micrositeId=&first=&limit=&lang=&currency=&themes=&destinations=&onlyVisible=&fields=
@@ -732,7 +719,10 @@ const urlImportHandler = require('./api/url-import');
 app.post('/api/booking/url-import', urlImportHandler);
 
 app.listen(PORT, () => {
-  console.log(`[Dev Proxy] Listening on http://localhost:${PORT}`);
-  console.log(`[BookingParse] PDF upload endpoint ready at /api/booking/parse`);
-  console.log(`[URLImport] URL import endpoint ready at /api/booking/url-import`);
+  console.log(`\n🚀 Server running at http://localhost:${PORT}`);
+  console.log(`📁 Static files: http://localhost:${PORT}/index.html`);
+  console.log(`🔗 Travel Compositor API: /api/ideas`);
+  console.log(`📄 PDF Parser: /api/booking/parse`);
+  console.log(`🌐 URL Import: /api/booking/url-import`);
+  console.log(`📤 Git Push: /api/git/push\n`);
 });
