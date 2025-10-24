@@ -1,4 +1,4 @@
-﻿// js/fnClient.js
+// js/fnClient.js
 (function(){
   function boltProjectBase(){
     if (!(window.BOLT_API && window.BOLT_API.baseUrl)) return null;
@@ -14,6 +14,7 @@
     const base = functionsBase();
     if (!base) throw new Error('Bolt API base ontbreekt');
     const url = `${base}${path.startsWith('/') ? path : '/'+path}`;
+    console.log('[FnClient] Calling:', url); // Debug log
     const headers = Object.assign({
       'Content-Type': 'application/json',
     }, options.headers||{});
