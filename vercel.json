@@ -1,4 +1,14 @@
 {
+  "functions": {
+    "api/booking-parse.js": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "api/url-import.js": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  },
   "rewrites": [
     { "source": "/:brandSlug/:pageSlug", "destination": "/api/pages/:brandSlug/:pageSlug" }
   ],
