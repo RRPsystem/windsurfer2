@@ -4552,24 +4552,24 @@ PropertiesPanel.prototype.createFeatureIconImageProperties = function(component)
 
 // Hero Video CTA Properties
 PropertiesPanel.prototype.createHeroVideoCtaProperties = function(component) {
-    const title = component.querySelector('.hero-video-title');
+    const title = component.querySelector('h2');
     if (title) {
         this.createTextInput('Titel', title.textContent, (val) => {
             title.textContent = val;
         });
     }
     
-    const subtitle = component.querySelector('.hero-video-subtitle');
-    if (subtitle) {
-        this.createTextInput('Subtitel', subtitle.textContent, (val) => {
-            subtitle.textContent = val;
+    const ctaBtn = component.querySelector('.wb-cta-btn');
+    if (ctaBtn) {
+        this.createTextInput('CTA Button Tekst', ctaBtn.textContent, (val) => {
+            ctaBtn.textContent = val;
         });
     }
     
-    const videoBtn = component.querySelector('.video-play-btn');
+    const videoBtn = component.querySelector('.wb-video-play-btn');
     if (videoBtn) {
-        this.createTextInput('Video URL (YouTube/Vimeo)', videoBtn.dataset.videoUrl || '', (val) => {
-            videoBtn.dataset.videoUrl = val;
+        this.createTextInput('Video ID (YouTube)', videoBtn.dataset.videoId || '', (val) => {
+            videoBtn.dataset.videoId = val;
         });
     }
     
