@@ -4552,6 +4552,27 @@ PropertiesPanel.prototype.createFeatureIconImageProperties = function(component)
 
 // Hero Video CTA Properties
 PropertiesPanel.prototype.createHeroVideoCtaProperties = function(component) {
+    // Media selector for background
+    const bgBtn = this.createButton('Achtergrond kiezen', async () => {
+        if (!window.MediaPicker) {
+            alert('Media Picker niet beschikbaar');
+            return;
+        }
+        const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
+        if (res) {
+            const src = res.fullUrl || res.regularUrl || res.url || res.dataUrl || '';
+            if (src) {
+                component.style.backgroundImage = `url(${src})`;
+            }
+        }
+    });
+    bgBtn.style.backgroundColor = '#ff7700';
+    bgBtn.style.borderColor = '#ff7700';
+    bgBtn.style.color = '#fff';
+    bgBtn.style.fontWeight = '700';
+    this.panel.appendChild(bgBtn);
+    
+    // Title
     const title = component.querySelector('h2');
     if (title) {
         this.createTextInput('Titel', title.textContent, (val) => {
@@ -4559,20 +4580,77 @@ PropertiesPanel.prototype.createHeroVideoCtaProperties = function(component) {
         });
     }
     
+    // CTA Button
     const ctaBtn = component.querySelector('.wb-cta-btn');
     if (ctaBtn) {
         this.createTextInput('CTA Button Tekst', ctaBtn.textContent, (val) => {
             ctaBtn.textContent = val;
         });
+        this.createColorInput('CTA Button Kleur', ctaBtn.style.background || '#ff8c00', (val) => {
+            ctaBtn.style.background = val;
+        });
     }
     
+    // Video ID
     const videoBtn = component.querySelector('.wb-video-play-btn');
     if (videoBtn) {
         this.createTextInput('Video ID (YouTube)', videoBtn.dataset.videoId || '', (val) => {
             videoBtn.dataset.videoId = val;
         });
+        this.createColorInput('Video Button Kleur', videoBtn.style.background || '#ff8c00', (val) => {
+            videoBtn.style.background = val;
+        });
     }
     
+    // Feature buttons (4 iconen)
+    const featureBtns = component.querySelectorAll('.wb-feature-btn');
+    if (featureBtns.length > 0) {
+        const header = document.createElement('h4');
+        header.textContent = 'Feature Buttons';
+        header.style.marginTop = '20px';
+        header.style.marginBottom = '10px';
+        header.style.fontWeight = '600';
+        this.panel.appendChild(header);
+        
+        featureBtns.forEach((btn, index) => {
+            const icon = btn.querySelector('i');
+            const label = btn.querySelector('div');
+            
+            // Button label
+            if (label) {
+                this.createTextInput(`Button ${index + 1} Tekst`, label.textContent, (val) => {
+                    label.textContent = val;
+                });
+            }
+            
+            // Icon picker
+            if (icon) {
+                const iconBtn = this.createButton(`Button ${index + 1} Icoon`, async () => {
+                    if (!window.IconPicker) {
+                        alert('Icon Picker niet beschikbaar');
+                        return;
+                    }
+                    const selectedIcon = await window.IconPicker.open();
+                    if (selectedIcon) {
+                        icon.className = `fas ${selectedIcon}`;
+                    }
+                });
+                this.panel.appendChild(iconBtn);
+                
+                // Icon color
+                this.createColorInput(`Button ${index + 1} Icoon Kleur`, icon.style.color || '#ff8c00', (val) => {
+                    icon.style.color = val;
+                });
+            }
+            
+            // Button background
+            this.createColorInput(`Button ${index + 1} Achtergrond`, btn.style.background || 'rgba(255, 140, 0, 0.9)', (val) => {
+                btn.style.background = val;
+            });
+        });
+    }
+    
+    // Delete button
     const del = this.createButton('Blok verwijderen', () => {
         if (confirm('Weet je zeker dat je dit blok wilt verwijderen?')) {
             component.remove();
