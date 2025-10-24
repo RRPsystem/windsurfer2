@@ -5425,7 +5425,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Route Overview Button Component
+// Route Overview Button Component - Sticky Left Side
 ComponentFactory.createRouteOverviewButton = function(options = {}) {
     const wrapper = document.createElement('div');
     wrapper.className = 'wb-component wb-route-overview-btn';
@@ -5435,36 +5435,52 @@ ComponentFactory.createRouteOverviewButton = function(options = {}) {
     const buttonText = options.buttonText || 'Bekijk Route';
     const buttonIcon = options.buttonIcon || 'fa-route';
     
+    // Sticky positioning on the left side
+    wrapper.style.cssText = `
+        position: sticky;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        z-index: 100;
+        margin: 0;
+        padding: 0;
+    `;
+    
     wrapper.innerHTML = `
         <button class="route-overview-trigger" style="
-            display: inline-flex;
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 12px;
-            padding: 16px 32px;
+            justify-content: center;
+            gap: 8px;
+            padding: 20px 12px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 0 12px 12px 0;
             font-weight: 600;
-            font-size: 18px;
+            font-size: 14px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 2px 0 15px rgba(102, 126, 234, 0.4);
             transition: all 0.3s ease;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            min-height: 120px;
         ">
-            <i class="fas ${buttonIcon}"></i>
-            <span contenteditable="true">${buttonText}</span>
+            <i class="fas ${buttonIcon}" style="writing-mode: horizontal-tb; font-size: 20px;"></i>
+            <span contenteditable="true" style="writing-mode: vertical-rl;">${buttonText}</span>
         </button>
     `;
     
     // Add hover effect
     const btn = wrapper.querySelector('.route-overview-trigger');
     btn.addEventListener('mouseenter', () => {
-        btn.style.transform = 'translateY(-2px)';
-        btn.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+        btn.style.transform = 'translateX(5px)';
+        btn.style.boxShadow = '4px 0 20px rgba(102, 126, 234, 0.6)';
     });
     btn.addEventListener('mouseleave', () => {
-        btn.style.transform = 'translateY(0)';
-        btn.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+        btn.style.transform = 'translateX(0)';
+        btn.style.boxShadow = '2px 0 15px rgba(102, 126, 234, 0.4)';
     });
     
     // Click handler to open route overview panel
@@ -5472,19 +5488,12 @@ ComponentFactory.createRouteOverviewButton = function(options = {}) {
         e.preventDefault();
         e.stopPropagation();
         
-        // Check if we're in builder mode
-        if (window.location.href.includes('ai-websitestudio.nl') || 
-            window.location.href.includes('localhost')) {
-            // In builder: just show a message
-            alert('Route Overview Panel opent hier op de live website');
-            return;
-        }
-        
-        // On live site: open the route overview panel
+        // Always try to open the sliding panel (works in builder preview too)
         if (window.openRouteOverview) {
             window.openRouteOverview();
         } else {
-            console.warn('Route overview function not available');
+            // Fallback: show message if function not available
+            alert('Route Overview Panel opent hier op de live website');
         }
     });
     
