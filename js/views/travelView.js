@@ -260,20 +260,170 @@
     renderPDFUpload(container) {
       container.innerHTML = `<div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <h3 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700; color: #111827;"><i class="fas fa-file-pdf" style="color: #ef4444;"></i> PDF Boekingsbevestiging</h3>
-        <div style="border: 2px dashed #d1d5db; border-radius: 12px; padding: 40px; text-align: center; background: #f9fafb; margin-bottom: 24px;">
+        <div id="pdfDropZone" style="border: 2px dashed #d1d5db; border-radius: 12px; padding: 40px; text-align: center; background: #f9fafb; margin-bottom: 24px; transition: all 0.2s;">
           <div style="font-size: 48px; color: #9ca3af; margin-bottom: 16px;"><i class="fas fa-cloud-upload-alt"></i></div>
           <div style="font-weight: 600; color: #374151; margin-bottom: 8px;">Sleep PDF hier of klik om te uploaden</div>
+          <div style="font-size: 14px; color: #6b7280; margin-bottom: 16px;">Max 10MB</div>
           <input type="file" id="pdfFileInput" accept=".pdf" style="display: none;" />
           <button id="selectPdfBtn" style="height: 40px; padding: 0 24px; background: #ef4444; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;"><i class="fas fa-file-upload"></i> Selecteer PDF</button>
         </div>
+        <div id="pdfPreview" style="display: none; padding: 16px; background: #f0fdf4; border: 1px solid #22c55e; border-radius: 8px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <i class="fas fa-file-pdf" style="font-size: 32px; color: #ef4444;"></i>
+            <div style="flex: 1;">
+              <div id="pdfFileName" style="font-weight: 600; color: #374151;"></div>
+              <div id="pdfFileSize" style="font-size: 14px; color: #6b7280;"></div>
+            </div>
+            <button id="removePdfBtn" style="padding: 8px 16px; background: #ef4444; border: none; border-radius: 6px; color: white; cursor: pointer;"><i class="fas fa-times"></i></button>
+          </div>
+        </div>
         ${this.renderTemplateSelector()}
-        <button id="uploadPdfBtn" disabled style="height: 48px; padding: 0 32px; background: #9ca3af; border: none; border-radius: 8px; color: white; font-weight: 700; cursor: not-allowed; display: flex; align-items: center; gap: 8px; margin-top: 20px;"><i class="fas fa-magic"></i> PDF Uitlezen</button>
-        <div style="margin-top: 16px; padding: 12px; background: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 6px; font-size: 13px; color: #92400e;"><strong><i class="fas fa-info-circle"></i> Info:</strong> Functie wordt binnenkort toegevoegd</div>
+        <button id="uploadPdfBtn" disabled style="height: 48px; padding: 0 32px; background: #9ca3af; border: none; border-radius: 8px; color: white; font-weight: 700; cursor: not-allowed; display: flex; align-items: center; gap: 8px; margin-top: 20px;"><i class="fas fa-magic"></i> PDF Uitlezen & Reis Maken</button>
+        <div style="margin-top: 16px; padding: 12px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 6px; font-size: 13px; color: #1e40af;">
+          <strong><i class="fas fa-info-circle"></i> Wat wordt uitgelezen:</strong>
+          <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+            <li>Vluchtgegevens (PNR, tijden, vluchtnummers)</li>
+            <li>Hotelgegevens (naam, adres, kamertype)</li>
+            <li>Klantgegevens en aantal personen</li>
+            <li>Datums en prijzen</li>
+          </ul>
+        </div>
       </div>`;
+      
       this.attachTemplateListeners(container);
+      
       const selectBtn = container.querySelector('#selectPdfBtn');
       const fileInput = container.querySelector('#pdfFileInput');
+      const uploadBtn = container.querySelector('#uploadPdfBtn');
+      const preview = container.querySelector('#pdfPreview');
+      const removeBtn = container.querySelector('#removePdfBtn');
+      const dropZone = container.querySelector('#pdfDropZone');
+      
+      let selectedFile = null;
+      
+      // File select
       selectBtn?.addEventListener('click', () => fileInput?.click());
+      
+      // File input change
+      fileInput?.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (file && file.type === 'application/pdf') {
+          selectedFile = file;
+          this.showPDFPreview(file, preview, uploadBtn);
+        } else if (file) {
+          this.showStatus('error', 'Alleen PDF bestanden zijn toegestaan');
+        }
+      });
+      
+      // Drag and drop
+      dropZone?.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#ef4444';
+        dropZone.style.background = '#fef2f2';
+      });
+      
+      dropZone?.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#d1d5db';
+        dropZone.style.background = '#f9fafb';
+      });
+      
+      dropZone?.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#d1d5db';
+        dropZone.style.background = '#f9fafb';
+        
+        const file = e.dataTransfer?.files?.[0];
+        if (file && file.type === 'application/pdf') {
+          selectedFile = file;
+          fileInput.files = e.dataTransfer.files;
+          this.showPDFPreview(file, preview, uploadBtn);
+        } else if (file) {
+          this.showStatus('error', 'Alleen PDF bestanden zijn toegestaan');
+        }
+      });
+      
+      // Remove file
+      removeBtn?.addEventListener('click', () => {
+        selectedFile = null;
+        fileInput.value = '';
+        preview.style.display = 'none';
+        uploadBtn.disabled = true;
+        uploadBtn.style.background = '#9ca3af';
+        uploadBtn.style.cursor = 'not-allowed';
+      });
+      
+      // Upload and parse
+      uploadBtn?.addEventListener('click', async () => {
+        if (!selectedFile) return;
+        await this.uploadAndParsePDF(selectedFile, this.selectedTemplate);
+      });
+    },
+    
+    showPDFPreview(file, preview, uploadBtn) {
+      preview.style.display = 'block';
+      preview.querySelector('#pdfFileName').textContent = file.name;
+      preview.querySelector('#pdfFileSize').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+      uploadBtn.disabled = false;
+      uploadBtn.style.background = 'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)';
+      uploadBtn.style.cursor = 'pointer';
+    },
+    
+    async uploadAndParsePDF(file, template) {
+      this.showStatus('loading', '<i class="fas fa-circle-notch fa-spin"></i> PDF aan het uitlezen...');
+      
+      try {
+        const formData = new FormData();
+        formData.append('pdf', file);
+        formData.append('template', template);
+        
+        const apiBase = this.getApiBase();
+        const response = await fetch(`${apiBase}/api/booking/parse`, {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || error.error || 'PDF parsing failed');
+        }
+        
+        const result = await response.json();
+        console.log('[TravelView] PDF parsed successfully:', result);
+        
+        this.showStatus('success', '<i class="fas fa-check-circle"></i> PDF succesvol uitgelezen!');
+        
+        // Convert booking data to travel idea format
+        const travelData = this.convertBookingToTravel(result.data);
+        
+        // Load into builder
+        setTimeout(() => {
+          if (window.websiteBuilder && window.websiteBuilder.loadTravelIdea) {
+            window.websiteBuilder.loadTravelIdea(travelData);
+            if (window.WB_setMode) window.WB_setMode('page');
+          }
+        }, 1000);
+        
+      } catch (error) {
+        console.error('[TravelView] PDF upload error:', error);
+        this.showStatus('error', `<i class="fas fa-exclamation-circle"></i> Fout: ${error.message}`);
+      }
+    },
+    
+    convertBookingToTravel(bookingData) {
+      // Convert extracted booking data to travel idea format
+      return {
+        name: bookingData.title || 'Nieuwe Reis',
+        title: bookingData.title || 'Nieuwe Reis',
+        description: `Boeking ${bookingData.bookingReference || ''}`,
+        bookingReference: bookingData.bookingReference,
+        travelers: bookingData.travelers || [],
+        flights: bookingData.flights || [],
+        hotel: bookingData.hotel,
+        price: bookingData.price?.total,
+        currency: bookingData.price?.currency || 'EUR',
+        dates: bookingData.dates
+      };
     },
 
     renderURLImport(container) {

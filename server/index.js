@@ -723,6 +723,11 @@ function normalizeTour(raw) {
   };
 }
 
+// POST /api/booking/parse - PDF booking confirmation parser
+const bookingParseHandler = require('./api/booking-parse');
+app.post('/api/booking/parse', bookingParseHandler);
+
 app.listen(PORT, () => {
   console.log(`[Dev Proxy] Listening on http://localhost:${PORT}`);
+  console.log(`[BookingParse] PDF upload endpoint ready at /api/booking/parse`);
 });
