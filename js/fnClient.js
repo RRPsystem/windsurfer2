@@ -8,6 +8,10 @@
     // Use project domain with /functions/v1 to leverage Supabase proxy + CORS
     const base = boltProjectBase();
     if (!base) return null;
+    // Check if base already ends with /functions/v1 (avoid double)
+    if (base.endsWith('/functions/v1')) {
+      return base;
+    }
     return `${base}/functions/v1`;
   }
   async function callFn(path, options={}){
