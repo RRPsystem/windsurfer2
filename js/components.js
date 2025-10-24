@@ -2678,6 +2678,38 @@ class ComponentFactory {
                 toDay: options.toDay || 1
             };
         }
+        
+        // Add click handler to open destination details panel (only on live site, not in builder)
+        card.addEventListener('click', (e) => {
+            // Don't open panel if clicking on editable content or in builder mode
+            if (e.target.contentEditable === 'true' || e.target.closest('.wb-toolbar')) {
+                return;
+            }
+            
+            // Check if we're in builder mode
+            const isBuilder = window.location.href.includes('ai-websitestudio.nl') || 
+                             window.location.href.includes('localhost') ||
+                             document.querySelector('.wb-sidebar');
+            
+            if (isBuilder) {
+                return; // Don't open panel in builder
+            }
+            
+            // On live site: open destination details panel
+            if (typeof window.showDestinationDetails === 'function') {
+                const destData = {
+                    name: activityName,
+                    location: location,
+                    day: day,
+                    duration: duration,
+                    description: description,
+                    images: images,
+                    latitude: options.latitude,
+                    longitude: options.longitude
+                };
+                window.showDestinationDetails(destData);
+            }
+        });
 
         this.makeSelectable(card);
         return card;
@@ -4463,6 +4495,12 @@ class ComponentFactory {
         hero.className = 'wb-component wb-travel-hero';
         hero.setAttribute('data-component', 'travel-hero');
         hero.id = this.generateId('travel_hero');
+        
+        // Full width styling
+        hero.style.width = '100%';
+        hero.style.margin = '0';
+        hero.style.borderRadius = '0';
+        hero.style.minHeight = '600px';
 
         const toolbar = this.createToolbar();
         hero.appendChild(toolbar);
