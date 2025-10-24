@@ -29,140 +29,109 @@
           <!-- Header -->
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 24px; margin-bottom: 24px; color: white;">
             <h1 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">
-              <i class="fas fa-plane-departure"></i> Travel Compositor Reizen
+              <i class="fas fa-plane-departure"></i> Reis Toevoegen
             </h1>
             <p style="margin: 0; opacity: 0.9; font-size: 14px;">
-              Voer een Travel Compositor ID in om de reis te laden en te bewerken
+              Kies hoe je de reis wilt aanmaken
             </p>
           </div>
 
-          <!-- Input Section -->
-          <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
-              <div style="flex: 1; min-width: 200px;">
-                <label for="tcIdeaIdInput" style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 14px;">
-                  <i class="fas fa-hashtag"></i> Travel Compositor ID
-                </label>
-                <input 
-                  type="text" 
-                  id="tcIdeaIdInput" 
-                  class="form-control" 
-                  placeholder="Bijv. 12345"
-                  style="width: 100%; height: 40px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;"
-                />
+          <!-- Import Method Selection (4 3D Buttons) -->
+          <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 32px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <h2 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700; color: #111827;">
+              <i class="fas fa-wand-magic-sparkles"></i> Selecteer Import Methode
+            </h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 24px;">
+              <!-- Method 1: Travel Compositor -->
+              <div class="import-method-card" data-method="tc" style="
+                border-radius: 16px;
+                padding: 24px;
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4);
+                transform: translateY(0);
+              ">
+                <div style="text-align: center; color: white;">
+                  <div style="font-size: 48px; margin-bottom: 16px;">
+                    <i class="fas fa-link"></i>
+                  </div>
+                  <div style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">Travel Compositor</div>
+                  <div style="font-size: 13px; opacity: 0.95;">Importeer reis via TC ID</div>
+                </div>
               </div>
-              
-              <div style="flex: 1; min-width: 200px;">
-                <label for="tcMicrositeIdInput" style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 14px;">
-                  <i class="fas fa-building"></i> Microsite ID
-                </label>
-                <input 
-                  type="text" 
-                  id="tcMicrositeIdInput" 
-                  class="form-control" 
-                  placeholder="Microsite ID"
-                  value="${this.micrositeId}"
-                  style="width: 100%; height: 40px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;"
-                />
+
+              <!-- Method 2: PDF Upload -->
+              <div class="import-method-card" data-method="pdf" style="
+                border-radius: 16px;
+                padding: 24px;
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+                box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.4);
+                transform: translateY(0);
+              ">
+                <div style="text-align: center; color: white;">
+                  <div style="font-size: 48px; margin-bottom: 16px;">
+                    <i class="fas fa-file-pdf"></i>
+                  </div>
+                  <div style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">PDF Upload</div>
+                  <div style="font-size: 13px; opacity: 0.95;">Boekingsbevestiging uitlezen</div>
+                </div>
+              </div>
+
+              <!-- Method 3: URL Import -->
+              <div class="import-method-card" data-method="url" style="
+                border-radius: 16px;
+                padding: 24px;
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+                box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
+                transform: translateY(0);
+              ">
+                <div style="text-align: center; color: white;">
+                  <div style="font-size: 48px; margin-bottom: 16px;">
+                    <i class="fas fa-globe"></i>
+                  </div>
+                  <div style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">URL Importeren</div>
+                  <div style="font-size: 13px; opacity: 0.95;">Online booking importeren</div>
+                </div>
+              </div>
+
+              <!-- Method 4: Manual -->
+              <div class="import-method-card" data-method="manual" style="
+                border-radius: 16px;
+                padding: 24px;
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+                box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.4);
+                transform: translateY(0);
+              ">
+                <div style="text-align: center; color: white;">
+                  <div style="font-size: 48px; margin-bottom: 16px;">
+                    <i class="fas fa-pencil"></i>
+                  </div>
+                  <div style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">Handmatig</div>
+                  <div style="font-size: 13px; opacity: 0.95;">Zelf samenstellen met kaarten</div>
+                </div>
               </div>
             </div>
 
-            <!-- Template Selector -->
-            <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-              <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 14px;">
-                <i class="fas fa-palette"></i> Kies Reis Template
-              </label>
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
-                <!-- Template 1 -->
-                <div class="template-card" data-template="1" style="border: 2px solid #667eea; border-radius: 12px; padding: 12px; cursor: pointer; transition: all 0.2s; background: #f8f9ff;">
-                  <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 700;">
-                    <i class="fas fa-plane-departure"></i>
-                  </div>
-                  <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div>
-                      <div style="font-weight: 600; color: #374151; font-size: 14px;">Template 1</div>
-                      <div style="font-size: 12px; color: #6b7280;">Standaard</div>
-                    </div>
-                    <div style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid #667eea; background: #667eea; display: flex; align-items: center; justify-content: center;">
-                      <i class="fas fa-check" style="color: white; font-size: 12px;"></i>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Template 2 -->
-                <div class="template-card" data-template="2" style="border: 2px solid #e5e7eb; border-radius: 12px; padding: 12px; cursor: pointer; transition: all 0.2s; background: white;">
-                  <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 700;">
-                    <i class="fas fa-mountain"></i>
-                  </div>
-                  <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div>
-                      <div style="font-weight: 600; color: #374151; font-size: 14px;">Template 2</div>
-                      <div style="font-size: 12px; color: #6b7280;">Avontuur</div>
-                    </div>
-                    <div style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid #d1d5db; background: white;"></div>
-                  </div>
-                </div>
-
-                <!-- Template 3 -->
-                <div class="template-card" data-template="3" style="border: 2px solid #e5e7eb; border-radius: 12px; padding: 12px; cursor: pointer; transition: all 0.2s; background: white;">
-                  <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 700;">
-                    <i class="fas fa-umbrella-beach"></i>
-                  </div>
-                  <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div>
-                      <div style="font-weight: 600; color: #374151; font-size: 14px;">Template 3</div>
-                      <div style="font-size: 12px; color: #6b7280;">Strand & Zon</div>
-                    </div>
-                    <div style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid #d1d5db; background: white;"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;">
-              <button 
-                id="loadTravelBtn" 
-                class="btn btn-primary"
-                style="height: 48px; padding: 0 32px; background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); transition: all 0.2s ease; font-size: 16px;"
-                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(239, 68, 68, 0.4)';"
-                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(239, 68, 68, 0.3)';"
-              >
-                <i class="fas fa-download"></i> Reis laden
-              </button>
-
+            <div style="text-align: center;">
               <button 
                 id="backToPageModeBtn" 
-                class="btn btn-secondary"
-                style="height: 40px; padding: 0 20px; background: #6b7280; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap;"
+                style="height: 40px; padding: 0 24px; background: #6b7280; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;"
               >
                 <i class="fas fa-arrow-left"></i> Terug
               </button>
             </div>
-
-            <!-- Quick tips -->
-            <div style="margin-top: 16px; padding: 12px; background: #f0f9ff; border-left: 3px solid #3b82f6; border-radius: 6px;">
-              <div style="font-size: 13px; color: #1e40af;">
-                <strong><i class="fas fa-info-circle"></i> Tips:</strong>
-                <ul style="margin: 8px 0 0 0; padding-left: 20px;">
-                  <li>Voer het Travel Compositor ID in van de reis die je wilt laden</li>
-                  <li>Het Microsite ID wordt automatisch opgehaald uit je configuratie</li>
-                  <li>Na het laden kun je de reis bewerken en publiceren</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- Test API button -->
-            <div style="margin-top: 12px;">
-              <button 
-                id="testApiBtn" 
-                class="btn btn-sm"
-                style="height: 32px; padding: 0 16px; background: #6b7280; border: none; border-radius: 6px; color: white; font-size: 12px; cursor: pointer;"
-              >
-                <i class="fas fa-flask"></i> Test API Configuratie
-              </button>
-            </div>
           </div>
+
+          <!-- Dynamic Content Area -->
+          <div id="methodContent" style="display: none;"></div>
 
           <!-- Status/Loading -->
           <div id="travelStatus" style="display: none; padding: 16px; border-radius: 8px; margin-bottom: 24px;"></div>
@@ -176,90 +145,172 @@
     },
 
     attachEventListeners(container) {
-      const loadBtn = container.querySelector('#loadTravelBtn');
       const backBtn = container.querySelector('#backToPageModeBtn');
-      const testApiBtn = container.querySelector('#testApiBtn');
-      const ideaInput = container.querySelector('#tcIdeaIdInput');
-      const micrositeInput = container.querySelector('#tcMicrositeIdInput');
-      const templateCards = container.querySelectorAll('.template-card');
+      const methodCards = container.querySelectorAll('.import-method-card');
+      const methodContent = container.querySelector('#methodContent');
 
-      // Template selection
-      this.selectedTemplate = '1'; // Default
-      templateCards.forEach(card => {
+      this.selectedTemplate = '1';
+
+      methodCards.forEach(card => {
+        card.addEventListener('mouseenter', (e) => {
+          e.currentTarget.style.transform = 'translateY(-8px)';
+          e.currentTarget.style.boxShadow = '0 20px 35px -5px rgba(0, 0, 0, 0.3)';
+        });
+        card.addEventListener('mouseleave', (e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.2)';
+        });
         card.addEventListener('click', () => {
-          // Remove selection from all cards
-          templateCards.forEach(c => {
-            c.style.border = '2px solid #e5e7eb';
-            c.style.background = 'white';
-            const checkmark = c.querySelector('.fas.fa-check');
-            if (checkmark) {
-              checkmark.parentElement.style.background = 'white';
-              checkmark.parentElement.style.borderColor = '#d1d5db';
-            }
-          });
-          
-          // Add selection to clicked card
-          const template = card.dataset.template;
-          this.selectedTemplate = template;
-          card.style.border = '2px solid #667eea';
-          card.style.background = '#f8f9ff';
-          const checkmark = card.querySelector('.fas.fa-check');
-          if (checkmark) {
-            checkmark.parentElement.style.background = '#667eea';
-            checkmark.parentElement.style.borderColor = '#667eea';
-          }
-          
-          console.log('[TravelView] Template selected:', template);
+          const method = card.dataset.method;
+          console.log('[TravelView] Import method selected:', method);
+          this.currentMethod = method;
+          this.showMethodContent(method, methodContent);
         });
       });
 
-      if (testApiBtn) {
-        testApiBtn.addEventListener('click', async () => {
-          await this.testApiConfiguration();
+      if (backBtn) {
+        backBtn.addEventListener('click', () => {
+          if (window.WB_setMode) window.WB_setMode('page');
         });
       }
+    },
 
+    showMethodContent(method, container) {
+      if (!container) return;
+      container.style.display = 'block';
+      setTimeout(() => container.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+      switch(method) {
+        case 'tc': this.renderTCForm(container); break;
+        case 'pdf': this.renderPDFUpload(container); break;
+        case 'url': this.renderURLImport(container); break;
+        case 'manual': this.renderManualMode(container); break;
+      }
+    },
+
+    renderTemplateSelector() {
+      return `<div style="padding-top: 24px; border-top: 1px solid #e5e7eb; margin-top: 24px;">
+        <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 14px;"><i class="fas fa-palette"></i> Kies Reis Template</label>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+          <div class="template-card" data-template="1" style="border: 2px solid #667eea; border-radius: 10px; padding: 10px; cursor: pointer; background: #f8f9ff;">
+            <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;"><i class="fas fa-plane-departure"></i></div>
+            <div style="font-weight: 600; font-size: 13px; color: #374151;">Template 1 - Standaard</div>
+          </div>
+          <div class="template-card" data-template="2" style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 10px; cursor: pointer; background: white;">
+            <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;"><i class="fas fa-mountain"></i></div>
+            <div style="font-weight: 600; font-size: 13px; color: #374151;">Template 2 - Avontuur</div>
+          </div>
+          <div class="template-card" data-template="3" style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 10px; cursor: pointer; background: white;">
+            <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;"><i class="fas fa-umbrella-beach"></i></div>
+            <div style="font-weight: 600; font-size: 13px; color: #374151;">Template 3 - Strand & Zon</div>
+          </div>
+          <div class="template-card" data-template="4" style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 10px; cursor: pointer; background: white;">
+            <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #f97316 0%, #dc2626 100%); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;"><i class="fas fa-ticket"></i></div>
+            <div style="font-weight: 600; font-size: 13px; color: #374151;">Template 4 - Voucher</div>
+          </div>
+        </div>
+      </div>`;
+    },
+
+    attachTemplateListeners(container) {
+      const templateCards = container.querySelectorAll('.template-card');
+      templateCards.forEach(card => {
+        card.addEventListener('click', () => {
+          templateCards.forEach(c => { c.style.border = '2px solid #e5e7eb'; c.style.background = 'white'; });
+          this.selectedTemplate = card.dataset.template;
+          card.style.border = '2px solid #667eea';
+          card.style.background = '#f8f9ff';
+        });
+      });
+    },
+
+    renderTCForm(container) {
+      container.innerHTML = `<div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <h3 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700; color: #111827;"><i class="fas fa-link" style="color: #667eea;"></i> Travel Compositor Import</h3>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px;">
+          <div style="flex: 1; min-width: 200px;"><label style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 14px;"><i class="fas fa-hashtag"></i> Travel Compositor ID</label>
+            <input type="text" id="tcIdeaIdInput" placeholder="Bijv. 12345" style="width: 100%; height: 40px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px;" /></div>
+          <div style="flex: 1; min-width: 200px;"><label style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 14px;"><i class="fas fa-building"></i> Microsite ID</label>
+            <input type="text" id="tcMicrositeIdInput" value="${this.micrositeId}" style="width: 100%; height: 40px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px;" /></div>
+        </div>
+        ${this.renderTemplateSelector()}
+        <div style="display: flex; gap: 12px; margin-top: 20px;">
+          <button id="loadTravelBtn" style="height: 48px; padding: 0 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px;"><i class="fas fa-download"></i> Reis Laden</button>
+          <button id="testApiBtn" style="height: 48px; padding: 0 24px; background: #6b7280; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;"><i class="fas fa-flask"></i> Test API</button>
+        </div>
+      </div>`;
+      const loadBtn = container.querySelector('#loadTravelBtn');
+      const testBtn = container.querySelector('#testApiBtn');
+      const ideaInput = container.querySelector('#tcIdeaIdInput');
+      const micrositeInput = container.querySelector('#tcMicrositeIdInput');
+      this.attachTemplateListeners(container);
       if (loadBtn) {
         loadBtn.addEventListener('click', async () => {
           const ideaId = ideaInput?.value?.trim();
           const micrositeId = micrositeInput?.value?.trim();
-
-          if (!ideaId) {
-            this.showStatus('error', 'Voer een Travel Compositor ID in');
-            return;
-          }
-
-          if (!micrositeId) {
-            this.showStatus('error', 'Voer een Microsite ID in');
-            return;
-          }
-
-          // Save microsite ID and template for future use
+          if (!ideaId || !micrositeId) { this.showStatus('error', 'Voer beide velden in'); return; }
           this.micrositeId = micrositeId;
           localStorage.setItem('tc_microsite_id', micrositeId);
-          localStorage.setItem('tc_selected_template', this.selectedTemplate);
-
-          console.log('[TravelView] Loading with template:', this.selectedTemplate);
           await this.loadTravel(ideaId, micrositeId, this.selectedTemplate);
         });
       }
+      if (testBtn) testBtn.addEventListener('click', () => this.testApiConfiguration());
+      if (ideaInput) ideaInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') loadBtn?.click(); });
+    },
 
-      if (backBtn) {
-        backBtn.addEventListener('click', () => {
-          if (window.WB_setMode) {
-            window.WB_setMode('page');
-          }
-        });
-      }
+    renderPDFUpload(container) {
+      container.innerHTML = `<div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <h3 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700; color: #111827;"><i class="fas fa-file-pdf" style="color: #ef4444;"></i> PDF Boekingsbevestiging</h3>
+        <div style="border: 2px dashed #d1d5db; border-radius: 12px; padding: 40px; text-align: center; background: #f9fafb; margin-bottom: 24px;">
+          <div style="font-size: 48px; color: #9ca3af; margin-bottom: 16px;"><i class="fas fa-cloud-upload-alt"></i></div>
+          <div style="font-weight: 600; color: #374151; margin-bottom: 8px;">Sleep PDF hier of klik om te uploaden</div>
+          <input type="file" id="pdfFileInput" accept=".pdf" style="display: none;" />
+          <button id="selectPdfBtn" style="height: 40px; padding: 0 24px; background: #ef4444; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;"><i class="fas fa-file-upload"></i> Selecteer PDF</button>
+        </div>
+        ${this.renderTemplateSelector()}
+        <button id="uploadPdfBtn" disabled style="height: 48px; padding: 0 32px; background: #9ca3af; border: none; border-radius: 8px; color: white; font-weight: 700; cursor: not-allowed; display: flex; align-items: center; gap: 8px; margin-top: 20px;"><i class="fas fa-magic"></i> PDF Uitlezen</button>
+        <div style="margin-top: 16px; padding: 12px; background: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 6px; font-size: 13px; color: #92400e;"><strong><i class="fas fa-info-circle"></i> Info:</strong> Functie wordt binnenkort toegevoegd</div>
+      </div>`;
+      this.attachTemplateListeners(container);
+      const selectBtn = container.querySelector('#selectPdfBtn');
+      const fileInput = container.querySelector('#pdfFileInput');
+      selectBtn?.addEventListener('click', () => fileInput?.click());
+    },
 
-      // Allow Enter key to trigger load
-      if (ideaInput) {
-        ideaInput.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-            loadBtn?.click();
-          }
-        });
-      }
+    renderURLImport(container) {
+      container.innerHTML = `<div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <h3 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700; color: #111827;"><i class="fas fa-globe" style="color: #10b981;"></i> URL Importeren</h3>
+        <div style="margin-bottom: 24px;"><label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;"><i class="fas fa-link"></i> Booking URL</label>
+          <input type="url" id="urlInput" placeholder="https://example.com/booking/12345" style="width: 100%; height: 48px; padding: 0 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px;" /></div>
+        ${this.renderTemplateSelector()}
+        <button id="importUrlBtn" style="height: 48px; padding: 0 32px; background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-top: 20px;"><i class="fas fa-download"></i> URL Importeren</button>
+        <div style="margin-top: 16px; padding: 12px; background: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 6px; font-size: 13px; color: #92400e;"><strong><i class="fas fa-exclamation-triangle"></i> Let op:</strong> Deze functie is nog in ontwikkeling.</div>
+      </div>`;
+      this.attachTemplateListeners(container);
+      const importBtn = container.querySelector('#importUrlBtn');
+      importBtn?.addEventListener('click', () => this.showStatus('error', 'URL import functie wordt binnenkort toegevoegd'));
+    },
+
+    renderManualMode(container) {
+      container.innerHTML = `<div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <h3 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700; color: #111827;"><i class="fas fa-pencil" style="color: #8b5cf6;"></i> Handmatig Samenstellen</h3>
+        <div style="margin-bottom: 24px;"><label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;"><i class="fas fa-heading"></i> Reis Titel</label>
+          <input type="text" id="manualTitleInput" placeholder="Bijv. Rondreis Japan" style="width: 100%; height: 48px; padding: 0 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px;" /></div>
+        ${this.renderTemplateSelector()}
+        <button id="startManualBtn" style="height: 48px; padding: 0 32px; background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-top: 20px;"><i class="fas fa-play"></i> Start met Lege Template</button>
+        <div style="margin-top: 16px; padding: 12px; background: #f0f9ff; border-left: 3px solid #3b82f6; border-radius: 6px; font-size: 13px; color: #1e40af;"><strong><i class="fas fa-info-circle"></i> Info:</strong> Start met lege template en voeg reiskaarten toe</div>
+      </div>`;
+      this.attachTemplateListeners(container);
+      const startBtn = container.querySelector('#startManualBtn');
+      const titleInput = container.querySelector('#manualTitleInput');
+      startBtn?.addEventListener('click', () => {
+        const title = titleInput?.value?.trim() || 'Nieuwe Reis';
+        if (window.websiteBuilder && window.websiteBuilder.loadTravelIdea) {
+          window.websiteBuilder.loadTravelIdea({ name: title, title });
+          if (window.WB_setMode) window.WB_setMode('page');
+        } else {
+          this.showStatus('error', 'Builder niet beschikbaar');
+        }
+      });
     },
 
     async testApiConfiguration() {
