@@ -429,15 +429,88 @@
     renderURLImport(container) {
       container.innerHTML = `<div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <h3 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700; color: #111827;"><i class="fas fa-globe" style="color: #10b981;"></i> URL Importeren</h3>
-        <div style="margin-bottom: 24px;"><label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;"><i class="fas fa-link"></i> Booking URL</label>
-          <input type="url" id="urlInput" placeholder="https://example.com/booking/12345" style="width: 100%; height: 48px; padding: 0 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px;" /></div>
+        <div style="margin-bottom: 24px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;"><i class="fas fa-link"></i> Booking URL</label>
+          <input type="url" id="urlInput" placeholder="https://example.com/booking/12345" style="width: 100%; height: 48px; padding: 0 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px;" />
+          <div style="font-size: 13px; color: #6b7280; margin-top: 6px;">Plak de volledige URL van de boekingspagina</div>
+        </div>
         ${this.renderTemplateSelector()}
-        <button id="importUrlBtn" style="height: 48px; padding: 0 32px; background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-top: 20px;"><i class="fas fa-download"></i> URL Importeren</button>
-        <div style="margin-top: 16px; padding: 12px; background: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 6px; font-size: 13px; color: #92400e;"><strong><i class="fas fa-exclamation-triangle"></i> Let op:</strong> Deze functie is nog in ontwikkeling.</div>
+        <button id="importUrlBtn" style="height: 48px; padding: 0 32px; background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-top: 20px;"><i class="fas fa-download"></i> URL Importeren & Reis Maken</button>
+        <div style="margin-top: 16px; padding: 12px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 6px; font-size: 13px; color: #1e40af;">
+          <strong><i class="fas fa-info-circle"></i> Wat wordt uitgelezen:</strong>
+          <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+            <li>Complete reisgegevens van de website</li>
+            <li>Vlucht-, hotel- en activiteiteninfo</li>
+            <li>Prijzen, datums en inclusies</li>
+            <li>Foto's en beschrijvingen</li>
+          </ul>
+        </div>
       </div>`;
+      
       this.attachTemplateListeners(container);
+      
       const importBtn = container.querySelector('#importUrlBtn');
-      importBtn?.addEventListener('click', () => this.showStatus('error', 'URL import functie wordt binnenkort toegevoegd'));
+      const urlInput = container.querySelector('#urlInput');
+      
+      importBtn?.addEventListener('click', async () => {
+        const url = urlInput?.value?.trim();
+        if (!url) {
+          this.showStatus('error', 'Voer een geldige URL in');
+          return;
+        }
+        
+        // Validate URL format
+        try {
+          new URL(url);
+        } catch (e) {
+          this.showStatus('error', 'Ongeldige URL. Zorg dat de URL begint met http:// of https://');
+          return;
+        }
+        
+        await this.importFromURL(url, this.selectedTemplate);
+      });
+      
+      // Enter key support
+      urlInput?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') importBtn?.click();
+      });
+    },
+    
+    async importFromURL(url, template) {
+      this.showStatus('loading', '<i class="fas fa-circle-notch fa-spin"></i> Website aan het uitlezen...');
+      
+      try {
+        const apiBase = this.getApiBase();
+        const response = await fetch(`${apiBase}/api/booking/url-import`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ url, template })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || error.error || 'URL import failed');
+        }
+        
+        const result = await response.json();
+        console.log('[TravelView] URL imported successfully:', result);
+        
+        this.showStatus('success', '<i class="fas fa-check-circle"></i> Website succesvol uitgelezen!');
+        
+        // Load into builder
+        setTimeout(() => {
+          if (window.websiteBuilder && window.websiteBuilder.loadTravelIdea) {
+            window.websiteBuilder.loadTravelIdea(result.data);
+            if (window.WB_setMode) window.WB_setMode('page');
+          }
+        }, 1000);
+        
+      } catch (error) {
+        console.error('[TravelView] URL import error:', error);
+        this.showStatus('error', `<i class="fas fa-exclamation-circle"></i> Fout: ${error.message}`);
+      }
     },
 
     renderManualMode(container) {

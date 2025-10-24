@@ -727,7 +727,12 @@ function normalizeTour(raw) {
 const bookingParseHandler = require('./api/booking-parse');
 app.post('/api/booking/parse', bookingParseHandler);
 
+// POST /api/booking/url-import - URL booking import
+const urlImportHandler = require('./api/url-import');
+app.post('/api/booking/url-import', urlImportHandler);
+
 app.listen(PORT, () => {
   console.log(`[Dev Proxy] Listening on http://localhost:${PORT}`);
   console.log(`[BookingParse] PDF upload endpoint ready at /api/booking/parse`);
+  console.log(`[URLImport] URL import endpoint ready at /api/booking/url-import`);
 });
