@@ -4552,88 +4552,128 @@ PropertiesPanel.prototype.createFeatureIconImageProperties = function(component)
 
 // Hero Video CTA Properties
 PropertiesPanel.prototype.createHeroVideoCtaProperties = function(component) {
-    this.addTitle('Hero Video + CTA');
-    
     const title = component.querySelector('.hero-video-title');
     if (title) {
-        this.addTextInput('Titel', title.textContent, (val) => {
+        this.createTextInput('Titel', title.textContent, (val) => {
             title.textContent = val;
         });
     }
     
     const subtitle = component.querySelector('.hero-video-subtitle');
     if (subtitle) {
-        this.addTextInput('Subtitel', subtitle.textContent, (val) => {
+        this.createTextInput('Subtitel', subtitle.textContent, (val) => {
             subtitle.textContent = val;
         });
     }
     
     const videoBtn = component.querySelector('.video-play-btn');
     if (videoBtn) {
-        this.addTextInput('Video URL (YouTube/Vimeo)', videoBtn.dataset.videoUrl || '', (val) => {
+        this.createTextInput('Video URL (YouTube/Vimeo)', videoBtn.dataset.videoUrl || '', (val) => {
             videoBtn.dataset.videoUrl = val;
         });
     }
     
-    this.addDeleteButton(component);
+    const del = this.createButton('Blok verwijderen', () => {
+        if (confirm('Weet je zeker dat je dit blok wilt verwijderen?')) {
+            component.remove();
+            this.clearProperties();
+        }
+    });
+    del.style.background = '#dc2626';
+    del.style.borderColor = '#dc2626';
+    del.style.color = '#fff';
+    del.style.marginTop = '1rem';
+    this.panel.appendChild(del);
 };
 
 // News Overview Properties
 PropertiesPanel.prototype.createNewsOverviewProperties = function(component) {
-    this.addTitle('Nieuws Overzicht');
-    
     const title = component.querySelector('h2');
     if (title) {
-        this.addTextInput('Titel', title.textContent, (val) => {
+        this.createTextInput('Titel', title.textContent, (val) => {
             title.textContent = val;
         });
     }
     
-    this.addInfo('Dit component toont automatisch nieuwsartikelen uit de database.');
-    this.addDeleteButton(component);
+    const info = document.createElement('div');
+    info.style.cssText = 'padding: 12px; background: #eff6ff; border-left: 3px solid #3b82f6; margin: 12px 0; font-size: 13px; color: #1e40af;';
+    info.textContent = 'Dit component toont automatisch nieuwsartikelen uit de database.';
+    this.panel.appendChild(info);
+    
+    const del = this.createButton('Blok verwijderen', () => {
+        if (confirm('Weet je zeker dat je dit blok wilt verwijderen?')) {
+            component.remove();
+            this.clearProperties();
+        }
+    });
+    del.style.background = '#dc2626';
+    del.style.borderColor = '#dc2626';
+    del.style.color = '#fff';
+    del.style.marginTop = '1rem';
+    this.panel.appendChild(del);
 };
 
 // Travel Intro Properties
 PropertiesPanel.prototype.createTravelIntroProperties = function(component) {
-    this.addTitle('Reis Intro');
-    
     const title = component.querySelector('h2');
     if (title) {
-        this.addTextInput('Titel', title.textContent, (val) => {
+        this.createTextInput('Titel', title.textContent, (val) => {
             title.textContent = val;
         });
     }
     
     const description = component.querySelector('p');
     if (description) {
-        this.addTextareaInput('Beschrijving', description.textContent, (val) => {
+        this.createTextareaInput('Beschrijving', description.textContent, (val) => {
             description.textContent = val;
         });
     }
     
     const buttonText = component.querySelector('.route-overview-trigger span');
     if (buttonText) {
-        this.addTextInput('Button Tekst', buttonText.textContent, (val) => {
+        this.createTextInput('Button Tekst', buttonText.textContent, (val) => {
             buttonText.textContent = val;
         });
     }
     
-    this.addDeleteButton(component);
+    const del = this.createButton('Blok verwijderen', () => {
+        if (confirm('Weet je zeker dat je dit blok wilt verwijderen?')) {
+            component.remove();
+            this.clearProperties();
+        }
+    });
+    del.style.background = '#dc2626';
+    del.style.borderColor = '#dc2626';
+    del.style.color = '#fff';
+    del.style.marginTop = '1rem';
+    this.panel.appendChild(del);
 };
 
 // Route Overview Button Properties
 PropertiesPanel.prototype.createRouteOverviewBtnProperties = function(component) {
-    this.addTitle('Bekijk Route Button');
-    
     const buttonText = component.querySelector('.route-overview-trigger span');
     if (buttonText) {
-        this.addTextInput('Button Tekst', buttonText.textContent, (val) => {
+        this.createTextInput('Button Tekst', buttonText.textContent, (val) => {
             buttonText.textContent = val;
         });
     }
     
-    this.addInfo('Deze button opent het route overzicht panel op de live website.');
-    this.addDeleteButton(component);
+    const info = document.createElement('div');
+    info.style.cssText = 'padding: 12px; background: #eff6ff; border-left: 3px solid #3b82f6; margin: 12px 0; font-size: 13px; color: #1e40af;';
+    info.textContent = 'Deze button opent het route overzicht panel op de live website.';
+    this.panel.appendChild(info);
+    
+    const del = this.createButton('Blok verwijderen', () => {
+        if (confirm('Weet je zeker dat je dit blok wilt verwijderen?')) {
+            component.remove();
+            this.clearProperties();
+        }
+    });
+    del.style.background = '#dc2626';
+    del.style.borderColor = '#dc2626';
+    del.style.color = '#fff';
+    del.style.marginTop = '1rem';
+    this.panel.appendChild(del);
 };
 
 // Initialize properties panel
