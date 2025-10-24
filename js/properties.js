@@ -4621,11 +4621,16 @@ PropertiesPanel.prototype.createHeroVideoCtaProperties = function(component) {
                 this.createTextInput(`Button ${index + 1} Tekst`, label.textContent, (val) => {
                     label.textContent = val;
                 });
+                
+                // Text color
+                this.createColorInput(`Button ${index + 1} Tekst Kleur`, label.style.color || '#ffffff', (val) => {
+                    label.style.color = val;
+                });
             }
             
             // Icon picker
             if (icon) {
-                const iconBtn = this.createButton(`Button ${index + 1} Icoon`, async () => {
+                const iconBtn = this.createButton(`🎨 Button ${index + 1} Icoon Kiezen`, async () => {
                     if (!window.IconPicker) {
                         alert('Icon Picker niet beschikbaar');
                         return;
@@ -4635,6 +4640,10 @@ PropertiesPanel.prototype.createHeroVideoCtaProperties = function(component) {
                         icon.className = `fas ${selectedIcon}`;
                     }
                 });
+                iconBtn.style.backgroundColor = '#3b82f6';
+                iconBtn.style.borderColor = '#3b82f6';
+                iconBtn.style.color = '#fff';
+                iconBtn.style.fontWeight = '600';
                 this.panel.appendChild(iconBtn);
                 
                 // Icon color
