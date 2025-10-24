@@ -179,7 +179,9 @@ class MediaPicker {
               if (moreBtn) moreBtn.disabled = true;
               return;
             }
-            const resp = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=12&page=${currentPage}` , {
+            // Add better filters for hero/background images
+            const enhancedQuery = `${q} landscape architecture travel`;
+            const resp = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(enhancedQuery)}&per_page=12&page=${currentPage}&orientation=landscape&order_by=relevant&content_filter=high` , {
               headers: { Authorization: `Client-ID ${key}` }
             });
             const data = await resp.json();
