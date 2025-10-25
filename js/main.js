@@ -1415,6 +1415,9 @@ class WebsiteBuilder {
                                 d.fromDay <= currentDay - 1 && d.toDay >= currentDay - 1
                             );
                             
+                            console.log(`[Day ${currentDay}] Current:`, currentDest?.name, currentDest?.code, `(${currentDest?.fromDay}-${currentDest?.toDay})`);
+                            console.log(`[Day ${currentDay}] Previous:`, prevDest?.name, prevDest?.code, `(${prevDest?.fromDay}-${prevDest?.toDay})`);
+                            
                             if (currentDest) {
                                 toLocation = currentDest.name;
                                 
@@ -1422,6 +1425,7 @@ class WebsiteBuilder {
                                 if (prevDest && prevDest.code !== currentDest.code) {
                                     // We're moving to a new destination
                                     fromLocation = prevDest.name;
+                                    console.log(`[Day ${currentDay}] MOVING: ${fromLocation} → ${toLocation}`);
                                     
                                     // Find transport for this move
                                     const currentDestIndex = sortedDestinations.indexOf(currentDest);
@@ -1429,7 +1433,12 @@ class WebsiteBuilder {
                                     if (transport) {
                                         distance = transport.distance || '';
                                         travelTime = transport.duration || '';
+                                        console.log(`[Day ${currentDay}] Transport:`, distance, travelTime);
+                                    } else {
+                                        console.log(`[Day ${currentDay}] No transport found at index`, currentDestIndex);
                                     }
+                                } else {
+                                    console.log(`[Day ${currentDay}] STAYING in ${toLocation}`);
                                 }
                             }
                             
