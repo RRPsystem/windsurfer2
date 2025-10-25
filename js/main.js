@@ -1165,42 +1165,21 @@ class WebsiteBuilder {
                 }
             }
 
-            // 3. Add intro text block with "Bekijk Route" button (AFTER hero)
+            // 3. Add intro text block (AFTER hero) - without button
             console.log('[loadTravelIdea] Creating intro text block...');
             try {
                 const textBlock = ComponentFactory.createComponent('text', {});
                 console.log('[loadTravelIdea] Text block created:', !!textBlock);
                 if (textBlock) {
-                    // Add intro text and button
+                    // Add intro text only (button is in timeline/reis componenten)
                     textBlock.innerHTML = `
                         <div style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
                             <h2 style="margin-bottom: 16px; font-size: 28px; font-weight: 700; color: #111827;">Over deze reis</h2>
-                            <p style="font-size: 16px; line-height: 1.6; color: #374151; margin-bottom: 24px;">
+                            <p style="font-size: 16px; line-height: 1.6; color: #374151;">
                                 ${description || 'Ontdek de mooiste plekken en beleef een onvergetelijke reis vol avontuur en ontspanning.'}
                             </p>
-                            <button id="showRouteBtn" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 16px;">
-                                <i class="fas fa-route"></i> Bekijk Route
-                            </button>
                         </div>
                     `;
-                    
-                    // Add event listener for route button
-                    setTimeout(() => {
-                        const routeBtn = document.getElementById('showRouteBtn');
-                        console.log('[loadTravelIdea] Route button found:', !!routeBtn);
-                        if (routeBtn) {
-                            routeBtn.addEventListener('click', () => {
-                                console.log('[loadTravelIdea] Route button clicked!');
-                                // Find and click the route map button in timeline
-                                const routeMapBtn = document.querySelector('.wb-route-map-button');
-                                if (routeMapBtn) {
-                                    routeMapBtn.click();
-                                } else {
-                                    alert('Route kaart wordt geladen...');
-                                }
-                            });
-                        }
-                    }, 100);
                     
                     console.log('[loadTravelIdea] Appending text block to canvas...');
                     canvas.appendChild(textBlock);
