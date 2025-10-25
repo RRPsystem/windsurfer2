@@ -723,6 +723,14 @@
 /* Optional: compact text variant */
 .wb-text.compact { margin: 0.35rem 0 !important; }
 
+/* IMPORTANT: Ensure spacing in preview/export mode */
+body:not(.builder-mode) .wb-component {
+    margin: 2rem 0 !important;
+}
+body:not(.builder-mode) .wb-travel-timeline .wb-component {
+    margin: 1rem 0 !important;
+}
+
 .wb-text.editable {
     outline: none;
     cursor: text;

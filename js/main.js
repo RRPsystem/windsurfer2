@@ -2376,6 +2376,36 @@ document.addEventListener('DOMContentLoaded', () => {
     try { window.websiteBuilder.applyBoltHeaderVisibilityLite(); } catch (e) {}
     try { window.websiteBuilder.setupBoltDeeplinkSave(); } catch (e) {}
     try { window.websiteBuilder.setupVisibilityGuards(); } catch (e) {}
+    
+    // Global event listener for "Bekijk Route" buttons (works in preview and builder)
+    document.addEventListener('click', (e) => {
+        const button = e.target.closest('.wb-route-map-button');
+        if (button && window.websiteBuilder) {
+            e.preventDefault();
+            // Find all destinations with coordinates
+            const destinations = Array.from(document.querySelectorAll('.wb-travel-card.destination, [data-destination]'))
+                .map(card => {
+                    const lat = parseFloat(card.dataset.lat || card.getAttribute('data-lat'));
+                    const lng = parseFloat(card.dataset.lng || card.getAttribute('data-lng'));
+                    const name = card.dataset.name || card.querySelector('.destination-name')?.textContent || 'Bestemming';
+                    const fromDay = parseInt(card.dataset.fromDay || card.getAttribute('data-from-day') || 1);
+                    const toDay = parseInt(card.dataset.toDay || card.getAttribute('data-to-day') || fromDay);
+                    
+                    if (lat && lng) {
+                        return { latitude: lat, longitude: lng, name, fromDay, toDay };
+                    }
+                    return null;
+                })
+                .filter(d => d !== null);
+            
+            if (destinations.length > 1) {
+                window.websiteBuilder.showRouteMap(destinations);
+            } else {
+                alert('Geen route beschikbaar - minimaal 2 bestemmingen nodig');
+            }
+        }
+    });
+    
     // Re-apply shortly after in case header renders late
     setTimeout(() => { try { window.websiteBuilder.applyBoltHeaderVisibilityLite(); } catch (e) {} }, 150);
 });
