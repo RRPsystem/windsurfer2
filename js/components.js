@@ -3241,11 +3241,24 @@ class ComponentFactory {
                     const distanceEl = header.querySelector('.route-distance');
                     const timeEl = header.querySelector('.route-time');
                     
+                    console.log('[Day Header Map] Updating UI:', {
+                        distanceEl: !!distanceEl,
+                        timeEl: !!timeEl,
+                        distance: distanceKm,
+                        time: durationText
+                    });
+                    
                     if (distanceEl) {
                         distanceEl.innerHTML = `<i class="fas fa-road"></i> <span contenteditable="true">${distanceKm} km</span>`;
+                        console.log('[Day Header Map] Distance updated to:', distanceEl.innerHTML);
+                    } else {
+                        console.warn('[Day Header Map] Distance element not found!');
                     }
                     if (timeEl) {
                         timeEl.innerHTML = `<i class="fas fa-clock"></i> <span contenteditable="true">${durationText}</span>`;
+                        console.log('[Day Header Map] Time updated to:', timeEl.innerHTML);
+                    } else {
+                        console.warn('[Day Header Map] Time element not found!');
                     }
                 }
                 
