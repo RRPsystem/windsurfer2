@@ -1406,14 +1406,17 @@ class WebsiteBuilder {
                             const sortedDestinations = [...consolidatedDestinations].sort((a, b) => a.fromDay - b.fromDay);
                             
                             // Find destination for current day
-                            const currentDest = sortedDestinations.find(d => 
+                            // If multiple destinations match (overlap), prefer the one that STARTS on this day
+                            const matchingDests = sortedDestinations.filter(d => 
                                 d.fromDay <= currentDay && d.toDay >= currentDay
                             );
+                            const currentDest = matchingDests.find(d => d.fromDay === currentDay) || matchingDests[0];
                             
                             // Find destination for previous day
-                            const prevDest = sortedDestinations.find(d => 
+                            const prevMatchingDests = sortedDestinations.filter(d => 
                                 d.fromDay <= currentDay - 1 && d.toDay >= currentDay - 1
                             );
+                            const prevDest = prevMatchingDests.find(d => d.fromDay === currentDay - 1) || prevMatchingDests[0];
                             
                             console.log(`[Day ${currentDay}] Current:`, currentDest?.name, currentDest?.code, `(${currentDest?.fromDay}-${currentDest?.toDay})`);
                             console.log(`[Day ${currentDay}] Previous:`, prevDest?.name, prevDest?.code, `(${prevDest?.fromDay}-${prevDest?.toDay})`);
