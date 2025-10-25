@@ -1431,13 +1431,32 @@ class WebsiteBuilder {
                                     console.log(`[Day ${currentDay}] MOVING: ${fromLocation} → ${toLocation}`);
                                     
                                     // Find transport that matches this route (by origin/target codes)
-                                    const transport = transports.find(t => {
-                                        const matchesOrigin = t.originCode === prevDest.code || 
-                                                             t.originCode?.includes(prevDest.code);
-                                        const matchesTarget = t.targetCode === currentDest.code || 
-                                                             t.targetCode?.includes(currentDest.code);
-                                        return matchesOrigin && matchesTarget;
+                                    // Try multiple matching strategies
+                                    let transport = transports.find(t => {
+                                        // Exact match
+                                        return t.originCode === prevDest.code && t.targetCode === currentDest.code;
                                     });
+                                    
+                                    if (!transport) {
+                                        // Try partial match (includes)
+                                        transport = transports.find(t => {
+                                            const originMatch = t.originCode?.includes(prevDest.code) || prevDest.code?.includes(t.originCode);
+                                            const targetMatch = t.targetCode?.includes(currentDest.code) || currentDest.code?.includes(t.targetCode);
+                                            return originMatch && targetMatch;
+                                        });
+                                    }
+                                    
+                                    if (!transport) {
+                                        // Try matching by name
+                                        transport = transports.find(t => {
+                                            const seg = t.segment?.[0];
+                                            const originMatch = seg?.departureAirportName?.includes(prevDest.name) || 
+                                                              prevDest.name?.includes(seg?.departureAirportName);
+                                            const targetMatch = seg?.arrivalAirportName?.includes(currentDest.name) || 
+                                                              currentDest.name?.includes(seg?.arrivalAirportName);
+                                            return originMatch && targetMatch;
+                                        });
+                                    }
                                     
                                     if (transport) {
                                         distance = transport.distance || '';
