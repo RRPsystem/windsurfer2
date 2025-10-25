@@ -1046,6 +1046,18 @@ class WebsiteBuilder {
                 image, 
                 price 
             });
+            
+            // Log all transports for debugging
+            console.log('[loadTravelIdea] All transports:', transports.map(t => ({
+                origin: t.originCode,
+                target: t.targetCode,
+                distance: t.distance,
+                duration: t.duration,
+                segment: t.segment?.[0] ? {
+                    from: t.segment[0].departureAirportName,
+                    to: t.segment[0].arrivalAirportName
+                } : null
+            })));
 
             // 1. Add hero with travel image
             let heroElement = null;
