@@ -1069,6 +1069,7 @@ class WebsiteBuilder {
             
             const destinationsWithCoords = destinations
                 .filter(d => d.geolocation?.latitude && d.geolocation?.longitude)
+                .sort((a, b) => a.fromDay - b.fromDay) // Sort by day order!
                 .map(d => {
                     // Find hotel for this destination (same days)
                     const destHotel = hotels.find(h => 
