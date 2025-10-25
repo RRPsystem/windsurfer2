@@ -1430,15 +1430,22 @@ class WebsiteBuilder {
                                     fromLocation = prevDest.name;
                                     console.log(`[Day ${currentDay}] MOVING: ${fromLocation} → ${toLocation}`);
                                     
-                                    // Find transport for this move
-                                    const currentDestIndex = sortedDestinations.indexOf(currentDest);
-                                    const transport = transports[currentDestIndex];
+                                    // Find transport that matches this route (by origin/target codes)
+                                    const transport = transports.find(t => {
+                                        const matchesOrigin = t.originCode === prevDest.code || 
+                                                             t.originCode?.includes(prevDest.code);
+                                        const matchesTarget = t.targetCode === currentDest.code || 
+                                                             t.targetCode?.includes(currentDest.code);
+                                        return matchesOrigin && matchesTarget;
+                                    });
+                                    
                                     if (transport) {
                                         distance = transport.distance || '';
                                         travelTime = transport.duration || '';
-                                        console.log(`[Day ${currentDay}] Transport:`, distance, travelTime);
+                                        console.log(`[Day ${currentDay}] Transport found:`, distance, travelTime, transport);
                                     } else {
-                                        console.log(`[Day ${currentDay}] No transport found at index`, currentDestIndex);
+                                        console.log(`[Day ${currentDay}] No transport found for ${prevDest.code} → ${currentDest.code}`);
+                                        console.log(`[Day ${currentDay}] Available transports:`, transports.map(t => `${t.originCode}→${t.targetCode}`));
                                     }
                                 } else {
                                     console.log(`[Day ${currentDay}] STAYING in ${toLocation}`);
