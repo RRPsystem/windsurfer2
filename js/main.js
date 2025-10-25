@@ -1405,35 +1405,31 @@ class WebsiteBuilder {
                             // Sort all destinations by fromDay
                             const sortedDestinations = [...consolidatedDestinations].sort((a, b) => a.fromDay - b.fromDay);
                             
-                            // Find current destination index
-                            const currentDestIndex = sortedDestinations.findIndex(d => 
+                            // Find destination for current day
+                            const currentDest = sortedDestinations.find(d => 
                                 d.fromDay <= currentDay && d.toDay >= currentDay
                             );
                             
-                            if (currentDestIndex >= 0) {
-                                const currentDest = sortedDestinations[currentDestIndex];
+                            // Find destination for previous day
+                            const prevDest = sortedDestinations.find(d => 
+                                d.fromDay <= currentDay - 1 && d.toDay >= currentDay - 1
+                            );
+                            
+                            if (currentDest) {
+                                toLocation = currentDest.name;
                                 
-                                // If this is the first day of a new destination
-                                if (currentDay === currentDest.fromDay) {
-                                    // Get previous destination
-                                    if (currentDestIndex > 0) {
-                                        const prevDest = sortedDestinations[currentDestIndex - 1];
-                                        fromLocation = prevDest.name;
-                                        toLocation = currentDest.name;
-                                    } else {
-                                        // First destination - no from location
-                                        toLocation = currentDest.name;
-                                    }
+                                // Check if we moved from a different destination
+                                if (prevDest && prevDest.code !== currentDest.code) {
+                                    // We're moving to a new destination
+                                    fromLocation = prevDest.name;
                                     
-                                    // Try to get distance/time from any transport
-                                    const anyTransport = transports[currentDestIndex] || transports[0];
-                                    if (anyTransport) {
-                                        distance = anyTransport.distance || '';
-                                        travelTime = anyTransport.duration || '';
+                                    // Find transport for this move
+                                    const currentDestIndex = sortedDestinations.indexOf(currentDest);
+                                    const transport = transports[currentDestIndex];
+                                    if (transport) {
+                                        distance = transport.distance || '';
+                                        travelTime = transport.duration || '';
                                     }
-                                } else {
-                                    // Staying in same destination - still show it
-                                    toLocation = currentDest.name;
                                 }
                             }
                             
