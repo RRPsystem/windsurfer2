@@ -3237,29 +3237,39 @@ class ComponentFactory {
                     header._distance = distanceKm;
                     header._travelTime = durationText;
                     
-                    // Update the UI
-                    const distanceEl = header.querySelector('.route-distance');
-                    const timeEl = header.querySelector('.route-time');
+                    // Update the UI with retry logic
+                    const updateUI = (attempt = 1) => {
+                        const distanceEl = header.querySelector('.route-distance');
+                        const timeEl = header.querySelector('.route-time');
+                        
+                        if (distanceEl && timeEl) {
+                            // Find the contenteditable spans inside
+                            const distanceSpan = distanceEl.querySelector('span[contenteditable]');
+                            const timeSpan = timeEl.querySelector('span[contenteditable]');
+                            
+                            if (distanceSpan) {
+                                distanceSpan.textContent = `${distanceKm} km`;
+                            } else {
+                                distanceEl.innerHTML = `<i class="fas fa-road"></i> <span contenteditable="true">${distanceKm} km</span>`;
+                            }
+                            
+                            if (timeSpan) {
+                                timeSpan.textContent = durationText;
+                            } else {
+                                timeEl.innerHTML = `<i class="fas fa-clock"></i> <span contenteditable="true">${durationText}</span>`;
+                            }
+                            
+                            console.log('[Day Header Map] ✅ UI updated:', distanceKm, 'km,', durationText);
+                        } else if (attempt < 5) {
+                            // Retry after a short delay (elements might not be in DOM yet)
+                            console.log(`[Day Header Map] ⏳ Retry ${attempt}/5 - elements not ready`);
+                            setTimeout(() => updateUI(attempt + 1), 100);
+                        } else {
+                            console.error('[Day Header Map] ❌ Failed to update UI after 5 attempts');
+                        }
+                    };
                     
-                    console.log('[Day Header Map] Updating UI:', {
-                        distanceEl: !!distanceEl,
-                        timeEl: !!timeEl,
-                        distance: distanceKm,
-                        time: durationText
-                    });
-                    
-                    if (distanceEl) {
-                        distanceEl.innerHTML = `<i class="fas fa-road"></i> <span contenteditable="true">${distanceKm} km</span>`;
-                        console.log('[Day Header Map] Distance updated to:', distanceEl.innerHTML);
-                    } else {
-                        console.warn('[Day Header Map] Distance element not found!');
-                    }
-                    if (timeEl) {
-                        timeEl.innerHTML = `<i class="fas fa-clock"></i> <span contenteditable="true">${durationText}</span>`;
-                        console.log('[Day Header Map] Time updated to:', timeEl.innerHTML);
-                    } else {
-                        console.warn('[Day Header Map] Time element not found!');
-                    }
+                    updateUI();
                 }
                 
             } else {
