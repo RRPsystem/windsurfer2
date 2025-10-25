@@ -1063,50 +1063,6 @@ class WebsiteBuilder {
                 }
             }
 
-            // 1.5. Add intro text block with optional "Bekijk Route" button (AFTER hero)
-            console.log('[loadTravelIdea] Creating intro text block...');
-            try {
-                const textBlock = ComponentFactory.createComponent('text', {});
-                console.log('[loadTravelIdea] Text block created:', !!textBlock);
-                if (textBlock) {
-                    // Add intro text and button
-                    textBlock.innerHTML = `
-                        <div style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
-                            <h2 style="margin-bottom: 16px; font-size: 28px; font-weight: 700; color: #111827;">Over deze reis</h2>
-                            <p style="font-size: 16px; line-height: 1.6; color: #374151; margin-bottom: 24px;">
-                                ${description || 'Ontdek de mooiste plekken en beleef een onvergetelijke reis vol avontuur en ontspanning.'}
-                            </p>
-                            <button id="showRouteBtn" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 16px;">
-                                <i class="fas fa-route"></i> Bekijk Route
-                            </button>
-                        </div>
-                    `;
-                    
-                    // Add event listener for route button
-                    setTimeout(() => {
-                        const routeBtn = document.getElementById('showRouteBtn');
-                        console.log('[loadTravelIdea] Route button found:', !!routeBtn);
-                        if (routeBtn) {
-                            routeBtn.addEventListener('click', () => {
-                                console.log('[loadTravelIdea] Route button clicked!');
-                                // Open route in sidebar or modal
-                                if (window.showRouteOverview) {
-                                    window.showRouteOverview(data);
-                                } else {
-                                    alert('Route overzicht functie wordt binnenkort toegevoegd!');
-                                }
-                            });
-                        }
-                    }, 100);
-                    
-                    console.log('[loadTravelIdea] Appending text block to canvas...');
-                    canvas.appendChild(textBlock);
-                    console.log('[loadTravelIdea] Text block appended successfully!');
-                }
-            } catch (e) {
-                console.error('[loadTravelIdea] Failed to create intro text block:', e);
-            }
-
             // 2. Add Travel Hero with Interactive Map
             console.log('[DEBUG] Destinations:', destinations);
             console.log('[DEBUG] Hotels:', hotels);
@@ -1209,20 +1165,49 @@ class WebsiteBuilder {
                 }
             }
 
-            // 3. Add intro text - centered, no title
-            if (description) {
-                try {
-                    const intro = ComponentFactory.createComponent('text-block', {
-                        content: `<p style="text-align: center; font-size: 18px; line-height: 1.8; max-width: 800px; margin: 0 auto; color: #374151;">${description}</p>`
-                    });
-                    if (intro) {
-                        intro.style.padding = '40px 20px';
-                        intro.style.textAlign = 'center';
-                        canvas.appendChild(intro);
-                    }
-                } catch (e) {
-                    console.warn('Failed to create intro', e);
+            // 3. Add intro text block with "Bekijk Route" button (AFTER hero)
+            console.log('[loadTravelIdea] Creating intro text block...');
+            try {
+                const textBlock = ComponentFactory.createComponent('text', {});
+                console.log('[loadTravelIdea] Text block created:', !!textBlock);
+                if (textBlock) {
+                    // Add intro text and button
+                    textBlock.innerHTML = `
+                        <div style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
+                            <h2 style="margin-bottom: 16px; font-size: 28px; font-weight: 700; color: #111827;">Over deze reis</h2>
+                            <p style="font-size: 16px; line-height: 1.6; color: #374151; margin-bottom: 24px;">
+                                ${description || 'Ontdek de mooiste plekken en beleef een onvergetelijke reis vol avontuur en ontspanning.'}
+                            </p>
+                            <button id="showRouteBtn" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 16px;">
+                                <i class="fas fa-route"></i> Bekijk Route
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Add event listener for route button
+                    setTimeout(() => {
+                        const routeBtn = document.getElementById('showRouteBtn');
+                        console.log('[loadTravelIdea] Route button found:', !!routeBtn);
+                        if (routeBtn) {
+                            routeBtn.addEventListener('click', () => {
+                                console.log('[loadTravelIdea] Route button clicked!');
+                                // Find and click the route map button in timeline
+                                const routeMapBtn = document.querySelector('.wb-route-map-button');
+                                if (routeMapBtn) {
+                                    routeMapBtn.click();
+                                } else {
+                                    alert('Route kaart wordt geladen...');
+                                }
+                            });
+                        }
+                    }, 100);
+                    
+                    console.log('[loadTravelIdea] Appending text block to canvas...');
+                    canvas.appendChild(textBlock);
+                    console.log('[loadTravelIdea] Text block appended successfully!');
                 }
+            } catch (e) {
+                console.error('[loadTravelIdea] Failed to create intro text block:', e);
             }
 
             // 4. Create Travel Timeline with TC data
