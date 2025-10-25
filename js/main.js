@@ -1402,31 +1402,52 @@ class WebsiteBuilder {
                             let distance = '';
                             let travelTime = '';
                             
-                            // Get transport info for this day
-                            const dayTransport = transports.find(t => t.day === currentDay);
-                            if (dayTransport) {
-                                const firstSegment = dayTransport.segment && dayTransport.segment[0];
-                                fromLocation = firstSegment?.departureAirportName || dayTransport.originCode || '';
-                                toLocation = firstSegment?.arrivalAirportName || dayTransport.targetCode || '';
-                                travelTime = dayTransport.duration || '';
-                            }
+                            // Get destination for this day
+                            const dayDestination = consolidatedDestinations.find(d => 
+                                d.fromDay <= currentDay && d.toDay >= currentDay
+                            );
                             
-                            // Get destination info for this day
-                            const dayDestination = consolidatedDestinations.find(d => d.fromDay === currentDay);
-                            if (dayDestination) {
-                                if (!fromLocation && idx > 0) {
-                                    // Use previous destination as from
-                                    const prevDest = consolidatedDestinations.find(d => d.toDay === currentDay - 1);
-                                    fromLocation = prevDest?.name || '';
-                                }
-                                toLocation = dayDestination.name || toLocation;
+                            // Get previous destination (where we're coming from)
+                            const prevDestination = consolidatedDestinations.find(d => 
+                                d.toDay === currentDay - 1
+                            );
+                            
+                            // Set from/to based on destination changes
+                            if (prevDestination && dayDestination && prevDestination.code !== dayDestination.code) {
+                                // Moving to new destination
+                                fromLocation = prevDestination.name || '';
+                                toLocation = dayDestination.name || '';
                                 
-                                // Check if there's distance/duration data (for road trips)
-                                if (dayDestination.distance) {
-                                    distance = dayDestination.distance;
+                                // Try to find transport between these destinations
+                                const transport = transports.find(t => {
+                                    const firstSeg = t.segment?.[0];
+                                    const originMatch = t.originCode === prevDestination.code || 
+                                                       firstSeg?.departureAirportCode === prevDestination.code;
+                                    const targetMatch = t.targetCode === dayDestination.code || 
+                                                       firstSeg?.arrivalAirportCode === dayDestination.code;
+                                    return originMatch && targetMatch;
+                                });
+                                
+                                if (transport) {
+                                    distance = transport.distance || '';
+                                    travelTime = transport.duration || '';
                                 }
-                                if (dayDestination.duration && !travelTime) {
-                                    travelTime = dayDestination.duration;
+                            } else if (dayDestination && currentDay === dayDestination.fromDay) {
+                                // Arriving at destination (no previous dest or same dest)
+                                toLocation = dayDestination.name || '';
+                                
+                                // Check for flight arrival
+                                const arrivalTransport = transports.find(t => {
+                                    const firstSeg = t.segment?.[0];
+                                    return t.targetCode === dayDestination.code || 
+                                           firstSeg?.arrivalAirportCode === dayDestination.code;
+                                });
+                                
+                                if (arrivalTransport) {
+                                    const firstSeg = arrivalTransport.segment?.[0];
+                                    fromLocation = firstSeg?.departureAirportName || arrivalTransport.originCode || '';
+                                    distance = arrivalTransport.distance || '';
+                                    travelTime = arrivalTransport.duration || '';
                                 }
                             }
                             
