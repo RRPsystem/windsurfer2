@@ -2817,17 +2817,19 @@ class ComponentFactory {
                         </div>
                         <div class="day-header-info">
                             <p class="day-header-subtitle" contenteditable="true">${dayDescription}</p>
-                            ${fromLocation || toLocation ? `
+                            ${toLocation ? `
                                 <div class="day-header-route">
                                     <div class="route-locations">
                                         ${fromLocation ? `<span class="route-from"><i class="fas fa-map-marker-alt"></i> ${fromLocation}</span>` : ''}
                                         ${fromLocation && toLocation ? `<i class="fas fa-arrow-right"></i>` : ''}
-                                        ${toLocation ? `<span class="route-to"><i class="fas fa-map-marker-alt"></i> ${toLocation}</span>` : ''}
+                                        <span class="route-to"><i class="fas fa-map-marker-alt"></i> ${toLocation}</span>
                                     </div>
-                                    <div class="route-details">
-                                        <span class="route-distance"><i class="fas fa-road"></i> ${distance || '...'} km</span>
-                                        <span class="route-time"><i class="fas fa-clock"></i> ${travelTime || '...'}</span>
-                                    </div>
+                                    ${distance || travelTime ? `
+                                        <div class="route-details">
+                                            ${distance ? `<span class="route-distance"><i class="fas fa-road"></i> ${distance} km</span>` : ''}
+                                            ${travelTime ? `<span class="route-time"><i class="fas fa-clock"></i> ${travelTime}</span>` : ''}
+                                        </div>
+                                    ` : ''}
                                 </div>
                             ` : ''}
                         </div>
