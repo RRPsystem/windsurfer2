@@ -1396,58 +1396,41 @@ class WebsiteBuilder {
                         if (item.day !== currentDay && item.day > 0) {
                             currentDay = item.day;
                             
-                            // Find from/to locations for this day
+                            // Find from/to locations for this day - SIMPLE approach
                             let fromLocation = '';
                             let toLocation = '';
                             let distance = '';
                             let travelTime = '';
                             
-                            // Get destination for this day
-                            const dayDestination = consolidatedDestinations.find(d => 
+                            // Sort all destinations by fromDay
+                            const sortedDestinations = [...consolidatedDestinations].sort((a, b) => a.fromDay - b.fromDay);
+                            
+                            // Find current destination index
+                            const currentDestIndex = sortedDestinations.findIndex(d => 
                                 d.fromDay <= currentDay && d.toDay >= currentDay
                             );
                             
-                            // Get previous destination (where we're coming from)
-                            const prevDestination = consolidatedDestinations.find(d => 
-                                d.toDay === currentDay - 1
-                            );
-                            
-                            // Set from/to based on destination changes
-                            if (prevDestination && dayDestination && prevDestination.code !== dayDestination.code) {
-                                // Moving to new destination
-                                fromLocation = prevDestination.name || '';
-                                toLocation = dayDestination.name || '';
+                            if (currentDestIndex >= 0) {
+                                const currentDest = sortedDestinations[currentDestIndex];
                                 
-                                // Try to find transport between these destinations
-                                const transport = transports.find(t => {
-                                    const firstSeg = t.segment?.[0];
-                                    const originMatch = t.originCode === prevDestination.code || 
-                                                       firstSeg?.departureAirportCode === prevDestination.code;
-                                    const targetMatch = t.targetCode === dayDestination.code || 
-                                                       firstSeg?.arrivalAirportCode === dayDestination.code;
-                                    return originMatch && targetMatch;
-                                });
-                                
-                                if (transport) {
-                                    distance = transport.distance || '';
-                                    travelTime = transport.duration || '';
-                                }
-                            } else if (dayDestination && currentDay === dayDestination.fromDay) {
-                                // Arriving at destination (no previous dest or same dest)
-                                toLocation = dayDestination.name || '';
-                                
-                                // Check for flight arrival
-                                const arrivalTransport = transports.find(t => {
-                                    const firstSeg = t.segment?.[0];
-                                    return t.targetCode === dayDestination.code || 
-                                           firstSeg?.arrivalAirportCode === dayDestination.code;
-                                });
-                                
-                                if (arrivalTransport) {
-                                    const firstSeg = arrivalTransport.segment?.[0];
-                                    fromLocation = firstSeg?.departureAirportName || arrivalTransport.originCode || '';
-                                    distance = arrivalTransport.distance || '';
-                                    travelTime = arrivalTransport.duration || '';
+                                // If this is the first day of a new destination
+                                if (currentDay === currentDest.fromDay) {
+                                    // Get previous destination
+                                    if (currentDestIndex > 0) {
+                                        const prevDest = sortedDestinations[currentDestIndex - 1];
+                                        fromLocation = prevDest.name;
+                                    }
+                                    toLocation = currentDest.name;
+                                    
+                                    // Try to get distance/time from any transport
+                                    const anyTransport = transports[currentDestIndex] || transports[0];
+                                    if (anyTransport) {
+                                        distance = anyTransport.distance || '';
+                                        travelTime = anyTransport.duration || '';
+                                    }
+                                } else {
+                                    // Staying in same destination
+                                    toLocation = currentDest.name;
                                 }
                             }
                             
