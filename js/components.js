@@ -2825,8 +2825,8 @@ class ComponentFactory {
                                         <span class="route-to"><i class="fas fa-map-marker-alt"></i> ${toLocation}</span>
                                     </div>
                                     <div class="route-details">
-                                        <span class="route-distance"><i class="fas fa-road"></i> ${distance ? distance + ' km' : '... km'}</span>
-                                        <span class="route-time"><i class="fas fa-clock"></i> ${travelTime || '...'}</span>
+                                        <span class="route-distance"><i class="fas fa-road"></i> <span contenteditable="true">${distance ? distance + ' km' : '... km'}</span></span>
+                                        <span class="route-time"><i class="fas fa-clock"></i> <span contenteditable="true">${travelTime || '...'}</span></span>
                                     </div>
                                 </div>
                             ` : ''}
@@ -3242,10 +3242,10 @@ class ComponentFactory {
                     const timeEl = header.querySelector('.route-time');
                     
                     if (distanceEl) {
-                        distanceEl.innerHTML = `<i class="fas fa-road"></i> ${distanceKm} km`;
+                        distanceEl.innerHTML = `<i class="fas fa-road"></i> <span contenteditable="true">${distanceKm} km</span>`;
                     }
                     if (timeEl) {
-                        timeEl.innerHTML = `<i class="fas fa-clock"></i> ${durationText}`;
+                        timeEl.innerHTML = `<i class="fas fa-clock"></i> <span contenteditable="true">${durationText}</span>`;
                     }
                 }
                 
