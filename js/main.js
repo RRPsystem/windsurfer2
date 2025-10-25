@@ -1419,8 +1419,11 @@ class WebsiteBuilder {
                                     if (currentDestIndex > 0) {
                                         const prevDest = sortedDestinations[currentDestIndex - 1];
                                         fromLocation = prevDest.name;
+                                        toLocation = currentDest.name;
+                                    } else {
+                                        // First destination - no from location
+                                        toLocation = currentDest.name;
                                     }
-                                    toLocation = currentDest.name;
                                     
                                     // Try to get distance/time from any transport
                                     const anyTransport = transports[currentDestIndex] || transports[0];
@@ -1429,7 +1432,7 @@ class WebsiteBuilder {
                                         travelTime = anyTransport.duration || '';
                                     }
                                 } else {
-                                    // Staying in same destination
+                                    // Staying in same destination - still show it
                                     toLocation = currentDest.name;
                                 }
                             }
