@@ -5088,7 +5088,10 @@ PropertiesPanel.prototype.createAnimatedRouteMapProperties = function(component)
         }
     );
     
-    this.createSeparator();
+    // Separator
+    const separator1 = document.createElement('div');
+    separator1.style.cssText = 'height: 1px; background: #e5e7eb; margin: 20px 0;';
+    this.panel.appendChild(separator1);
     
     // Routes heading
     const routesHeading = document.createElement('h4');
@@ -5244,7 +5247,10 @@ PropertiesPanel.prototype.createAnimatedRouteMapProperties = function(component)
         }
     };
     
-    this.createSeparator();
+    // Separator
+    const separator2 = document.createElement('div');
+    separator2.style.cssText = 'height: 1px; background: #e5e7eb; margin: 20px 0;';
+    this.panel.appendChild(separator2);
     
     // Info
     const info = document.createElement('div');
