@@ -279,16 +279,105 @@ class MediaPicker {
             (data.videos || []).forEach(video => {
               const videoFiles = video.video_files || [];
               const hdFile = videoFiles.find(f => f.quality === 'hd' && f.width >= 1280) || videoFiles[0];
+              // Find a smaller preview file for hover
+              const previewFile = videoFiles.find(f => (f.quality === 'sd' || f.width <= 640) && f.file_type === 'video/mp4') || 
+                                  videoFiles.find(f => f.file_type === 'video/mp4') || 
+                                  hdFile;
               if (!hdFile) return;
               
               const tile = document.createElement('div');
-              tile.style.cssText = 'border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; background:#f8f9fa; cursor:pointer; position:relative;';
-              tile.innerHTML = `
-                <img src="${video.image}" alt="" style="width:100%;height:140px;object-fit:cover;display:block;"/>
-                <div style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.7); color:white; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600;">
-                  <i class="fas fa-play"></i> ${Math.floor(video.duration)}s
-                </div>
-              `;
+              tile.style.cssText = 'border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; background:#f8f9fa; cursor:pointer; position:relative; transition: transform 0.2s, box-shadow 0.2s;';
+              
+              // Thumbnail image (shown by default)
+              const thumbnail = document.createElement('img');
+              thumbnail.src = video.image;
+              thumbnail.alt = '';
+              thumbnail.style.cssText = 'width:100%;height:140px;object-fit:cover;display:block;';
+              
+              // Video preview (hidden by default, shown on hover)
+              const videoPreview = document.createElement('video');
+              videoPreview.preload = 'metadata'; // Preload metadata for faster start
+              videoPreview.loop = true;
+              videoPreview.muted = true;
+              videoPreview.playsInline = true;
+              videoPreview.setAttribute('crossorigin', 'anonymous');
+              videoPreview.style.cssText = 'width:100%;height:140px;object-fit:cover;display:none;position:absolute;top:0;left:0;';
+              
+              // Duration badge
+              const badge = document.createElement('div');
+              badge.style.cssText = 'position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.7); color:white; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; z-index:2;';
+              badge.innerHTML = `<i class="fas fa-play"></i> ${Math.floor(video.duration)}s`;
+              
+              // Play icon overlay (shows video is playable)
+              const playIcon = document.createElement('div');
+              playIcon.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:48px; height:48px; background:rgba(0,0,0,0.6); border-radius:50%; display:flex; align-items:center; justify-content:center; pointer-events:none; transition: opacity 0.2s;';
+              playIcon.innerHTML = '<i class="fas fa-play" style="color:white; font-size:20px; margin-left:3px;"></i>';
+              
+              // Hover effect overlay
+              const hoverOverlay = document.createElement('div');
+              hoverOverlay.style.cssText = 'position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(102,126,234,0.1); opacity:0; transition: opacity 0.2s; pointer-events:none;';
+              
+              // Video info on hover
+              const videoInfo = document.createElement('div');
+              videoInfo.style.cssText = 'position:absolute; bottom:8px; left:8px; right:8px; background:rgba(0,0,0,0.8); color:white; padding:6px 8px; border-radius:4px; font-size:11px; opacity:0; transition: opacity 0.2s; z-index:3;';
+              videoInfo.textContent = `${video.width || '?'}x${video.height || '?'} • ${Math.floor(video.duration)}s`;
+              if (video.user && video.user.name) {
+                videoInfo.textContent += ` • ${video.user.name}`;
+              }
+              
+              tile.appendChild(thumbnail);
+              tile.appendChild(videoPreview);
+              tile.appendChild(hoverOverlay);
+              tile.appendChild(badge);
+              tile.appendChild(playIcon);
+              tile.appendChild(videoInfo);
+              
+              let isVideoLoaded = false;
+              let hoverTimeout = null;
+              
+              // Preload video on first hover
+              tile.addEventListener('mouseenter', () => {
+                tile.style.transform = 'scale(1.02)';
+                tile.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                hoverOverlay.style.opacity = '1';
+                videoInfo.style.opacity = '1';
+                playIcon.style.opacity = '0';
+                
+                // Load and play video
+                if (!isVideoLoaded) {
+                  videoPreview.src = previewFile.link;
+                  isVideoLoaded = true;
+                }
+                
+                // Small delay to ensure video is ready
+                hoverTimeout = setTimeout(() => {
+                  thumbnail.style.display = 'none';
+                  videoPreview.style.display = 'block';
+                  
+                  const playPromise = videoPreview.play();
+                  if (playPromise !== undefined) {
+                    playPromise.catch(e => {
+                      console.warn('Video preview play failed:', e);
+                      // Fallback: show thumbnail with play icon
+                      thumbnail.style.display = 'block';
+                      videoPreview.style.display = 'none';
+                      playIcon.style.opacity = '1';
+                    });
+                  }
+                }, 200);
+              });
+              
+              tile.addEventListener('mouseleave', () => {
+                clearTimeout(hoverTimeout);
+                videoPreview.pause();
+                videoPreview.currentTime = 0;
+                videoPreview.style.display = 'none';
+                thumbnail.style.display = 'block';
+                tile.style.transform = 'scale(1)';
+                tile.style.boxShadow = 'none';
+                playIcon.style.opacity = '1';
+              });
+              
               tile.onclick = () => {
                 resolve({ 
                   source: 'pexels', 
