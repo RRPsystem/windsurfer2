@@ -3034,6 +3034,15 @@ class PropertiesPanel {
         const subEl = component.querySelector('.hero-subtitle');
         const ctas = component.querySelectorAll('.hero-cta a');
         const bgImg = component.querySelector('.hero-bg img');
+        
+        // Ensure existing Pexels video is playing
+        const existingVideo = component.querySelector('.hero-video video');
+        if (existingVideo && !existingVideo.paused) {
+            // Video is already playing, good!
+        } else if (existingVideo) {
+            // Video exists but not playing, try to play it
+            existingVideo.play().catch(e => console.warn('Resume video failed:', e));
+        }
 
         // Background mode selector
         const api = component.__heroBannerApi || {};
@@ -3093,20 +3102,6 @@ class PropertiesPanel {
                     
                     // Handle Pexels videos
                     if (r && r.source === 'pexels' && r.videoUrl) {
-                        // Create video element for Pexels
-                        const videoHtml = `
-                            <video 
-                                autoplay 
-                                loop 
-                                muted 
-                                playsinline
-                                poster="${r.thumbnail || ''}"
-                                style="position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translate(-50%, -50%); object-fit: cover; pointer-events: none;"
-                            >
-                                <source src="${r.videoUrl}" type="video/mp4">
-                            </video>
-                        `;
-                        
                         // Find or create video container
                         let videoWrap = component.querySelector('.hero-video');
                         if (!videoWrap) {
@@ -3121,15 +3116,61 @@ class PropertiesPanel {
                                 bg.parentNode.insertBefore(videoWrap, bg);
                             }
                         }
-                        videoWrap.innerHTML = videoHtml;
                         
-                        // Ensure video plays
-                        setTimeout(() => {
-                            const video = videoWrap.querySelector('video');
-                            if (video) {
-                                video.play().catch(e => console.warn('Video autoplay failed:', e));
+                        // Clear existing content
+                        videoWrap.innerHTML = '';
+                        
+                        // Create video element programmatically for better control
+                        const video = document.createElement('video');
+                        video.loop = true;
+                        video.muted = true;
+                        video.playsInline = true;
+                        video.autoplay = true;
+                        video.poster = r.thumbnail || '';
+                        video.style.cssText = 'position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translate(-50%, -50%); object-fit: cover;';
+                        
+                        // Add source
+                        const source = document.createElement('source');
+                        source.src = r.videoUrl;
+                        source.type = 'video/mp4';
+                        video.appendChild(source);
+                        
+                        // Add to container
+                        videoWrap.appendChild(video);
+                        
+                        // Store video reference
+                        component._pexelsVideo = video;
+                        component._pexelsVideoUrl = r.videoUrl;
+                        
+                        // Force play with multiple attempts
+                        const attemptPlay = (attempts = 0) => {
+                            if (attempts > 5) {
+                                console.warn('Video autoplay failed after 5 attempts');
+                                return;
                             }
-                        }, 100);
+                            
+                            const playPromise = video.play();
+                            if (playPromise !== undefined) {
+                                playPromise
+                                    .then(() => {
+                                        console.log('✅ Pexels video playing on canvas');
+                                    })
+                                    .catch(e => {
+                                        console.warn(`Video play attempt ${attempts + 1} failed:`, e);
+                                        // Retry after delay
+                                        setTimeout(() => attemptPlay(attempts + 1), 200);
+                                    });
+                            }
+                        };
+                        
+                        // Start playing when video is loaded enough
+                        video.addEventListener('loadeddata', () => {
+                            attemptPlay();
+                        });
+                        
+                        // Also try immediately
+                        video.load();
+                        setTimeout(() => attemptPlay(), 100);
                     }
                     // Handle YouTube videos
                     else if (r && (r.embedUrl || r.url)) {
