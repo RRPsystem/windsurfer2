@@ -203,6 +203,32 @@
   // Always local-first save behavior
   installSaveMonkeyPatch();
   
+  // Check if this is a new trip (content_type=trips but no page_id)
+  const kind = determineKind(ctx);
+  if (kind === 'travel' && !ctx.page_id) {
+    log('New trip detected - will show Travel View');
+    // Show Travel View for new trips after DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        try {
+          if (window.TravelView && typeof window.TravelView.show === 'function') {
+            log('Opening Travel View for new trip');
+            window.TravelView.show();
+          } else {
+            warn('TravelView not available yet, retrying...');
+            setTimeout(() => {
+              if (window.TravelView && typeof window.TravelView.show === 'function') {
+                window.TravelView.show();
+              }
+            }, 500);
+          }
+        } catch (e) {
+          warn('Failed to show Travel View:', e);
+        }
+      }, 300);
+    });
+  }
+  
   // Auto-load page content if page_id is present
   if (ctx.page_id && ctx.api && ctx.token) {
     loadPageContent(ctx);
