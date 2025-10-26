@@ -113,13 +113,14 @@ async function saveDraftBolt({ brand_id, page_id, title, slug, content_json, is_
     if (contentType === 'page' || mode?.includes('template') || is_template) {
       // For templates and regular pages
       url = `${base}/pages-api/save`;
+    } else if (contentType === 'trip' || contentType === 'trips') {
+      // For trips - use pages-api with content_type
+      url = `${base}/pages-api/save`;
     } else if (contentType === 'news' || contentType === 'news_items') {
       // For news items
       url = `${base}/content-api/save?type=news_items`;
     } else if (contentType === 'destination' || contentType === 'destinations') {
       url = `${base}/content-api/save?type=destinations`;
-    } else if (contentType === 'trip' || contentType === 'trips') {
-      url = `${base}/content-api/save?type=trips`;
     } else {
       // Fallback to pages-api
       console.warn('[saveDraftBolt] Unknown content_type, defaulting to pages-api. content_type:', contentType);
