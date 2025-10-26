@@ -125,6 +125,9 @@
     } else if (kind === 'destination') {
       // For destinations, the canonical key is the slug
       key = ctx.slug || '';
+    } else if (kind === 'travel') {
+      // For travel, use page_id if available, otherwise allow empty for new trips
+      key = ctx.page_id || 'new';
     } else {
       // For pages, require a stable page_id for Edge save operations
       key = ctx.page_id || '';
