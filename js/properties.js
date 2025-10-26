@@ -1704,27 +1704,150 @@ class PropertiesPanel {
         const overlay = component.querySelector('.hp-overlay');
         let word = component.querySelector('.hp-word');
 
-        // Background image chooser
-        const pickBg = this.createButton('Achtergrond kiezen (Media)', async () => {
+        // Background mode selector
+        const detectMode = () => {
+            if (component.querySelector('.hp-video')) return 'video';
+            return 'image';
+        };
+        let currentMode = detectMode();
+
+        this.createSelectInput('Achtergrond type', currentMode, [
+            { value: 'image', label: 'Afbeelding' },
+            { value: 'video', label: 'Video (Pexels/YouTube)' }
+        ], async (mode) => {
+            try {
+                if (mode === 'image') {
+                    // Remove video if exists
+                    const videoWrap = component.querySelector('.hp-video');
+                    if (videoWrap) videoWrap.remove();
+                    
+                    // Show image
+                    if (bgImg) bgImg.style.display = '';
+                    
+                    // Open image picker
+                    if (window.MediaPicker) {
+                        const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
+                        const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
+                        if (src && bgImg) {
+                            if (typeof __WB_applyResponsiveSrc === 'function') {
+                                __WB_applyResponsiveSrc(bgImg, src);
+                            } else {
+                                bgImg.src = src;
+                            }
+                        }
+                    }
+                } else if (mode === 'video') {
+                    // Open video picker
+                    if (window.MediaPicker) {
+                        const res = await window.MediaPicker.openVideo({ defaultTab: 'pexels' });
+                        if (!res) return;
+                        
+                        // Hide image
+                        if (bgImg) bgImg.style.display = 'none';
+                        
+                        // Create or get video container
+                        let videoWrap = component.querySelector('.hp-video');
+                        if (!videoWrap) {
+                            videoWrap = document.createElement('div');
+                            videoWrap.className = 'hp-video';
+                            videoWrap.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; z-index: 0;';
+                            const bgEl = component.querySelector('.hp-bg');
+                            if (bgEl) bgEl.parentNode.insertBefore(videoWrap, bgEl);
+                        }
+                        
+                        // Handle Pexels videos
+                        if (res.source === 'pexels' && res.videoUrl) {
+                            videoWrap.innerHTML = `
+                                <video 
+                                    autoplay 
+                                    loop 
+                                    muted 
+                                    playsinline
+                                    poster="${res.thumbnail || ''}"
+                                    style="position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translate(-50%, -50%); object-fit: cover; pointer-events: none;"
+                                >
+                                    <source src="${res.videoUrl}" type="video/mp4">
+                                </video>
+                            `;
+                        }
+                        // Handle YouTube videos
+                        else if (res.source === 'youtube' && res.id) {
+                            const embedUrl = res.embedUrl || `https://www.youtube.com/embed/${res.id}`;
+                            videoWrap.innerHTML = `
+                                <iframe 
+                                    src="${embedUrl}?autoplay=1&mute=1&loop=1&playlist=${res.id}&controls=0&showinfo=0"
+                                    frameborder="0"
+                                    allow="autoplay; encrypted-media"
+                                    style="position: absolute; top: 50%; left: 50%; width: 177.77777778vh; height: 100%; min-width: 100%; min-height: 56.25vw; transform: translate(-50%, -50%); pointer-events: none; border: none;"
+                                ></iframe>
+                            `;
+                        }
+                    }
+                }
+            } catch(err) { console.warn('Mode switch canceled/failed', err); }
+        });
+
+        // Background image chooser (for quick changes)
+        const pickBg = this.createButton('Achtergrond wijzigen (Media)', async () => {
             try {
                 if (!window.MediaPicker) return;
-                const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
-                const src = (res && (res.fullUrl || res.regularUrl || res.url || res.dataUrl || res.src || res.imageUrl || res.downloadUrl)) || '';
-                try { console.debug('[hero-page][props] media chosen src', src, res); } catch (e) {}
-                if (src && bgImg) {
-                    if (typeof window.__WB_applyResponsiveSrc === 'function') {
-                        window.__WB_applyResponsiveSrc(bgImg, src);
-                    } else if (typeof window.__WB_applyResponsiveSrc === 'function') {
-                        window.__WB_applyResponsiveSrc(bgImg, src);
-                    } else if (typeof __WB_applyResponsiveSrc === 'function') {
-                        __WB_applyResponsiveSrc(bgImg, src);
-                    } else {
-                        bgImg.src = src;
+                
+                // Check current mode
+                const hasVideo = !!component.querySelector('.hp-video');
+                
+                if (hasVideo) {
+                    // Video mode - open video picker
+                    const res = await window.MediaPicker.openVideo({ defaultTab: 'pexels' });
+                    if (!res) return;
+                    
+                    let videoWrap = component.querySelector('.hp-video');
+                    if (!videoWrap) return;
+                    
+                    // Handle Pexels videos
+                    if (res.source === 'pexels' && res.videoUrl) {
+                        videoWrap.innerHTML = `
+                            <video 
+                                autoplay 
+                                loop 
+                                muted 
+                                playsinline
+                                poster="${res.thumbnail || ''}"
+                                style="position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translate(-50%, -50%); object-fit: cover; pointer-events: none;"
+                            >
+                                <source src="${res.videoUrl}" type="video/mp4">
+                            </video>
+                        `;
+                    }
+                    // Handle YouTube videos
+                    else if (res.source === 'youtube' && res.id) {
+                        const embedUrl = res.embedUrl || `https://www.youtube.com/embed/${res.id}`;
+                        videoWrap.innerHTML = `
+                            <iframe 
+                                src="${embedUrl}?autoplay=1&mute=1&loop=1&playlist=${res.id}&controls=0&showinfo=0"
+                                frameborder="0"
+                                allow="autoplay; encrypted-media"
+                                style="position: absolute; top: 50%; left: 50%; width: 177.77777778vh; height: 100%; min-width: 100%; min-height: 56.25vw; transform: translate(-50%, -50%); pointer-events: none; border: none;"
+                            ></iframe>
+                        `;
+                    }
+                } else {
+                    // Image mode - open image picker
+                    const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
+                    const src = (res && (res.fullUrl || res.regularUrl || res.url || res.dataUrl || res.src || res.imageUrl || res.downloadUrl)) || '';
+                    try { console.debug('[hero-page][props] media chosen src', src, res); } catch (e) {}
+                    if (src && bgImg) {
+                        if (typeof window.__WB_applyResponsiveSrc === 'function') {
+                            window.__WB_applyResponsiveSrc(bgImg, src);
+                        } else if (typeof __WB_applyResponsiveSrc === 'function') {
+                            __WB_applyResponsiveSrc(bgImg, src);
+                        } else {
+                            bgImg.src = src;
+                        }
                     }
                 }
             } catch(err) { console.warn('Media select canceled/failed', err); }
         });
-        pickBg.style.background = '#ff7700'; pickBg.style.borderColor = '#ff7700'; pickBg.style.color = '#fff';
+        pickBg.style.background = '#8b5cf6'; pickBg.style.borderColor = '#8b5cf6'; pickBg.style.color = '#fff';
         this.panel.appendChild(pickBg);
 
         // Height (min-height on section) ”” use numeric slider and add 'px' via callback
@@ -2396,8 +2519,33 @@ class PropertiesPanel {
                             return;
                         }
                         
-                        const res = await window.MediaPicker.openVideo({ defaultTab: 'youtube' });
-                        if (!res || !res.videoId) return;
+                        const res = await window.MediaPicker.openVideo({ defaultTab: 'pexels' });
+                        if (!res) return;
+                        
+                        // Handle Pexels videos (direct MP4)
+                        if (res.source === 'pexels' && res.videoUrl) {
+                            const videoWrap = comp.querySelector('.hero-video');
+                            if (videoWrap) {
+                                // Replace iframe with HTML5 video element
+                                videoWrap.innerHTML = `
+                                    <video 
+                                        autoplay 
+                                        loop 
+                                        muted 
+                                        playsinline
+                                        poster="${res.thumbnail || ''}"
+                                        style="position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translate(-50%, -50%); object-fit: cover; pointer-events: none;"
+                                    >
+                                        <source src="${res.videoUrl}" type="video/mp4">
+                                    </video>
+                                `;
+                                console.log('[Properties] Pexels video set:', res.videoUrl);
+                            }
+                            return;
+                        }
+                        
+                        // Handle YouTube videos (iframe)
+                        if (!res.videoId) return;
                         
                         const iframe = comp.querySelector('iframe');
                         const videoWrap = comp.querySelector('.hero-video');
@@ -2901,7 +3049,7 @@ class PropertiesPanel {
         this.createSelectInput('Achtergrond modus', currentMode, [
             { value: 'image', label: 'Afbeelding' },
             { value: 'slideshow', label: 'Slideshow (meerdere afbeeldingen)' },
-            { value: 'youtube', label: 'YouTube video' },
+            { value: 'youtube', label: 'Video (Pexels/YouTube)' },
             { value: 'widget', label: 'Widget (Travel Compositor)' }
         ], async (mode) => {
             try {
@@ -2929,9 +3077,41 @@ class PropertiesPanel {
                     renderWidgetOptions(true);
                 } else if (mode === 'youtube') {
                     component._heroMode = 'youtube';
-                    const r = await window.MediaPicker.openVideo({ defaultTab: 'youtube' });
-                    const embed = r && (r.embedUrl || r.url);
-                    if (embed && api.setYouTube) api.setYouTube(embed);
+                    const r = await window.MediaPicker.openVideo({ defaultTab: 'pexels' });
+                    
+                    // Handle Pexels videos
+                    if (r && r.source === 'pexels' && r.videoUrl) {
+                        // Create video element for Pexels
+                        const videoHtml = `
+                            <video 
+                                autoplay 
+                                loop 
+                                muted 
+                                playsinline
+                                poster="${r.thumbnail || ''}"
+                                style="position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translate(-50%, -50%); object-fit: cover; pointer-events: none;"
+                            >
+                                <source src="${r.videoUrl}" type="video/mp4">
+                            </video>
+                        `;
+                        
+                        // Find or create video container
+                        let videoWrap = component.querySelector('.hero-video');
+                        if (!videoWrap) {
+                            videoWrap = document.createElement('div');
+                            videoWrap.className = 'hero-video';
+                            videoWrap.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; z-index: 0;';
+                            const bg = component.querySelector('.hero-bg');
+                            if (bg) bg.parentNode.insertBefore(videoWrap, bg);
+                        }
+                        videoWrap.innerHTML = videoHtml;
+                    }
+                    // Handle YouTube videos
+                    else if (r && (r.embedUrl || r.url)) {
+                        const embed = r.embedUrl || r.url;
+                        if (api.setYouTube) api.setYouTube(embed);
+                    }
+                    
                     renderSlideshowManager(); // hide if was visible
                     renderYouTubeOptions();
                     renderWidgetOptions(true);
@@ -4591,12 +4771,102 @@ PropertiesPanel.prototype.createHeroVideoCtaProperties = function(component) {
         });
     }
     
-    // Video ID
+    // Video selector button
     const videoBtn = component.querySelector('.wb-video-play-btn');
     if (videoBtn) {
-        this.createTextInput('Video ID (YouTube)', videoBtn.dataset.videoId || '', (val) => {
-            videoBtn.dataset.videoId = val;
+        const videoPickerBtn = this.createButton('🎬 Video Kiezen (Pexels/YouTube)', async () => {
+            if (!window.MediaPicker) {
+                alert('Media Picker niet beschikbaar');
+                return;
+            }
+            const res = await window.MediaPicker.openVideo({ defaultTab: 'pexels' });
+            if (!res) return;
+            
+            // Handle Pexels videos
+            if (res.source === 'pexels' && res.videoUrl) {
+                // Store Pexels video data
+                videoBtn.dataset.videoSource = 'pexels';
+                videoBtn.dataset.videoUrl = res.videoUrl;
+                videoBtn.dataset.videoThumbnail = res.thumbnail || '';
+                videoBtn.dataset.videoId = ''; // Clear YouTube ID
+                
+                // Update click handler to show Pexels video
+                videoBtn.onclick = function() {
+                    const modal = document.createElement('div');
+                    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+                    
+                    const videoContainer = document.createElement('div');
+                    videoContainer.style.cssText = 'position:relative;width:100%;max-width:900px;aspect-ratio:16/9;';
+                    
+                    const video = document.createElement('video');
+                    video.src = this.dataset.videoUrl;
+                    video.controls = true;
+                    video.autoplay = true;
+                    video.style.cssText = 'width:100%;height:100%;border-radius:8px;';
+                    
+                    const closeBtn = document.createElement('button');
+                    closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    closeBtn.style.cssText = 'position:absolute;top:-40px;right:0;background:transparent;border:none;color:#fff;font-size:32px;cursor:pointer;';
+                    closeBtn.onclick = () => modal.remove();
+                    
+                    videoContainer.appendChild(video);
+                    videoContainer.appendChild(closeBtn);
+                    modal.appendChild(videoContainer);
+                    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+                    document.body.appendChild(modal);
+                };
+                
+                console.log('[Properties] Pexels video set for play button:', res.videoUrl);
+            }
+            // Handle YouTube videos
+            else if (res.source === 'youtube' && res.id) {
+                videoBtn.dataset.videoSource = 'youtube';
+                videoBtn.dataset.videoId = res.id;
+                videoBtn.dataset.videoUrl = '';
+                
+                // Restore YouTube click handler
+                videoBtn.onclick = function() {
+                    const videoId = this.dataset.videoId;
+                    if (!videoId) return;
+                    
+                    const modal = document.createElement('div');
+                    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+                    
+                    const videoContainer = document.createElement('div');
+                    videoContainer.style.cssText = 'position:relative;width:100%;max-width:900px;aspect-ratio:16/9;';
+                    
+                    const iframe = document.createElement('iframe');
+                    iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+                    iframe.style.cssText = 'width:100%;height:100%;border:none;';
+                    iframe.setAttribute('allowfullscreen', '');
+                    
+                    const closeBtn = document.createElement('button');
+                    closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    closeBtn.style.cssText = 'position:absolute;top:-40px;right:0;background:transparent;border:none;color:#fff;font-size:32px;cursor:pointer;';
+                    closeBtn.onclick = () => modal.remove();
+                    
+                    videoContainer.appendChild(iframe);
+                    videoContainer.appendChild(closeBtn);
+                    modal.appendChild(videoContainer);
+                    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+                    document.body.appendChild(modal);
+                };
+                
+                console.log('[Properties] YouTube video set for play button:', res.id);
+            }
         });
+        videoPickerBtn.style.backgroundColor = '#8b5cf6';
+        videoPickerBtn.style.borderColor = '#8b5cf6';
+        videoPickerBtn.style.color = '#fff';
+        videoPickerBtn.style.fontWeight = '700';
+        this.panel.appendChild(videoPickerBtn);
+        
+        // Manual Video ID input (fallback for YouTube)
+        this.createTextInput('Of YouTube Video ID', videoBtn.dataset.videoId || '', (val) => {
+            videoBtn.dataset.videoId = val;
+            videoBtn.dataset.videoSource = 'youtube';
+        });
+        
         this.createColorInput('Video Button Kleur', videoBtn.style.background || '#ff8c00', (val) => {
             videoBtn.style.background = val;
         });
