@@ -10,6 +10,8 @@ class AnimatedTravelMap {
     this.currentRouteIndex = 0;
     this.isAnimating = false;
     this.markers = [];
+    this.iconSize = options.iconSize || 32; // Default 32px
+    this.animationSpeed = options.animationSpeed || 1; // 1 = normal, 2 = 2x faster, 0.5 = 2x slower
     
     // Transport icons (Font Awesome classes)
     this.transportIcons = {
@@ -200,7 +202,7 @@ class AnimatedTravelMap {
       const markerEl = document.createElement('div');
       markerEl.innerHTML = `
         <div style="
-          font-size: 24px;
+          font-size: ${this.iconSize}px;
           filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
           animation: bounce 0.5s ease-in-out infinite alternate;
         ">${icon}</div>
@@ -212,7 +214,8 @@ class AnimatedTravelMap {
       
       // Animate marker along route
       const steps = 60;
-      const stepDuration = duration / steps;
+      const adjustedDuration = duration / this.animationSpeed;
+      const stepDuration = adjustedDuration / steps;
       let step = 0;
       
       const animate = () => {

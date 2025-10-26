@@ -2613,6 +2613,9 @@ class PropertiesPanel {
             case 'travel-intro':
                 this.createTravelIntroProperties(component);
                 break;
+            case 'animated-route-map':
+                this.createAnimatedRouteMapProperties(component);
+                break;
             case 'route-overview-btn':
                 this.createRouteOverviewBtnProperties(component);
                 break;
@@ -5031,6 +5034,220 @@ PropertiesPanel.prototype.createRouteOverviewBtnProperties = function(component)
     del.style.color = '#fff';
     del.style.marginTop = '1rem';
     this.panel.appendChild(del);
+};
+
+PropertiesPanel.prototype.createAnimatedRouteMapProperties = function(component) {
+    const travelMap = component._travelMap;
+    const routes = component._routes || [];
+    
+    this.createHeading('🗺️ Geanimeerde Route Kaart');
+    
+    // Icon grootte
+    const currentIconSize = (travelMap && travelMap.iconSize) || 32;
+    this.createRangeInput('Icon Grootte', currentIconSize, 16, 64, 4, (val) => {
+        if (travelMap) {
+            travelMap.iconSize = parseInt(val);
+            travelMap.reset();
+            setTimeout(() => travelMap.startAnimation(), 500);
+        }
+    });
+    
+    // Animatie snelheid
+    const currentSpeed = (travelMap && travelMap.animationSpeed) || 1;
+    const speedLabels = { '0.5': 'Langzaam', '1': 'Normaal', '1.5': 'Snel', '2': 'Zeer snel' };
+    this.createSelectInput('Animatie Snelheid', currentSpeed.toString(), [
+        { value: '0.5', label: 'Langzaam (0.5x)' },
+        { value: '1', label: 'Normaal (1x)' },
+        { value: '1.5', label: 'Snel (1.5x)' },
+        { value: '2', label: 'Zeer snel (2x)' }
+    ], (val) => {
+        if (travelMap) {
+            travelMap.animationSpeed = parseFloat(val);
+        }
+    });
+    
+    // Kaart stijl
+    const currentStyle = (travelMap && travelMap.options.style) || 'mapbox://styles/mapbox/light-v11';
+    const styleMap = {
+        'mapbox://styles/mapbox/streets-v12': 'Streets',
+        'mapbox://styles/mapbox/light-v11': 'Light',
+        'mapbox://styles/mapbox/dark-v11': 'Dark',
+        'mapbox://styles/mapbox/satellite-v9': 'Satelliet',
+        'mapbox://styles/mapbox/outdoors-v12': 'Outdoor'
+    };
+    this.createSelectInput('Kaart Stijl', currentStyle, 
+        Object.entries(styleMap).map(([value, label]) => ({ value, label })),
+        (val) => {
+            if (travelMap && travelMap.map) {
+                travelMap.map.setStyle(val);
+            }
+        }
+    );
+    
+    this.createSeparator();
+    this.createHeading('Routes');
+    
+    // Routes lijst
+    const routesList = document.createElement('div');
+    routesList.style.cssText = 'margin-bottom: 16px;';
+    
+    const renderRoutes = () => {
+        routesList.innerHTML = '';
+        
+        routes.forEach((route, index) => {
+            const routeItem = document.createElement('div');
+            routeItem.style.cssText = 'background: #f3f4f6; padding: 12px; border-radius: 8px; margin-bottom: 8px;';
+            
+            const header = document.createElement('div');
+            header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;';
+            header.innerHTML = `
+                <strong style="color: #374151;">Route ${index + 1}</strong>
+                <button class="delete-route-btn" data-index="${index}" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            routeItem.appendChild(header);
+            
+            // Van
+            const fromGroup = document.createElement('div');
+            fromGroup.style.marginBottom = '8px';
+            fromGroup.innerHTML = `<label style="display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px;">Van:</label>`;
+            const fromInput = document.createElement('input');
+            fromInput.type = 'text';
+            fromInput.value = route.from.name;
+            fromInput.style.cssText = 'width: 100%; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px;';
+            fromInput.addEventListener('change', (e) => {
+                route.from.name = e.target.value;
+                // Coordinates blijven hetzelfde (of gebruik geocoding API)
+            });
+            fromGroup.appendChild(fromInput);
+            routeItem.appendChild(fromGroup);
+            
+            // Naar
+            const toGroup = document.createElement('div');
+            toGroup.style.marginBottom = '8px';
+            toGroup.innerHTML = `<label style="display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px;">Naar:</label>`;
+            const toInput = document.createElement('input');
+            toInput.type = 'text';
+            toInput.value = route.to.name;
+            toInput.style.cssText = 'width: 100%; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px;';
+            toInput.addEventListener('change', (e) => {
+                route.to.name = e.target.value;
+            });
+            toGroup.appendChild(toInput);
+            routeItem.appendChild(toGroup);
+            
+            // Transport type
+            const transportGroup = document.createElement('div');
+            transportGroup.style.marginBottom = '8px';
+            transportGroup.innerHTML = `<label style="display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px;">Transport:</label>`;
+            const transportSelect = document.createElement('select');
+            transportSelect.style.cssText = 'width: 100%; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px;';
+            transportSelect.innerHTML = `
+                <option value="flight" ${route.mode === 'flight' ? 'selected' : ''}>✈️ Vliegtuig</option>
+                <option value="car" ${route.mode === 'car' ? 'selected' : ''}>🚗 Auto</option>
+                <option value="train" ${route.mode === 'train' ? 'selected' : ''}>🚂 Trein</option>
+                <option value="boat" ${route.mode === 'boat' ? 'selected' : ''}>⛴️ Boot</option>
+                <option value="bus" ${route.mode === 'bus' ? 'selected' : ''}>🚌 Bus</option>
+                <option value="bike" ${route.mode === 'bike' ? 'selected' : ''}>🚴 Fiets</option>
+            `;
+            transportSelect.addEventListener('change', (e) => {
+                route.mode = e.target.value;
+            });
+            transportGroup.appendChild(transportSelect);
+            routeItem.appendChild(transportGroup);
+            
+            // Duur
+            const durationGroup = document.createElement('div');
+            durationGroup.innerHTML = `<label style="display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px;">Duur (seconden):</label>`;
+            const durationInput = document.createElement('input');
+            durationInput.type = 'number';
+            durationInput.value = (route.duration || 3000) / 1000;
+            durationInput.min = '1';
+            durationInput.max = '10';
+            durationInput.step = '0.5';
+            durationInput.style.cssText = 'width: 100%; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px;';
+            durationInput.addEventListener('change', (e) => {
+                route.duration = parseFloat(e.target.value) * 1000;
+            });
+            durationGroup.appendChild(durationInput);
+            routeItem.appendChild(durationGroup);
+            
+            routesList.appendChild(routeItem);
+        });
+        
+        // Delete buttons
+        routesList.querySelectorAll('.delete-route-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const index = parseInt(btn.dataset.index);
+                routes.splice(index, 1);
+                renderRoutes();
+                updateMap();
+            });
+        });
+    };
+    
+    renderRoutes();
+    this.panel.appendChild(routesList);
+    
+    // Voeg route toe knop
+    const addRouteBtn = this.createButton('➕ Route Toevoegen', () => {
+        const lastRoute = routes[routes.length - 1];
+        const newRoute = {
+            from: lastRoute ? { name: lastRoute.to.name, coords: lastRoute.to.coords } : { name: 'Amsterdam', coords: [4.9041, 52.3676] },
+            to: { name: 'Nieuwe Bestemming', coords: [0, 0] },
+            mode: 'flight',
+            duration: 3000
+        };
+        routes.push(newRoute);
+        renderRoutes();
+    });
+    addRouteBtn.style.background = '#10b981';
+    addRouteBtn.style.borderColor = '#10b981';
+    addRouteBtn.style.color = '#fff';
+    addRouteBtn.style.marginBottom = '12px';
+    this.panel.appendChild(addRouteBtn);
+    
+    // Update kaart knop
+    const updateBtn = this.createButton('🔄 Kaart Bijwerken', () => {
+        updateMap();
+    });
+    updateBtn.style.background = '#667eea';
+    updateBtn.style.borderColor = '#667eea';
+    updateBtn.style.color = '#fff';
+    this.panel.appendChild(updateBtn);
+    
+    const updateMap = () => {
+        if (travelMap) {
+            travelMap.destroy();
+        }
+        
+        const mapEl = component.querySelector('.animated-map');
+        if (mapEl && typeof AnimatedTravelMap !== 'undefined') {
+            const newMap = new AnimatedTravelMap(mapEl, {
+                routes: routes,
+                autoplay: false,
+                style: currentStyle,
+                iconSize: currentIconSize,
+                animationSpeed: currentSpeed
+            });
+            component._travelMap = newMap;
+        }
+    };
+    
+    this.createSeparator();
+    
+    // Info
+    const info = document.createElement('div');
+    info.style.cssText = 'background: #eff6ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 12px; font-size: 13px; color: #1e40af; line-height: 1.6;';
+    info.innerHTML = `
+        <strong><i class="fas fa-info-circle"></i> Tips:</strong><br>
+        • Vliegtuig routes krijgen gebogen lijn<br>
+        • Auto/trein/boot krijgen rechte lijn<br>
+        • Laatste bestemming = start volgende route<br>
+        • Klik "Kaart Bijwerken" na wijzigingen
+    `;
+    this.panel.appendChild(info);
 };
 
 // Initialize properties panel
