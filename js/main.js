@@ -1807,14 +1807,14 @@ class WebsiteBuilder {
                         this.showNotification('🗺️ Concept opgeslagen (Bestemming)', 'success');
                         try { if (window.handleReturnUrl) window.handleReturnUrl(); } catch (e) {}
                     } else if ((mode === 'travel' || mode === 'trips') && window.BuilderPublishAPI.trips) {
-                        // Trips/Travel: save via trips helper
+                        // Trips/Travel: save via trips helper (same structure as destinations)
                         const page_id = u.searchParams.get('page_id') || this.currentPageId || undefined;
                         await window.BuilderPublishAPI.trips.saveDraft({
                             brand_id,
                             page_id,
                             title: safeTitle,
                             slug: safeSlug,
-                            content_json: contentJson,
+                            content: { json: contentJson, html: htmlString },
                             status: 'draft'
                         });
                         this.showNotification('✈️ Concept opgeslagen (Reis)', 'success');

@@ -748,39 +748,66 @@ window.BuilderPublishAPI.destinations = {
 };
 
 // ==============================
-// Trips (pages-api with content_type=trips)
+// Trips (content-api with type=trips, same as destinations)
 // ==============================
-async function tripsSaveDraft({ brand_id, page_id, title, slug, content_json, status = 'draft' }) {
+async function tripsSaveDraft({ brand_id, page_id, id, title, slug, content_json, content, status = 'draft' }) {
   const base = contentApiBase();
-  if (!base) throw new Error('API base URL ontbreekt');
-  const url = `${base}/pages-api/save`;
+  if (!base) throw new Error('content-api base URL ontbreekt');
+  const url = `${base}/content-api/save?type=trips`;
   
+  // Use same structure as destinations: content object with json/html
   const body = { 
     brand_id, 
-    page_id,
     title, 
     slug, 
-    content_json,
-    content_type: 'trips',
+    content: content || content_json || {},
     status 
   };
   
-  console.debug('[tripsSaveDraft] request', { url, body });
-  const headers = contentApiHeaders();
-  const response = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body)
-  });
+  // Add author fields like destinations
+  const author_type = readQueryParam('author_type') || (window.CURRENT_AUTHOR_TYPE || null);
+  const author_id = readQueryParam('author_id') || readQueryParam('user_id') || (window.CURRENT_USER_ID || null);
+  if (author_type) body.author_type = author_type;
+  if (author_id) body.author_id = author_id;
   
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error('[tripsSaveDraft] error', response.status, errText);
-    throw new Error(`Trip opslaan mislukt: ${response.status} ${errText}`);
+  // Add id if provided (for updates)
+  if (id || page_id) body.id = id || page_id;
+  
+  // Debug
+  try {
+    const hdr = contentApiHeaders();
+    console.debug('[tripsSaveDraft] request', {
+      url,
+      brand_id,
+      title,
+      slug,
+      hasToken: !!hdr.Authorization,
+      hasApiKey: !!hdr.apikey,
+      author_type: body.author_type || null,
+      author_id: body.author_id ? String(body.author_id).slice(0,6)+'…' : null
+    });
+  } catch (e) {}
+  
+  let res;
+  try {
+    res = await fetch(url, { method: 'POST', headers: contentApiHeaders(), body: JSON.stringify(body) });
+  } catch (e) { 
+    console.warn('[tripsSaveDraft] network error', e); 
+    throw e; 
   }
   
-  const data = await response.json();
-  console.debug('[tripsSaveDraft] success', { id: data?.id, slug: data?.slug, status: data?.status });
+  let data = null; 
+  try { data = await res.json(); } catch (e) {}
+  
+  if (!res.ok) {
+    let text = ''; 
+    try { text = await res.text(); } catch (e) {}
+    const msg = (data && (data.error || data.message)) || text || `trips save failed: ${res.status}`;
+    console.warn('[tripsSaveDraft] HTTP error', { status: res.status, msg, data });
+    throw new Error(msg);
+  }
+  
+  console.debug('[tripsSaveDraft] success', { id: data && data.id, slug: data && data.slug, status: data && data.status });
   return data;
 }
 
