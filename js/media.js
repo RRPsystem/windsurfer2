@@ -37,6 +37,7 @@ class MediaPicker {
           <button class="btn btn-secondary tab-btn" data-tab="unsplash"><i class="fab fa-unsplash"></i> Unsplash</button>
           <button class="btn btn-secondary tab-btn" data-tab="pexels"><i class="fas fa-video"></i> Pexels</button>
           <button class="btn btn-secondary tab-btn" data-tab="youtube"><i class="fab fa-youtube"></i> YouTube</button>
+          <button class="btn btn-secondary tab-btn" data-tab="my-videos"><i class="fas fa-film"></i> Mijn Video's</button>
         </div>
 
         <div class="tab-content" data-tab="upload">
@@ -85,6 +86,19 @@ class MediaPicker {
           <div class="mp-row">
             <input type="text" class="form-control yt-url" placeholder="Plak YouTube URL (https://youtu.be/...)" />
             <button class="btn btn-secondary yt-use">Gebruik URL</button>
+          </div>
+        </div>
+
+        <div class="tab-content" data-tab="my-videos" style="display:none;">
+          <div class="mp-row mp-between">
+            <p class="my-videos-note">Jouw gegenereerde video's</p>
+            <button class="btn btn-primary btn-lg my-videos-refresh"><i class="fas fa-sync-alt"></i> Ververs</button>
+          </div>
+          <div class="my-videos-grid"></div>
+          <div class="my-videos-empty" style="display:none; text-align:center; padding:40px; color:#666;">
+            <i class="fas fa-film" style="font-size:48px; margin-bottom:16px; opacity:0.3;"></i>
+            <p>Nog geen video's gegenereerd</p>
+            <p style="font-size:14px;">Gebruik de Video Generator om je eerste video te maken!</p>
           </div>
         </div>
       `;
@@ -504,6 +518,169 @@ class MediaPicker {
         });
       }
 
+      // My Videos
+      if (true) {
+        const myVideosPane = body.querySelector('.tab-content[data-tab="my-videos"]');
+        const noteEl = myVideosPane ? myVideosPane.querySelector('.my-videos-note') : null;
+        const grid = myVideosPane ? myVideosPane.querySelector('.my-videos-grid') : null;
+        const emptyEl = myVideosPane ? myVideosPane.querySelector('.my-videos-empty') : null;
+        const refreshBtn = myVideosPane ? myVideosPane.querySelector('.my-videos-refresh') : null;
+
+        const loadMyVideos = async () => {
+          if (grid) grid.innerHTML = '<div style="color:#666;padding:20px;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Laden...</div>';
+          if (emptyEl) emptyEl.style.display = 'none';
+
+          try {
+            const resp = await fetch('/api/videos/list');
+            const data = await resp.json();
+
+            if (!data.success || !data.videos || data.videos.length === 0) {
+              if (grid) grid.innerHTML = '';
+              if (emptyEl) emptyEl.style.display = 'block';
+              if (noteEl) noteEl.textContent = 'Nog geen video\'s';
+              return;
+            }
+
+            if (grid) grid.innerHTML = '';
+            if (noteEl) noteEl.textContent = `${data.videos.length} video${data.videos.length !== 1 ? '\'s' : ''}`;
+
+            // Render as 2-column thumbnail grid
+            if (grid) {
+              grid.style.display = 'grid';
+              grid.style.gridTemplateColumns = '1fr 1fr';
+              grid.style.gap = '10px';
+            }
+
+            data.videos.forEach(video => {
+              const tile = document.createElement('div');
+              tile.style.cssText = 'border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; background:#f8f9fa; position:relative; transition: transform 0.2s, box-shadow 0.2s;';
+
+              // Thumbnail or video preview
+              const thumbnail = document.createElement('img');
+              thumbnail.src = video.thumbnail || video.videoUrl;
+              thumbnail.alt = video.title;
+              thumbnail.style.cssText = 'width:100%;height:140px;object-fit:cover;display:block;cursor:pointer;';
+              thumbnail.onerror = () => {
+                // Fallback if thumbnail doesn't exist
+                thumbnail.style.display = 'none';
+                const placeholder = document.createElement('div');
+                placeholder.style.cssText = 'width:100%;height:140px;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);display:flex;align-items:center;justify-content:center;color:white;font-size:48px;cursor:pointer;';
+                placeholder.innerHTML = '<i class="fas fa-film"></i>';
+                tile.insertBefore(placeholder, tile.firstChild);
+              };
+
+              // Title overlay
+              const titleOverlay = document.createElement('div');
+              titleOverlay.style.cssText = 'position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); color:white; padding:8px 8px 32px 8px; font-size:12px; font-weight:600; pointer-events:none;';
+              titleOverlay.textContent = video.title;
+
+              // Play icon
+              const playIcon = document.createElement('div');
+              playIcon.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:48px; height:48px; background:rgba(102,126,234,0.9); border-radius:50%; display:flex; align-items:center; justify-content:center; pointer-events:none;';
+              playIcon.innerHTML = '<i class="fas fa-play" style="color:white; font-size:20px; margin-left:3px;"></i>';
+
+              // Action buttons (bottom right)
+              const actionButtons = document.createElement('div');
+              actionButtons.style.cssText = 'position:absolute; bottom:8px; right:8px; display:flex; gap:4px; z-index:2;';
+              
+              // Download button
+              const downloadBtn = document.createElement('a');
+              downloadBtn.href = video.videoUrl;
+              downloadBtn.download = `${video.title}.mp4`;
+              downloadBtn.style.cssText = 'width:32px; height:32px; background:rgba(34,197,94,0.95); border-radius:6px; display:flex; align-items:center; justify-content:center; color:white; text-decoration:none; transition:background 0.2s;';
+              downloadBtn.innerHTML = '<i class="fas fa-download" style="font-size:14px;"></i>';
+              downloadBtn.title = 'Download video';
+              downloadBtn.onclick = (e) => {
+                e.stopPropagation();
+              };
+              downloadBtn.addEventListener('mouseenter', () => {
+                downloadBtn.style.background = 'rgba(34,197,94,1)';
+              });
+              downloadBtn.addEventListener('mouseleave', () => {
+                downloadBtn.style.background = 'rgba(34,197,94,0.95)';
+              });
+
+              // Use button
+              const useBtn = document.createElement('button');
+              useBtn.style.cssText = 'width:32px; height:32px; background:rgba(102,126,234,0.95); border:none; border-radius:6px; display:flex; align-items:center; justify-content:center; color:white; cursor:pointer; transition:background 0.2s;';
+              useBtn.innerHTML = '<i class="fas fa-check" style="font-size:14px;"></i>';
+              useBtn.title = 'Gebruik in Hero';
+              useBtn.onclick = (e) => {
+                e.stopPropagation();
+                resolve({
+                  source: 'my-videos',
+                  type: 'video',
+                  url: video.videoUrl,
+                  videoUrl: video.videoUrl,
+                  thumbnail: video.thumbnail,
+                  title: video.title,
+                  id: video.id
+                });
+                close();
+              };
+              useBtn.addEventListener('mouseenter', () => {
+                useBtn.style.background = 'rgba(102,126,234,1)';
+              });
+              useBtn.addEventListener('mouseleave', () => {
+                useBtn.style.background = 'rgba(102,126,234,0.95)';
+              });
+
+              actionButtons.appendChild(downloadBtn);
+              actionButtons.appendChild(useBtn);
+
+              tile.appendChild(thumbnail);
+              tile.appendChild(titleOverlay);
+              tile.appendChild(playIcon);
+              tile.appendChild(actionButtons);
+
+              // Hover effects
+              tile.addEventListener('mouseenter', () => {
+                tile.style.transform = 'scale(1.02)';
+                tile.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+              });
+
+              tile.addEventListener('mouseleave', () => {
+                tile.style.transform = 'scale(1)';
+                tile.style.boxShadow = 'none';
+              });
+
+              // Click on thumbnail to use video
+              thumbnail.onclick = () => {
+                resolve({
+                  source: 'my-videos',
+                  type: 'video',
+                  url: video.videoUrl,
+                  videoUrl: video.videoUrl,
+                  thumbnail: video.thumbnail,
+                  title: video.title,
+                  id: video.id
+                });
+                close();
+              };
+
+              if (grid) grid.appendChild(tile);
+            });
+
+          } catch (error) {
+            console.error('[MyVideos] Error loading videos:', error);
+            if (grid) grid.innerHTML = '<div style="color:#c00;padding:20px;text-align:center;">Fout bij laden van video\'s</div>';
+          }
+        };
+
+        // Refresh button
+        if (refreshBtn) {
+          refreshBtn.addEventListener('click', () => loadMyVideos());
+        }
+
+        // Auto-load when tab opens
+        const myVideosTabBtn = tabs.find(b => b.getAttribute('data-tab') === 'my-videos');
+        if (myVideosTabBtn) {
+          myVideosTabBtn.addEventListener('click', () => {
+            loadMyVideos();
+          });
+        }
+      }
+
       // Default tab
       const hasYtKey = !!(window.MEDIA_CONFIG && (window.MEDIA_CONFIG.youtubeApiKey || window.MEDIA_CONFIG.youtubeKey));
       const hasPexelsKey = !!(window.MEDIA_CONFIG && window.MEDIA_CONFIG.pexelsKey);
@@ -532,6 +709,8 @@ class MediaPicker {
           .media-tabs .tab-btn[data-tab="pexels"].active { filter: brightness(0.95); }
           .media-tabs .tab-btn[data-tab="youtube"] { background:#ff0000; border-color:#ff0000; color:#fff; }
           .media-tabs .tab-btn[data-tab="youtube"].active { filter: brightness(0.95); }
+          .media-tabs .tab-btn[data-tab="my-videos"] { background:#667eea; border-color:#667eea; color:#fff; }
+          .media-tabs .tab-btn[data-tab="my-videos"].active { filter: brightness(0.95); }
           .media-tabs .tab-btn[data-tab="upload"] { background:#f3f4f6; }
           .media-tabs .tab-btn[data-tab="url"] { background:#e0f2fe; border-color:#bae6fd; }
           .mp-help { color:#666; font-size: .9rem; margin-top: 8px; }

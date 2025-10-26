@@ -121,6 +121,20 @@
               <i class="fas fa-check-circle"></i> Video is klaar!
             </h3>
             <video id="resultVideo" controls style="width: 100%; border-radius: 8px; margin-bottom: 16px;"></video>
+            
+            <!-- Save to My Videos -->
+            <div id="saveSection" style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+              <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px;">
+                <i class="fas fa-tag"></i> Video naam
+              </label>
+              <input type="text" id="videoNameInput" placeholder="Bijv. Amsterdam → Paris → Rome" 
+                style="width: 100%; height: 40px; padding: 0 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; margin-bottom: 12px;">
+              <button id="saveToMyVideosBtn" style="width: 100%; height: 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: transform 0.2s;">
+                <i class="fas fa-save"></i> Opslaan naar Mijn Video's
+              </button>
+              <div id="saveStatus" style="margin-top: 8px; font-size: 13px; text-align: center;"></div>
+            </div>
+            
             <div style="display: flex; gap: 12px;">
               <a id="downloadVideoBtn" href="#" download style="flex: 1; height: 48px; display: flex; align-items: center; justify-content: center; background: #16a34a; border-radius: 8px; color: white; font-weight: 600; text-decoration: none;">
                 <i class="fas fa-download"></i> Download Video
@@ -149,6 +163,8 @@
       const durationValue = container.querySelector('#durationValue');
       const backBtn = container.querySelector('#backBtn');
       const newVideoBtn = container.querySelector('#newVideoBtn');
+      const saveBtn = container.querySelector('#saveToMyVideosBtn');
+      const videoNameInput = container.querySelector('#videoNameInput');
 
       // Duration slider
       durationSlider?.addEventListener('input', (e) => {
@@ -161,6 +177,17 @@
 
       // Generate video
       generateBtn?.addEventListener('click', () => this.generateVideo(container));
+
+      // Save to My Videos
+      saveBtn?.addEventListener('click', () => this.saveToMyVideos(container));
+
+      // Auto-fill video name from travel data
+      if (videoNameInput && this.travelData) {
+        const title = this.travelData.title || this.travelData.name || '';
+        if (title) {
+          videoNameInput.value = title;
+        }
+      }
 
       // Back button
       backBtn?.addEventListener('click', () => {
@@ -354,6 +381,111 @@
         clearInterval(this.statusInterval);
         this.statusInterval = null;
       }
+    },
+
+    async saveToMyVideos(container) {
+      const videoNameInput = container.querySelector('#videoNameInput');
+      const saveBtn = container.querySelector('#saveToMyVideosBtn');
+      const saveStatus = container.querySelector('#saveStatus');
+      const resultVideo = container.querySelector('#resultVideo');
+
+      if (!resultVideo || !resultVideo.src) {
+        if (saveStatus) saveStatus.innerHTML = '<span style="color:#ef4444;"><i class="fas fa-exclamation-circle"></i> Geen video om op te slaan</span>';
+        return;
+      }
+
+      const videoName = videoNameInput?.value?.trim() || 'Untitled Video';
+
+      // Disable button during upload
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.style.opacity = '0.5';
+        saveBtn.style.cursor = 'not-allowed';
+        saveBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Opslaan...';
+      }
+
+      if (saveStatus) saveStatus.innerHTML = '<span style="color:#6b7280;"><i class="fas fa-circle-notch fa-spin"></i> Video wordt geüpload...</span>';
+
+      try {
+        // Convert video to base64
+        const videoBlob = await fetch(resultVideo.src).then(r => r.blob());
+        const base64Video = await this.blobToBase64(videoBlob);
+
+        // Generate thumbnail from video
+        const thumbnail = await this.generateThumbnail(resultVideo);
+
+        // Upload to Blob Storage
+        const response = await fetch('/api/videos/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            videoData: base64Video,
+            title: videoName,
+            type: 'ai-generated',
+            duration: resultVideo.duration || 0,
+            width: resultVideo.videoWidth || 1920,
+            height: resultVideo.videoHeight || 1080,
+            thumbnail: thumbnail
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || 'Upload mislukt');
+        }
+
+        const result = await response.json();
+
+        if (saveStatus) saveStatus.innerHTML = '<span style="color:#22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen! Beschikbaar in "Mijn Video\'s"</span>';
+        
+        // Re-enable button
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.style.opacity = '1';
+          saveBtn.style.cursor = 'pointer';
+          saveBtn.innerHTML = '<i class="fas fa-check"></i> Opgeslagen!';
+          saveBtn.style.background = '#22c55e';
+        }
+
+        console.log('[VideoGen] Video saved:', result.video);
+
+      } catch (error) {
+        console.error('[VideoGen] Save error:', error);
+        if (saveStatus) saveStatus.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-circle"></i> ${error.message}</span>`;
+        
+        // Re-enable button
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.style.opacity = '1';
+          saveBtn.style.cursor = 'pointer';
+          saveBtn.innerHTML = '<i class="fas fa-save"></i> Opslaan naar Mijn Video\'s';
+        }
+      }
+    },
+
+    blobToBase64(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    },
+
+    async generateThumbnail(videoElement) {
+      return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 360;
+        const ctx = canvas.getContext('2d');
+        
+        // Draw current frame
+        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        
+        // Convert to base64
+        const thumbnail = canvas.toDataURL('image/jpeg', 0.8);
+        resolve(thumbnail);
+      });
     },
 
     getApiBase() {
