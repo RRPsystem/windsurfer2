@@ -109,6 +109,7 @@
     // Only classify as news when explicitly indicated by content_type or news_slug
     if (ct === 'news_items' || ctx.news_slug) return 'news';
     if (ct === 'destinations') return 'destination';
+    if (ct === 'trips' || ct === 'travel') return 'travel';
     // Default to page. Presence of a generic slug alone should NOT switch to news.
     return 'page';
   }
@@ -149,7 +150,12 @@
 
   function setModeHash(kind){
     try {
-      const map = { page: '#/mode/page', news: '#/mode/news', destination: '#/mode/destination' };
+      const map = { 
+        page: '#/mode/page', 
+        news: '#/mode/news', 
+        destination: '#/mode/destination',
+        travel: '#/mode/travel'
+      };
       if (!map[kind]) return;
       if (String(location.hash||'') !== map[kind]) { location.hash = map[kind]; }
     } catch (e) {}
@@ -260,7 +266,9 @@ async function loadPageContent(ctx) {
     log('Page data loaded:', data);
     
     // Check content_type and switch mode if needed
-    if (data.content_type === 'news_items') {
+    const contentType = (data.content_type || '').toLowerCase();
+    
+    if (contentType === 'news_items') {
       log('Detected news content, switching to news mode');
       
       // Update hash to news mode
@@ -284,6 +292,30 @@ async function loadPageContent(ctx) {
         key: data.slug || ctx.news_slug || ctx.slug || ''
       };
       installEdgeCtx(newsEdgeCtx);
+    } else if (contentType === 'trips' || contentType === 'travel') {
+      log('Detected trip/travel content, switching to travel mode');
+      
+      // Update hash to travel mode
+      if (location.hash !== '#/mode/travel') {
+        location.hash = '#/mode/travel';
+      }
+      
+      // Update mode selector if present
+      document.addEventListener('DOMContentLoaded', () => {
+        const modeSelect = document.getElementById('topModeSelect');
+        if (modeSelect && modeSelect.value !== 'travel') {
+          modeSelect.value = 'travel';
+        }
+      });
+      
+      // Update edgeCtx to travel mode
+      const travelEdgeCtx = {
+        api: ctx.api,
+        token: ctx.token,
+        kind: 'travel',
+        key: data.slug || ctx.slug || ''
+      };
+      installEdgeCtx(travelEdgeCtx);
     }
     
     // Store data for later loading

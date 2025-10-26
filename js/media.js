@@ -35,6 +35,7 @@ class MediaPicker {
         <div class="media-tabs">
           <button class="btn btn-secondary tab-btn active" data-tab="upload"><i class="fas fa-upload"></i> Upload</button>
           <button class="btn btn-secondary tab-btn" data-tab="unsplash"><i class="fab fa-unsplash"></i> Unsplash</button>
+          <button class="btn btn-secondary tab-btn" data-tab="pexels"><i class="fas fa-video"></i> Pexels</button>
           <button class="btn btn-secondary tab-btn" data-tab="youtube"><i class="fab fa-youtube"></i> YouTube</button>
         </div>
 
@@ -52,6 +53,18 @@ class MediaPicker {
           <div class="mp-row mp-between mp-more-row">
             <p class="unsplash-note"></p>
             <button class="btn btn-primary btn-lg unsplash-more" disabled>Laad meer afbeeldingen</button>
+          </div>
+        </div>
+
+        <div class="tab-content" data-tab="pexels" style="display:none;">
+          <div class="mp-row">
+            <input type="text" class="form-control pexels-query" placeholder="Zoek video's (bv. Paris travel, beach sunset)" />
+            <button class="btn btn-primary btn-lg pexels-search"><i class="fas fa-search"></i></button>
+          </div>
+          <div class="pexels-grid"></div>
+          <div class="mp-row mp-between mp-more-row">
+            <p class="pexels-note"></p>
+            <button class="btn btn-primary btn-lg pexels-more" disabled>Laad meer video's</button>
           </div>
         </div>
 
@@ -221,6 +234,104 @@ class MediaPicker {
         });
       }
 
+      // Pexels Videos
+      if (true) {
+        const pexelsPane = body.querySelector('.tab-content[data-tab="pexels"]');
+        const noteEl = pexelsPane ? pexelsPane.querySelector('.pexels-note') : null;
+        const grid = pexelsPane ? pexelsPane.querySelector('.pexels-grid') : null;
+        const moreBtnPexels = pexelsPane ? pexelsPane.querySelector('.pexels-more') : null;
+        const key = (window.MEDIA_CONFIG && window.MEDIA_CONFIG.pexelsKey)
+          ? window.MEDIA_CONFIG.pexelsKey
+          : '';
+
+        let currentPage = 1;
+        let currentQuery = '';
+
+        const runPexelsSearch = async (append = false) => {
+          const qInput = pexelsPane ? pexelsPane.querySelector('.pexels-query') : null;
+          const q = (qInput && qInput.value ? qInput.value.trim() : '') || 'travel';
+          if (!append) {
+            if (grid) grid.innerHTML = '<div style="color:#666;">Zoeken...</div>';
+            currentPage = 1;
+            currentQuery = q;
+          }
+          if (!key) {
+            if (noteEl) noteEl.textContent = 'Tip: voeg window.MEDIA_CONFIG.pexelsKey toe voor Pexels video\'s (gratis op pexels.com/api).';
+            if (grid) grid.innerHTML = '<div style="color:#666;">Geen API key: voeg PEXELS_API_KEY toe.</div>';
+            if (moreBtnPexels) moreBtnPexels.style.display = 'none';
+            return;
+          }
+          try {
+            const url = `https://api.pexels.com/videos/search?query=${encodeURIComponent(q)}&per_page=12&page=${currentPage}&orientation=landscape`;
+            const resp = await fetch(url, {
+              headers: { 'Authorization': key }
+            });
+            const data = await resp.json();
+            if (!append && grid) grid.innerHTML = '';
+            
+            // Render as 2-column thumbnail grid
+            if (grid) {
+              grid.style.display = 'grid';
+              grid.style.gridTemplateColumns = '1fr 1fr';
+              grid.style.gap = '10px';
+            }
+            
+            (data.videos || []).forEach(video => {
+              const videoFiles = video.video_files || [];
+              const hdFile = videoFiles.find(f => f.quality === 'hd' && f.width >= 1280) || videoFiles[0];
+              if (!hdFile) return;
+              
+              const tile = document.createElement('div');
+              tile.style.cssText = 'border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; background:#f8f9fa; cursor:pointer; position:relative;';
+              tile.innerHTML = `
+                <img src="${video.image}" alt="" style="width:100%;height:140px;object-fit:cover;display:block;"/>
+                <div style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.7); color:white; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600;">
+                  <i class="fas fa-play"></i> ${Math.floor(video.duration)}s
+                </div>
+              `;
+              tile.onclick = () => {
+                resolve({ 
+                  source: 'pexels', 
+                  type: 'video', 
+                  url: hdFile.link,
+                  videoUrl: hdFile.link,
+                  thumbnail: video.image,
+                  duration: video.duration,
+                  width: hdFile.width,
+                  height: hdFile.height,
+                  id: video.id
+                });
+                close();
+              };
+              if (grid) grid.appendChild(tile);
+            });
+            
+            const totalResults = data.total_results || 0;
+            const perPage = 12;
+            const hasMore = (currentPage * perPage) < totalResults;
+            if (moreBtnPexels) moreBtnPexels.disabled = !hasMore;
+            if (noteEl) noteEl.textContent = `${totalResults} video's gevonden`;
+          } catch (err) {
+            console.error('Pexels error:', err);
+            if (grid) grid.innerHTML = '<div style="color:#c00;">Pexels fout. Check API key.</div>';
+            if (moreBtnPexels) moreBtnPexels.disabled = true;
+          }
+        };
+
+        const pexelsSearchBtn = pexelsPane ? pexelsPane.querySelector('.pexels-search') : null;
+        if (pexelsSearchBtn) pexelsSearchBtn.addEventListener('click', () => runPexelsSearch(false));
+        if (moreBtnPexels) moreBtnPexels.addEventListener('click', () => { currentPage += 1; runPexelsSearch(true); });
+        
+        // Auto-focus search input when tab opens
+        const pexelsTabBtn = tabs.find(b => b.getAttribute('data-tab')==='pexels');
+        if (pexelsTabBtn) pexelsTabBtn.addEventListener('click', () => {
+          setTimeout(() => {
+            const pqi = pexelsPane ? pexelsPane.querySelector('.pexels-query') : null;
+            if (pqi) pqi.focus();
+          }, 0);
+        });
+      }
+
       // YouTube
       if (true) {
         const ytPane = body.querySelector('.tab-content[data-tab="youtube"]');
@@ -306,7 +417,8 @@ class MediaPicker {
 
       // Default tab
       const hasYtKey = !!(window.MEDIA_CONFIG && (window.MEDIA_CONFIG.youtubeApiKey || window.MEDIA_CONFIG.youtubeKey));
-      const initialTab = defaultTab || (type === 'video' && hasYtKey ? 'youtube' : 'unsplash');
+      const hasPexelsKey = !!(window.MEDIA_CONFIG && window.MEDIA_CONFIG.pexelsKey);
+      const initialTab = defaultTab || (type === 'video' && hasPexelsKey ? 'pexels' : type === 'video' && hasYtKey ? 'youtube' : 'unsplash');
       setTab(initialTab);
 
       // Inject minimal styles for drawer
@@ -327,6 +439,8 @@ class MediaPicker {
           .media-tabs .tab-btn.active { box-shadow: 0 0 0 2px rgba(59,130,246,0.15) inset; }
           .media-tabs .tab-btn[data-tab="unsplash"] { background:#ff7700; border-color:#ff7700; color:#fff; }
           .media-tabs .tab-btn[data-tab="unsplash"].active { filter: brightness(0.95); }
+          .media-tabs .tab-btn[data-tab="pexels"] { background:#05A081; border-color:#05A081; color:#fff; }
+          .media-tabs .tab-btn[data-tab="pexels"].active { filter: brightness(0.95); }
           .media-tabs .tab-btn[data-tab="youtube"] { background:#ff0000; border-color:#ff0000; color:#fff; }
           .media-tabs .tab-btn[data-tab="youtube"].active { filter: brightness(0.95); }
           .media-tabs .tab-btn[data-tab="upload"] { background:#f3f4f6; }

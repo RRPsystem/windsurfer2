@@ -737,6 +737,9 @@
             <button id="editTravelBtn" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">
               <i class="fas fa-edit"></i> Bewerken in Builder
             </button>
+            <button id="generateVideoBtn" class="btn btn-video" style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); border: none; color: white;">
+              <i class="fas fa-video"></i> Maak Video
+            </button>
             <button id="viewJsonBtn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px;">
               <i class="fas fa-code"></i> Bekijk JSON
             </button>
@@ -771,6 +774,7 @@
 
       // Attach event listeners for new buttons
       const editBtn = contentEl.querySelector('#editTravelBtn');
+      const generateVideoBtn = contentEl.querySelector('#generateVideoBtn');
       const viewJsonBtn = contentEl.querySelector('#viewJsonBtn');
       const closeJsonBtn = contentEl.querySelector('#closeJsonBtn');
       const jsonViewer = contentEl.querySelector('#jsonViewer');
@@ -778,6 +782,12 @@
       if (editBtn) {
         editBtn.addEventListener('click', () => {
           this.editInBuilder(data);
+        });
+      }
+
+      if (generateVideoBtn) {
+        generateVideoBtn.addEventListener('click', () => {
+          this.openVideoGenerator(data);
         });
       }
 
@@ -876,6 +886,29 @@
         });
         alert('Builder functie nog niet beschikbaar. Implementeer websiteBuilder.loadTravelIdea()');
       }
+    },
+
+    openVideoGenerator(data) {
+      console.log('[TravelView] Opening video generator with data:', data);
+      
+      // Check if VideoGeneratorView is loaded
+      if (!window.VideoGeneratorView) {
+        console.error('[TravelView] VideoGeneratorView not loaded!');
+        alert('Video generator nog niet geladen. Herlaad de pagina.');
+        return;
+      }
+
+      // Get or create video generator container
+      let container = document.getElementById('videoGeneratorContainer');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'videoGeneratorContainer';
+        container.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #f9fafb; z-index: 10000; overflow-y: auto;';
+        document.body.appendChild(container);
+      }
+
+      // Mount video generator
+      window.VideoGeneratorView.mount(container, data);
     }
   };
 

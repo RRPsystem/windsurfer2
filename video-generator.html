@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travel Video Generator - Maak Promotievideo's</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+      animation: fadeIn 0.6s ease-in;
+    }
+
+    .header h1 {
+      font-size: 42px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .header p {
+      font-size: 18px;
+      opacity: 0.95;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      animation: slideUp 0.6s ease-out;
+    }
+
+    .card h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .card h2 i {
+      color: #667eea;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .form-group input[type="text"],
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .form-group input[type="text"]:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .destination-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      min-height: 50px;
+      padding: 12px;
+      border: 2px dashed #e5e7eb;
+      border-radius: 10px;
+    }
+
+    .destination-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      animation: popIn 0.3s ease-out;
+    }
+
+    .destination-tag button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      padding: 0;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+
+    .destination-tag button:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .destination-input-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .destination-input-row input {
+      flex: 1;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+    }
+
+    .btn-secondary {
+      background: #6b7280;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #4b5563;
+    }
+
+    .btn-success {
+      background: #22c55e;
+      color: white;
+    }
+
+    .btn-large {
+      padding: 16px 40px;
+      font-size: 18px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .slider-group {
+      margin-bottom: 24px;
+    }
+
+    .slider-group input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 5px;
+      background: #e5e7eb;
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+
+    .slider-group input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #667eea;
+      cursor: pointer;
+    }
+
+    .slider-group input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #667eea;
+      cursor: pointer;
+      border: none;
+    }
+
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 6px;
+    }
+
+    .slider-value {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: #667eea;
+      margin-top: 8px;
+    }
+
+    .upload-area {
+      border: 2px dashed #d1d5db;
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      background: #f9fafb;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .upload-area:hover {
+      border-color: #667eea;
+      background: #f0f4ff;
+    }
+
+    .upload-area i {
+      font-size: 48px;
+      color: #9ca3af;
+      margin-bottom: 12px;
+    }
+
+    .upload-status {
+      margin-top: 12px;
+      padding: 12px;
+      background: #f0fdf4;
+      border: 1px solid #22c55e;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .progress-container {
+      display: none;
+      margin-top: 24px;
+    }
+
+    .progress-bar-wrapper {
+      background: #f3f4f6;
+      border-radius: 10px;
+      height: 16px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .progress-bar {
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s;
+      border-radius: 10px;
+    }
+
+    .progress-text {
+      text-align: center;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .video-result {
+      display: none;
+      margin-top: 24px;
+    }
+
+    .video-result video {
+      width: 100%;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .info-box {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 16px;
+    }
+
+    .info-box strong {
+      color: #1e40af;
+    }
+
+    .info-box ul {
+      margin: 8px 0 0 20px;
+      color: #1e40af;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from { 
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to { 
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .spinner {
+      display: inline-block;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1><i class="fas fa-video"></i> Travel Video Generator</h1>
+      <p>Maak professionele promotievideo's voor je reizen in minuten</p>
+    </div>
+
+    <!-- Main Form -->
+    <div class="card">
+      <h2><i class="fas fa-edit"></i> Reis Details</h2>
+      
+      <div class="form-group">
+        <label for="videoTitle">
+          <i class="fas fa-heading"></i> Video Titel
+        </label>
+        <input type="text" id="videoTitle" placeholder="Bijv. Rondreis Europa, Azië Avontuur..." value="Jouw Droomreis">
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="fas fa-map-marked-alt"></i> Bestemmingen
+        </label>
+        <div class="destination-input-row">
+          <input type="text" id="destinationInput" placeholder="Voer een bestemming in (bijv. Paris, Rome, Barcelona...)">
+          <button class="btn btn-primary" onclick="addDestination()">
+            <i class="fas fa-plus"></i> Toevoegen
+          </button>
+        </div>
+        <div id="destinationList" class="destination-list">
+          <div style="color: #9ca3af; font-size: 14px; width: 100%; text-align: center; padding: 8px;">
+            Voeg minimaal 2 bestemmingen toe
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <strong><i class="fas fa-lightbulb"></i> Tips:</strong>
+        <ul>
+          <li>Gebruik bekende plaatsnamen voor beste resultaten</li>
+          <li>2-7 bestemmingen werkt het beste</li>
+          <li>Elke bestemming krijgt 2-5 seconden in de video</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="card">
+      <h2><i class="fas fa-sliders-h"></i> Video Instellingen</h2>
+      
+      <div class="slider-group">
+        <label>
+          <i class="fas fa-clock"></i> Duur per bestemming
+        </label>
+        <input type="range" id="clipDuration" min="2" max="5" value="3" step="0.5">
+        <div class="slider-labels">
+          <span>2 seconden</span>
+          <span>5 seconden</span>
+        </div>
+        <div class="slider-value" id="durationValue">3 seconden</div>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="fas fa-microphone"></i> Voice-over (optioneel)
+        </label>
+        <div class="upload-area" onclick="document.getElementById('voiceoverFile').click()">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <div style="font-weight: 600; color: #374151; margin-bottom: 4px;">
+            Klik om audio te uploaden
+          </div>
+          <div style="font-size: 14px; color: #6b7280;">
+            MP3, WAV of M4A (max 10MB)
+          </div>
+        </div>
+        <input type="file" id="voiceoverFile" accept="audio/*" style="display: none;">
+        <div id="uploadStatus" class="upload-status">
+          <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+          <span id="uploadStatusText"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generate Button -->
+    <button class="btn btn-primary btn-large" onclick="generateVideo()" id="generateBtn">
+      <i class="fas fa-magic"></i> Genereer Video
+    </button>
+
+    <!-- Progress -->
+    <div class="progress-container" id="progressContainer">
+      <div class="card">
+        <h2><i class="fas fa-spinner spinner"></i> Video wordt gegenereerd...</h2>
+        <div class="progress-bar-wrapper">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="progress-text" id="progressText">Voorbereiden...</div>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div class="video-result" id="videoResult">
+      <div class="card">
+        <h2><i class="fas fa-check-circle" style="color: #22c55e;"></i> Video is klaar!</h2>
+        <video id="resultVideo" controls></video>
+        <div style="display: flex; gap: 12px;">
+          <a id="downloadBtn" class="btn btn-success" style="flex: 1; text-decoration: none; justify-content: center;" download>
+            <i class="fas fa-download"></i> Download Video
+          </a>
+          <button class="btn btn-secondary" style="flex: 1;" onclick="resetGenerator()">
+            <i class="fas fa-redo"></i> Nieuwe Video
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let destinations = [];
+    let voiceoverUrl = null;
+    let renderId = null;
+    let statusInterval = null;
+
+    // Add destination
+    function addDestination() {
+      const input = document.getElementById('destinationInput');
+      const value = input.value.trim();
+      
+      if (!value) return;
+      
+      if (destinations.includes(value)) {
+        alert('Deze bestemming is al toegevoegd');
+        return;
+      }
+      
+      destinations.push(value);
+      input.value = '';
+      renderDestinations();
+    }
+
+    // Remove destination
+    function removeDestination(index) {
+      destinations.splice(index, 1);
+      renderDestinations();
+    }
+
+    // Render destinations
+    function renderDestinations() {
+      const list = document.getElementById('destinationList');
+      
+      if (destinations.length === 0) {
+        list.innerHTML = '<div style="color: #9ca3af; font-size: 14px; width: 100%; text-align: center; padding: 8px;">Voeg minimaal 2 bestemmingen toe</div>';
+        return;
+      }
+      
+      list.innerHTML = destinations.map((dest, index) => `
+        <div class="destination-tag">
+          <span>${dest}</span>
+          <button onclick="removeDestination(${index})">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // Enter key support
+    document.getElementById('destinationInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') addDestination();
+    });
+
+    // Duration slider
+    document.getElementById('clipDuration').addEventListener('input', (e) => {
+      document.getElementById('durationValue').textContent = `${e.target.value} seconden`;
+    });
+
+    // Voice-over upload
+    document.getElementById('voiceoverFile').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const status = document.getElementById('uploadStatus');
+      const statusText = document.getElementById('uploadStatusText');
+      
+      status.style.display = 'block';
+      statusText.textContent = 'Uploaden...';
+
+      try {
+        const formData = new FormData();
+        formData.append('voiceover', file);
+
+        const response = await fetch('/api/video/upload-voiceover', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) throw new Error('Upload mislukt');
+
+        const result = await response.json();
+        voiceoverUrl = result.url;
+        statusText.textContent = `✓ ${file.name} geüpload`;
+      } catch (error) {
+        statusText.textContent = '✗ Upload mislukt';
+        status.style.background = '#fef2f2';
+        status.style.borderColor = '#ef4444';
+      }
+    });
+
+    // Generate video
+    async function generateVideo() {
+      if (destinations.length < 2) {
+        alert('Voeg minimaal 2 bestemmingen toe');
+        return;
+      }
+
+      const title = document.getElementById('videoTitle').value.trim();
+      const duration = parseFloat(document.getElementById('clipDuration').value);
+      
+      const generateBtn = document.getElementById('generateBtn');
+      const progressContainer = document.getElementById('progressContainer');
+      
+      generateBtn.disabled = true;
+      generateBtn.style.opacity = '0.5';
+      progressContainer.style.display = 'block';
+
+      try {
+        const response = await fetch('/api/video/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            destinations: destinations.map(name => ({ name })),
+            title: title || 'Jouw Reis',
+            duration,
+            voiceoverUrl
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'Video generatie mislukt');
+        }
+
+        const result = await response.json();
+        renderId = result.renderId;
+
+        // Start polling
+        pollStatus();
+
+      } catch (error) {
+        alert('Fout: ' + error.message);
+        generateBtn.disabled = false;
+        generateBtn.style.opacity = '1';
+        progressContainer.style.display = 'none';
+      }
+    }
+
+    // Poll status
+    function pollStatus() {
+      statusInterval = setInterval(async () => {
+        try {
+          const response = await fetch(`/api/video/status/${renderId}`);
+          const status = await response.json();
+
+          document.getElementById('progressBar').style.width = `${status.progress}%`;
+          document.getElementById('progressText').textContent = status.message;
+
+          if (status.status === 'done') {
+            clearInterval(statusInterval);
+            showResult(status.url);
+          } else if (status.status === 'failed') {
+            clearInterval(statusInterval);
+            alert('Video generatie mislukt: ' + (status.error || 'Onbekende fout'));
+            resetGenerator();
+          }
+        } catch (error) {
+          console.error('Status check error:', error);
+        }
+      }, 3000);
+    }
+
+    // Show result
+    function showResult(videoUrl) {
+      document.getElementById('progressContainer').style.display = 'none';
+      document.getElementById('videoResult').style.display = 'block';
+      document.getElementById('resultVideo').src = videoUrl;
+      document.getElementById('downloadBtn').href = videoUrl;
+      
+      // Scroll to result
+      document.getElementById('videoResult').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Reset generator
+    function resetGenerator() {
+      document.getElementById('generateBtn').disabled = false;
+      document.getElementById('generateBtn').style.opacity = '1';
+      document.getElementById('progressContainer').style.display = 'none';
+      document.getElementById('videoResult').style.display = 'none';
+      
+      if (statusInterval) {
+        clearInterval(statusInterval);
+        statusInterval = null;
+      }
+      
+      renderId = null;
+    }
+  </script>
+</body>
+</html>
