@@ -27,7 +27,8 @@ module.exports = async function(req, res) {
       destinations = [], 
       title = 'Jouw Reis',
       voiceoverUrl = null,
-      duration = 3
+      duration = 3,
+      clipsPerDestination = 2  // Aantal clips per bestemming (1-3)
     } = req.body;
 
     if (!destinations || destinations.length === 0) {
@@ -36,10 +37,12 @@ module.exports = async function(req, res) {
 
     console.log('[VideoGen] Generating video for:', { title, destinations: destinations.length });
 
-    // Step 1: Search video clips
-    const clipPromises = destinations.map(dest => searchVideoClip(dest.name || dest, PEXELS_API_KEY));
-    const clips = await Promise.all(clipPromises);
-    const validClips = clips.filter(c => c !== null);
+    // Step 1: Search video clips (multiple per destination)
+    const clipPromises = destinations.map(dest => 
+      searchMultipleVideoClips(dest.name || dest, PEXELS_API_KEY, clipsPerDestination)
+    );
+    const clipsPerDest = await Promise.all(clipPromises);
+    const validClips = clipsPerDest.flat().filter(c => c !== null);
     
     if (validClips.length === 0) {
       return res.status(404).json({ error: 'Geen video clips gevonden' });
@@ -73,36 +76,53 @@ module.exports = async function(req, res) {
   }
 };
 
-async function searchVideoClip(destination, apiKey) {
+// Search multiple video clips per destination for more variety
+async function searchMultipleVideoClips(destination, apiKey, count = 2) {
   try {
+    const maxClips = Math.min(Math.max(1, count), 3); // Limit 1-3 clips
     const query = `${destination} travel aerial city`;
-    const url = `https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&per_page=5&orientation=landscape`;
+    const url = `https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&per_page=${maxClips * 2}&orientation=landscape`;
     
     const response = await axios.get(url, {
       headers: { 'Authorization': apiKey }
     });
 
     if (response.data.videos && response.data.videos.length > 0) {
-      const video = response.data.videos[0];
-      const hdFile = video.video_files.find(f => f.quality === 'hd' && f.width >= 1280) 
-                     || video.video_files[0];
+      const clips = [];
+      const videos = response.data.videos.slice(0, maxClips);
       
-      return {
-        destination,
-        url: hdFile.link,
-        width: hdFile.width,
-        height: hdFile.height,
-        duration: video.duration,
-        thumbnail: video.image
-      };
+      for (const video of videos) {
+        const hdFile = video.video_files.find(f => f.quality === 'hd' && f.width >= 1280) 
+                       || video.video_files[0];
+        
+        if (hdFile) {
+          clips.push({
+            destination,
+            url: hdFile.link,
+            width: hdFile.width,
+            height: hdFile.height,
+            duration: video.duration,
+            thumbnail: video.image
+          });
+        }
+      }
+      
+      console.log(`[VideoGen] Found ${clips.length} clips for: ${destination}`);
+      return clips;
     }
     
     console.warn(`[VideoGen] No clips found for: ${destination}`);
-    return null;
+    return [];
   } catch (error) {
     console.error(`[VideoGen] Pexels search failed for ${destination}:`, error.message);
-    return null;
+    return [];
   }
+}
+
+// Legacy function for backward compatibility
+async function searchVideoClip(destination, apiKey) {
+  const clips = await searchMultipleVideoClips(destination, apiKey, 1);
+  return clips.length > 0 ? clips[0] : null;
 }
 
 function createTimeline(clips, title, clipDuration, voiceoverUrl) {

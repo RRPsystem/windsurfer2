@@ -15,6 +15,7 @@ window.BOLT_DB = {
       if (config.pexelsKey) window.MEDIA_CONFIG.pexelsKey = config.pexelsKey;
       if (config.unsplashKey) window.MEDIA_CONFIG.unsplashKey = config.unsplashKey;
       if (config.youtubeKey) window.MEDIA_CONFIG.youtubeKey = config.youtubeKey;
+      if (config.mapboxToken) window.MEDIA_CONFIG.mapboxToken = config.mapboxToken;
       console.log('[Config] Media API keys loaded from environment');
     }
   } catch (error) {

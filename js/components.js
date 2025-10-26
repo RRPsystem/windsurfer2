@@ -5652,3 +5652,93 @@ ComponentFactory.createTravelIntro = function(options = {}) {
     
     return section;
 };
+
+// Animated Travel Route Map - Mapbox GL JS animated routes
+ComponentFactory.createAnimatedRouteMap = function(options = {}) {
+        const section = document.createElement('section');
+        section.className = 'wb-component wb-animated-route-map';
+        section.setAttribute('data-component', 'animated-route-map');
+        section.id = this.generateId('animated_route_map');
+        
+        const toolbar = this.createToolbar();
+        section.appendChild(toolbar);
+        this.addTypeBadge(section);
+        
+        // Container for map
+        const mapContainer = document.createElement('div');
+        mapContainer.className = 'animated-map-container';
+        mapContainer.style.cssText = 'width: 100%; height: 600px; position: relative; border-radius: 12px; overflow: hidden;';
+        
+        // Map element
+        const mapEl = document.createElement('div');
+        mapEl.className = 'animated-map';
+        mapEl.style.cssText = 'width: 100%; height: 100%;';
+        mapContainer.appendChild(mapEl);
+        
+        // Control panel
+        const controls = document.createElement('div');
+        controls.className = 'map-controls';
+        controls.style.cssText = 'position: absolute; top: 20px; right: 20px; z-index: 10; display: flex; gap: 8px;';
+        controls.innerHTML = `
+            <button class="btn btn-primary map-play" style="background: #667eea; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+                <i class="fas fa-play"></i> Afspelen
+            </button>
+            <button class="btn btn-secondary map-reset" style="background: #f3f4f6; color: #374151; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+                <i class="fas fa-redo"></i> Reset
+            </button>
+        `;
+        mapContainer.appendChild(controls);
+        
+        section.appendChild(mapContainer);
+        
+        // Default routes
+        const defaultRoutes = options.routes || [
+            {
+                from: { name: 'Amsterdam', coords: [4.9041, 52.3676] },
+                to: { name: 'New York', coords: [-74.0060, 40.7128] },
+                mode: 'flight',
+                duration: 3000
+            },
+            {
+                from: { name: 'New York', coords: [-74.0060, 40.7128] },
+                to: { name: 'Boston', coords: [-71.0589, 42.3601] },
+                mode: 'car',
+                duration: 2000
+            }
+        ];
+        
+        // Store routes on section
+        section._routes = defaultRoutes;
+        
+        // Initialize map when section is added to DOM
+        setTimeout(() => {
+            if (typeof AnimatedTravelMap !== 'undefined') {
+                const travelMap = new AnimatedTravelMap(mapEl, {
+                    routes: section._routes,
+                    autoplay: false,
+                    style: 'mapbox://styles/mapbox/light-v11'
+                });
+                
+                section._travelMap = travelMap;
+                
+                // Control buttons
+                const playBtn = controls.querySelector('.map-play');
+                const resetBtn = controls.querySelector('.map-reset');
+                
+                playBtn.addEventListener('click', () => {
+                    travelMap.startAnimation();
+                });
+                
+                resetBtn.addEventListener('click', () => {
+                    travelMap.reset();
+                });
+            } else {
+                console.error('[AnimatedRouteMap] AnimatedTravelMap class not loaded');
+                mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#666;"><div><i class="fas fa-exclamation-triangle" style="font-size:48px;margin-bottom:12px;"></i><div>Mapbox GL JS niet geladen</div></div></div>';
+            }
+        }, 100);
+        
+        this.makeSelectable(section);
+        
+        return section;
+};
