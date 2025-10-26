@@ -748,6 +748,48 @@ window.BuilderPublishAPI.destinations = {
 };
 
 // ==============================
+// Trips (pages-api with content_type=trips)
+// ==============================
+async function tripsSaveDraft({ brand_id, page_id, title, slug, content_json, status = 'draft' }) {
+  const base = contentApiBase();
+  if (!base) throw new Error('API base URL ontbreekt');
+  const url = `${base}/pages-api/save`;
+  
+  const body = { 
+    brand_id, 
+    page_id,
+    title, 
+    slug, 
+    content_json,
+    content_type: 'trips',
+    status 
+  };
+  
+  console.debug('[tripsSaveDraft] request', { url, body });
+  const headers = contentApiHeaders();
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body)
+  });
+  
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error('[tripsSaveDraft] error', response.status, errText);
+    throw new Error(`Trip opslaan mislukt: ${response.status} ${errText}`);
+  }
+  
+  const data = await response.json();
+  console.debug('[tripsSaveDraft] success', { id: data?.id, slug: data?.slug, status: data?.status });
+  return data;
+}
+
+// Expose trips API
+window.BuilderPublishAPI.trips = {
+  saveDraft: tripsSaveDraft
+};
+
+// ==============================
 // Universal Edge Save Function
 // ==============================
 window.websiteBuilder = window.websiteBuilder || {};
