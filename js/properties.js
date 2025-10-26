@@ -5040,7 +5040,11 @@ PropertiesPanel.prototype.createAnimatedRouteMapProperties = function(component)
     const travelMap = component._travelMap;
     const routes = component._routes || [];
     
-    this.createHeading('🗺️ Geanimeerde Route Kaart');
+    // Heading
+    const heading = document.createElement('h3');
+    heading.textContent = '🗺️ Geanimeerde Route Kaart';
+    heading.style.cssText = 'margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #1f2937;';
+    this.panel.appendChild(heading);
     
     // Icon grootte
     const currentIconSize = (travelMap && travelMap.iconSize) || 32;
@@ -5085,7 +5089,12 @@ PropertiesPanel.prototype.createAnimatedRouteMapProperties = function(component)
     );
     
     this.createSeparator();
-    this.createHeading('Routes');
+    
+    // Routes heading
+    const routesHeading = document.createElement('h4');
+    routesHeading.textContent = 'Routes';
+    routesHeading.style.cssText = 'margin: 16px 0 12px 0; font-size: 14px; font-weight: 600; color: #374151;';
+    this.panel.appendChild(routesHeading);
     
     // Routes lijst
     const routesList = document.createElement('div');
