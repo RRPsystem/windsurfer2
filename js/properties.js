@@ -3058,6 +3058,15 @@ class PropertiesPanel {
             try {
                 if (mode === 'image') {
                     component._heroMode = 'image';
+                    // Remove video if present
+                    const videoWrap = component.querySelector('.hero-video');
+                    if (videoWrap) videoWrap.remove();
+                    // Restore background images
+                    const bg = component.querySelector('.hero-bg');
+                    if (bg) {
+                        bg.style.opacity = '1';
+                        bg.style.pointerEvents = '';
+                    }
                     if (window.MediaPicker) {
                         const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
                         const src = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
@@ -3103,11 +3112,24 @@ class PropertiesPanel {
                         if (!videoWrap) {
                             videoWrap = document.createElement('div');
                             videoWrap.className = 'hero-video';
-                            videoWrap.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; z-index: 0;';
+                            videoWrap.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; z-index: 1;';
                             const bg = component.querySelector('.hero-bg');
-                            if (bg) bg.parentNode.insertBefore(videoWrap, bg);
+                            if (bg) {
+                                // Hide background images when video is active
+                                bg.style.opacity = '0';
+                                bg.style.pointerEvents = 'none';
+                                bg.parentNode.insertBefore(videoWrap, bg);
+                            }
                         }
                         videoWrap.innerHTML = videoHtml;
+                        
+                        // Ensure video plays
+                        setTimeout(() => {
+                            const video = videoWrap.querySelector('video');
+                            if (video) {
+                                video.play().catch(e => console.warn('Video autoplay failed:', e));
+                            }
+                        }, 100);
                     }
                     // Handle YouTube videos
                     else if (r && (r.embedUrl || r.url)) {
