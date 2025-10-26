@@ -86,6 +86,9 @@
     <link rel="stylesheet" href="styles/components.css?v=20251025g">
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Mapbox GL JS -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
@@ -178,6 +181,10 @@
                             <div class="component-item" draggable="true" data-component="hero-travel">
                                 <i class="fas fa-mountain-sun"></i>
                                 <span>Hero Travel (homepage)</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-component="animated-route-map">
+                                <i class="fas fa-route"></i>
+                                <span>Geanimeerde Route Kaart</span>
                             </div>
                             <div class="component-item" draggable="true" data-component="feature-media">
                                 <i class="fas fa-square-split-horizontal"></i>
@@ -422,6 +429,7 @@
     <script src="js/iconPicker.js?v=117c0aa"></script>
     <script src="js/sidebar.js?v=117c0aa"></script>
     <script src="js/components.js?v=9914f33"></script>
+    <script src="js/animatedTravelMap.js?v=117c0aa"></script>
     <script src="js/dragdrop.js?v=117c0aa"></script>
     <script src="js/media.js?v=117c0aa"></script>
     <script src="js/routeOverview.js?v=117c0aa"></script>

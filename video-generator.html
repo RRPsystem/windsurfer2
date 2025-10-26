@@ -414,7 +414,9 @@
         <ul>
           <li>Gebruik bekende plaatsnamen voor beste resultaten</li>
           <li>2-7 bestemmingen werkt het beste</li>
-          <li>Elke bestemming krijgt 2-5 seconden in de video</li>
+          <li>Elke bestemming krijgt automatisch 2 clips voor variatie</li>
+          <li>Voeg AI voice-over toe voor professionele uitstraling</li>
+          <li>Kies achtergrondmuziek die past bij je reis</li>
         </ul>
       </div>
     </div>
@@ -425,19 +427,60 @@
       
       <div class="slider-group">
         <label>
-          <i class="fas fa-clock"></i> Duur per bestemming
+          <i class="fas fa-clock"></i> Totale video duur
         </label>
-        <input type="range" id="clipDuration" min="2" max="5" value="3" step="0.5">
+        <input type="range" id="videoDuration" min="15" max="60" value="30" step="5">
         <div class="slider-labels">
-          <span>2 seconden</span>
-          <span>5 seconden</span>
+          <span>15 seconden</span>
+          <span>60 seconden</span>
         </div>
-        <div class="slider-value" id="durationValue">3 seconden</div>
+        <div class="slider-value" id="durationValue">30 seconden</div>
       </div>
 
       <div class="form-group">
         <label>
-          <i class="fas fa-microphone"></i> Voice-over (optioneel)
+          <i class="fas fa-robot"></i> AI Voice-over (optioneel)
+        </label>
+        <textarea id="voiceoverText" placeholder="Typ hier je voice-over tekst... (bijv. 'Ontdek de prachtige bestemmingen van Europa. Van de historische straten van Rome tot de adembenemende kust van Kroatië.')" rows="3" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit; font-size: 14px; resize: vertical;"></textarea>
+        <div style="display: flex; gap: 8px; margin-top: 8px; align-items: center;">
+          <select id="voiceGender" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+            <option value="female">Vrouwelijke stem</option>
+            <option value="male">Mannelijke stem</option>
+          </select>
+          <select id="voiceLanguage" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+            <option value="nl-NL">Nederlands</option>
+            <option value="en-US">Engels (US)</option>
+            <option value="en-GB">Engels (UK)</option>
+            <option value="de-DE">Duits</option>
+            <option value="fr-FR">Frans</option>
+            <option value="es-ES">Spaans</option>
+            <option value="it-IT">Italiaans</option>
+          </select>
+        </div>
+        <div style="font-size: 12px; color: #6b7280; margin-top: 6px;">
+          <i class="fas fa-info-circle"></i> AI genereert automatisch een professionele voice-over
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="fas fa-music"></i> Achtergrondmuziek
+        </label>
+        <select id="backgroundMusic" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+          <option value="">Geen muziek</option>
+          <option value="upbeat">Upbeat & Energiek</option>
+          <option value="ambient">Ambient & Rustig</option>
+          <option value="cinematic">Cinematic & Dramatisch</option>
+          <option value="acoustic">Acoustic & Warm</option>
+        </select>
+        <div style="font-size: 12px; color: #6b7280; margin-top: 6px;">
+          <i class="fas fa-info-circle"></i> Royalty-free muziek van Pexels
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="fas fa-microphone"></i> Of upload eigen audio (optioneel)
         </label>
         <div class="upload-area" onclick="document.getElementById('voiceoverFile').click()">
           <i class="fas fa-cloud-upload-alt"></i>
@@ -542,8 +585,8 @@
       if (e.key === 'Enter') addDestination();
     });
 
-    // Duration slider
-    document.getElementById('clipDuration').addEventListener('input', (e) => {
+    // Video duration slider
+    document.getElementById('videoDuration').addEventListener('input', (e) => {
       document.getElementById('durationValue').textContent = `${e.target.value} seconden`;
     });
 
@@ -587,7 +630,16 @@
       }
 
       const title = document.getElementById('videoTitle').value.trim();
-      const duration = parseFloat(document.getElementById('clipDuration').value);
+      const videoDuration = parseInt(document.getElementById('videoDuration').value);
+      const voiceoverText = document.getElementById('voiceoverText').value.trim();
+      const voiceGender = document.getElementById('voiceGender').value;
+      const voiceLanguage = document.getElementById('voiceLanguage').value;
+      const backgroundMusic = document.getElementById('backgroundMusic').value;
+      
+      // Calculate clip duration based on total duration and destinations
+      const clipsPerDestination = 2; // Fixed at 2 for balanced videos
+      const totalClips = destinations.length * clipsPerDestination;
+      const clipDuration = Math.max(2, Math.min(5, videoDuration / totalClips));
       
       const generateBtn = document.getElementById('generateBtn');
       const progressContainer = document.getElementById('progressContainer');
@@ -603,8 +655,14 @@
           body: JSON.stringify({
             destinations: destinations.map(name => ({ name })),
             title: title || 'Jouw Reis',
-            duration,
-            voiceoverUrl
+            duration: clipDuration,
+            clipsPerDestination,
+            videoDuration,
+            voiceoverUrl,
+            voiceoverText,
+            voiceGender,
+            voiceLanguage,
+            backgroundMusic
           })
         });
 

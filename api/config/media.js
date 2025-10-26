@@ -7,7 +7,8 @@ export default async function handler(req, res) {
     const config = {
       pexelsKey: process.env.PEXELS_API_KEY || '',
       unsplashKey: process.env.UNSPLASH_ACCESS_KEY || '',
-      youtubeKey: process.env.YOUTUBE_API_KEY || ''
+      youtubeKey: process.env.YOUTUBE_API_KEY || '',
+      mapboxToken: process.env.MAPBOX_TOKEN || ''
     };
 
     // Set CORS headers
