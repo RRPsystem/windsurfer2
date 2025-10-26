@@ -718,11 +718,20 @@ app.post('/api/booking/parse', bookingParseHandler);
 const urlImportHandler = require('./api/url-import');
 app.post('/api/booking/url-import', urlImportHandler);
 
+// Video generation routes
+const videoGenerateHandler = require('./api/video-generate');
+const videoStatusHandler = require('./api/video-status');
+const voiceoverUploadHandler = require('./api/voiceover-upload');
+app.post('/api/video/generate', videoGenerateHandler);
+app.get('/api/video/status/:id', videoStatusHandler);
+app.post('/api/video/upload-voiceover', voiceoverUploadHandler);
+
 app.listen(PORT, () => {
   console.log(`\n🚀 Server running at http://localhost:${PORT}`);
   console.log(`📁 Static files: http://localhost:${PORT}/index.html`);
   console.log(`🔗 Travel Compositor API: /api/ideas`);
   console.log(`📄 PDF Parser: /api/booking/parse`);
   console.log(`🌐 URL Import: /api/booking/url-import`);
+  console.log(`🎬 Video Generator: /api/video/generate`);
   console.log(`📤 Git Push: /api/git/push\n`);
 });
