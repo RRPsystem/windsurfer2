@@ -74,7 +74,8 @@ class ComponentFactory {
             'travel-timeline': this.createTravelTimeline,
             'travel-hero': this.createTravelHero,
             'route-overview-btn': this.createRouteOverviewButton,
-            'travel-intro': this.createTravelIntro
+            'travel-intro': this.createTravelIntro,
+            'animated-route-map': this.createAnimatedRouteMap
         };
 
         
