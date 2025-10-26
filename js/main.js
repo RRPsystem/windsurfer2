@@ -1806,16 +1806,16 @@ class WebsiteBuilder {
                         });
                         this.showNotification('🗺️ Concept opgeslagen (Bestemming)', 'success');
                         try { if (window.handleReturnUrl) window.handleReturnUrl(); } catch (e) {}
-                    } else if ((mode === 'travel' || mode === 'trips') && window.BuilderPublishAPI.saveDraft) {
-                        // Trips/Travel: save via pages-api with content_type
+                    } else if ((mode === 'travel' || mode === 'trips') && window.BuilderPublishAPI.trips) {
+                        // Trips/Travel: save via trips helper
                         const page_id = u.searchParams.get('page_id') || this.currentPageId || undefined;
-                        await window.BuilderPublishAPI.saveDraft({
+                        await window.BuilderPublishAPI.trips.saveDraft({
                             brand_id,
                             page_id,
                             title: safeTitle,
                             slug: safeSlug,
                             content_json: contentJson,
-                            content_type: 'trips'
+                            status: 'draft'
                         });
                         this.showNotification('✈️ Concept opgeslagen (Reis)', 'success');
                         try { if (window.handleReturnUrl) window.handleReturnUrl(); } catch (e) {}
