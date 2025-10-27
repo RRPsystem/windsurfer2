@@ -87,7 +87,7 @@
     const grid = el('div', { style: 'display:grid;grid-template-columns:450px 1fr;gap:16px;align-items:start;' });
 
     // Left: compact controls panel
-    const panel = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:14px;overflow-y:auto;' });
+    const panel = el('div', { style: 'border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:14px;overflow-y:auto;max-height:calc(100vh - 120px);' });
     panel.appendChild(el('div', { style:'font-weight:700;font-size:16px;margin-bottom:6px;' }, 'Menu & Footer'));
 
     // Key selector
@@ -368,12 +368,31 @@
     updateView();
     renderTop();
     // Auto-import (once)
-    (async () => { try { await window.LayoutsBuilder.importPagesFromBoltIntoForm(form, treeWrap, currentKey()); } catch (e) {} })();
+    (async () => { 
+      try { 
+        await window.LayoutsBuilder.importPagesFromBoltIntoForm(form, treeWrap, currentKey()); 
+        console.log('[MenuFooterView] Auto-import successful');
+      } catch (e) {
+        console.warn('[MenuFooterView] Auto-import failed:', e);
+      }
+    })();
 
     // Wire controls
     sel.onchange = () => { customInput.style.display = sel.value==='custom' ? '' : 'none'; updateView(); renderTop(); };
     customInput.oninput = () => updateView();
-    btnImport.onclick = async (e) => { e.preventDefault(); await window.LayoutsBuilder.importPagesFromBoltIntoForm(form, treeWrap, currentKey()); try { window.MenuPreview?.render(form.__menuMap); } catch (e) {}; renderTop(); };
+    btnImport.onclick = async (e) => { 
+      e.preventDefault(); 
+      try {
+        console.log('[MenuFooterView] Manual import started...');
+        await window.LayoutsBuilder.importPagesFromBoltIntoForm(form, treeWrap, currentKey()); 
+        console.log('[MenuFooterView] Manual import successful');
+        try { window.MenuPreview?.render(form.__menuMap); } catch (e) {}
+        renderTop();
+      } catch (err) {
+        console.error('[MenuFooterView] Manual import failed:', err);
+        alert('Pagina\'s importeren mislukt: ' + err.message);
+      }
+    };
     btnPublish.onclick = (e) => { e.preventDefault(); window.LayoutsBuilder.doMenuSavePublish(form, 'publish'); try { window.MenuPreview?.render(form.__menuMap); } catch (e) {}; renderTop(); };
 
     // Header actions
