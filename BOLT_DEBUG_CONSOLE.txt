@@ -1,33 +1,33 @@
-// Debug helper for Bolt integration
-// Run in browser console: checkBoltConfig()
+// BOLT DEBUG - Plak dit in de browser console
+// Kopieer alles hieronder en plak in Console (F12)
 
-window.checkBoltConfig = function() {
+(function() {
   console.log('=== BOLT CONFIGURATION CHECK ===');
   
   // Check URL parameters
   const url = new URL(window.location.href);
   console.log('\n📍 URL Parameters:');
   console.log('  brand_id:', url.searchParams.get('brand_id') || '❌ MISSING');
-  console.log('  token:', url.searchParams.get('token') ? '✅ Present' : '❌ MISSING');
+  console.log('  token:', url.searchParams.get('token') ? '✅ Present (length: ' + url.searchParams.get('token').length + ')' : '❌ MISSING');
   console.log('  api:', url.searchParams.get('api') || '❌ MISSING');
   console.log('  apikey:', url.searchParams.get('apikey') || url.searchParams.get('api_key') || '❌ MISSING');
   
   // Check global variables
   console.log('\n🌍 Global Variables:');
   console.log('  window.CURRENT_BRAND_ID:', window.CURRENT_BRAND_ID || '❌ NOT SET');
-  console.log('  window.CURRENT_TOKEN:', window.CURRENT_TOKEN ? '✅ Set' : '❌ NOT SET');
+  console.log('  window.CURRENT_TOKEN:', window.CURRENT_TOKEN ? '✅ Set (length: ' + window.CURRENT_TOKEN.length + ')' : '❌ NOT SET');
   console.log('  window.BOLT_API:', window.BOLT_API || '❌ NOT SET');
   if (window.BOLT_API) {
     console.log('    - baseUrl:', window.BOLT_API.baseUrl || '❌ NOT SET');
-    console.log('    - apiKey:', window.BOLT_API.apiKey ? '✅ Set' : '❌ NOT SET');
+    console.log('    - apiKey:', window.BOLT_API.apiKey ? '✅ Set (length: ' + window.BOLT_API.apiKey.length + ')' : '❌ NOT SET');
   }
   console.log('  window.FnClient:', window.FnClient || '❌ NOT SET');
-  if (window.FnClient) {
-    console.log('    - functionsBase():', window.FnClient.functionsBase ? window.FnClient.functionsBase() : '❌ NOT SET');
+  if (window.FnClient && window.FnClient.functionsBase) {
+    console.log('    - functionsBase():', window.FnClient.functionsBase());
   }
   
   // Check what's needed for import
-  console.log('\n✅ Requirements for "Importeer mijn pagina\'s":');
+  console.log('\n✅ Requirements Check:');
   const hasAll = window.CURRENT_BRAND_ID && 
                  (window.FnClient?.functionsBase?.() || window.BOLT_API?.baseUrl);
   
@@ -36,34 +36,18 @@ window.checkBoltConfig = function() {
     console.log('  Ready to import pages from Bolt.');
   } else {
     console.log('  ❌ Missing required config!');
-    console.log('\n🔧 To fix, add URL parameters:');
-    console.log('  Example URL:');
-    console.log('  ' + window.location.origin + window.location.pathname + 
-                '?brand_id=YOUR_BRAND_ID&token=YOUR_TOKEN&api=https://your-bolt-api.com&apikey=YOUR_API_KEY');
+    
+    // Show what's missing
+    if (!window.CURRENT_BRAND_ID) console.log('    - Missing: CURRENT_BRAND_ID');
+    if (!window.FnClient?.functionsBase?.() && !window.BOLT_API?.baseUrl) console.log('    - Missing: API base URL');
   }
   
   console.log('\n=================================');
-  
-  return {
-    urlParams: {
-      brand_id: url.searchParams.get('brand_id'),
-      token: url.searchParams.get('token'),
-      api: url.searchParams.get('api'),
-      apikey: url.searchParams.get('apikey') || url.searchParams.get('api_key')
-    },
-    globals: {
-      CURRENT_BRAND_ID: window.CURRENT_BRAND_ID,
-      CURRENT_TOKEN: window.CURRENT_TOKEN ? '[PRESENT]' : null,
-      BOLT_API: window.BOLT_API,
-      FnClient: window.FnClient ? 'Present' : null
-    },
-    ready: hasAll
-  };
-};
+})();
 
-// Test the actual API call
-window.testBoltAPI = async function() {
-  console.log('=== TESTING BOLT API ===');
+// Now test the API
+(async function() {
+  console.log('\n=== TESTING BOLT API ===');
   
   const brand_id = window.CURRENT_BRAND_ID;
   const apiBase = (window.FnClient?.functionsBase?.() || window.BOLT_API?.baseUrl || '').replace(/\/$/, '');
@@ -71,7 +55,9 @@ window.testBoltAPI = async function() {
   const apikey = window.BOLT_API?.apiKey;
   
   if (!brand_id || !apiBase) {
-    console.error('❌ Missing brand_id or apiBase. Run checkBoltConfig() first.');
+    console.error('❌ Cannot test API - missing brand_id or apiBase');
+    console.log('  brand_id:', brand_id || 'MISSING');
+    console.log('  apiBase:', apiBase || 'MISSING');
     return;
   }
   
@@ -82,16 +68,19 @@ window.testBoltAPI = async function() {
   try {
     console.log('\n⏳ Fetching...');
     const headers = { 'Content-Type': 'application/json' };
-    if (token) headers.Authorization = `Bearer ${token}`;
-    if (apikey) headers.apikey = apikey;
-    
-    console.log('  Headers:', Object.keys(headers).join(', '));
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+      console.log('  ✅ Added Authorization header');
+    }
+    if (apikey) {
+      headers.apikey = apikey;
+      console.log('  ✅ Added apikey header');
+    }
     
     const response = await fetch(testUrl, { headers });
     
     console.log('\n📥 Response:');
     console.log('  Status:', response.status, response.statusText);
-    console.log('  Headers:', Object.fromEntries(response.headers.entries()));
     
     const contentType = response.headers.get('content-type') || '';
     let data;
@@ -107,42 +96,48 @@ window.testBoltAPI = async function() {
     if (response.ok) {
       console.log('\n✅ API call successful!');
       if (data.pages) {
-        console.log(`  Found ${data.pages.length} pages`);
+        console.log(`  📄 Found ${data.pages.length} total pages`);
         const withMenu = data.pages.filter(p => p.show_in_menu);
-        console.log(`  ${withMenu.length} pages with show_in_menu=true`);
+        console.log(`  📋 ${withMenu.length} pages with show_in_menu=true`);
+        
         if (withMenu.length > 0) {
           console.log('\n  Pages for menu:');
           withMenu.forEach(p => {
-            console.log(`    - ${p.title || p.slug} (${p.slug})`);
+            console.log(`    - ${p.title || p.slug} (slug: ${p.slug})`);
           });
+        } else {
+          console.warn('\n  ⚠️ No pages have show_in_menu=true!');
+          console.log('  This is why "Importeer mijn pagina\'s" shows no results.');
+          console.log('  Fix: In Bolt, set show_in_menu=true for pages you want in the menu.');
         }
+      } else {
+        console.warn('  ⚠️ Response has no "pages" array');
       }
     } else {
       console.error('\n❌ API call failed!');
+      console.error('  Status:', response.status);
       console.error('  Error:', data);
+      
+      if (response.status === 404) {
+        console.log('\n💡 Possible fixes:');
+        console.log('  1. Check if endpoint exists in Bolt: /pages-api/list');
+        console.log('  2. Try alternative endpoint: /pages-api (without /list)');
+      } else if (response.status === 401 || response.status === 403) {
+        console.log('\n💡 Authentication issue:');
+        console.log('  1. Check if token is valid (not expired)');
+        console.log('  2. Check if apikey is correct');
+        console.log('  3. Check if brand_id has access to this API');
+      }
     }
-    
-    return { success: response.ok, status: response.status, data };
     
   } catch (error) {
     console.error('\n❌ API call error!');
     console.error('  Error:', error.message);
-    console.error('  Stack:', error.stack);
-    return { success: false, error: error.message };
+    console.error('  This usually means:');
+    console.error('    - CORS issue');
+    console.error('    - Network error');
+    console.error('    - API endpoint doesn\'t exist');
   }
   
   console.log('\n=================================');
-};
-
-// Auto-run on load
-if (document.readyState === 'complete') {
-  setTimeout(() => {
-    console.log('💡 Run checkBoltConfig() in console to debug Bolt integration');
-  }, 1000);
-} else {
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      console.log('💡 Run checkBoltConfig() in console to debug Bolt integration');
-    }, 1000);
-  });
-}
+})();
