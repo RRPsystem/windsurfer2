@@ -314,15 +314,14 @@
           existingOverlay.remove();
         }
         
-        // Open Media Picker in video mode with Pexels tab
-        console.log('[VideoGen] Calling MediaPicker.openVideo with defaultTab: pexels');
+        // Open Media Picker in video mode with Pexels tab and auto-search
+        const searchQuery = `${destination} travel aerial city`;
+        console.log('[VideoGen] Calling MediaPicker.openVideo with:', { defaultTab: 'pexels', searchQuery });
         
         const result = await window.MediaPicker.openVideo({ 
-          defaultTab: 'pexels'
+          defaultTab: 'pexels',
+          searchQuery: searchQuery
         });
-        
-        // Note: searchQuery is not supported by MediaPicker
-        // User will need to manually search for: ${destination} travel aerial city
         
         console.log('[VideoGen] MediaPicker returned, result:', result);
         
