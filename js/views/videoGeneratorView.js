@@ -656,8 +656,8 @@
         const videoBlob = await fetch(resultVideo.src).then(r => r.blob());
         const base64Video = await this.blobToBase64(videoBlob);
 
-        // Generate thumbnail from video
-        const thumbnail = await this.generateThumbnail(resultVideo);
+        // Use placeholder thumbnail (CORS prevents canvas export from Shotstack videos)
+        const thumbnail = null; // Backend will generate thumbnail or use placeholder
 
         // Upload to Blob Storage
         const response = await fetch('/api/videos/upload', {
