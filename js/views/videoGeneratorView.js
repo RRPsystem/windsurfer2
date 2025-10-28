@@ -475,15 +475,26 @@
       generateBtn.style.cursor = 'not-allowed';
 
       try {
+        // Check if clips are selected
+        if (!this.selectedClips || this.selectedClips.length === 0) {
+          throw new Error('Selecteer eerst video clips voor je bestemmingen');
+        }
+
         const destinations = this.travelData?.destinations?.map(d => ({
           name: d.name || d.title || d
         })) || [];
 
         const payload = {
           destinations,
+          clips: this.selectedClips.map(clip => ({
+            url: clip.url,
+            destination: clip.destination,
+            duration: clip.duration,
+            thumbnail: clip.thumbnail
+          })),
           title: this.travelData?.title || this.travelData?.name || 'Jouw Reis',
           voiceoverUrl: this.voiceoverFile,
-          duration: parseFloat(durationSlider?.value || 3)
+          clipDuration: parseFloat(durationSlider?.value || 3)
         };
 
         const apiBase = this.getApiBase();
