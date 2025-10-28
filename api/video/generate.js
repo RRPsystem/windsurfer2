@@ -1,7 +1,7 @@
 // Vercel Serverless Function: POST /api/video/generate
 // Generates promotional video for a travel itinerary using Pexels + Shotstack
 
-const axios = require('axios');
+import axios from 'axios';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
