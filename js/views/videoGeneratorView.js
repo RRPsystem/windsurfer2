@@ -227,16 +227,30 @@
           const destName = dest.name || dest;
           console.log('[VideoGen] Fetching clips for:', destName);
           
-          const apiBase = this.getApiBase();
-          const response = await fetch(`${apiBase}/api/video/search-clips?query=${encodeURIComponent(destName)}&limit=1`);
+          // Use Pexels API directly (same as Media Picker)
+          const pexelsKey = (window.MEDIA_CONFIG && window.MEDIA_CONFIG.pexelsKey) || '';
+          
+          if (!pexelsKey) {
+            console.warn('[VideoGen] No Pexels API key found');
+            continue;
+          }
+          
+          const query = `${destName} travel aerial city`;
+          const response = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape`, {
+            headers: { 'Authorization': pexelsKey }
+          });
           
           if (!response.ok) {
-            console.warn('[VideoGen] Failed to fetch clips for:', destName);
+            console.warn('[VideoGen] Pexels API failed for:', destName);
             continue;
           }
 
           const data = await response.json();
-          const clips = data.clips || [];
+          const clips = (data.videos || []).map(v => ({
+            thumbnail: v.image,
+            duration: v.duration,
+            url: v.video_files[0]?.link
+          }));
           
           if (clips.length > 0) {
             const clip = clips[0];
