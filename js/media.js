@@ -721,9 +721,9 @@ class MediaPicker {
         const style = document.createElement('style');
         style.id = 'media-picker-styles';
         style.textContent = `
-          .mp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); opacity: 0; transition: opacity .2s ease; z-index: 9998; }
+          .mp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); opacity: 0; transition: opacity .2s ease; z-index: 99998; }
           .mp-overlay.open { opacity: 1; }
-          .mp-drawer { position: fixed; top: 0; right: 0; width: 420px; max-width: 92vw; height: 100%; background: #fff; box-shadow: -12px 0 30px rgba(0,0,0,.15); transform: translateX(100%); transition: transform .2s ease; z-index: 9999; display:flex; flex-direction:column; }
+          .mp-drawer { position: fixed; top: 0; right: 0; width: 420px; max-width: 92vw; height: 100%; background: #fff; box-shadow: -12px 0 30px rgba(0,0,0,.15); transform: translateX(100%); transition: transform .2s ease; z-index: 99999; display:flex; flex-direction:column; }
           .mp-drawer.open { transform: translateX(0); }
           .mp-header { display:flex; align-items:center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #e5e7eb; }
           .mp-header h3 { margin: 0; font-size: 16px; }
