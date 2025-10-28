@@ -11,7 +11,7 @@ class MediaPicker {
     return this._open({ type: 'video', ...options });
   }
 
-  static _open({ type = 'image', defaultTab } = {}) {
+  static _open({ type = 'image', defaultTab, searchQuery } = {}) {
     return new Promise((resolve, reject) => {
       // Overlay
       const overlay = document.createElement('div');
@@ -686,6 +686,29 @@ class MediaPicker {
       const hasPexelsKey = !!(window.MEDIA_CONFIG && window.MEDIA_CONFIG.pexelsKey);
       const initialTab = defaultTab || (type === 'video' && hasPexelsKey ? 'pexels' : type === 'video' && hasYtKey ? 'youtube' : 'unsplash');
       setTab(initialTab);
+      
+      // Auto-fill search query if provided
+      if (searchQuery) {
+        setTimeout(() => {
+          if (initialTab === 'pexels') {
+            const pexelsInput = body.querySelector('.pexels-query');
+            if (pexelsInput) {
+              pexelsInput.value = searchQuery;
+              // Auto-trigger search
+              const searchBtn = body.querySelector('.pexels-search');
+              if (searchBtn) searchBtn.click();
+            }
+          } else if (initialTab === 'unsplash') {
+            const unsplashInput = body.querySelector('.unsplash-query');
+            if (unsplashInput) {
+              unsplashInput.value = searchQuery;
+              // Auto-trigger search
+              const searchBtn = body.querySelector('.unsplash-search');
+              if (searchBtn) searchBtn.click();
+            }
+          }
+        }, 100);
+      }
 
       // Inject minimal styles for drawer
       if (!document.getElementById('media-picker-styles')) {
