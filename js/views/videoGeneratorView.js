@@ -206,91 +206,138 @@
 
       const destinations = this.travelData?.destinations || [];
       
-      // Show loading state
-      clipGrid.innerHTML = destinations.map(dest => `
-        <div class="clip-card" data-destination="${dest.name || dest}" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-          <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 32px;">
-            <i class="fas fa-circle-notch fa-spin"></i>
-          </div>
-          <div style="padding: 12px;">
-            <div style="font-weight: 600; font-size: 14px; color: #111827;">${dest.name || dest}</div>
-            <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
-              <i class="fas fa-search"></i> Zoekt clips...
+      // Initialize selected clips storage
+      if (!this.selectedClips) {
+        this.selectedClips = [];
+      }
+      
+      // Show destination cards with "Search Clips" button
+      clipGrid.innerHTML = destinations.map(dest => {
+        const destName = dest.name || dest;
+        const destClips = this.selectedClips.filter(c => c.destination === destName);
+        
+        return `
+          <div class="destination-card" data-destination="${destName}" style="border: 2px solid #e5e7eb; border-radius: 12px; padding: 16px; background: white;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: #111827;">${destName}</h4>
+              <button class="btn btn-sm search-clips-btn" data-destination="${destName}" style="background: #8b5cf6; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                <i class="fas fa-search"></i> Zoek clips
+              </button>
+            </div>
+            <div class="clips-preview" data-destination="${destName}" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; min-height: 80px;">
+              ${destClips.length === 0 ? `
+                <div style="grid-column: 1/-1; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 14px; padding: 20px;">
+                  <i class="fas fa-film" style="margin-right: 8px;"></i> Geen clips geselecteerd
+                </div>
+              ` : destClips.map(clip => `
+                <div class="selected-clip" style="position: relative; border-radius: 6px; overflow: hidden;">
+                  <img src="${clip.thumbnail}" style="width: 100%; aspect-ratio: 16/9; object-fit: cover;">
+                  <button class="remove-clip-btn" data-clip-id="${clip.id}" style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.7); color: white; border: none; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; font-size: 10px;">
+                    <i class="fas fa-times"></i>
+                  </button>
+                  <div style="position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px;">
+                    ${Math.round(clip.duration)}s
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">
+              ${destClips.length} clip${destClips.length !== 1 ? 's' : ''} geselecteerd
             </div>
           </div>
+        `;
+      }).join('');
+      
+      // Add "Add Custom Destination" button
+      clipGrid.innerHTML += `
+        <div style="border: 2px dashed #d1d5db; border-radius: 12px; padding: 16px; background: #f9fafb; display: flex; align-items: center; justify-content: center; min-height: 150px; cursor: pointer;" id="addCustomDestBtn">
+          <div style="text-align: center; color: #6b7280;">
+            <i class="fas fa-plus-circle" style="font-size: 32px; margin-bottom: 8px;"></i>
+            <div style="font-weight: 600;">Voeg bestemming toe</div>
+            <div style="font-size: 12px; margin-top: 4px;">Handmatig een gebied toevoegen</div>
+          </div>
         </div>
-      `).join('');
-
-      // Fetch clips for each destination
-      for (const dest of destinations) {
-        try {
-          const destName = dest.name || dest;
-          console.log('[VideoGen] Fetching clips for:', destName);
-          
-          // Use Pexels API directly (same as Media Picker)
-          const pexelsKey = (window.MEDIA_CONFIG && window.MEDIA_CONFIG.pexelsKey) || '';
-          
-          if (!pexelsKey) {
-            console.warn('[VideoGen] No Pexels API key found');
-            continue;
-          }
-          
-          const query = `${destName} travel aerial city`;
-          const response = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape`, {
-            headers: { 'Authorization': pexelsKey }
-          });
-          
-          if (!response.ok) {
-            console.warn('[VideoGen] Pexels API failed for:', destName);
-            continue;
-          }
-
-          const data = await response.json();
-          const clips = (data.videos || []).map(v => ({
-            thumbnail: v.image,
-            duration: v.duration,
-            url: v.video_files[0]?.link
-          }));
-          
-          if (clips.length > 0) {
-            const clip = clips[0];
-            const card = clipGrid.querySelector(`[data-destination="${destName}"]`);
-            if (card) {
-              card.innerHTML = `
-                <div style="aspect-ratio: 16/9; background: url('${clip.thumbnail}') center/cover; position: relative;">
-                  <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
-                    ${clip.duration || '3'}s
-                  </div>
-                </div>
-                <div style="padding: 12px;">
-                  <div style="font-weight: 600; font-size: 14px; color: #111827;">${destName}</div>
-                  <div style="font-size: 12px; color: #10b981; margin-top: 4px;">
-                    <i class="fas fa-check-circle"></i> Clip gevonden
-                  </div>
-                </div>
-              `;
-            }
-          } else {
-            // No clips found - show placeholder
-            const card = clipGrid.querySelector(`[data-destination="${destName}"]`);
-            if (card) {
-              card.innerHTML = `
-                <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 32px;">
-                  <i class="fas fa-film"></i>
-                </div>
-                <div style="padding: 12px;">
-                  <div style="font-weight: 600; font-size: 14px; color: #111827;">${destName}</div>
-                  <div style="font-size: 12px; color: #f59e0b; margin-top: 4px;">
-                    <i class="fas fa-exclamation-triangle"></i> Geen clips gevonden
-                  </div>
-                </div>
-              `;
-            }
-          }
-        } catch (error) {
-          console.error('[VideoGen] Error fetching clips:', error);
-        }
+      `;
+      
+      // Attach event listeners
+      this.attachClipEventListeners(clipGrid);
+    },
+    
+    attachClipEventListeners(clipGrid) {
+      // Search clips buttons
+      clipGrid.querySelectorAll('.search-clips-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const destination = e.currentTarget.dataset.destination;
+          await this.openClipSelector(destination);
+        });
+      });
+      
+      // Remove clip buttons
+      clipGrid.querySelectorAll('.remove-clip-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const clipId = e.currentTarget.dataset.clipId;
+          this.removeClip(clipId);
+        });
+      });
+      
+      // Add custom destination button
+      const addBtn = clipGrid.querySelector('#addCustomDestBtn');
+      if (addBtn) {
+        addBtn.addEventListener('click', () => this.addCustomDestination());
       }
+    },
+    
+    async openClipSelector(destination) {
+      console.log('[VideoGen] Opening clip selector for:', destination);
+      
+      // Check if MediaPicker is available
+      if (!window.MediaPicker || !window.MediaPicker.openVideo) {
+        alert('Media Picker niet beschikbaar. Herlaad de pagina.');
+        return;
+      }
+      
+      // Open Media Picker in video mode with Pexels tab
+      const result = await window.MediaPicker.openVideo({ 
+        defaultTab: 'pexels',
+        searchQuery: `${destination} travel aerial city`
+      });
+      
+      if (result && result.source === 'pexels') {
+        // Add clip to selected clips
+        const clip = {
+          id: `${destination}-${Date.now()}`,
+          destination: destination,
+          thumbnail: result.thumbnail,
+          url: result.videoUrl || result.url,
+          duration: result.duration || 3
+        };
+        
+        this.selectedClips.push(clip);
+        console.log('[VideoGen] Clip added:', clip);
+        
+        // Refresh preview
+        this.previewClips();
+      }
+    },
+    
+    removeClip(clipId) {
+      this.selectedClips = this.selectedClips.filter(c => c.id !== clipId);
+      this.previewClips();
+    },
+    
+    async addCustomDestination() {
+      const name = prompt('Voer de naam van de bestemming in:');
+      if (!name) return;
+      
+      // Add to travel data
+      if (!this.travelData.destinations) {
+        this.travelData.destinations = [];
+      }
+      this.travelData.destinations.push({ name: name });
+      
+      // Refresh preview
+      this.previewClips();
     },
 
     async handleVoiceoverUpload(event) {
