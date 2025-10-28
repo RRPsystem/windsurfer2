@@ -65,6 +65,7 @@ class ComponentFactory {
             'dest-tabs': this.createDestTabs,
             'news-article': this.createNewsArticle,
             'news-overview': this.createNewsOverview,
+            'travel-overview': this.createTravelOverview,
             'jotform-embed': this.createJotformEmbed,
             'travel-card-transport': this.createTravelCardTransport,
             'travel-card-hotel': this.createTravelCardHotel,
@@ -577,6 +578,388 @@ class ComponentFactory {
 
         container.appendChild(headerSection);
         container.appendChild(filterSection);
+        container.appendChild(grid);
+        section.appendChild(container);
+
+        this.makeSelectable(section);
+        this.makeEditable(badge);
+        this.makeEditable(title);
+
+        return section;
+    }
+
+    // TRAVEL OVERVIEW: Grid of travel packages with filtering and search
+    static createTravelOverview(options = {}) {
+        const section = document.createElement('section');
+        section.className = 'wb-component wb-travel-overview';
+        section.setAttribute('data-component', 'travel-overview');
+        section.id = this.generateId('travel_overview');
+
+        const toolbar = this.createToolbar();
+        section.appendChild(toolbar);
+        this.addTypeBadge(section);
+
+        // Container
+        const container = document.createElement('div');
+        container.style.maxWidth = '1200px';
+        container.style.margin = '0 auto';
+        container.style.padding = '60px 20px';
+
+        // Header section
+        const headerSection = document.createElement('div');
+        headerSection.style.marginBottom = '40px';
+
+        const badge = document.createElement('span');
+        badge.textContent = options.badge || 'Ontdek & Boek';
+        badge.contentEditable = true;
+        badge.style.display = 'inline-block';
+        badge.style.background = '#e0f2fe';
+        badge.style.color = '#0284c7';
+        badge.style.padding = '6px 16px';
+        badge.style.borderRadius = '20px';
+        badge.style.fontSize = '14px';
+        badge.style.fontWeight = '600';
+        badge.style.marginBottom = '16px';
+
+        const title = document.createElement('h2');
+        title.textContent = options.title || 'Onze Reizen - Vind jouw perfecte reis';
+        title.contentEditable = true;
+        title.style.fontSize = '42px';
+        title.style.fontWeight = '700';
+        title.style.color = '#1f2937';
+        title.style.marginBottom = '20px';
+        title.style.lineHeight = '1.2';
+
+        const viewAllBtn = document.createElement('button');
+        viewAllBtn.textContent = 'Alle reizen';
+        viewAllBtn.style.position = 'absolute';
+        viewAllBtn.style.top = '0';
+        viewAllBtn.style.right = '0';
+        viewAllBtn.style.background = '#0284c7';
+        viewAllBtn.style.color = '#fff';
+        viewAllBtn.style.border = 'none';
+        viewAllBtn.style.padding = '12px 24px';
+        viewAllBtn.style.borderRadius = '8px';
+        viewAllBtn.style.fontSize = '16px';
+        viewAllBtn.style.fontWeight = '600';
+        viewAllBtn.style.cursor = 'pointer';
+        viewAllBtn.style.transition = 'background 0.3s ease';
+        viewAllBtn.addEventListener('mouseenter', function() {
+            this.style.background = '#0369a1';
+        });
+        viewAllBtn.addEventListener('mouseleave', function() {
+            this.style.background = '#0284c7';
+        });
+
+        headerSection.style.position = 'relative';
+        headerSection.appendChild(badge);
+        headerSection.appendChild(title);
+        headerSection.appendChild(viewAllBtn);
+
+        // Search and filter section
+        const searchFilterSection = document.createElement('div');
+        searchFilterSection.style.marginBottom = '40px';
+
+        // Search bar
+        const searchContainer = document.createElement('div');
+        searchContainer.style.position = 'relative';
+        searchContainer.style.marginBottom = '20px';
+
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.placeholder = 'Zoek op bestemming, land of activiteit...';
+        searchInput.className = 'travel-search-input';
+        searchInput.style.width = '100%';
+        searchInput.style.padding = '16px 50px 16px 20px';
+        searchInput.style.border = '2px solid #e5e7eb';
+        searchInput.style.borderRadius = '12px';
+        searchInput.style.fontSize = '16px';
+        searchInput.style.outline = 'none';
+        searchInput.style.transition = 'border-color 0.3s ease';
+        searchInput.addEventListener('focus', function() {
+            this.style.borderColor = '#0284c7';
+        });
+        searchInput.addEventListener('blur', function() {
+            this.style.borderColor = '#e5e7eb';
+        });
+
+        const searchIcon = document.createElement('i');
+        searchIcon.className = 'fas fa-search';
+        searchIcon.style.position = 'absolute';
+        searchIcon.style.right = '20px';
+        searchIcon.style.top = '50%';
+        searchIcon.style.transform = 'translateY(-50%)';
+        searchIcon.style.color = '#9ca3af';
+        searchIcon.style.fontSize = '18px';
+
+        searchContainer.appendChild(searchInput);
+        searchContainer.appendChild(searchIcon);
+
+        // Filter section
+        const filterSection = document.createElement('div');
+        filterSection.className = 'travel-filters';
+        filterSection.style.display = options.showFilters === false ? 'none' : 'flex';
+        filterSection.style.gap = '12px';
+        filterSection.style.flexWrap = 'wrap';
+
+        const filters = options.filters || ['Alle', 'Strandvakanties', 'Rondreis', 'Stedentrip', 'Actief', 'Cultuur'];
+        filters.forEach((filter, index) => {
+            const filterBtn = document.createElement('button');
+            filterBtn.textContent = filter;
+            filterBtn.className = 'travel-filter-btn';
+            filterBtn.dataset.filter = filter.toLowerCase();
+            filterBtn.style.background = index === 0 ? '#0284c7' : '#f3f4f6';
+            filterBtn.style.color = index === 0 ? '#fff' : '#6b7280';
+            filterBtn.style.border = 'none';
+            filterBtn.style.padding = '10px 20px';
+            filterBtn.style.borderRadius = '20px';
+            filterBtn.style.fontSize = '14px';
+            filterBtn.style.fontWeight = '600';
+            filterBtn.style.cursor = 'pointer';
+            filterBtn.style.transition = 'all 0.3s ease';
+            
+            filterBtn.addEventListener('click', function() {
+                // Update active state
+                filterSection.querySelectorAll('.travel-filter-btn').forEach(btn => {
+                    btn.style.background = '#f3f4f6';
+                    btn.style.color = '#6b7280';
+                });
+                this.style.background = '#0284c7';
+                this.style.color = '#fff';
+                
+                // Filter travels
+                const filterValue = this.dataset.filter;
+                const travels = grid.querySelectorAll('.travel-card');
+                travels.forEach(travel => {
+                    const tags = travel.dataset.tags || '';
+                    if (filterValue === 'alle' || tags.includes(filterValue)) {
+                        travel.style.display = 'block';
+                    } else {
+                        travel.style.display = 'none';
+                    }
+                });
+            });
+            
+            filterSection.appendChild(filterBtn);
+        });
+
+        searchFilterSection.appendChild(searchContainer);
+        searchFilterSection.appendChild(filterSection);
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const travels = grid.querySelectorAll('.travel-card');
+            travels.forEach(travel => {
+                const title = travel.querySelector('.travel-card-title')?.textContent.toLowerCase() || '';
+                const location = travel.querySelector('.travel-card-location')?.textContent.toLowerCase() || '';
+                const description = travel.querySelector('.travel-card-description')?.textContent.toLowerCase() || '';
+                
+                if (title.includes(searchTerm) || location.includes(searchTerm) || description.includes(searchTerm)) {
+                    travel.style.display = 'block';
+                } else {
+                    travel.style.display = 'none';
+                }
+            });
+        });
+
+        // Travel grid
+        const grid = document.createElement('div');
+        grid.className = 'travel-grid';
+        grid.style.display = 'grid';
+        grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(320px, 1fr))';
+        grid.style.gap = '30px';
+
+        // Sample travels (will be replaced with real data from Travel Compositor)
+        const maxTravels = options.maxTravels || 6;
+        const sampleTravels = options.travels || [
+            { 
+                image: 'https://images.unsplash.com/photo-1552733407-5d5c46c3bb3b?w=600',
+                duration: '8 dagen',
+                location: 'Thailand',
+                title: 'Rondreis Bangkok & Eilanden',
+                description: 'Ontdek de bruisende hoofdstad en ontspan op paradijselijke stranden',
+                price: '€ 1.299',
+                tags: 'rondreis,strand,cultuur'
+            },
+            {
+                image: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=600',
+                duration: '5 dagen',
+                location: 'Spanje',
+                title: 'Stedentrip Barcelona',
+                description: 'Gaudi, tapas en het strand - alles in één stad',
+                price: '€ 599',
+                tags: 'stedentrip,cultuur,strand'
+            },
+            {
+                image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600',
+                duration: '10 dagen',
+                location: 'Noorwegen',
+                title: 'Fjorden & Noorderlicht',
+                description: 'Spectaculaire natuur en het magische noorderlicht',
+                price: '€ 1.899',
+                tags: 'rondreis,actief,natuur'
+            }
+        ];
+
+        sampleTravels.slice(0, maxTravels).forEach(travel => {
+            const card = document.createElement('div');
+            card.className = 'travel-card';
+            card.dataset.tags = travel.tags || '';
+            card.style.background = '#fff';
+            card.style.borderRadius = '12px';
+            card.style.overflow = 'hidden';
+            card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            card.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
+            card.style.cursor = 'pointer';
+            card.style.display = 'flex';
+            card.style.flexDirection = 'column';
+
+            // Image container
+            const imageContainer = document.createElement('div');
+            imageContainer.style.position = 'relative';
+            imageContainer.style.height = '220px';
+            imageContainer.style.overflow = 'hidden';
+
+            const img = document.createElement('img');
+            img.src = travel.image;
+            img.alt = travel.title;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            img.style.transition = 'transform 0.3s ease';
+
+            // Duration badge
+            const durationBadge = document.createElement('div');
+            durationBadge.textContent = travel.duration;
+            durationBadge.style.position = 'absolute';
+            durationBadge.style.top = '16px';
+            durationBadge.style.right = '16px';
+            durationBadge.style.background = '#0284c7';
+            durationBadge.style.color = '#fff';
+            durationBadge.style.padding = '8px 12px';
+            durationBadge.style.borderRadius = '8px';
+            durationBadge.style.fontSize = '12px';
+            durationBadge.style.fontWeight = '700';
+            durationBadge.style.textAlign = 'center';
+            durationBadge.style.lineHeight = '1.2';
+
+            // Location badge
+            const locationBadge = document.createElement('div');
+            locationBadge.textContent = travel.location;
+            locationBadge.className = 'travel-card-location';
+            locationBadge.style.position = 'absolute';
+            locationBadge.style.bottom = '16px';
+            locationBadge.style.left = '16px';
+            locationBadge.style.background = 'rgba(255, 255, 255, 0.95)';
+            locationBadge.style.color = '#1f2937';
+            locationBadge.style.padding = '6px 12px';
+            locationBadge.style.borderRadius = '6px';
+            locationBadge.style.fontSize = '13px';
+            locationBadge.style.fontWeight = '600';
+            locationBadge.style.display = 'flex';
+            locationBadge.style.alignItems = 'center';
+            locationBadge.style.gap = '6px';
+            locationBadge.innerHTML = `<i class="fas fa-map-marker-alt" style="color:#0284c7;"></i>${travel.location}`;
+
+            imageContainer.appendChild(img);
+            imageContainer.appendChild(durationBadge);
+            imageContainer.appendChild(locationBadge);
+
+            // Content
+            const content = document.createElement('div');
+            content.style.padding = '20px';
+            content.style.flex = '1';
+            content.style.display = 'flex';
+            content.style.flexDirection = 'column';
+
+            const cardTitle = document.createElement('h3');
+            cardTitle.textContent = travel.title;
+            cardTitle.className = 'travel-card-title';
+            cardTitle.style.fontSize = '20px';
+            cardTitle.style.fontWeight = '700';
+            cardTitle.style.color = '#1f2937';
+            cardTitle.style.marginBottom = '12px';
+            cardTitle.style.lineHeight = '1.3';
+
+            const description = document.createElement('p');
+            description.textContent = travel.description;
+            description.className = 'travel-card-description';
+            description.style.fontSize = '14px';
+            description.style.color = '#6b7280';
+            description.style.lineHeight = '1.6';
+            description.style.marginBottom = '16px';
+            description.style.flex = '1';
+
+            // Price and booking section
+            const priceBookSection = document.createElement('div');
+            priceBookSection.style.display = 'flex';
+            priceBookSection.style.justifyContent = 'space-between';
+            priceBookSection.style.alignItems = 'center';
+            priceBookSection.style.paddingTop = '16px';
+            priceBookSection.style.borderTop = '1px solid #e5e7eb';
+
+            const priceContainer = document.createElement('div');
+            const priceLabel = document.createElement('div');
+            priceLabel.textContent = 'Vanaf';
+            priceLabel.style.fontSize = '12px';
+            priceLabel.style.color = '#6b7280';
+            priceLabel.style.marginBottom = '4px';
+
+            const price = document.createElement('div');
+            price.textContent = travel.price;
+            price.style.fontSize = '24px';
+            price.style.fontWeight = '700';
+            price.style.color = '#0284c7';
+
+            priceContainer.appendChild(priceLabel);
+            priceContainer.appendChild(price);
+
+            const bookBtn = document.createElement('button');
+            bookBtn.textContent = 'Boek nu';
+            bookBtn.style.background = '#0284c7';
+            bookBtn.style.color = '#fff';
+            bookBtn.style.border = 'none';
+            bookBtn.style.padding = '10px 20px';
+            bookBtn.style.borderRadius = '8px';
+            bookBtn.style.fontSize = '14px';
+            bookBtn.style.fontWeight = '600';
+            bookBtn.style.cursor = 'pointer';
+            bookBtn.style.transition = 'background 0.3s ease';
+            bookBtn.addEventListener('mouseenter', function() {
+                this.style.background = '#0369a1';
+            });
+            bookBtn.addEventListener('mouseleave', function() {
+                this.style.background = '#0284c7';
+            });
+
+            priceBookSection.appendChild(priceContainer);
+            priceBookSection.appendChild(bookBtn);
+
+            content.appendChild(cardTitle);
+            content.appendChild(description);
+            content.appendChild(priceBookSection);
+
+            card.appendChild(imageContainer);
+            card.appendChild(content);
+
+            // Hover effects
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px)';
+                this.style.boxShadow = '0 12px 24px rgba(0,0,0,0.15)';
+                img.style.transform = 'scale(1.05)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                img.style.transform = 'scale(1)';
+            });
+
+            grid.appendChild(card);
+        });
+
+        container.appendChild(headerSection);
+        container.appendChild(searchFilterSection);
         container.appendChild(grid);
         section.appendChild(container);
 

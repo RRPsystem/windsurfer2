@@ -2610,6 +2610,9 @@ class PropertiesPanel {
             case 'news-overview':
                 this.createNewsOverviewProperties(component);
                 break;
+            case 'travel-overview':
+                this.createTravelOverviewProperties(component);
+                break;
             case 'travel-intro':
                 this.createTravelIntroProperties(component);
                 break;
@@ -5022,6 +5025,64 @@ PropertiesPanel.prototype.createNewsOverviewProperties = function(component) {
     info.style.cssText = 'padding: 12px; background: #eff6ff; border-left: 3px solid #3b82f6; margin: 12px 0; font-size: 13px; color: #1e40af;';
     info.textContent = 'Dit component toont automatisch nieuwsartikelen uit de database.';
     this.panel.appendChild(info);
+    
+    const del = this.createButton('Blok verwijderen', () => {
+        if (confirm('Weet je zeker dat je dit blok wilt verwijderen?')) {
+            component.remove();
+            this.clearProperties();
+        }
+    });
+    del.style.background = '#dc2626';
+    del.style.borderColor = '#dc2626';
+    del.style.color = '#fff';
+    del.style.marginTop = '1rem';
+    this.panel.appendChild(del);
+};
+
+// Travel Overview Properties
+PropertiesPanel.prototype.createTravelOverviewProperties = function(component) {
+    const title = component.querySelector('h2');
+    if (title) {
+        this.createTextInput('Titel', title.textContent, (val) => {
+            title.textContent = val;
+        });
+    }
+    
+    const badge = component.querySelector('span[contenteditable]');
+    if (badge) {
+        this.createTextInput('Badge Tekst', badge.textContent, (val) => {
+            badge.textContent = val;
+        });
+    }
+    
+    const searchInput = component.querySelector('.travel-search-input');
+    if (searchInput) {
+        this.createTextInput('Zoekbalk Placeholder', searchInput.placeholder, (val) => {
+            searchInput.placeholder = val;
+        });
+    }
+    
+    // Filter configuratie info
+    const filterInfo = document.createElement('div');
+    filterInfo.style.cssText = 'padding: 12px; background: #eff6ff; border-left: 3px solid #3b82f6; margin: 12px 0; font-size: 13px; color: #1e40af;';
+    filterInfo.innerHTML = '<strong>Filters:</strong><br>Dit component toont reizen uit Travel Compositor. Filters kunnen worden aangepast in de component opties of via BOLT configuratie.';
+    this.panel.appendChild(filterInfo);
+    
+    // Data source info
+    const dataInfo = document.createElement('div');
+    dataInfo.style.cssText = 'padding: 12px; background: #f0fdf4; border-left: 3px solid #22c55e; margin: 12px 0; font-size: 13px; color: #166534;';
+    dataInfo.innerHTML = '<strong>Data Bron:</strong><br>Reizen worden automatisch geladen via Travel Compositor API. Zorg dat de API configuratie correct is ingesteld.';
+    this.panel.appendChild(dataInfo);
+    
+    // BOLT integration button
+    const boltBtn = this.createButton('⚡ Configureer in BOLT', () => {
+        alert('BOLT integratie komt binnenkort beschikbaar. Hiermee kun je filters en data sources configureren.');
+    });
+    boltBtn.style.background = '#8b5cf6';
+    boltBtn.style.borderColor = '#8b5cf6';
+    boltBtn.style.color = '#fff';
+    boltBtn.style.marginTop = '1rem';
+    this.panel.appendChild(boltBtn);
     
     const del = this.createButton('Blok verwijderen', () => {
         if (confirm('Weet je zeker dat je dit blok wilt verwijderen?')) {
