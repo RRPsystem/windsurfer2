@@ -307,13 +307,24 @@
       console.log('[VideoGen] MediaPicker available, opening...');
       
       try {
+        // Check if modal is already open
+        const existingOverlay = document.querySelector('.mp-overlay');
+        if (existingOverlay) {
+          console.warn('[VideoGen] Media Picker already open, closing first...');
+          existingOverlay.remove();
+        }
+        
         // Open Media Picker in video mode with Pexels tab
+        console.log('[VideoGen] Calling MediaPicker.openVideo with defaultTab: pexels');
+        
         const result = await window.MediaPicker.openVideo({ 
-          defaultTab: 'pexels',
-          searchQuery: `${destination} travel aerial city`
+          defaultTab: 'pexels'
         });
         
-        console.log('[VideoGen] MediaPicker result:', result);
+        // Note: searchQuery is not supported by MediaPicker
+        // User will need to manually search for: ${destination} travel aerial city
+        
+        console.log('[VideoGen] MediaPicker returned, result:', result);
         
         if (!result) {
           console.log('[VideoGen] User cancelled or no result');
