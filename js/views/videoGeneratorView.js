@@ -263,6 +263,60 @@
       this.attachClipEventListeners(clipGrid);
     },
     
+    getSmartSearchQuery(destination) {
+      const dest = destination.toLowerCase();
+      
+      // Mountain/Ski destinations
+      if (dest.includes('kitzbühel') || dest.includes('kitzbuehel')) {
+        return 'Kitzbühel Austria ski resort mountains alpine';
+      }
+      if (dest.includes('alpen') || dest.includes('alps')) {
+        return 'Alps mountains snow peaks aerial';
+      }
+      if (dest.includes('tirol') || dest.includes('tyrol')) {
+        return 'Tirol Austria mountains alpine village';
+      }
+      if (dest.includes('salzburg')) {
+        return 'Salzburg Austria city mountains architecture';
+      }
+      
+      // Coastal/Beach destinations
+      if (dest.includes('istria') || dest.includes('istrië')) {
+        return 'Istria Croatia coast beach adriatic sea';
+      }
+      if (dest.includes('kroatië') || dest.includes('croatia')) {
+        return 'Croatia coast adriatic sea beach aerial';
+      }
+      if (dest.includes('dalmatië') || dest.includes('dalmatia')) {
+        return 'Dalmatia Croatia coast islands aerial';
+      }
+      
+      // City destinations
+      if (dest.includes('parijs') || dest.includes('paris')) {
+        return 'Paris France Eiffel Tower city aerial';
+      }
+      if (dest.includes('rome') || dest.includes('roma')) {
+        return 'Rome Italy Colosseum city architecture';
+      }
+      if (dest.includes('barcelona')) {
+        return 'Barcelona Spain Sagrada Familia city aerial';
+      }
+      if (dest.includes('amsterdam')) {
+        return 'Amsterdam Netherlands canals city aerial';
+      }
+      
+      // Nature/Landscape destinations
+      if (dest.includes('toscane') || dest.includes('tuscany')) {
+        return 'Tuscany Italy countryside hills vineyards';
+      }
+      if (dest.includes('provence')) {
+        return 'Provence France lavender fields countryside';
+      }
+      
+      // Default: generic travel search
+      return `${destination} travel destination aerial landscape`;
+    },
+    
     attachClipEventListeners(clipGrid) {
       // Search clips buttons
       clipGrid.querySelectorAll('.search-clips-btn').forEach(btn => {
@@ -315,7 +369,8 @@
         }
         
         // Open Media Picker in video mode with Pexels tab and auto-search
-        const searchQuery = `${destination} travel aerial city`;
+        // Use smart search terms based on destination type
+        const searchQuery = this.getSmartSearchQuery(destination);
         console.log('[VideoGen] Calling MediaPicker.openVideo with:', { defaultTab: 'pexels', searchQuery });
         
         const result = await window.MediaPicker.openVideo({ 
