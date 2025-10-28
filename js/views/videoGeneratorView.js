@@ -280,18 +280,34 @@
         };
 
         const apiBase = this.getApiBase();
+        console.log('[VideoGen] Sending request to:', `${apiBase}/api/video/generate`);
+        console.log('[VideoGen] Payload:', payload);
+        
         const response = await fetch(`${apiBase}/api/video/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
 
+        console.log('[VideoGen] Response status:', response.status);
+        
         if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message || 'Video generatie mislukt');
+          // Try to parse JSON error, fallback to text
+          let errorMessage = 'Video generatie mislukt';
+          try {
+            const error = await response.json();
+            errorMessage = error.message || error.error || errorMessage;
+          } catch (e) {
+            // Not JSON, try text
+            const text = await response.text();
+            console.error('[VideoGen] Server error (non-JSON):', text);
+            errorMessage = `Server error (${response.status}): ${text.substring(0, 100)}`;
+          }
+          throw new Error(errorMessage);
         }
 
         const result = await response.json();
+        console.log('[VideoGen] Result:', result);
         this.renderId = result.renderId;
 
         // Start polling for status
