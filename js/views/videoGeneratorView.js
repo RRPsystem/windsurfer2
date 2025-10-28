@@ -498,22 +498,33 @@
 
         console.log('[VideoGen] Response status:', response.status);
         
-        if (!response.ok) {
-          // Try to parse JSON error, fallback to text
-          let errorMessage = 'Video generatie mislukt';
-          try {
-            const error = await response.json();
-            errorMessage = error.message || error.error || errorMessage;
-          } catch (e) {
-            // Not JSON, try text
+        // Read response body once (either JSON or text)
+        const contentType = response.headers.get('content-type');
+        const isJson = contentType && contentType.includes('application/json');
+        
+        let responseData;
+        let errorMessage = 'Video generatie mislukt';
+        
+        try {
+          if (isJson) {
+            responseData = await response.json();
+          } else {
             const text = await response.text();
-            console.error('[VideoGen] Server error (non-JSON):', text);
-            errorMessage = `Server error (${response.status}): ${text.substring(0, 100)}`;
+            responseData = { error: text };
           }
+        } catch (e) {
+          console.error('[VideoGen] Failed to parse response:', e);
+          throw new Error('Server response kon niet worden gelezen');
+        }
+        
+        if (!response.ok) {
+          // Extract error message from parsed data
+          errorMessage = responseData.message || responseData.error || errorMessage;
+          console.error('[VideoGen] Server error:', errorMessage);
           throw new Error(errorMessage);
         }
 
-        const result = await response.json();
+        const result = responseData;
         console.log('[VideoGen] Result:', result);
         this.renderId = result.renderId;
 
