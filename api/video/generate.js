@@ -65,11 +65,14 @@ export default async function handler(req, res) {
     }
 
     console.log('[VideoGen] Generating video with clips:', validClips.length);
+    console.log('[VideoGen] Clips:', JSON.stringify(validClips.map(c => ({dest: c.destination, url: c.url.substring(0, 50)})), null, 2));
 
     // Step 2: Create Shotstack timeline
     const timeline = createTimeline(validClips, title, clipDuration, voiceoverUrl);
+    console.log('[VideoGen] Timeline created, tracks:', timeline.timeline.tracks.length);
 
     // Step 3: Submit to Shotstack for rendering
+    console.log('[VideoGen] Submitting to Shotstack...');
     const renderResponse = await submitToShotstack(timeline, SHOTSTACK_API_KEY, SHOTSTACK_ENV);
 
     console.log('[VideoGen] Render submitted:', renderResponse.id);
@@ -85,9 +88,11 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('[VideoGen] Error:', error);
+    console.error('[VideoGen] Error stack:', error.stack);
     return res.status(500).json({ 
       error: 'Video generatie mislukt', 
-      detail: error.message 
+      message: error.message,
+      detail: error.stack ? error.stack.split('\n')[0] : error.message
     });
   }
 }
