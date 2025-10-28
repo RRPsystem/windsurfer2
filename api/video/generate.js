@@ -1,8 +1,6 @@
 // Vercel Serverless Function: POST /api/video/generate
 // Generates promotional video for a travel itinerary using Pexels + Shotstack
 
-import axios from 'axios';
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -101,13 +99,19 @@ async function searchMultipleVideoClips(destination, apiKey, count = 2) {
     const query = `${destination} travel aerial city`;
     const url = `https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&per_page=${maxClips * 2}&orientation=landscape`;
     
-    const response = await axios.get(url, {
+    const response = await fetch(url, {
       headers: { 'Authorization': apiKey }
     });
 
-    if (response.data.videos && response.data.videos.length > 0) {
+    if (!response.ok) {
+      throw new Error(`Pexels API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.videos && data.videos.length > 0) {
       const clips = [];
-      const videos = response.data.videos.slice(0, maxClips);
+      const videos = data.videos.slice(0, maxClips);
       
       for (const video of videos) {
         const hdFile = video.video_files.find(f => f.quality === 'hd' && f.width >= 1280) 
@@ -266,16 +270,25 @@ async function submitToShotstack(timeline, apiKey, env) {
   
   const url = `${baseUrl}/render`;
   
-  const response = await axios.post(url, timeline, {
+  const response = await fetch(url, {
+    method: 'POST',
     headers: {
       'x-api-key': apiKey,
       'Content-Type': 'application/json'
-    }
+    },
+    body: JSON.stringify(timeline)
   });
 
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Shotstack API error (${response.status}): ${errorText}`);
+  }
+
+  const data = await response.json();
+
   return {
-    id: response.data.response.id,
-    status: response.data.response.status,
-    message: response.data.response.message
+    id: data.response.id,
+    status: data.response.status,
+    message: data.response.message
   };
 }
