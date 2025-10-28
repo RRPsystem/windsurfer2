@@ -206,10 +206,11 @@
 
       const destinations = this.travelData?.destinations || [];
       
+      // Show loading state
       clipGrid.innerHTML = destinations.map(dest => `
-        <div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+        <div class="clip-card" data-destination="${dest.name || dest}" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
           <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 32px;">
-            <i class="fas fa-film"></i>
+            <i class="fas fa-circle-notch fa-spin"></i>
           </div>
           <div style="padding: 12px;">
             <div style="font-weight: 600; font-size: 14px; color: #111827;">${dest.name || dest}</div>
@@ -219,6 +220,63 @@
           </div>
         </div>
       `).join('');
+
+      // Fetch clips for each destination
+      for (const dest of destinations) {
+        try {
+          const destName = dest.name || dest;
+          console.log('[VideoGen] Fetching clips for:', destName);
+          
+          const apiBase = this.getApiBase();
+          const response = await fetch(`${apiBase}/api/video/search-clips?query=${encodeURIComponent(destName)}&limit=1`);
+          
+          if (!response.ok) {
+            console.warn('[VideoGen] Failed to fetch clips for:', destName);
+            continue;
+          }
+
+          const data = await response.json();
+          const clips = data.clips || [];
+          
+          if (clips.length > 0) {
+            const clip = clips[0];
+            const card = clipGrid.querySelector(`[data-destination="${destName}"]`);
+            if (card) {
+              card.innerHTML = `
+                <div style="aspect-ratio: 16/9; background: url('${clip.thumbnail}') center/cover; position: relative;">
+                  <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                    ${clip.duration || '3'}s
+                  </div>
+                </div>
+                <div style="padding: 12px;">
+                  <div style="font-weight: 600; font-size: 14px; color: #111827;">${destName}</div>
+                  <div style="font-size: 12px; color: #10b981; margin-top: 4px;">
+                    <i class="fas fa-check-circle"></i> Clip gevonden
+                  </div>
+                </div>
+              `;
+            }
+          } else {
+            // No clips found - show placeholder
+            const card = clipGrid.querySelector(`[data-destination="${destName}"]`);
+            if (card) {
+              card.innerHTML = `
+                <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 32px;">
+                  <i class="fas fa-film"></i>
+                </div>
+                <div style="padding: 12px;">
+                  <div style="font-weight: 600; font-size: 14px; color: #111827;">${destName}</div>
+                  <div style="font-size: 12px; color: #f59e0b; margin-top: 4px;">
+                    <i class="fas fa-exclamation-triangle"></i> Geen clips gevonden
+                  </div>
+                </div>
+              `;
+            }
+          }
+        } catch (error) {
+          console.error('[VideoGen] Error fetching clips:', error);
+        }
+      }
     },
 
     async handleVoiceoverUpload(event) {
