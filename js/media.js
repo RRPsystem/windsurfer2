@@ -687,16 +687,22 @@ class MediaPicker {
       const initialTab = defaultTab || (type === 'video' && hasPexelsKey ? 'pexels' : type === 'video' && hasYtKey ? 'youtube' : 'unsplash');
       setTab(initialTab);
       
-      // Auto-fill search query if provided
+      // Auto-fill search query if provided (wait for DOM to be ready)
       if (searchQuery) {
+        console.log('[MediaPicker] Auto-filling search query:', searchQuery);
         setTimeout(() => {
           if (initialTab === 'pexels') {
             const pexelsInput = body.querySelector('.pexels-query');
+            console.log('[MediaPicker] Pexels input found:', !!pexelsInput);
             if (pexelsInput) {
               pexelsInput.value = searchQuery;
+              console.log('[MediaPicker] Search query set, triggering search...');
               // Auto-trigger search
               const searchBtn = body.querySelector('.pexels-search');
-              if (searchBtn) searchBtn.click();
+              if (searchBtn) {
+                searchBtn.click();
+                console.log('[MediaPicker] Search button clicked');
+              }
             }
           } else if (initialTab === 'unsplash') {
             const unsplashInput = body.querySelector('.unsplash-query');
@@ -707,7 +713,7 @@ class MediaPicker {
               if (searchBtn) searchBtn.click();
             }
           }
-        }, 100);
+        }, 300); // Increased timeout to ensure DOM is ready
       }
 
       // Inject minimal styles for drawer
