@@ -1,8 +1,6 @@
 // Vercel Serverless Function: GET /api/video/status/[id]
 // Check rendering status of a Shotstack video
 
-const axios = require('axios');
-
 export default async function handler(req, res) {
   try {
     const {
@@ -26,13 +24,19 @@ export default async function handler(req, res) {
     
     const url = `${baseUrl}/render/${id}`;
     
-    const response = await axios.get(url, {
+    const response = await fetch(url, {
       headers: {
         'x-api-key': SHOTSTACK_API_KEY
       }
     });
 
-    const data = response.data.response;
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Shotstack API error (${response.status}): ${errorText}`);
+    }
+
+    const responseData = await response.json();
+    const data = responseData.response;
 
     // Map Shotstack status to user-friendly messages
     const statusMessages = {
