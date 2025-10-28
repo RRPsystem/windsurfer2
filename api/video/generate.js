@@ -192,7 +192,6 @@ function createTimeline(clips, title, clipDuration, voiceoverUrl) {
         style: 'future',
         color: '#ffffff',
         size: 'large',
-        background: 'rgba(0,0,0,0.5)',
         position: 'center'
       },
       start: 0,
@@ -213,7 +212,6 @@ function createTimeline(clips, title, clipDuration, voiceoverUrl) {
         style: 'minimal',
         color: '#ffffff',
         size: 'medium',
-        background: 'rgba(0,0,0,0.6)',
         position: 'bottomLeft'
       },
       start: index * clipDuration,
