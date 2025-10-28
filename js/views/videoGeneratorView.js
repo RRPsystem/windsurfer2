@@ -292,32 +292,55 @@
       console.log('[VideoGen] Opening clip selector for:', destination);
       
       // Check if MediaPicker is available
-      if (!window.MediaPicker || !window.MediaPicker.openVideo) {
+      if (!window.MediaPicker) {
+        console.error('[VideoGen] MediaPicker not found on window');
         alert('Media Picker niet beschikbaar. Herlaad de pagina.');
         return;
       }
       
-      // Open Media Picker in video mode with Pexels tab
-      const result = await window.MediaPicker.openVideo({ 
-        defaultTab: 'pexels',
-        searchQuery: `${destination} travel aerial city`
-      });
+      if (!window.MediaPicker.openVideo) {
+        console.error('[VideoGen] MediaPicker.openVideo not found');
+        alert('Media Picker video functie niet beschikbaar.');
+        return;
+      }
       
-      if (result && result.source === 'pexels') {
-        // Add clip to selected clips
-        const clip = {
-          id: `${destination}-${Date.now()}`,
-          destination: destination,
-          thumbnail: result.thumbnail,
-          url: result.videoUrl || result.url,
-          duration: result.duration || 3
-        };
+      console.log('[VideoGen] MediaPicker available, opening...');
+      
+      try {
+        // Open Media Picker in video mode with Pexels tab
+        const result = await window.MediaPicker.openVideo({ 
+          defaultTab: 'pexels',
+          searchQuery: `${destination} travel aerial city`
+        });
         
-        this.selectedClips.push(clip);
-        console.log('[VideoGen] Clip added:', clip);
+        console.log('[VideoGen] MediaPicker result:', result);
         
-        // Refresh preview
-        this.previewClips();
+        if (!result) {
+          console.log('[VideoGen] User cancelled or no result');
+          return;
+        }
+        
+        if (result.source === 'pexels') {
+          // Add clip to selected clips
+          const clip = {
+            id: `${destination}-${Date.now()}`,
+            destination: destination,
+            thumbnail: result.thumbnail,
+            url: result.videoUrl || result.url,
+            duration: result.duration || 3
+          };
+          
+          this.selectedClips.push(clip);
+          console.log('[VideoGen] Clip added:', clip);
+          
+          // Refresh preview
+          this.previewClips();
+        } else {
+          console.warn('[VideoGen] Result source is not pexels:', result.source);
+        }
+      } catch (error) {
+        console.error('[VideoGen] Error opening MediaPicker:', error);
+        alert('Fout bij openen Media Picker: ' + error.message);
       }
     },
     
