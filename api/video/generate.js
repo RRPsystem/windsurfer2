@@ -166,7 +166,7 @@ function createTimeline(clips, title, clipDuration, voiceoverUrl) {
       asset: {
         type: 'video',
         src: clip.url,
-        trim: 0 // Start from beginning of clip
+        trim: 1 // Skip first second to avoid black frames
       },
       start: start,
       length: clipDuration,
