@@ -30,36 +30,46 @@ export default async function handler(req, res) {
     }
 
     const { 
+      clips = [], // User-selected clips from frontend
       destinations = [], 
       title = 'Jouw Reis',
       voiceoverUrl = null,
-      duration = 3, // seconds per clip
-      clipsPerDestination = 2 // aantal clips per bestemming (1-3)
+      clipDuration = 3 // seconds per clip (renamed from 'duration')
     } = req.body;
 
-    if (!destinations || destinations.length === 0) {
-      return res.status(400).json({ error: 'Geen bestemmingen opgegeven' });
+    // Use user-selected clips if provided, otherwise search automatically
+    let validClips = [];
+    
+    if (clips && clips.length > 0) {
+      // Use clips selected by user in frontend
+      console.log('[VideoGen] Using user-selected clips:', clips.length);
+      validClips = clips.map(clip => ({
+        destination: clip.destination,
+        url: clip.url,
+        duration: clip.duration,
+        thumbnail: clip.thumbnail
+      }));
+    } else if (destinations && destinations.length > 0) {
+      // Fallback: Auto-search clips (legacy behavior)
+      console.log('[VideoGen] Auto-searching clips for destinations:', destinations.length);
+      const clipsPerDestination = 2;
+      const clipPromises = destinations.map(dest => 
+        searchMultipleVideoClips(dest.name, PEXELS_API_KEY, clipsPerDestination)
+      );
+      const clipsPerDest = await Promise.all(clipPromises);
+      validClips = clipsPerDest.flat().filter(c => c !== null);
+    } else {
+      return res.status(400).json({ error: 'Geen clips of bestemmingen opgegeven' });
     }
-
-    console.log('[VideoGen] Generating video for:', { title, destinations: destinations.length });
-
-    // Step 1: Search multiple video clips for each destination
-    const clipPromises = destinations.map(dest => 
-      searchMultipleVideoClips(dest.name, PEXELS_API_KEY, clipsPerDestination)
-    );
-    const clipsPerDest = await Promise.all(clipPromises);
-
-    // Flatten and filter out failed searches
-    const validClips = clipsPerDest.flat().filter(c => c !== null);
     
     if (validClips.length === 0) {
-      return res.status(404).json({ error: 'Geen video clips gevonden voor deze bestemmingen' });
+      return res.status(404).json({ error: 'Geen video clips beschikbaar' });
     }
 
-    console.log('[VideoGen] Found clips:', validClips.length);
+    console.log('[VideoGen] Generating video with clips:', validClips.length);
 
     // Step 2: Create Shotstack timeline
-    const timeline = createTimeline(validClips, title, duration, voiceoverUrl);
+    const timeline = createTimeline(validClips, title, clipDuration, voiceoverUrl);
 
     // Step 3: Submit to Shotstack for rendering
     const renderResponse = await submitToShotstack(timeline, SHOTSTACK_API_KEY, SHOTSTACK_ENV);
