@@ -253,14 +253,9 @@ function createTimeline(clips, title, clipDuration, voiceoverUrl) {
     },
     output: {
       format: 'mp4',
-      resolution: 'hd',
+      resolution: 'sd',
       aspectRatio: '16:9',
-      size: {
-        width: 1280,
-        height: 720
-      },
-      fps: 25,
-      scaleTo: 'preview' // Use 'preview' for faster rendering, 'crop' for production
+      fps: 25
     }
   };
 }
