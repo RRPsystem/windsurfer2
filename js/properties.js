@@ -2510,6 +2510,9 @@ class PropertiesPanel {
             case 'hero-page':
                 this.createHeroPageProperties(component);
                 break;
+            case 'hero-travel-search':
+                this.createHeroTravelSearchProperties(component);
+                break;
             case 'hero-travel':
                 // Add Media Selector button for Hero video background
                 (function addTopHeroVideoMediaButton(self, comp){
@@ -5374,6 +5377,87 @@ PropertiesPanel.prototype.createAnimatedRouteMapProperties = function(component)
     // Separator
     const separator2 = document.createElement('div');
     separator2.style.cssText = 'height: 1px; background: #e5e7eb; margin: 20px 0;';
+    this.panel.appendChild(separator2);
+};
+
+// Hero Travel Search Properties
+PropertiesPanel.prototype.createHeroTravelSearchProperties = function(component) {
+    const title = component.querySelector('h1');
+    if (title) {
+        this.createTextInput('Titel', title.textContent, (val) => {
+            title.textContent = val;
+        });
+    }
+    
+    const subtitle = component.querySelector('p');
+    if (subtitle) {
+        this.createTextInput('Subtitel', subtitle.textContent, (val) => {
+            subtitle.textContent = val;
+        });
+    }
+    
+    const badge = component.querySelector('div[contenteditable="true"]');
+    if (badge) {
+        this.createTextInput('Badge Tekst', badge.textContent, (val) => {
+            badge.textContent = val;
+        });
+    }
+    
+    // Background image selector
+    const bgBtn = this.createButton('🖼️ Achtergrond Afbeelding', async () => {
+        if (!window.MediaPicker) {
+            alert('Media Picker niet beschikbaar');
+            return;
+        }
+        
+        const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
+        if (res && res.url) {
+            const bgImg = component.querySelector('.hero-bg img');
+            if (bgImg) {
+                bgImg.src = res.url;
+            }
+        }
+    });
+    bgBtn.style.background = '#0284c7';
+    bgBtn.style.borderColor = '#0284c7';
+    bgBtn.style.color = '#fff';
+    bgBtn.style.marginTop = '1rem';
+    this.panel.appendChild(bgBtn);
+    
+    // Info box
+    const info = document.createElement('div');
+    info.style.cssText = 'padding: 12px; background: #eff6ff; border-left: 3px solid #3b82f6; margin: 12px 0; font-size: 13px; color: #1e40af;';
+    info.innerHTML = '<strong>Zoek & Boek Functionaliteit:</strong><br>Deze hero zoekt automatisch in de "Reizen Overzicht" component op dezelfde pagina. Voeg een Travel Overview component toe om de zoekresultaten te tonen.';
+    this.panel.appendChild(info);
+    
+    // Popular destinations editor
+    const destLabel = document.createElement('label');
+    destLabel.textContent = 'Populaire Bestemmingen';
+    destLabel.style.cssText = 'display: block; font-weight: 600; margin: 16px 0 8px 0; color: #374151;';
+    this.panel.appendChild(destLabel);
+    
+    const destInfo = document.createElement('div');
+    destInfo.style.cssText = 'padding: 8px; background: #f3f4f6; border-radius: 6px; margin-bottom: 8px; font-size: 12px; color: #6b7280;';
+    destInfo.textContent = 'Huidige: Thailand, Spanje, Italië, Griekenland, Frankrijk';
+    this.panel.appendChild(destInfo);
+    
+    const del = this.createButton('Blok verwijderen', () => {
+        if (confirm('Weet je zeker dat je dit blok wilt verwijderen?')) {
+            component.remove();
+            this.clearProperties();
+        }
+    });
+    del.style.background = '#dc2626';
+    del.style.borderColor = '#dc2626';
+    del.style.color = '#fff';
+    del.style.marginTop = '1rem';
+    this.panel.appendChild(del);
+};
+
+// Continue with separator
+const separator3 = document.createElement('div');
+if (separator3) {
+    separator3.style.cssText = 'height: 1px; background: #e5e7eb; margin: 20px 0;';
     this.panel.appendChild(separator2);
     
     // Info
