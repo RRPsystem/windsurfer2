@@ -183,6 +183,10 @@
                                 <i class="fas fa-mountain-sun"></i>
                                 <span>Hero Travel (homepage)</span>
                             </div>
+                            <div class="component-item" draggable="true" data-component="hero-travel-search">
+                                <i class="fas fa-search-location"></i>
+                                <span>🔍 Hero Zoek & Boek Reizen</span>
+                            </div>
                             <div class="component-item" draggable="true" data-component="feature-media">
                                 <i class="fas fa-square-split-horizontal"></i>
                                 <span>Feature + Media</span>
@@ -433,12 +437,12 @@
     <script src="js/layouts.js?v=117c0aa"></script>
     <script src="js/iconPicker.js?v=117c0aa"></script>
     <script src="js/sidebar.js?v=117c0aa"></script>
-    <script src="js/components.js?v=9914f33"></script>
+    <script src="js/components.js?v=hero-search-v2"></script>
     <script src="js/animatedTravelMap.js?v=117c0aa"></script>
     <script src="js/dragdrop.js?v=117c0aa"></script>
     <script src="js/media.js?v=878206b"></script>
     <script src="js/routeOverview.js?v=117c0aa"></script>
-    <script src="js/properties.js?v=60d023c"></script>
+    <script src="js/properties.js?v=hero-search-v2"></script>
     <script src="js/main.js?v=117c0aa"></script>
     <script src="js/menuLayoutModal.js?v=117c0aa"></script>
     <script>
@@ -470,6 +474,7 @@
           if (!safe) {
             // Normal/Deeplink (volledige builder)
             // Load views first so they're available when router initializes
+            load('js/services/travelDataService.js');
             load('js/views/menuFooterView.js');
             load('js/views/travelView.js');
             load('js/views/videoGeneratorView.js');
