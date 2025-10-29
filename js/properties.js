@@ -5454,24 +5454,5 @@ PropertiesPanel.prototype.createHeroTravelSearchProperties = function(component)
     this.panel.appendChild(del);
 };
 
-// Continue with separator
-const separator3 = document.createElement('div');
-if (separator3) {
-    separator3.style.cssText = 'height: 1px; background: #e5e7eb; margin: 20px 0;';
-    this.panel.appendChild(separator2);
-    
-    // Info
-    const info = document.createElement('div');
-    info.style.cssText = 'background: #eff6ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 12px; font-size: 13px; color: #1e40af; line-height: 1.6;';
-    info.innerHTML = `
-        <strong><i class="fas fa-info-circle"></i> Tips:</strong><br>
-        • Vliegtuig routes krijgen gebogen lijn<br>
-        • Auto/trein/boot krijgen rechte lijn<br>
-        • Laatste bestemming = start volgende route<br>
-        • Klik "Kaart Bijwerken" na wijzigingen
-    `;
-    this.panel.appendChild(info);
-};
-
 // Initialize properties panel
 window.PropertiesPanel = new PropertiesPanel();
