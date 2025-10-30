@@ -1487,10 +1487,11 @@ body:not(.builder-mode) .wb-travel-timeline .wb-component {
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     overflow: hidden;
-    margin: 24px 0;
+    margin: 24px auto;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     transition: all 0.3s ease;
     position: relative;
+    max-width: 100%;
 }
 
 .wb-travel-card:hover {
