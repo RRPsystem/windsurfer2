@@ -3,7 +3,7 @@
 
 const { formidable } = require('formidable');
 const fs = require('fs').promises;
-const { put } = require('@vercel/blob');
+const pdfParse = require('pdf-parse');
 
 const VISION_EXTRACTION_PROMPT = `Je bent een expert in het analyseren van reisboekingsbevestigingen.
 
@@ -65,30 +65,13 @@ Als informatie ECHT ontbreekt in de PDF, gebruik dan null.
 Maar probeer ALTIJD eerst de informatie te vinden voordat je null gebruikt.
 Geef ALLEEN de JSON terug, geen extra tekst of uitleg.`;
 
-// Upload PDF to Vercel Blob and return URL
-async function uploadPDFToBlob(pdfBuffer, filename) {
-  try {
-    const blob = await put(filename, pdfBuffer, {
-      access: 'public',
-      addRandomSuffix: true,
-    });
-    
-    console.log(`[UploadPDF] PDF uploaded to:`, blob.url);
-    return blob.url;
-  } catch (error) {
-    console.error('[UploadPDF] Error:', error);
-    throw new Error(`PDF upload failed: ${error.message}`);
-  }
-}
-
-// Extract booking data using GPT-4o with PDF URL
-async function extractBookingDataFromPDF(pdfUrl) {
+// Extract booking data using GPT-4o with text
+async function extractBookingData(pdfText) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error('OPENAI_API_KEY not configured');
   }
 
-  // OpenAI can read PDFs directly via URL!
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -104,19 +87,7 @@ async function extractBookingDataFromPDF(pdfUrl) {
         },
         {
           role: 'user',
-          content: [
-            {
-              type: "text",
-              text: "Analyseer deze PDF boekingsbevestiging en extraheer alle reisgegevens:"
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: pdfUrl,
-                detail: "high"
-              }
-            }
-          ]
+          content: `Analyseer deze boekingsbevestiging tekst en extraheer alle reisgegevens:\n\n${pdfText}`
         }
       ],
       temperature: 0.1,
@@ -200,15 +171,16 @@ export default async function handler(req, res) {
     // Read the file buffer
     const pdfBuffer = await fs.readFile(pdfFile.filepath);
 
-    console.log('[BookingParse] Uploading PDF to Vercel Blob...');
+    console.log('[BookingParse] Extracting text from PDF...');
     
-    // Upload PDF to Vercel Blob
-    const pdfUrl = await uploadPDFToBlob(pdfBuffer, pdfFile.originalFilename || pdfFile.name || 'booking.pdf');
+    // Parse PDF to text
+    const pdfData = await pdfParse(pdfBuffer);
+    const pdfText = pdfData.text;
     
-    console.log(`[BookingParse] PDF uploaded, analyzing with GPT-4o...`);
+    console.log(`[BookingParse] PDF text extracted (${pdfText.length} chars), analyzing with GPT-4o...`);
 
-    // Extract structured data with GPT-4o (can read PDFs directly!)
-    const bookingData = await extractBookingDataFromPDF(pdfUrl);
+    // Extract structured data with GPT-4o
+    const bookingData = await extractBookingData(pdfText);
 
     console.log('[BookingParse] Extraction successful:', JSON.stringify(bookingData, null, 2));
 
@@ -224,8 +196,9 @@ export default async function handler(req, res) {
       data: bookingData,
       meta: {
         filename: pdfFile.originalFilename || pdfFile.name,
-        pdfUrl: pdfUrl,
-        method: 'gpt-4o-pdf-url'
+        pages: pdfData.numpages,
+        textLength: pdfText.length,
+        method: 'gpt-4o-text'
       }
     });
 
