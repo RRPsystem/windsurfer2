@@ -27,95 +27,95 @@
       return `
         <div style="max-width: 100%; margin: 0 auto; padding: 20px; max-height: 90vh; overflow-y: auto;">
           <!-- Header -->
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 24px; margin-bottom: 24px; color: white;">
-            <h1 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin-bottom: 20px; color: white;">
+            <h1 style="margin: 0 0 4px 0; font-size: 24px; font-weight: 700;">
               <i class="fas fa-plane-departure"></i> Reis Toevoegen
             </h1>
-            <p style="margin: 0; opacity: 0.9; font-size: 14px;">
+            <p style="margin: 0; opacity: 0.9; font-size: 13px;">
               Kies hoe je de reis wilt aanmaken
             </p>
           </div>
 
-          <!-- Import Method Selection (4 3D Buttons) -->
-          <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 32px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <h2 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700; color: #111827;">
+          <!-- Import Method Selection (Compact 4 Buttons) -->
+          <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <h2 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: #111827;">
               <i class="fas fa-wand-magic-sparkles"></i> Selecteer Import Methode
             </h2>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 24px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px;">
               <!-- Method 1: Travel Compositor -->
               <div class="import-method-card" data-method="tc" style="
-                border-radius: 16px;
-                padding: 24px;
+                border-radius: 12px;
+                padding: 16px;
                 cursor: pointer;
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4);
+                box-shadow: 0 4px 12px -2px rgba(102, 126, 234, 0.3);
                 transform: translateY(0);
               ">
                 <div style="text-align: center; color: white;">
-                  <div style="font-size: 48px; margin-bottom: 16px;">
+                  <div style="font-size: 32px; margin-bottom: 8px;">
                     <i class="fas fa-link"></i>
                   </div>
-                  <div style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">Travel Compositor</div>
-                  <div style="font-size: 13px; opacity: 0.95;">Importeer reis via TC ID</div>
+                  <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">Travel Compositor</div>
+                  <div style="font-size: 11px; opacity: 0.9;">Importeer via TC ID</div>
                 </div>
               </div>
 
               <!-- Method 2: PDF Upload -->
               <div class="import-method-card" data-method="pdf" style="
-                border-radius: 16px;
-                padding: 24px;
+                border-radius: 12px;
+                padding: 16px;
                 cursor: pointer;
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
-                box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.4);
+                box-shadow: 0 4px 12px -2px rgba(245, 158, 11, 0.3);
                 transform: translateY(0);
               ">
                 <div style="text-align: center; color: white;">
-                  <div style="font-size: 48px; margin-bottom: 16px;">
+                  <div style="font-size: 32px; margin-bottom: 8px;">
                     <i class="fas fa-file-pdf"></i>
                   </div>
-                  <div style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">PDF Upload</div>
-                  <div style="font-size: 13px; opacity: 0.95;">Boekingsbevestiging uitlezen</div>
+                  <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">PDF Upload</div>
+                  <div style="font-size: 11px; opacity: 0.9;">Boekingsbevestiging</div>
                 </div>
               </div>
 
               <!-- Method 3: URL Import -->
               <div class="import-method-card" data-method="url" style="
-                border-radius: 16px;
-                padding: 24px;
+                border-radius: 12px;
+                padding: 16px;
                 cursor: pointer;
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
-                box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
+                box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.3);
                 transform: translateY(0);
               ">
                 <div style="text-align: center; color: white;">
-                  <div style="font-size: 48px; margin-bottom: 16px;">
+                  <div style="font-size: 32px; margin-bottom: 8px;">
                     <i class="fas fa-globe"></i>
                   </div>
-                  <div style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">URL Importeren</div>
-                  <div style="font-size: 13px; opacity: 0.95;">Online booking importeren</div>
+                  <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">URL Importeren</div>
+                  <div style="font-size: 11px; opacity: 0.9;">Online booking</div>
                 </div>
               </div>
 
               <!-- Method 4: Manual -->
               <div class="import-method-card" data-method="manual" style="
-                border-radius: 16px;
-                padding: 24px;
+                border-radius: 12px;
+                padding: 16px;
                 cursor: pointer;
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-                box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.4);
+                box-shadow: 0 4px 12px -2px rgba(139, 92, 246, 0.3);
                 transform: translateY(0);
               ">
                 <div style="text-align: center; color: white;">
-                  <div style="font-size: 48px; margin-bottom: 16px;">
+                  <div style="font-size: 32px; margin-bottom: 8px;">
                     <i class="fas fa-pencil"></i>
                   </div>
-                  <div style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">Handmatig</div>
-                  <div style="font-size: 13px; opacity: 0.95;">Zelf samenstellen met kaarten</div>
+                  <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">Handmatig</div>
+                  <div style="font-size: 11px; opacity: 0.9;">Zelf samenstellen</div>
                 </div>
               </div>
             </div>
@@ -123,7 +123,7 @@
             <div style="text-align: center;">
               <button 
                 id="backToPageModeBtn" 
-                style="height: 40px; padding: 0 24px; background: #6b7280; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;"
+                style="height: 36px; padding: 0 20px; background: #6b7280; border: none; border-radius: 8px; color: white; font-weight: 600; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;"
               >
                 <i class="fas fa-arrow-left"></i> Terug
               </button>
@@ -188,24 +188,27 @@
     },
 
     renderTemplateSelector() {
-      return `<div style="padding-top: 24px; border-top: 1px solid #e5e7eb; margin-top: 24px;">
-        <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 14px;"><i class="fas fa-palette"></i> Kies Reis Template</label>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
-          <div class="template-card" data-template="1" style="border: 2px solid #667eea; border-radius: 10px; padding: 10px; cursor: pointer; background: #f8f9ff;">
-            <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;"><i class="fas fa-plane-departure"></i></div>
-            <div style="font-weight: 600; font-size: 13px; color: #374151;">Template 1 - Standaard</div>
+      return `<div style="padding-top: 16px; border-top: 1px solid #e5e7eb; margin-top: 16px;">
+        <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #374151; font-size: 13px;"><i class="fas fa-palette"></i> Kies Reis Template</label>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
+          <div class="template-card" data-template="1" style="position: relative; border: 2px solid #a5b4fc; border-radius: 8px; padding: 8px; cursor: pointer; background: #f5f7ff;">
+            <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #c7d2fe 0%, #ddd6fe 100%); border-radius: 4px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; color: #4f46e5; font-size: 18px;"><i class="fas fa-plane-departure"></i></div>
+            <div style="font-weight: 600; font-size: 11px; color: #374151; text-align: center;">Standaard</div>
           </div>
-          <div class="template-card" data-template="2" style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 10px; cursor: pointer; background: white;">
-            <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;"><i class="fas fa-mountain"></i></div>
-            <div style="font-weight: 600; font-size: 13px; color: #374151;">Template 2 - Avontuur</div>
+          <div class="template-card" data-template="2" style="position: relative; border: 2px solid #e5e7eb; border-radius: 8px; padding: 8px; cursor: not-allowed; background: #f9fafb; opacity: 0.6;">
+            <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #fed7aa 0%, #fecaca 100%); border-radius: 4px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; color: #dc2626; font-size: 18px;"><i class="fas fa-mountain"></i></div>
+            <div style="font-weight: 600; font-size: 11px; color: #6b7280; text-align: center;">Avontuur</div>
+            <div style="position: absolute; top: 4px; right: 4px; background: #fbbf24; color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">SOON</div>
           </div>
-          <div class="template-card" data-template="3" style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 10px; cursor: pointer; background: white;">
-            <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;"><i class="fas fa-umbrella-beach"></i></div>
-            <div style="font-weight: 600; font-size: 13px; color: #374151;">Template 3 - Strand & Zon</div>
+          <div class="template-card" data-template="3" style="position: relative; border: 2px solid #e5e7eb; border-radius: 8px; padding: 8px; cursor: not-allowed; background: #f9fafb; opacity: 0.6;">
+            <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #a7f3d0 0%, #a5f3fc 100%); border-radius: 4px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; color: #059669; font-size: 18px;"><i class="fas fa-umbrella-beach"></i></div>
+            <div style="font-weight: 600; font-size: 11px; color: #6b7280; text-align: center;">Strand & Zon</div>
+            <div style="position: absolute; top: 4px; right: 4px; background: #fbbf24; color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">SOON</div>
           </div>
-          <div class="template-card" data-template="4" style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 10px; cursor: pointer; background: white;">
-            <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #f97316 0%, #dc2626 100%); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;"><i class="fas fa-ticket"></i></div>
-            <div style="font-weight: 600; font-size: 13px; color: #374151;">Template 4 - Voucher</div>
+          <div class="template-card" data-template="4" style="position: relative; border: 2px solid #e5e7eb; border-radius: 8px; padding: 8px; cursor: not-allowed; background: #f9fafb; opacity: 0.6;">
+            <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #fdba74 0%, #fca5a5 100%); border-radius: 4px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; color: #dc2626; font-size: 18px;"><i class="fas fa-ticket"></i></div>
+            <div style="font-weight: 600; font-size: 11px; color: #6b7280; text-align: center;">Voucher</div>
+            <div style="position: absolute; top: 4px; right: 4px; background: #fbbf24; color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">SOON</div>
           </div>
         </div>
       </div>`;
