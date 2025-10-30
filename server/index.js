@@ -711,8 +711,8 @@ function normalizeTour(raw) {
 }
 
 // POST /api/booking/parse - PDF booking confirmation parser
-const bookingParseHandler = require('./api/booking-parse');
-app.post('/api/booking/parse', bookingParseHandler);
+const { uploadMiddleware, handler: bookingParseHandler } = require('./api/booking-parse');
+app.post('/api/booking/parse', uploadMiddleware, bookingParseHandler);
 
 // POST /api/booking/url-import - URL booking import
 const urlImportHandler = require('./api/url-import');

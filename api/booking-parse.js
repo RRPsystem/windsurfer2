@@ -2,6 +2,8 @@
 // Vercel Serverless Function for PDF parsing
 
 const pdfParse = require('pdf-parse');
+const formidable = require('formidable');
+const fs = require('fs').promises;
 
 const EXTRACTION_PROMPT = `Je bent een expert in het extraheren van reisgegevens uit boekingsbevestigingen.
 
@@ -83,6 +85,13 @@ async function extractBookingData(pdfText) {
   return JSON.parse(content);
 }
 
+// Disable body parsing, we'll handle it with formidable
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -100,22 +109,36 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Vercel automatically parses multipart/form-data
-    const { pdf } = req.body;
+    // Parse multipart form data with formidable
+    const form = formidable({
+      maxFileSize: 10 * 1024 * 1024, // 10MB
+      keepExtensions: true,
+    });
+
+    const [fields, files] = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err);
+        else resolve([fields, files]);
+      });
+    });
+
+    console.log('[BookingParse] Files received:', Object.keys(files));
+
+    // Get the PDF file
+    const pdfFile = files.pdf?.[0] || files.pdf;
     
-    if (!pdf) {
+    if (!pdfFile) {
       return res.status(400).json({ error: 'No PDF file uploaded' });
     }
 
-    console.log('[BookingParse] Processing PDF');
+    console.log('[BookingParse] Processing PDF:', {
+      filename: pdfFile.originalFilename || pdfFile.name,
+      size: pdfFile.size,
+      mimetype: pdfFile.mimetype
+    });
 
-    // Convert base64 to buffer if needed
-    let pdfBuffer;
-    if (typeof pdf === 'string') {
-      pdfBuffer = Buffer.from(pdf, 'base64');
-    } else {
-      pdfBuffer = pdf;
-    }
+    // Read the file buffer
+    const pdfBuffer = await fs.readFile(pdfFile.filepath);
 
     // Parse PDF
     const pdfData = await pdfParse(pdfBuffer);
@@ -128,10 +151,18 @@ export default async function handler(req, res) {
 
     console.log('[BookingParse] Extraction successful');
 
+    // Clean up temp file
+    try {
+      await fs.unlink(pdfFile.filepath);
+    } catch (e) {
+      console.warn('[BookingParse] Could not delete temp file:', e.message);
+    }
+
     return res.status(200).json({
       success: true,
       data: bookingData,
       meta: {
+        filename: pdfFile.originalFilename || pdfFile.name,
         pages: pdfData.numpages,
         textLength: pdfText.length
       }

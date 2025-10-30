@@ -101,63 +101,55 @@ async function extractBookingData(pdfText) {
   return JSON.parse(content);
 }
 
+// Export multer middleware and handler separately
+const uploadMiddleware = upload.single('pdf');
+
 // Main handler
 async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Use multer middleware
-  upload.single('pdf')(req, res, async (err) => {
-    if (err) {
-      console.error('[BookingParse] Upload error:', err);
-      return res.status(400).json({ 
-        error: 'File upload failed', 
-        detail: err.message 
-      });
-    }
+  if (!req.file) {
+    return res.status(400).json({ error: 'No PDF file uploaded' });
+  }
 
-    if (!req.file) {
-      return res.status(400).json({ error: 'No PDF file uploaded' });
-    }
+  try {
+    console.log('[BookingParse] Processing PDF:', {
+      filename: req.file.originalname,
+      size: req.file.size,
+      mimetype: req.file.mimetype
+    });
 
-    try {
-      console.log('[BookingParse] Processing PDF:', {
+    // Parse PDF
+    const pdfData = await pdfParse(req.file.buffer);
+    const pdfText = pdfData.text;
+
+    console.log('[BookingParse] PDF extracted, text length:', pdfText.length);
+
+    // Extract structured data with OpenAI
+    const bookingData = await extractBookingData(pdfText);
+
+    console.log('[BookingParse] Extraction successful:', bookingData);
+
+    // Return extracted data
+    return res.json({
+      success: true,
+      data: bookingData,
+      meta: {
         filename: req.file.originalname,
-        size: req.file.size,
-        mimetype: req.file.mimetype
-      });
+        pages: pdfData.numpages,
+        textLength: pdfText.length
+      }
+    });
 
-      // Parse PDF
-      const pdfData = await pdfParse(req.file.buffer);
-      const pdfText = pdfData.text;
-
-      console.log('[BookingParse] PDF extracted, text length:', pdfText.length);
-
-      // Extract structured data with OpenAI
-      const bookingData = await extractBookingData(pdfText);
-
-      console.log('[BookingParse] Extraction successful:', bookingData);
-
-      // Return extracted data
-      return res.json({
-        success: true,
-        data: bookingData,
-        meta: {
-          filename: req.file.originalname,
-          pages: pdfData.numpages,
-          textLength: pdfText.length
-        }
-      });
-
-    } catch (error) {
-      console.error('[BookingParse] Processing error:', error);
-      return res.status(500).json({
-        error: 'PDF processing failed',
-        detail: error.message
-      });
-    }
-  });
+  } catch (error) {
+    console.error('[BookingParse] Processing error:', error);
+    return res.status(500).json({
+      error: 'PDF processing failed',
+      detail: error.message
+    });
+  }
 }
 
-module.exports = handler;
+module.exports = { uploadMiddleware, handler };
