@@ -25,7 +25,7 @@
 
     renderHTML() {
       return `
-        <div style="max-width: 100%; margin: 0 auto; padding: 20px; max-height: 90vh; overflow-y: auto;">
+        <div style="max-width: 900px; margin: 0 auto; padding: 20px; max-height: 90vh; overflow-y: auto;">
           <!-- Header -->
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin-bottom: 20px; color: white;">
             <h1 style="margin: 0 0 4px 0; font-size: 24px; font-weight: 700;">
