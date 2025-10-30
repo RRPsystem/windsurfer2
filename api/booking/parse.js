@@ -21,15 +21,17 @@ BELANGRIJK: Vul ALLE velden in met de exacte informatie uit de PDF. Laat NIETS l
       "type": "adult of child"
     }
   ],
-  "flights": [
+  "transports": [
     {
-      "from": "Vertrek stad/luchthaven (bijv. 'Amsterdam', 'AMS')",
-      "to": "Aankomst stad/luchthaven (bijv. 'Barcelona', 'BCN')",
+      "type": "Type vervoer: 'flight', 'train', 'bus', 'ferry', 'car'",
+      "from": "Vertrek stad/station/luchthaven",
+      "to": "Aankomst stad/station/luchthaven",
       "date": "Datum in YYYY-MM-DD formaat",
       "time": "Vertrektijd in HH:MM formaat",
-      "flightNumber": "Vluchtnummer (bijv. 'KL1234')",
-      "airline": "Luchtvaartmaatschappij naam (bijv. 'KLM', 'Transavia')",
-      "duration": "Vliegduur indien beschikbaar (bijv. '2u 15min')"
+      "transportNumber": "Vlucht/trein nummer (bijv. 'KL1234', 'ICE 123')",
+      "carrier": "Vervoerder naam (bijv. 'KLM', 'NS International', 'Thalys')",
+      "duration": "Reisduur indien beschikbaar (bijv. '2u 15min')",
+      "class": "Klasse indien van toepassing (bijv. 'Economy', '2e klas')"
     }
   ],
   "hotel": {
