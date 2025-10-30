@@ -457,14 +457,31 @@
         });
       }
       
-      // Create destinations array (can be empty or derived from hotel location)
+      // Create destinations array from title or last transport destination
       const destinations = [];
-      if (bookingData.hotel?.address) {
+      
+      // Try to get destination from title
+      let destinationName = bookingData.title || '';
+      
+      // Or from last transport arrival
+      if (!destinationName && transports.length > 0) {
+        const lastTransport = transports[transports.length - 1];
+        destinationName = lastTransport.to || lastTransport.arrivalCity || '';
+      }
+      
+      // Or from hotel address (last resort, take city part)
+      if (!destinationName && bookingData.hotel?.address) {
+        // Try to extract city from address (usually last part before country)
+        const addressParts = bookingData.hotel.address.split(',').map(p => p.trim());
+        destinationName = addressParts.length > 1 ? addressParts[addressParts.length - 2] : addressParts[0];
+      }
+      
+      if (destinationName) {
         destinations.push({
-          name: bookingData.hotel.address.split(',')[0] || 'Bestemming',
-          title: bookingData.hotel.address.split(',')[0] || 'Bestemming',
-          description: `Verblijf in ${bookingData.hotel.name || 'hotel'}`,
-          nights: bookingData.hotel.nights || 0
+          name: destinationName,
+          title: destinationName,
+          description: bookingData.hotel ? `Verblijf in ${bookingData.hotel.name || 'hotel'}` : '',
+          nights: bookingData.hotel?.nights || 0
         });
       }
       
