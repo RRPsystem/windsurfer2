@@ -80,7 +80,8 @@ class ComponentFactory {
             'travel-hero': this.createTravelHero,
             'route-overview-btn': this.createRouteOverviewButton,
             'travel-intro': this.createTravelIntro,
-            'animated-route-map': this.createAnimatedRouteMap
+            'animated-route-map': this.createAnimatedRouteMap,
+            'travel-filter-bar': this.createTravelFilterBar
         };
 
         
@@ -6504,7 +6505,7 @@ ComponentFactory.createTravelIntro = function(options = {}) {
     `;
     
     section.innerHTML = `
-        <div style="max-width: 800px;">
+        <div style="max-width: 800px; margin: 0 auto;">
             <h2 contenteditable="true" style="
                 font-size: 32px;
                 font-weight: 700;
@@ -6557,15 +6558,25 @@ ComponentFactory.createTravelIntro = function(options = {}) {
         e.preventDefault();
         e.stopPropagation();
         
-        if (window.location.href.includes('ai-websitestudio.nl') || 
-            window.location.href.includes('localhost')) {
-            alert('Route Overview Panel opent hier op de live website');
+        console.log('[TravelIntro] Route button clicked');
+        
+        // Check if showRouteOverview exists
+        if (!window.showRouteOverview) {
+            console.error('[TravelIntro] showRouteOverview not found');
+            alert('Route Overview functie nog niet geladen');
             return;
         }
         
-        if (window.openRouteOverview) {
-            window.openRouteOverview();
+        // Collect travel data from page
+        const travelData = this.collectTravelDataFromPage();
+        
+        if (!travelData || travelData.destinations.length === 0) {
+            alert('Geen reis data gevonden. Voeg eerst reis componenten toe aan de pagina.');
+            return;
         }
+        
+        // Open route overview
+        window.showRouteOverview(travelData);
     });
     
     return section;
@@ -6678,4 +6689,133 @@ ComponentFactory.createAnimatedRouteMap = function(options = {}) {
         this.makeSelectable(section);
         
         return section;
+};
+
+// Travel Filter Bar - Standalone filter component
+ComponentFactory.createTravelFilterBar = function(options = {}) {
+    const section = document.createElement('section');
+    section.className = 'wb-component wb-travel-filter-bar';
+    section.setAttribute('data-component', 'travel-filter-bar');
+    section.id = this.generateId('travel_filter_bar');
+    
+    const toolbar = this.createToolbar();
+    section.appendChild(toolbar);
+    this.addTypeBadge(section);
+    
+    const title = options.title || 'Filter Reizen';
+    const filters = options.filters || ['Alle', 'Strand', 'Rondreis', 'Stedentrip', 'Safari', 'Cultuur', 'Natuur', 'Avontuur', 'Luxe'];
+    const activeFilter = options.activeFilter || 'Alle';
+    
+    section.style.cssText = `
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+    `;
+    
+    const container = document.createElement('div');
+    container.innerHTML = `
+        <div style="text-align: center; margin-bottom: 24px;">
+            <h3 contenteditable="true" style="
+                font-size: 24px;
+                font-weight: 700;
+                color: #1a202c;
+                margin: 0;
+            ">${title}</h3>
+        </div>
+        
+        <div class="filter-buttons" style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+        ">
+            ${filters.map(filter => `
+                <button 
+                    class="travel-filter-btn ${filter === activeFilter ? 'active' : ''}" 
+                    data-filter="${filter.toLowerCase()}"
+                    style="
+                        padding: 12px 24px;
+                        border: 2px solid ${filter === activeFilter ? '#667eea' : '#e5e7eb'};
+                        background: ${filter === activeFilter ? '#667eea' : 'white'};
+                        color: ${filter === activeFilter ? 'white' : '#374151'};
+                        border-radius: 24px;
+                        font-weight: 600;
+                        font-size: 14px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        white-space: nowrap;
+                    "
+                    onmouseover="if(!this.classList.contains('active')) { this.style.borderColor='#667eea'; this.style.color='#667eea'; }"
+                    onmouseout="if(!this.classList.contains('active')) { this.style.borderColor='#e5e7eb'; this.style.color='#374151'; }"
+                >
+                    ${filter}
+                </button>
+            `).join('')}
+        </div>
+        
+        <div style="
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #6b7280;
+        ">
+            <i class="fas fa-info-circle"></i> Klik op een filter om reizen te filteren
+        </div>
+    `;
+    
+    section.appendChild(container);
+    
+    // Add click handlers for filters
+    setTimeout(() => {
+        const filterBtns = section.querySelectorAll('.travel-filter-btn');
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                // Remove active from all
+                filterBtns.forEach(b => {
+                    b.classList.remove('active');
+                    b.style.background = 'white';
+                    b.style.color = '#374151';
+                    b.style.borderColor = '#e5e7eb';
+                });
+                
+                // Add active to clicked
+                btn.classList.add('active');
+                btn.style.background = '#667eea';
+                btn.style.color = 'white';
+                btn.style.borderColor = '#667eea';
+                
+                const filter = btn.dataset.filter;
+                console.log('[TravelFilterBar] Filter selected:', filter);
+                
+                // Dispatch custom event for Travel Overview to listen to
+                const filterEvent = new CustomEvent('travelFilterChange', {
+                    bubbles: true,
+                    detail: { filter: filter }
+                });
+                document.dispatchEvent(filterEvent);
+                
+                // Try to find and trigger Travel Overview filter
+                const travelOverview = document.querySelector('.wb-travel-overview');
+                if (travelOverview) {
+                    const overviewFilterBtn = Array.from(travelOverview.querySelectorAll('.travel-filter-btn'))
+                        .find(b => b.textContent.toLowerCase().includes(filter) || filter === 'alle');
+                    
+                    if (overviewFilterBtn) {
+                        overviewFilterBtn.click();
+                        
+                        // Smooth scroll to Travel Overview
+                        setTimeout(() => {
+                            travelOverview.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 100);
+                    }
+                }
+            });
+        });
+    }, 100);
+    
+    this.makeSelectable(section);
+    return section;
 };

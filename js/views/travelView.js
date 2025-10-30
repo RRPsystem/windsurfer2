@@ -974,6 +974,23 @@
 
     editInBuilder(data) {
       console.log('[TravelView] editInBuilder called with data:', data);
+      
+      // Convert Travel Compositor themes to tags
+      if (data.themes && Array.isArray(data.themes)) {
+        const tags = data.themes
+          .map(theme => {
+            if (typeof theme === 'string') return theme;
+            if (theme && theme.name) return theme.name;
+            return null;
+          })
+          .filter(Boolean)
+          .map(tag => tag.toLowerCase())
+          .join(',');
+        
+        data.tags = tags;
+        console.log('[TravelView] Converted themes to tags:', tags);
+      }
+      
       // Switch to page mode and load the travel data into the builder
       if (window.websiteBuilder && typeof window.websiteBuilder.loadTravelIdea === 'function') {
         console.log('[TravelView] Calling websiteBuilder.loadTravelIdea...');
