@@ -7,43 +7,53 @@ const fs = require('fs').promises;
 
 const EXTRACTION_PROMPT = `Je bent een expert in het extraheren van reisgegevens uit boekingsbevestigingen.
 
-Extraheer de volgende informatie uit deze boekingsbevestiging en geef het terug als JSON:
+Extraheer ALLE informatie uit deze boekingsbevestiging en geef het terug als JSON.
+Zoek naar vluchtnummers, luchthavencode, hotelnamen, data, tijden, etc.
+
+BELANGRIJK: Vul ALLE velden in met de exacte informatie uit de PDF. Laat NIETS leeg als de informatie beschikbaar is.
 
 {
-  "title": "Reis titel/bestemming",
-  "bookingReference": "PNR/booking nummer",
+  "title": "Bestemming of reis naam (bijv. 'Barcelona', 'Stedentrip Barcelona')",
+  "bookingReference": "Booking/PNR nummer (bijv. 'RRP-10306', '6 letter PNR code')",
   "travelers": [
-    {"name": "Volledige naam", "type": "adult/child"}
+    {
+      "name": "Volledige naam van reiziger",
+      "type": "adult of child"
+    }
   ],
   "flights": [
     {
-      "from": "Vertrek luchthaven",
-      "to": "Aankomst luchthaven", 
-      "date": "YYYY-MM-DD",
-      "time": "HH:MM",
-      "flightNumber": "Vluchtnummer",
-      "airline": "Luchtvaartmaatschappij"
+      "from": "Vertrek stad/luchthaven (bijv. 'Amsterdam', 'AMS')",
+      "to": "Aankomst stad/luchthaven (bijv. 'Barcelona', 'BCN')",
+      "date": "Datum in YYYY-MM-DD formaat",
+      "time": "Vertrektijd in HH:MM formaat",
+      "flightNumber": "Vluchtnummer (bijv. 'KL1234')",
+      "airline": "Luchtvaartmaatschappij naam (bijv. 'KLM', 'Transavia')",
+      "duration": "Vliegduur indien beschikbaar (bijv. '2u 15min')"
     }
   ],
   "hotel": {
-    "name": "Hotel naam",
-    "address": "Adres",
-    "checkIn": "YYYY-MM-DD",
-    "checkOut": "YYYY-MM-DD",
-    "roomType": "Kamer type",
-    "nights": aantal_nachten
+    "name": "Exacte hotel naam",
+    "address": "Volledig adres of locatie",
+    "checkIn": "Check-in datum YYYY-MM-DD",
+    "checkOut": "Check-out datum YYYY-MM-DD",
+    "roomType": "Kamer type (bijv. 'Standaard kamer', 'Deluxe')",
+    "nights": aantal_nachten_als_nummer,
+    "board": "Verblijfstype (bijv. 'Logies & Ontbijt', 'All Inclusive')"
   },
   "price": {
-    "total": bedrag_als_nummer,
-    "currency": "EUR"
+    "total": totaal_bedrag_als_nummer_zonder_valuta_symbool,
+    "currency": "Valuta code (EUR, USD, etc.)"
   },
   "dates": {
-    "departure": "YYYY-MM-DD",
-    "return": "YYYY-MM-DD"
+    "departure": "Vertrekdatum YYYY-MM-DD",
+    "return": "Retourdatum YYYY-MM-DD"
   }
 }
 
-Als informatie ontbreekt, gebruik null. Geef ALLEEN de JSON terug, geen extra tekst.`;
+Als informatie ECHT ontbreekt in de PDF, gebruik dan null. 
+Maar probeer ALTIJD eerst de informatie te vinden voordat je null gebruikt.
+Geef ALLEEN de JSON terug, geen extra tekst of uitleg.`;
 
 async function extractBookingData(pdfText) {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -158,7 +168,7 @@ export default async function handler(req, res) {
     // Extract structured data with OpenAI
     const bookingData = await extractBookingData(pdfText);
 
-    console.log('[BookingParse] Extraction successful');
+    console.log('[BookingParse] Extraction successful:', JSON.stringify(bookingData, null, 2));
 
     // Clean up temp file
     try {
