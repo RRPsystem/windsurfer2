@@ -76,6 +76,8 @@
     transition: all 0.3s ease;
     border: 2px solid transparent;
     border-radius: 4px;
+    width: 100%;
+    display: block;
 }
 .wb-media-row.edge-to-edge .mr-arrow { display: none !important; }
 

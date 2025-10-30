@@ -138,17 +138,30 @@ class AnimatedTravelMap {
   }
   
   async startAnimation() {
-    if (this.isAnimating) return;
+    if (this.isAnimating) {
+      console.log('[AnimatedTravelMap] Animation already running');
+      return;
+    }
+    
+    // Check if map is loaded
+    if (!this.map || !this.map.loaded()) {
+      console.error('[AnimatedTravelMap] Cannot start animation - map not loaded');
+      return;
+    }
+    
+    console.log('[AnimatedTravelMap] Starting animation with', this.routes.length, 'routes');
     
     this.isAnimating = true;
     this.currentRouteIndex = 0;
     
     for (let i = 0; i < this.routes.length; i++) {
+      console.log('[AnimatedTravelMap] Animating route', i + 1, 'of', this.routes.length);
       await this.animateRoute(this.routes[i]);
       this.currentRouteIndex++;
     }
     
     this.isAnimating = false;
+    console.log('[AnimatedTravelMap] Animation complete');
     
     // Trigger complete event
     if (this.options.onComplete) {
@@ -159,6 +172,13 @@ class AnimatedTravelMap {
   async animateRoute(route) {
     return new Promise((resolve) => {
       const { from, to, mode, duration = 3000 } = route;
+      
+      // Check if map is loaded
+      if (!this.map || !this.map.loaded()) {
+        console.error('[AnimatedTravelMap] Map not loaded yet');
+        resolve();
+        return;
+      }
       
       // Create route line
       const routeId = `route-${Date.now()}`;
@@ -267,12 +287,22 @@ class AnimatedTravelMap {
   }
   
   reset() {
+    // Check if map is loaded
+    if (!this.map || !this.map.loaded()) {
+      console.warn('[AnimatedTravelMap] Cannot reset - map not loaded');
+      return;
+    }
+    
     // Remove all route layers and sources
     const style = this.map.getStyle();
     if (style && style.layers) {
       style.layers.forEach(layer => {
         if (layer.id.startsWith('route-')) {
-          this.map.removeLayer(layer.id);
+          try {
+            this.map.removeLayer(layer.id);
+          } catch (e) {
+            console.warn('[AnimatedTravelMap] Error removing layer:', e);
+          }
         }
       });
     }
@@ -280,7 +310,11 @@ class AnimatedTravelMap {
     if (style && style.sources) {
       Object.keys(style.sources).forEach(sourceId => {
         if (sourceId.startsWith('route-')) {
-          this.map.removeSource(sourceId);
+          try {
+            this.map.removeSource(sourceId);
+          } catch (e) {
+            console.warn('[AnimatedTravelMap] Error removing source:', e);
+          }
         }
       });
     }
