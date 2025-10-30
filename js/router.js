@@ -3,6 +3,7 @@
   const MODES = [
     { value: 'page', label: 'Web pagina' },
     { value: 'travel', label: 'Reizen' },
+    { value: 'video-generator', label: 'Video Generator' },
     { value: 'news', label: 'Nieuwsartikel' },
     { value: 'destination', label: 'Bestemmingspagina' },
     { value: 'menu', label: 'Menu & footer' }
@@ -10,7 +11,7 @@
 
   function readModeFromHash(){
     try {
-      const m = (location.hash.match(/#\/mode\/([a-z]+)/i)||[])[1];
+      const m = (location.hash.match(/#\/mode\/([a-z\-]+)/i)||[])[1];
       return MODES.some(x=>x.value===m) ? m : null;
     } catch (e) { return null; }
   }
@@ -135,6 +136,10 @@
         title: 'Reizen',
         body: 'Vul je Travel Compositor ID in en stel blokken samen (transport, hotels, kaart, etc.).'
       },
+      'video-generator': {
+        title: 'Video Generator',
+        body: 'Genereer professionele reisvideo\'s met AI-geselecteerde clips en muziek.'
+      },
       news: {
         title: 'Nieuwsartikel',
         body: 'Schrijf een artikel met titel, intro en body. Publiceer via Bolt. (Preview hier)'
@@ -187,6 +192,77 @@
                 <div style="display:flex;gap:8px;flex-wrap:wrap;">
                   <button id="backToPageMode" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Terug naar Web pagina</button>
                 </div>
+              </div>`;
+            const back = view.querySelector('#backToPageMode');
+            if (back){ back.onclick = () => setMode('page'); }
+          }
+        };
+        setTimeout(retryMount, 100);
+      }
+    } else if (mode === 'video-generator'){
+      // Mount Video Generator view with optional ideaId from URL
+      if (window.VideoGeneratorView && typeof window.VideoGeneratorView.mount === 'function') {
+        // Get ideaId from URL query params
+        const urlParams = new URLSearchParams(window.location.search);
+        const ideaId = urlParams.get('ideaId') || urlParams.get('idea_id');
+        
+        if (ideaId) {
+          // Load travel data first, then mount video generator
+          console.log('[Router] Loading travel data for video generator:', ideaId);
+          view.innerHTML = `
+            <div style="border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:16px;max-width:980px;">
+              <div style="font-weight:700;font-size:18px;margin-bottom:6px;"><i class="fas fa-circle-notch fa-spin"></i> Reis wordt geladen...</div>
+            </div>`;
+          
+          // Fetch travel data
+          fetch(`/api/ideas/${ideaId}`)
+            .then(r => r.json())
+            .then(data => {
+              window.VideoGeneratorView.mount(view, data);
+            })
+            .catch(err => {
+              console.error('[Router] Failed to load travel data:', err);
+              view.innerHTML = `
+                <div style="border:1px solid #ef4444;border-radius:10px;background:#fff;padding:16px;max-width:980px;">
+                  <div style="font-weight:700;font-size:18px;margin-bottom:6px;color:#dc2626;"><i class="fas fa-exclamation-circle"></i> Fout</div>
+                  <div style="color:#475569;margin-bottom:12px;">Kon reis niet laden: ${err.message}</div>
+                  <button id="backToPageMode" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Terug</button>
+                </div>`;
+              const back = view.querySelector('#backToPageMode');
+              if (back){ back.onclick = () => setMode('page'); }
+            });
+        } else {
+          // No ideaId, show empty state
+          view.innerHTML = `
+            <div style="border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:16px;max-width:980px;">
+              <div style="font-weight:700;font-size:18px;margin-bottom:6px;">${info.title}</div>
+              <div style="color:#475569;margin-bottom:12px;">Geen reis geselecteerd. Voeg <code>?ideaId=XXX</code> toe aan de URL.</div>
+              <button id="backToPageMode" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Terug</button>
+            </div>`;
+          const back = view.querySelector('#backToPageMode');
+          if (back){ back.onclick = () => setMode('page'); }
+        }
+      } else {
+        // VideoGeneratorView not loaded yet
+        view.innerHTML = `
+          <div style="border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:16px;max-width:980px;">
+            <div style="font-weight:700;font-size:18px;margin-bottom:6px;"><i class="fas fa-circle-notch fa-spin"></i> Video Generator wordt geladen...</div>
+          </div>`;
+        
+        // Retry mounting
+        let attempts = 0;
+        const retryMount = () => {
+          attempts++;
+          if (window.VideoGeneratorView && typeof window.VideoGeneratorView.mount === 'function') {
+            renderModeView('video-generator'); // Re-render now that it's loaded
+          } else if (attempts < 20) {
+            setTimeout(retryMount, 200);
+          } else {
+            view.innerHTML = `
+              <div style="border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:16px;max-width:980px;">
+                <div style="font-weight:700;font-size:18px;margin-bottom:6px;">${info.title}</div>
+                <div style="color:#475569;margin-bottom:12px;">Video Generator kon niet worden geladen.</div>
+                <button id="backToPageMode" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Terug</button>
               </div>`;
             const back = view.querySelector('#backToPageMode');
             if (back){ back.onclick = () => setMode('page'); }
@@ -297,6 +373,13 @@
       return;
     }
 
+    if (mode === 'video-generator') {
+      showPageWorkspace(false);
+      renderModeView('video-generator');
+      history.replaceState(null, '', '#/mode/video-generator' + window.location.search);
+      return;
+    }
+
     // Fallback info view
     showPageWorkspace(false);
     renderModeView(mode);
@@ -329,7 +412,7 @@
           const mm = href.match(/#\/mode\/([a-z]+)/i);
           if (mm) m = mm[1];
         }
-        if (m && ['page','news','destination','menu','travel'].includes(m)) {
+        if (m && ['page','news','destination','menu','travel','video-generator'].includes(m)) {
           e.preventDefault();
           setMode(m);
         }
