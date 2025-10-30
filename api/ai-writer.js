@@ -73,6 +73,10 @@ Schrijf in 2-3 alinea's. Geen titel, geen subtitel. Direct beginnen met de tekst
           introPrompt += `\n\nGebruik deze specifieke informatie in je tekst:\n${research.highlights.slice(0, 3).map((h, i) => `${i + 1}. ${h}`).join('\n')}`;
         }
         
+        if (research && research.places && research.places.length > 0) {
+          introPrompt += `\n\nTop attracties (met ratings):\n${research.places.slice(0, 3).map((p, i) => `${i + 1}. ${p.name}${p.rating ? ` (${p.rating}★, ${p.reviews.toLocaleString()} reviews)` : ''}`).join('\n')}`;
+        }
+        
         if (research && research.culture && research.culture.length > 0) {
           introPrompt += `\n\nCulturele context:\n${research.culture.slice(0, 2).join('\n')}`;
         }
