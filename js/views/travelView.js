@@ -413,19 +413,33 @@
     convertBookingToTravel(bookingData) {
       console.log('[TravelView] Converting booking data:', bookingData);
       
-      // Convert flights to transports (TC format)
-      const transports = (bookingData.flights || []).map(flight => ({
-        type: 'flight',
-        departureCity: flight.from || '',
-        arrivalCity: flight.to || '',
-        from: flight.from || '',
-        to: flight.to || '',
-        departureDate: flight.date || '',
-        departureTime: flight.time || '',
-        flightNumber: flight.flightNumber || '',
-        airline: flight.airline || '',
-        duration: flight.duration || ''
-      }));
+      // Support both old 'flights' and new 'transports' format
+      const rawTransports = bookingData.transports || bookingData.flights || [];
+      console.log('[TravelView] Raw transports found:', rawTransports);
+      
+      // Convert to TC transport format
+      const transports = rawTransports.map((transport, idx) => {
+        console.log(`[TravelView] Converting transport ${idx}:`, transport);
+        
+        const converted = {
+          type: transport.type || 'flight',
+          departureCity: transport.from || transport.departureCity || '',
+          arrivalCity: transport.to || transport.arrivalCity || '',
+          from: transport.from || transport.departureCity || '',
+          to: transport.to || transport.arrivalCity || '',
+          departureDate: transport.date || transport.departureDate || '',
+          departureTime: transport.time || transport.departureTime || '',
+          flightNumber: transport.transportNumber || transport.flightNumber || '',
+          airline: transport.carrier || transport.airline || '',
+          duration: transport.duration || '',
+          class: transport.class || ''
+        };
+        
+        console.log(`[TravelView] Converted transport:`, converted);
+        return converted;
+      });
+      
+      console.log('[TravelView] All transports:', transports);
       
       // Convert hotel to hotels array (TC format)
       const hotels = [];
@@ -476,8 +490,8 @@
           currency: bookingData.price?.currency || 'EUR'
         },
         dates: bookingData.dates || {
-          departure: bookingData.flights?.[0]?.date,
-          return: bookingData.flights?.[bookingData.flights?.length - 1]?.date
+          departure: rawTransports[0]?.date,
+          return: rawTransports[rawTransports.length - 1]?.date
         }
       };
       
