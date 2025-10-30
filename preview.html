@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Voorbeeld</title>
-  <!-- DEPLOYMENT: 2025-10-26 01:04 - Force cache refresh -->
+  <!-- DEPLOYMENT: 2025-10-30 23:01 - Feature Media centering fix -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="stylesheet" href="styles/main.css?v=20251026">
   <link rel="stylesheet" href="styles/components.css?v=20251026">
@@ -48,6 +48,16 @@
       margin-right: auto !important;
       padding-left: 24px;
       padding-right: 24px;
+    }
+    /* Edge-to-edge components should be full width */
+    .wb-component.edge-to-edge,
+    .wb-feature-media.edge-to-edge,
+    .wb-content-block.edge-to-edge {
+      max-width: 100% !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
     }
     /* Travel timeline container needs full width but content centered */
     .wb-travel-timeline {
