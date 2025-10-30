@@ -63,13 +63,19 @@
 
           <!-- Clip Preview -->
           <div id="clipPreview" style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-            <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 700; color: #111827;">
-              <i class="fas fa-film"></i> Video Clips
-            </h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #111827;">
+                <i class="fas fa-film"></i> Video Clips
+              </h3>
+              <button id="freestyleSearchBtn" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-search"></i> Zoek Clips
+              </button>
+            </div>
             <div id="clipGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
               <div style="text-align: center; padding: 40px; color: #9ca3af;">
-                <i class="fas fa-circle-notch fa-spin" style="font-size: 32px; margin-bottom: 12px;"></i>
-                <div>Clips laden...</div>
+                <i class="fas fa-film" style="font-size: 32px; margin-bottom: 12px; opacity: 0.5;"></i>
+                <div>Klik op "Zoek Clips" om video's toe te voegen</div>
+                <div style="font-size: 12px; margin-top: 8px;">Zoek op thema: safari, beach, mountains, etc.</div>
               </div>
             </div>
           </div>
@@ -180,6 +186,7 @@
       const videoNameInput = container.querySelector('#videoNameInput');
       const importBtn = container.querySelector('#importTravelIdBtn');
       const titleInput = container.querySelector('#videoTitleInput');
+      const freestyleSearchBtn = container.querySelector('#freestyleSearchBtn');
 
       // Duration slider
       durationSlider?.addEventListener('input', (e) => {
@@ -223,6 +230,9 @@
           this.travelData.title = e.target.value;
         }
       });
+
+      // Freestyle clip search
+      freestyleSearchBtn?.addEventListener('click', () => this.freestyleClipSearch());
     },
 
     async previewClips() {
@@ -756,6 +766,97 @@
         const thumbnail = canvas.toDataURL('image/jpeg', 0.8);
         resolve(thumbnail);
       });
+    },
+
+    async freestyleClipSearch() {
+      console.log('[VideoGen] Opening freestyle clip search');
+      
+      // Prompt for search term
+      const searchTerm = prompt('Zoek clips op thema (bijv: safari, beach, mountains):');
+      if (!searchTerm || !searchTerm.trim()) return;
+
+      try {
+        // Check if modal is already open
+        const existingOverlay = document.querySelector('.mp-overlay');
+        if (existingOverlay) {
+          console.warn('[VideoGen] Media Picker already open, closing first...');
+          existingOverlay.remove();
+        }
+        
+        // Open Media Picker with search term
+        console.log('[VideoGen] Calling MediaPicker.openVideo with:', searchTerm);
+        
+        const result = await window.MediaPicker.openVideo({ 
+          defaultTab: 'pexels',
+          searchQuery: searchTerm.trim()
+        });
+        
+        console.log('[VideoGen] MediaPicker returned, result:', result);
+        
+        if (!result) {
+          console.log('[VideoGen] No clip selected');
+          return;
+        }
+
+        // Add clip to collection
+        if (!this.selectedClips) {
+          this.selectedClips = [];
+        }
+
+        const newClip = {
+          url: result.url,
+          thumbnail: result.thumbnail || result.url,
+          duration: result.duration || 10,
+          title: searchTerm,
+          searchTerm: searchTerm,
+          destination: 'Freestyle' // No specific destination
+        };
+
+        this.selectedClips.push(newClip);
+        console.log('[VideoGen] Clip added, total clips:', this.selectedClips.length);
+
+        // Re-render clips
+        this.renderSelectedClips();
+        
+      } catch (error) {
+        console.error('[VideoGen] Freestyle search failed:', error);
+        alert(`Fout bij zoeken: ${error.message}`);
+      }
+    },
+
+    renderSelectedClips() {
+      const clipGrid = document.getElementById('clipGrid');
+      if (!clipGrid) return;
+
+      if (!this.selectedClips || this.selectedClips.length === 0) {
+        clipGrid.innerHTML = `
+          <div style="text-align: center; padding: 40px; color: #9ca3af;">
+            <i class="fas fa-film" style="font-size: 32px; margin-bottom: 12px; opacity: 0.5;"></i>
+            <div>Klik op "Zoek Clips" om video's toe te voegen</div>
+            <div style="font-size: 12px; margin-top: 8px;">Zoek op thema: safari, beach, mountains, etc.</div>
+          </div>
+        `;
+        return;
+      }
+
+      clipGrid.innerHTML = this.selectedClips.map((clip, index) => `
+        <div style="position: relative; border: 2px solid #10b981; border-radius: 8px; overflow: hidden; background: #f9fafb;">
+          <img src="${clip.thumbnail}" alt="${clip.title || 'Clip'}" 
+            style="width: 100%; height: 120px; object-fit: cover;">
+          <div style="padding: 8px;">
+            <div style="font-size: 12px; font-weight: 600; color: #111827; margin-bottom: 4px;">
+              ${clip.title || clip.searchTerm || 'Clip ' + (index + 1)}
+            </div>
+            <div style="font-size: 11px; color: #6b7280;">
+              ${clip.duration ? Math.round(clip.duration) + 's' : ''}
+            </div>
+          </div>
+          <button onclick="window.VideoGeneratorView.removeClip(${index})" 
+            style="position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; background: rgba(239, 68, 68, 0.9); border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-times" style="font-size: 12px;"></i>
+          </button>
+        </div>
+      `).join('');
     },
 
     async importTravelId(container) {
