@@ -13,9 +13,9 @@ class AnimatedTravelMap {
     this.iconSize = options.iconSize || 32; // Default 32px
     this.animationSpeed = options.animationSpeed || 1; // 1 = normal, 2 = 2x faster, 0.5 = 2x slower
     
-    // Transport icons (Font Awesome classes)
+    // Transport icons - SVG for rotation support
     this.transportIcons = {
-      flight: '✈️',
+      flight: '<svg width="32" height="32" viewBox="0 0 24 24" fill="#667eea"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>',
       car: '🚗',
       train: '🚂',
       boat: '⛴️',
@@ -254,6 +254,14 @@ class AnimatedTravelMap {
         const lat = coordinates[index][1] + (coordinates[nextIndex][1] - coordinates[index][1]) * segmentProgress;
         
         movingMarker.setLngLat([lng, lat]);
+        
+        // Calculate rotation angle for the icon
+        if (mode === 'flight' && nextIndex > index) {
+          const dx = coordinates[nextIndex][0] - coordinates[index][0];
+          const dy = coordinates[nextIndex][1] - coordinates[index][1];
+          const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+          markerEl.style.transform = `rotate(${angle + 90}deg)`; // +90 because SVG points up by default
+        }
         
         step++;
         setTimeout(animate, stepDuration);
