@@ -1201,7 +1201,9 @@ class WebsiteBuilder {
                     const timelineItems = [];
                     
                     // Add transports
-                    transports.forEach(transport => {
+                    console.log('[loadTravelIdea] Processing transports:', transports);
+                    transports.forEach((transport, idx) => {
+                        console.log(`[loadTravelIdea] Transport ${idx}:`, transport);
                         // Support both TC format (segment/originCode) and PDF format (from/to)
                         const firstSegment = transport.segment && transport.segment[0];
                         const departure = transport.from || transport.departureCity || 
