@@ -6420,18 +6420,62 @@ ComponentFactory.createRouteOverviewButton = function(options = {}) {
         e.preventDefault();
         e.stopPropagation();
         
+        console.log('[Route Button] Clicked - collecting travel data...');
+        
         // Try to open the sliding panel
         if (typeof window.showRouteOverview === 'function') {
             // Collect travel data from page
+            const canvas = document.querySelector('.canvas') || document.body;
             const travelData = {
-                name: document.querySelector('.wb-travel-hero h1')?.textContent || 'Reis Route',
+                name: canvas.querySelector('.wb-travel-hero h1')?.textContent || 'Reis Route',
                 destinations: [],
                 hotels: [],
                 transports: []
             };
+            
+            // Collect destinations from travel cards
+            const destCards = canvas.querySelectorAll('.wb-travel-card.destination');
+            destCards.forEach((card, index) => {
+                const name = card.querySelector('.wb-travel-card-title h3')?.textContent || `Bestemming ${index + 1}`;
+                const description = card.querySelector('.wb-travel-card-body p')?.textContent || '';
+                travelData.destinations.push({
+                    name,
+                    description,
+                    fromDay: index + 1,
+                    toDay: index + 1
+                });
+            });
+            
+            // Collect hotels
+            const hotelCards = canvas.querySelectorAll('.wb-travel-card.hotel');
+            hotelCards.forEach((card, index) => {
+                const name = card.querySelector('.wb-travel-card-title h3')?.textContent || `Hotel ${index + 1}`;
+                const starsText = card.querySelector('.wb-travel-card-title .subtitle')?.textContent || '';
+                const stars = (starsText.match(/⭐/g) || []).length || 3;
+                travelData.hotels.push({
+                    name,
+                    stars,
+                    fromDay: index + 1,
+                    toDay: index + 2
+                });
+            });
+            
+            // Collect transports
+            const transportCards = canvas.querySelectorAll('.wb-travel-card.transport');
+            transportCards.forEach((card, index) => {
+                const title = card.querySelector('.wb-travel-card-title h3')?.textContent || '';
+                const [from, to] = title.split('→').map(s => s.trim());
+                travelData.transports.push({
+                    from: from || 'Start',
+                    to: to || 'Einde',
+                    fromDay: index + 1
+                });
+            });
+            
+            console.log('[Route Button] Travel data collected:', travelData);
             window.showRouteOverview(travelData);
         } else {
-            console.warn('[Route Button] showRouteOverview function not available');
+            console.error('[Route Button] showRouteOverview function not available');
             alert('Route Overview Panel wordt geladen...');
         }
     });
