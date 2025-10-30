@@ -56,26 +56,71 @@
               </h2>
               <input type="text" id="videoTitleInput" value="${title}" class="form-control" style="max-width: 300px; font-size: 14px;" placeholder="Video titel" />
             </div>
-            <div style="color: #6b7280; font-size: 14px;">
+            <div style="color: #6b7280; font-size: 14px; margin-bottom: 12px;">
               ${destinations.length} bestemming${destinations.length !== 1 ? 'en' : ''}
             </div>
+            ${destinations.length === 0 ? `
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="travelIdInput" placeholder="Travel Compositor ID (optioneel)" 
+                  style="flex: 1; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px;">
+                <button id="loadTravelIdBtn" style="padding: 8px 16px; background: #8b5cf6; border: none; border-radius: 6px; color: white; font-size: 13px; font-weight: 500; cursor: pointer;">
+                  <i class="fas fa-download"></i> Laden
+                </button>
+              </div>
+            ` : ''}
           </div>
 
           <!-- Clip Preview -->
           <div id="clipPreview" style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-              <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #111827;">
-                <i class="fas fa-film"></i> Video Clips
-              </h3>
-              <button id="freestyleSearchBtn" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-search"></i> Zoek Clips
-              </button>
+            <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 700; color: #111827;">
+              <i class="fas fa-film"></i> Video Clips
+            </h3>
+            
+            <!-- Theme Buttons -->
+            <div style="margin-bottom: 20px;">
+              <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px; font-weight: 500;">Kies een thema:</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <button class="theme-btn" data-theme="safari wildlife africa" style="padding: 8px 16px; border: 1px solid #d1d5db; background: white; border-radius: 6px; font-size: 13px; color: #374151; cursor: pointer; transition: all 0.2s;">
+                  🦁 Safari
+                </button>
+                <button class="theme-btn" data-theme="skiing snow mountains winter" style="padding: 8px 16px; border: 1px solid #d1d5db; background: white; border-radius: 6px; font-size: 13px; color: #374151; cursor: pointer; transition: all 0.2s;">
+                  ⛷️ Skiën
+                </button>
+                <button class="theme-btn" data-theme="hiking mountains trail nature" style="padding: 8px 16px; border: 1px solid #d1d5db; background: white; border-radius: 6px; font-size: 13px; color: #374151; cursor: pointer; transition: all 0.2s;">
+                  🥾 Hiking
+                </button>
+                <button class="theme-btn" data-theme="mountain biking cycling trail" style="padding: 8px 16px; border: 1px solid #d1d5db; background: white; border-radius: 6px; font-size: 13px; color: #374151; cursor: pointer; transition: all 0.2s;">
+                  🚵 Mountain Bike
+                </button>
+                <button class="theme-btn" data-theme="cruise ship ocean sailing" style="padding: 8px 16px; border: 1px solid #d1d5db; background: white; border-radius: 6px; font-size: 13px; color: #374151; cursor: pointer; transition: all 0.2s;">
+                  🚢 Cruise
+                </button>
+                <button class="theme-btn" data-theme="road trip car driving highway" style="padding: 8px 16px; border: 1px solid #d1d5db; background: white; border-radius: 6px; font-size: 13px; color: #374151; cursor: pointer; transition: all 0.2s;">
+                  🚗 Roadtrip
+                </button>
+                <button class="theme-btn" data-theme="tropical beach paradise ocean" style="padding: 8px 16px; border: 1px solid #d1d5db; background: white; border-radius: 6px; font-size: 13px; color: #374151; cursor: pointer; transition: all 0.2s;">
+                  🏝️ Tropisch Strand
+                </button>
+              </div>
             </div>
-            <div id="clipGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
-              <div style="text-align: center; padding: 40px; color: #9ca3af;">
+
+            <!-- Custom Search -->
+            <div style="margin-bottom: 20px;">
+              <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px; font-weight: 500;">Of zoek zelf:</div>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="customSearchInput" placeholder="Bijv: sunset, cityscape, food..." 
+                  style="flex: 1; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px;">
+                <button id="customSearchBtn" style="padding: 8px 16px; background: #6366f1; border: none; border-radius: 6px; color: white; font-size: 13px; font-weight: 500; cursor: pointer;">
+                  <i class="fas fa-search"></i> Zoek
+                </button>
+              </div>
+            </div>
+
+            <!-- Clips Grid -->
+            <div id="clipGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; min-height: 120px;">
+              <div style="text-align: center; padding: 40px; color: #9ca3af; grid-column: 1 / -1;">
                 <i class="fas fa-film" style="font-size: 32px; margin-bottom: 12px; opacity: 0.5;"></i>
-                <div>Klik op "Zoek Clips" om video's toe te voegen</div>
-                <div style="font-size: 12px; margin-top: 8px;">Zoek op thema: safari, beach, mountains, etc.</div>
+                <div>Kies een thema of zoek zelf</div>
               </div>
             </div>
           </div>
@@ -186,7 +231,11 @@
       const videoNameInput = container.querySelector('#videoNameInput');
       const importBtn = container.querySelector('#importTravelIdBtn');
       const titleInput = container.querySelector('#videoTitleInput');
-      const freestyleSearchBtn = container.querySelector('#freestyleSearchBtn');
+      const themeButtons = container.querySelectorAll('.theme-btn');
+      const customSearchInput = container.querySelector('#customSearchInput');
+      const customSearchBtn = container.querySelector('#customSearchBtn');
+      const travelIdInput = container.querySelector('#travelIdInput');
+      const loadTravelIdBtn = container.querySelector('#loadTravelIdBtn');
 
       // Duration slider
       durationSlider?.addEventListener('input', (e) => {
@@ -231,8 +280,51 @@
         }
       });
 
-      // Freestyle clip search
-      freestyleSearchBtn?.addEventListener('click', () => this.freestyleClipSearch());
+      // Theme buttons
+      themeButtons?.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const theme = btn.getAttribute('data-theme');
+          this.searchClipsByTheme(theme, btn.textContent.trim());
+        });
+        
+        // Hover effect
+        btn.addEventListener('mouseenter', () => {
+          btn.style.background = '#f3f4f6';
+          btn.style.borderColor = '#9ca3af';
+        });
+        btn.addEventListener('mouseleave', () => {
+          btn.style.background = 'white';
+          btn.style.borderColor = '#d1d5db';
+        });
+      });
+
+      // Custom search
+      customSearchBtn?.addEventListener('click', () => {
+        const searchTerm = customSearchInput?.value?.trim();
+        if (searchTerm) {
+          this.searchClipsByTheme(searchTerm, searchTerm);
+        }
+      });
+      
+      customSearchInput?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          customSearchBtn?.click();
+        }
+      });
+
+      // Travel ID input
+      loadTravelIdBtn?.addEventListener('click', () => {
+        const ideaId = travelIdInput?.value?.trim();
+        if (ideaId) {
+          this.importTravelId(container, ideaId);
+        }
+      });
+      
+      travelIdInput?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          loadTravelIdBtn?.click();
+        }
+      });
     },
 
     async previewClips() {
@@ -780,12 +872,8 @@
       });
     },
 
-    async freestyleClipSearch() {
-      console.log('[VideoGen] Opening freestyle clip search');
-      
-      // Prompt for search term
-      const searchTerm = prompt('Zoek clips op thema (bijv: safari, beach, mountains):');
-      if (!searchTerm || !searchTerm.trim()) return;
+    async searchClipsByTheme(searchQuery, displayName) {
+      console.log('[VideoGen] Searching clips for theme:', searchQuery);
 
       try {
         // Check if modal is already open
@@ -795,12 +883,12 @@
           existingOverlay.remove();
         }
         
-        // Open Media Picker with search term
-        console.log('[VideoGen] Calling MediaPicker.openVideo with:', searchTerm);
+        // Open Media Picker with search query
+        console.log('[VideoGen] Calling MediaPicker.openVideo with:', searchQuery);
         
         const result = await window.MediaPicker.openVideo({ 
           defaultTab: 'pexels',
-          searchQuery: searchTerm.trim()
+          searchQuery: searchQuery.trim()
         });
         
         console.log('[VideoGen] MediaPicker returned, result:', result);
@@ -819,8 +907,8 @@
           url: result.url,
           thumbnail: result.thumbnail || result.url,
           duration: result.duration || 10,
-          title: searchTerm,
-          searchTerm: searchTerm,
+          title: displayName || searchQuery,
+          searchTerm: searchQuery,
           destination: 'Freestyle' // No specific destination
         };
 
@@ -831,7 +919,7 @@
         this.renderSelectedClips();
         
       } catch (error) {
-        console.error('[VideoGen] Freestyle search failed:', error);
+        console.error('[VideoGen] Theme search failed:', error);
         alert(`Fout bij zoeken: ${error.message}`);
       }
     },
@@ -871,8 +959,7 @@
       `).join('');
     },
 
-    async importTravelId(container) {
-      const ideaId = prompt('Voer Travel Compositor ID in (bijv: wlhn3idkb7):');
+    async importTravelId(container, ideaId) {
       if (!ideaId || !ideaId.trim()) return;
 
       try {
@@ -890,7 +977,7 @@
         this.attachEventListeners(container);
         this.previewClips();
         
-        alert(`Reis "${data.title || data.name}" geladen met ${data.destinations?.length || 0} bestemmingen!`);
+        console.log(`[VideoGen] Reis "${data.title || data.name}" geladen met ${data.destinations?.length || 0} bestemmingen`);
       } catch (error) {
         console.error('[VideoGen] Import failed:', error);
         alert(`Fout bij laden: ${error.message}`);
