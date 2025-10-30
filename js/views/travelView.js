@@ -396,9 +396,16 @@
         // Convert booking data to travel idea format
         const travelData = this.convertBookingToTravel(result.data);
         
-        // Load into builder
+        // DEBUG: Log the final travel data being sent
+        console.log('[TravelView] ===== FINAL TRAVEL DATA =====');
+        console.log('[TravelView] Transports:', JSON.stringify(travelData.transports, null, 2));
+        console.log('[TravelView] Hotels:', JSON.stringify(travelData.hotels, null, 2));
+        console.log('[TravelView] Destinations:', JSON.stringify(travelData.destinations, null, 2));
+        console.log('[TravelView] ==============================');
+        
         setTimeout(() => {
           if (window.websiteBuilder && window.websiteBuilder.loadTravelIdea) {
+            console.log('[TravelView] Calling loadTravelIdea with:', travelData);
             window.websiteBuilder.loadTravelIdea(travelData);
             if (window.WB_setMode) window.WB_setMode('page');
           }
