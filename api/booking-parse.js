@@ -93,6 +93,12 @@ export const config = {
 };
 
 export default async function handler(req, res) {
+  console.log('[BookingParse] Request received:', {
+    method: req.method,
+    url: req.url,
+    contentType: req.headers['content-type']
+  });
+
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -100,15 +106,18 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
   if (req.method === 'OPTIONS') {
+    console.log('[BookingParse] OPTIONS request');
     res.status(200).end();
     return;
   }
 
   if (req.method !== 'POST') {
+    console.log('[BookingParse] Invalid method:', req.method);
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    console.log('[BookingParse] Starting formidable parse...');
     // Parse multipart form data with formidable
     const form = formidable({
       maxFileSize: 10 * 1024 * 1024, // 10MB
