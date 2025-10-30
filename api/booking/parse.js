@@ -8,15 +8,18 @@ const { createCanvas } = require('canvas');
 
 const VISION_EXTRACTION_PROMPT = `Je bent een expert in het analyseren van reisboekingsbevestigingen.
 
-Analyseer deze PDF pagina's en extraheer ALLE reisgegevens die je ziet.
-Kijk naar tabellen, headers, kleine tekst, voetnoten - ALLES.
+Analyseer deze PDF pagina's ZEER ZORGVULDIG en extraheer ALLE reisgegevens die je ziet.
 
-BELANGRIJK: 
-- Lees ALLE tekst op de pagina, ook kleine lettertjes
-- Herken tabellen en extracteer data uit kolommen
-- Zoek naar vluchtnummers, treinnummers, tijden, data
-- Let op verschillende transport types (vlucht, trein, bus, etc)
-- Vind hotel namen, adressen, check-in/out data
+KRITISCHE INSTRUCTIES:
+1. Kijk naar ELKE regel tekst, tabellen, headers, voetnoten
+2. Identificeer ALLE verschillende vervoersmiddelen (vlucht, trein, bus, ferry)
+3. Elk vervoersmiddel is een APART item in de transports array
+4. Lees vluchtnummers, treinnummers, vertrektijden EXACT zoals ze staan
+5. Voor hotels: neem de EXACTE naam en adres over
+6. Voor bestemmingen: gebruik de STAD naam, niet het hotel adres
+7. Als je meerdere vluchten/treinen ziet, maak dan MEERDERE transport items
+
+LET OP DUPLICATEN: Als je dezelfde vlucht/trein 2x ziet, neem hem dan maar 1x op!
 
 {
   "title": "Bestemming of reis naam (bijv. 'Barcelona', 'Stedentrip Barcelona')",
