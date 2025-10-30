@@ -2,7 +2,7 @@
 // Vercel Serverless Function for PDF parsing
 
 const pdfParse = require('pdf-parse');
-const formidable = require('formidable');
+const { formidable } = require('formidable');
 const fs = require('fs').promises;
 
 const EXTRACTION_PROMPT = `Je bent een expert in het extraheren van reisgegevens uit boekingsbevestigingen.
