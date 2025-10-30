@@ -403,6 +403,9 @@
         console.log('[TravelView] Destinations:', JSON.stringify(travelData.destinations, null, 2));
         console.log('[TravelView] ==============================');
         
+        // Store for debugging
+        window.lastTravelData = travelData;
+        
         setTimeout(() => {
           if (window.websiteBuilder && window.websiteBuilder.loadTravelIdea) {
             console.log('[TravelView] Calling loadTravelIdea with:', travelData);
