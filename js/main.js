@@ -1530,12 +1530,13 @@ class WebsiteBuilder {
                                 switch(item.type) {
                                     case 'transport':
                                     case 'flight':
+                                    case 'train':
                                         card = ComponentFactory.createComponent('travel-card-transport', {
-                                            departure: item.data?.from || '',
-                                            arrival: item.data?.to || '',
-                                            airline: item.data?.airline || '',
-                                            flightNumber: item.data?.flightNumber || '',
-                                            departureTime: item.data?.departureTime || '',
+                                            departure: item.data?.from || item.data?.departureCity || '',
+                                            arrival: item.data?.to || item.data?.arrivalCity || '',
+                                            airline: item.data?.airline || item.data?.carrier || '',
+                                            flightNumber: item.data?.flightNumber || item.data?.transportNumber || '',
+                                            departureTime: item.data?.departureTime || item.data?.time || '',
                                             arrivalTime: item.data?.arrivalTime || '',
                                             duration: item.data?.duration || '',
                                             price: item.data?.price ? `€ ${item.data.price}` : '',
