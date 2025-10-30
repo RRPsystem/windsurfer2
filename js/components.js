@@ -2578,6 +2578,12 @@ class ComponentFactory {
         const title = options.title || 'Vind Jouw Perfecte Reis';
         const subtitle = options.subtitle || 'Ontdek prachtige bestemmingen over de hele wereld';
         const overlayOpacity = options.overlayOpacity ?? 0.5;
+        
+        // Searchbox styling options
+        const searchBoxBg = options.searchBoxBg || '#ffffff';
+        const searchBoxOpacity = options.searchBoxOpacity ?? 1;
+        const searchBoxPosition = options.searchBoxPosition || 'center'; // 'top', 'center', 'bottom', 'left', 'right'
+        const searchBoxLayout = options.searchBoxLayout || 'horizontal'; // 'horizontal', 'vertical'
 
         // Toolbar
         const toolbar = this.createToolbar();
@@ -2622,17 +2628,20 @@ class ComponentFactory {
 
         // Content wrapper
         const content = document.createElement('div');
+        const isVertical = searchBoxLayout === 'vertical';
+        const isSide = searchBoxPosition === 'left' || searchBoxPosition === 'right';
+        
         content.style.cssText = `
             position: relative;
             z-index: 2;
-            max-width: 1200px;
+            max-width: ${isSide ? '100%' : '1200px'};
             margin: 0 auto;
-            padding: 120px 20px 80px;
-            text-align: center;
+            padding: ${searchBoxPosition === 'top' ? '80px 20px 120px' : searchBoxPosition === 'bottom' ? '120px 20px 80px' : '120px 20px 80px'};
+            text-align: ${isSide ? 'left' : 'center'};
             min-height: 600px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+            display: ${isSide ? 'grid' : 'flex'};
+            ${isSide ? `grid-template-columns: ${searchBoxPosition === 'left' ? '400px 1fr' : '1fr 400px'}; gap: 40px; align-items: center;` : 'flex-direction: column;'}
+            justify-content: ${searchBoxPosition === 'top' ? 'flex-start' : searchBoxPosition === 'bottom' ? 'flex-end' : 'center'};
         `;
 
         // Badge
@@ -2679,16 +2688,29 @@ class ComponentFactory {
         // Search Box
         const searchBox = document.createElement('div');
         searchBox.className = 'travel-search-box';
+        searchBox.dataset.position = searchBoxPosition;
+        searchBox.dataset.layout = searchBoxLayout;
+        
+        // Convert hex to rgba for opacity
+        const hexToRgba = (hex, alpha) => {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        };
+        
+        const bgColor = searchBoxBg.startsWith('#') ? hexToRgba(searchBoxBg, searchBoxOpacity) : searchBoxBg;
+        
         searchBox.style.cssText = `
-            background: white;
+            background: ${bgColor};
             border-radius: 16px;
             padding: 24px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: ${searchBoxLayout === 'vertical' ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))'};
             gap: 16px;
             align-items: end;
-            max-width: 1000px;
+            max-width: ${searchBoxLayout === 'vertical' ? '400px' : '1000px'};
             margin: 0 auto;
         `;
 
@@ -2946,14 +2968,14 @@ class ComponentFactory {
         const subtitle = options.subtitle || 'Kies jouw perfecte reistype';
 
         const defaults = options.cards || [
-            { label: 'Zonvakanties', img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop', href: '#' },
-            { label: 'Stedentrips', img: 'https://images.unsplash.com/photo-1508057198894-247b23fe5ade?q=80&w=1200&auto=format&fit=crop', href: '#' },
-            { label: 'Rondreizen', img: 'https://images.unsplash.com/photo-1473625247510-8ceb1760943f?q=80&w=1200&auto=format&fit=crop', href: '#' },
-            { label: 'Huwelijksreizen', img: 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop', href: '#' },
-            { label: 'Luxe Vakanties', img: 'https://images.unsplash.com/photo-1519821172141-b5d8b5d0fa4f?q=80&w=1200&auto=format&fit=crop', href: '#' },
-            { label: 'Wintersport', img: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200&auto=format&fit=crop', href: '#' },
-            { label: 'Cruises', img: 'https://images.unsplash.com/photo-1544551763-7ef42032a8d1?q=80&w=1200&auto=format&fit=crop', href: '#' },
-            { label: 'All Inclusive', img: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=1200&auto=format&fit=crop', href: '#' }
+            { label: 'Zonvakanties', img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800', href: '#' },
+            { label: 'Stedentrips', img: 'https://images.unsplash.com/photo-1508057198894-247b23fe5ade?w=800', href: '#' },
+            { label: 'Rondreizen', img: 'https://images.unsplash.com/photo-1473625247510-8ceb1760943f?w=800', href: '#' },
+            { label: 'Huwelijksreizen', img: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800', href: '#' },
+            { label: 'Luxe Vakanties', img: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800', href: '#' },
+            { label: 'Wintersport', img: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800', href: '#' },
+            { label: 'Cruises', img: 'https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800', href: '#' },
+            { label: 'All Inclusive', img: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=800', href: '#' }
         ];
 
         // Content
@@ -6815,6 +6837,92 @@ ComponentFactory.createTravelFilterBar = function(options = {}) {
             });
         });
     }, 100);
+    
+    this.makeSelectable(section);
+    return section;
+};
+
+// Travel Search Card - Metadata voor Zoek & Boek overzicht
+ComponentFactory.createTravelSearchCard = function(options = {}) {
+    const section = document.createElement('section');
+    section.className = 'wb-component wb-travel-search-card';
+    section.setAttribute('data-component', 'travel-search-card');
+    section.id = this.generateId('travel_search_card');
+    
+    // Default values
+    const title = options.title || 'Reis Titel';
+    const location = options.location || 'Bestemming';
+    const duration = options.duration || '7 dagen';
+    const price = options.price || '€ 1.299';
+    const description = options.description || 'Korte beschrijving van deze prachtige reis...';
+    const image = options.image || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800';
+    const tags = options.tags || 'strand,luxe';
+    
+    section.style.cssText = `
+        display: none !important;
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+        visibility: hidden;
+    `;
+    
+    // Store metadata as data attributes (for Travel Overview to read)
+    section.setAttribute('data-travel-title', title);
+    section.setAttribute('data-travel-location', location);
+    section.setAttribute('data-travel-duration', duration);
+    section.setAttribute('data-travel-price', price);
+    section.setAttribute('data-travel-description', description);
+    section.setAttribute('data-travel-image', image);
+    section.setAttribute('data-travel-tags', tags);
+    
+    section.innerHTML = `
+        <div style="
+            background: white;
+            border: 2px dashed #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 800px;
+            margin: 0 auto;
+        ">
+            <div style="
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 16px;
+            ">
+                <span style="font-size: 32px;">🔍</span>
+                <h3 style="
+                    font-size: 20px;
+                    font-weight: 700;
+                    color: #1a202c;
+                    margin: 0;
+                ">Zoek & Boek Card Metadata</h3>
+            </div>
+            
+            <p style="
+                color: #6b7280;
+                margin-bottom: 20px;
+                line-height: 1.6;
+            ">
+                Dit component is <strong>onzichtbaar</strong> op de live website, maar bevat metadata 
+                die gebruikt wordt in het Zoek & Boek overzicht. Vul de velden in via het properties panel.
+            </p>
+            
+            <div style="
+                background: #f9fafb;
+                border-radius: 8px;
+                padding: 16px;
+                font-size: 14px;
+                line-height: 1.8;
+            ">
+                <div><strong>Titel:</strong> <span data-field="title">${title}</span></div>
+                <div><strong>Locatie:</strong> <span data-field="location">${location}</span></div>
+                <div><strong>Duur:</strong> <span data-field="duration">${duration}</span></div>
+                <div><strong>Prijs:</strong> <span data-field="price">${price}</span></div>
+                <div><strong>Tags:</strong> <span data-field="tags">${tags}</span></div>
+            </div>
+        </div>
+    `;
     
     this.makeSelectable(section);
     return section;
