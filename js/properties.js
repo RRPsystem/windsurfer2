@@ -5289,6 +5289,26 @@ PropertiesPanel.prototype.createAnimatedRouteMapProperties = function(component)
     const routesList = document.createElement('div');
     routesList.style.cssText = 'margin-bottom: 16px;';
     
+    // Define updateMap first so it can be called from event listeners
+    const updateMap = () => {
+        if (travelMap) {
+            travelMap.destroy();
+        }
+        
+        const mapEl = component.querySelector('.animated-map');
+        if (mapEl && typeof AnimatedTravelMap !== 'undefined') {
+            const newMap = new AnimatedTravelMap(mapEl, {
+                routes: routes,
+                autoplay: false,
+                style: currentStyle,
+                iconSize: currentIconSize,
+                animationSpeed: currentSpeed
+            });
+            component._travelMap = newMap;
+            component._routes = routes;
+        }
+    };
+    
     const renderRoutes = () => {
         routesList.innerHTML = '';
         
@@ -5419,24 +5439,6 @@ PropertiesPanel.prototype.createAnimatedRouteMapProperties = function(component)
     updateBtn.style.borderColor = '#667eea';
     updateBtn.style.color = '#fff';
     this.panel.appendChild(updateBtn);
-    
-    const updateMap = () => {
-        if (travelMap) {
-            travelMap.destroy();
-        }
-        
-        const mapEl = component.querySelector('.animated-map');
-        if (mapEl && typeof AnimatedTravelMap !== 'undefined') {
-            const newMap = new AnimatedTravelMap(mapEl, {
-                routes: routes,
-                autoplay: false,
-                style: currentStyle,
-                iconSize: currentIconSize,
-                animationSpeed: currentSpeed
-            });
-            component._travelMap = newMap;
-        }
-    };
     
     // Separator
     const separator2 = document.createElement('div');
