@@ -710,8 +710,20 @@
         });
 
         if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.detail || 'Upload mislukt');
+          let errorMessage = 'Upload mislukt';
+          try {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              const error = await response.json();
+              errorMessage = error.detail || error.message || error.error || 'Upload mislukt';
+            } else {
+              const errorText = await response.text();
+              errorMessage = errorText.substring(0, 100); // First 100 chars
+            }
+          } catch (e) {
+            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+          }
+          throw new Error(errorMessage);
         }
 
         const result = await response.json();
