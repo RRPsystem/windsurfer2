@@ -6582,8 +6582,16 @@ ComponentFactory.createAnimatedRouteMap = function(options = {}) {
         section._routes = defaultRoutes;
         
         // Initialize map when section is added to DOM
-        setTimeout(() => {
+        const initMap = () => {
+            // Check if element is in DOM
+            if (!mapEl.offsetParent && !document.body.contains(mapEl)) {
+                console.log('[AnimatedRouteMap] Element not in DOM yet, waiting...');
+                setTimeout(initMap, 100);
+                return;
+            }
+            
             if (typeof AnimatedTravelMap !== 'undefined') {
+                console.log('[AnimatedRouteMap] Initializing map...');
                 const travelMap = new AnimatedTravelMap(mapEl, {
                     routes: section._routes,
                     autoplay: false,
@@ -6597,17 +6605,28 @@ ComponentFactory.createAnimatedRouteMap = function(options = {}) {
                 const resetBtn = controls.querySelector('.map-reset');
                 
                 playBtn.addEventListener('click', () => {
-                    travelMap.startAnimation();
+                    console.log('[AnimatedRouteMap] Play button clicked');
+                    if (travelMap.map && travelMap.map.loaded()) {
+                        travelMap.startAnimation();
+                    } else {
+                        console.error('[AnimatedRouteMap] Map not ready yet');
+                    }
                 });
                 
                 resetBtn.addEventListener('click', () => {
-                    travelMap.reset();
+                    console.log('[AnimatedRouteMap] Reset button clicked');
+                    if (travelMap.map && travelMap.map.loaded()) {
+                        travelMap.reset();
+                    }
                 });
             } else {
                 console.error('[AnimatedRouteMap] AnimatedTravelMap class not loaded');
                 mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#666;"><div><i class="fas fa-exclamation-triangle" style="font-size:48px;margin-bottom:12px;"></i><div>Mapbox GL JS niet geladen</div></div></div>';
             }
-        }, 100);
+        };
+        
+        // Start initialization
+        setTimeout(initMap, 100);
         
         this.makeSelectable(section);
         
