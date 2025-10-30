@@ -1,10 +1,10 @@
 {
   "functions": {
-    "api/booking-parse.js": {
+    "api/booking/parse.js": {
       "maxDuration": 60,
       "memory": 1024
     },
-    "api/url-import.js": {
+    "api/booking/url-import.js": {
       "maxDuration": 60,
       "memory": 1024
     }
