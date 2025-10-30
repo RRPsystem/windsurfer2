@@ -10,8 +10,10 @@
     }
   },
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/:path*" },
-    { "source": "/:brandSlug/:pageSlug", "destination": "/api/pages/:brandSlug/:pageSlug" }
+    { 
+      "source": "/:brandSlug((?!api$)[^/]+)/:pageSlug", 
+      "destination": "/api/pages/:brandSlug/:pageSlug"
+    }
   ],
   "headers": [
     {
