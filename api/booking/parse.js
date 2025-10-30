@@ -3,8 +3,7 @@
 
 const { formidable } = require('formidable');
 const fs = require('fs').promises;
-const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
-const { createCanvas } = require('canvas');
+const { put } = require('@vercel/blob');
 
 const VISION_EXTRACTION_PROMPT = `Je bent een expert in het analyseren van reisboekingsbevestigingen.
 
@@ -66,65 +65,30 @@ Als informatie ECHT ontbreekt in de PDF, gebruik dan null.
 Maar probeer ALTIJD eerst de informatie te vinden voordat je null gebruikt.
 Geef ALLEEN de JSON terug, geen extra tekst of uitleg.`;
 
-// Convert PDF to images
-async function pdfToImages(pdfBuffer) {
-  const images = [];
-  
+// Upload PDF to Vercel Blob and return URL
+async function uploadPDFToBlob(pdfBuffer, filename) {
   try {
-    // Load PDF
-    const loadingTask = pdfjsLib.getDocument({
-      data: new Uint8Array(pdfBuffer),
-      useSystemFonts: true
+    const blob = await put(filename, pdfBuffer, {
+      access: 'public',
+      addRandomSuffix: true,
     });
     
-    const pdf = await loadingTask.promise;
-    console.log(`[PDFToImages] PDF loaded, ${pdf.numPages} pages`);
-    
-    // Convert each page to image (max 5 pages to save costs)
-    const maxPages = Math.min(pdf.numPages, 5);
-    
-    for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
-      const page = await pdf.getPage(pageNum);
-      const viewport = page.getViewport({ scale: 2.0 }); // Higher scale for better quality
-      
-      const canvas = createCanvas(viewport.width, viewport.height);
-      const context = canvas.getContext('2d');
-      
-      await page.render({
-        canvasContext: context,
-        viewport: viewport
-      }).promise;
-      
-      // Convert to base64
-      const imageBase64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
-      images.push(imageBase64);
-      
-      console.log(`[PDFToImages] Page ${pageNum} converted`);
-    }
-    
-    return images;
+    console.log(`[UploadPDF] PDF uploaded to:`, blob.url);
+    return blob.url;
   } catch (error) {
-    console.error('[PDFToImages] Error:', error);
-    throw new Error(`PDF to image conversion failed: ${error.message}`);
+    console.error('[UploadPDF] Error:', error);
+    throw new Error(`PDF upload failed: ${error.message}`);
   }
 }
 
-// Extract booking data using GPT-4o Vision
-async function extractBookingDataWithVision(images) {
+// Extract booking data using GPT-4o with PDF URL
+async function extractBookingDataFromPDF(pdfUrl) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error('OPENAI_API_KEY not configured');
   }
 
-  // Build messages with images
-  const imageMessages = images.map((base64, idx) => ({
-    type: "image_url",
-    image_url: {
-      url: `data:image/jpeg;base64,${base64}`,
-      detail: "high" // High detail for better text recognition
-    }
-  }));
-
+  // OpenAI can read PDFs directly via URL!
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -143,9 +107,15 @@ async function extractBookingDataWithVision(images) {
           content: [
             {
               type: "text",
-              text: "Analyseer deze boekingsbevestiging en extraheer alle reisgegevens:"
+              text: "Analyseer deze PDF boekingsbevestiging en extraheer alle reisgegevens:"
             },
-            ...imageMessages
+            {
+              type: "image_url",
+              image_url: {
+                url: pdfUrl,
+                detail: "high"
+              }
+            }
           ]
         }
       ],
@@ -157,7 +127,7 @@ async function extractBookingDataWithVision(images) {
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`OpenAI Vision API error: ${error}`);
+    throw new Error(`OpenAI API error: ${error}`);
   }
 
   const data = await response.json();
@@ -230,18 +200,17 @@ export default async function handler(req, res) {
     // Read the file buffer
     const pdfBuffer = await fs.readFile(pdfFile.filepath);
 
-    console.log('[BookingParse] Converting PDF to images...');
+    console.log('[BookingParse] Uploading PDF to Vercel Blob...');
     
-    // Convert PDF pages to images
-    const images = await pdfToImages(pdfBuffer);
+    // Upload PDF to Vercel Blob
+    const pdfUrl = await uploadPDFToBlob(pdfBuffer, pdfFile.originalFilename || pdfFile.name || 'booking.pdf');
     
-    console.log(`[BookingParse] Converted ${images.length} pages to images`);
+    console.log(`[BookingParse] PDF uploaded, analyzing with GPT-4o...`);
 
-    // Extract structured data with GPT-4o Vision
-    console.log('[BookingParse] Analyzing with GPT-4o Vision...');
-    const bookingData = await extractBookingDataWithVision(images);
+    // Extract structured data with GPT-4o (can read PDFs directly!)
+    const bookingData = await extractBookingDataFromPDF(pdfUrl);
 
-    console.log('[BookingParse] Vision extraction successful:', JSON.stringify(bookingData, null, 2));
+    console.log('[BookingParse] Extraction successful:', JSON.stringify(bookingData, null, 2));
 
     // Clean up temp file
     try {
@@ -255,8 +224,8 @@ export default async function handler(req, res) {
       data: bookingData,
       meta: {
         filename: pdfFile.originalFilename || pdfFile.name,
-        pages: images.length,
-        method: 'gpt-4o-vision'
+        pdfUrl: pdfUrl,
+        method: 'gpt-4o-pdf-url'
       }
     });
 
