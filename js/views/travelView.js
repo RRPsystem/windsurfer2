@@ -411,19 +411,78 @@
     },
     
     convertBookingToTravel(bookingData) {
-      // Convert extracted booking data to travel idea format
-      return {
+      console.log('[TravelView] Converting booking data:', bookingData);
+      
+      // Convert flights to transports (TC format)
+      const transports = (bookingData.flights || []).map(flight => ({
+        type: 'flight',
+        departureCity: flight.from || '',
+        arrivalCity: flight.to || '',
+        from: flight.from || '',
+        to: flight.to || '',
+        departureDate: flight.date || '',
+        departureTime: flight.time || '',
+        flightNumber: flight.flightNumber || '',
+        airline: flight.airline || '',
+        duration: flight.duration || ''
+      }));
+      
+      // Convert hotel to hotels array (TC format)
+      const hotels = [];
+      if (bookingData.hotel) {
+        hotels.push({
+          name: bookingData.hotel.name || 'Hotel',
+          hotelName: bookingData.hotel.name || 'Hotel',
+          address: bookingData.hotel.address || '',
+          checkIn: bookingData.hotel.checkIn || '',
+          checkOut: bookingData.hotel.checkOut || '',
+          roomType: bookingData.hotel.roomType || '',
+          nights: bookingData.hotel.nights || 0,
+          stars: 4, // Default
+          board: 'Logies & Ontbijt'
+        });
+      }
+      
+      // Create destinations array (can be empty or derived from hotel location)
+      const destinations = [];
+      if (bookingData.hotel?.address) {
+        destinations.push({
+          name: bookingData.hotel.address.split(',')[0] || 'Bestemming',
+          title: bookingData.hotel.address.split(',')[0] || 'Bestemming',
+          description: `Verblijf in ${bookingData.hotel.name || 'hotel'}`,
+          nights: bookingData.hotel.nights || 0
+        });
+      }
+      
+      // Convert to TC format
+      const travelData = {
         name: bookingData.title || 'Nieuwe Reis',
         title: bookingData.title || 'Nieuwe Reis',
-        description: `Boeking ${bookingData.bookingReference || ''}`,
+        description: bookingData.bookingReference 
+          ? `Boeking ${bookingData.bookingReference}` 
+          : 'Geïmporteerd uit PDF',
         bookingReference: bookingData.bookingReference,
+        
+        // TC format arrays
+        transports: transports,
+        hotels: hotels,
+        destinations: destinations,
+        transfers: [], // Can be added later
+        
+        // Additional data
         travelers: bookingData.travelers || [],
-        flights: bookingData.flights || [],
-        hotel: bookingData.hotel,
-        price: bookingData.price?.total,
-        currency: bookingData.price?.currency || 'EUR',
-        dates: bookingData.dates
+        price: {
+          total: bookingData.price?.total || 0,
+          currency: bookingData.price?.currency || 'EUR'
+        },
+        dates: bookingData.dates || {
+          departure: bookingData.flights?.[0]?.date,
+          return: bookingData.flights?.[bookingData.flights?.length - 1]?.date
+        }
       };
+      
+      console.log('[TravelView] Converted to TC format:', travelData);
+      return travelData;
     },
 
     renderURLImport(container) {
