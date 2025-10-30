@@ -988,6 +988,8 @@ class WebsiteBuilder {
             
             // Log all transports for debugging
             console.log('[loadTravelIdea] All transports:', transports);
+            console.log('[loadTravelIdea] Transports count:', transports.length);
+            console.log('[loadTravelIdea] Transports detail:', JSON.stringify(transports, null, 2));
 
             // 1. Add hero with travel image
             let heroElement = null;
@@ -1192,9 +1194,13 @@ class WebsiteBuilder {
                     const timelineItems = [];
                     
                     // Add transports
+                    console.log('[loadTravelIdea] ===== CREATING TIMELINE ITEMS =====');
                     console.log('[loadTravelIdea] Processing transports:', transports);
+                    console.log('[loadTravelIdea] Transports array length:', transports.length);
+                    
                     transports.forEach((transport, idx) => {
-                        console.log(`[loadTravelIdea] Transport ${idx}:`, transport);
+                        console.log(`[loadTravelIdea] ===== Transport ${idx} =====`);
+                        console.log(`[loadTravelIdea] Transport ${idx} full object:`, JSON.stringify(transport, null, 2));
                         // Support both TC format (segment/originCode) and PDF format (from/to)
                         const firstSegment = transport.segment && transport.segment[0];
                         const departure = transport.from || transport.departureCity || 
