@@ -213,6 +213,165 @@ static createTravelCardTransfer(options = {}) {
     return card;
 }
 
+// Booking Info Card
+static createTravelCardBooking(options = {}) {
+    const card = document.createElement('div');
+    card.className = 'wb-component wb-travel-card booking-info';
+    card.setAttribute('data-component', 'travel-card-booking');
+    card.id = this.generateId('travel_card_booking');
+
+    const toolbar = this.createToolbar();
+    card.appendChild(toolbar);
+    this.addTypeBadge(card);
+
+    const bookingRef = options.bookingReference || 'RRP-12345';
+    const pnr = options.pnr || 'ABC123';
+    const travelAgent = options.travelAgent || 'Reisorganisatie';
+    const agentPhone = options.agentPhone || '+31 20 123 4567';
+    const agentEmail = options.agentEmail || 'info@reisorganisatie.nl';
+
+    card.innerHTML += `
+        <div class="wb-travel-card-header">
+            <div class="wb-travel-card-icon">
+                <i class="fas fa-file-contract"></i>
+            </div>
+            <div class="wb-travel-card-title">
+                <h3 contenteditable="true">Boekingsinformatie</h3>
+                <div class="subtitle" contenteditable="true">Bewaar deze gegevens</div>
+            </div>
+        </div>
+        <div class="wb-travel-card-body">
+            <div class="wb-travel-card-row">
+                <i class="fas fa-hashtag"></i>
+                <span><strong>Boeking:</strong> <span contenteditable="true">${bookingRef}</span></span>
+            </div>
+            <div class="wb-travel-card-row">
+                <i class="fas fa-ticket"></i>
+                <span><strong>PNR:</strong> <span contenteditable="true">${pnr}</span></span>
+            </div>
+            <div class="wb-travel-card-row">
+                <i class="fas fa-building"></i>
+                <span contenteditable="true">${travelAgent}</span>
+            </div>
+            <div class="wb-travel-card-row">
+                <i class="fas fa-phone"></i>
+                <span contenteditable="true">${agentPhone}</span>
+            </div>
+            <div class="wb-travel-card-row">
+                <i class="fas fa-envelope"></i>
+                <span contenteditable="true">${agentEmail}</span>
+            </div>
+        </div>
+    `;
+
+    this.makeSelectable(card);
+    return card;
+}
+
+// Emergency Contacts Card
+static createTravelCardEmergency(options = {}) {
+    const card = document.createElement('div');
+    card.className = 'wb-component wb-travel-card emergency';
+    card.setAttribute('data-component', 'travel-card-emergency');
+    card.id = this.generateId('travel_card_emergency');
+
+    const toolbar = this.createToolbar();
+    card.appendChild(toolbar);
+    this.addTypeBadge(card);
+
+    const emergency112 = options.emergency112 || '112 (Europa)';
+    const localEmergency = options.localEmergency || 'Lokaal alarmnummer';
+    const embassy = options.embassy || 'Nederlandse Ambassade';
+    const embassyPhone = options.embassyPhone || '+XX XX XXX XXXX';
+    const alarmCentral = options.alarmCentral || 'Alarmcentrale';
+    const alarmPhone = options.alarmPhone || '+31 70 123 4567';
+
+    card.innerHTML += `
+        <div class="wb-travel-card-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+            <div class="wb-travel-card-icon">
+                <i class="fas fa-circle-exclamation"></i>
+            </div>
+            <div class="wb-travel-card-title">
+                <h3 contenteditable="true" style="color: white;">Noodcontacten</h3>
+                <div class="subtitle" contenteditable="true" style="color: rgba(255,255,255,0.9);">Belangrijk bij noodsituaties</div>
+            </div>
+        </div>
+        <div class="wb-travel-card-body">
+            <div class="wb-travel-card-row">
+                <i class="fas fa-phone-volume" style="color: #ef4444;"></i>
+                <span><strong>Alarm:</strong> <span contenteditable="true">${emergency112}</span></span>
+            </div>
+            <div class="wb-travel-card-row">
+                <i class="fas fa-hospital"></i>
+                <span><strong>Lokaal:</strong> <span contenteditable="true">${localEmergency}</span></span>
+            </div>
+            <div class="wb-travel-card-row">
+                <i class="fas fa-flag"></i>
+                <span contenteditable="true">${embassy}</span>
+            </div>
+            <div class="wb-travel-card-row">
+                <i class="fas fa-phone"></i>
+                <span contenteditable="true">${embassyPhone}</span>
+            </div>
+            <div class="wb-travel-card-row">
+                <i class="fas fa-shield-halved"></i>
+                <span contenteditable="true">${alarmCentral}</span>
+            </div>
+            <div class="wb-travel-card-row">
+                <i class="fas fa-phone-square"></i>
+                <span contenteditable="true">${alarmPhone}</span>
+            </div>
+        </div>
+    `;
+
+    this.makeSelectable(card);
+    return card;
+}
+
+// Important Info Card
+static createTravelCardInfo(options = {}) {
+    const card = document.createElement('div');
+    card.className = 'wb-component wb-travel-card info';
+    card.setAttribute('data-component', 'travel-card-info');
+    card.id = this.generateId('travel_card_info');
+
+    const toolbar = this.createToolbar();
+    card.appendChild(toolbar);
+    this.addTypeBadge(card);
+
+    const title = options.title || 'Belangrijke Informatie';
+    const items = options.items || [
+        'Vergeet je paspoort niet',
+        'Check-in 2 uur voor vertrek',
+        'Bagage max 23kg'
+    ];
+
+    const itemsHtml = items.map(item => `
+        <div class="wb-travel-card-row">
+            <i class="fas fa-circle-check"></i>
+            <span contenteditable="true">${item}</span>
+        </div>
+    `).join('');
+
+    card.innerHTML += `
+        <div class="wb-travel-card-header" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+            <div class="wb-travel-card-icon">
+                <i class="fas fa-circle-info"></i>
+            </div>
+            <div class="wb-travel-card-title">
+                <h3 contenteditable="true" style="color: white;">${title}</h3>
+                <div class="subtitle" contenteditable="true" style="color: rgba(255,255,255,0.9);">Let hierop</div>
+            </div>
+        </div>
+        <div class="wb-travel-card-body">
+            ${itemsHtml}
+        </div>
+    `;
+
+    this.makeSelectable(card);
+    return card;
+}
+
 // Day Header
 static createTravelDayHeader(options = {}) {
     const header = document.createElement('div');
