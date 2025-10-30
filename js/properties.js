@@ -5316,7 +5316,8 @@ PropertiesPanel.prototype.createAnimatedRouteMapProperties = function(component)
             fromInput.style.cssText = 'width: 100%; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px;';
             fromInput.addEventListener('change', (e) => {
                 route.from.name = e.target.value;
-                // Coordinates blijven hetzelfde (of gebruik geocoding API)
+                // Update map automatically
+                updateMap();
             });
             fromGroup.appendChild(fromInput);
             routeItem.appendChild(fromGroup);
@@ -5331,6 +5332,8 @@ PropertiesPanel.prototype.createAnimatedRouteMapProperties = function(component)
             toInput.style.cssText = 'width: 100%; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px;';
             toInput.addEventListener('change', (e) => {
                 route.to.name = e.target.value;
+                // Update map automatically
+                updateMap();
             });
             toGroup.appendChild(toInput);
             routeItem.appendChild(toGroup);
@@ -5351,6 +5354,8 @@ PropertiesPanel.prototype.createAnimatedRouteMapProperties = function(component)
             `;
             transportSelect.addEventListener('change', (e) => {
                 route.mode = e.target.value;
+                // Update map automatically
+                updateMap();
             });
             transportGroup.appendChild(transportSelect);
             routeItem.appendChild(transportGroup);
