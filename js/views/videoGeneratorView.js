@@ -9,15 +9,20 @@
     renderId: null,
     statusInterval: null,
 
-    mount(container, travelData) {
+    mount(container, travelData = null) {
       if (!container) return;
       
-      this.travelData = travelData;
+      // Initialize with empty data if none provided (standalone mode)
+      this.travelData = travelData || {
+        title: 'Mijn Video',
+        destinations: []
+      };
+      
       container.innerHTML = this.renderHTML();
       this.attachEventListeners(container);
       
       // Auto-preview clips if destinations available
-      if (travelData && travelData.destinations && travelData.destinations.length > 0) {
+      if (this.travelData.destinations && this.travelData.destinations.length > 0) {
         this.previewClips();
       }
     },
@@ -30,21 +35,29 @@
         <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
           <!-- Header -->
           <div style="background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); border-radius: 12px; padding: 24px; margin-bottom: 24px; color: white;">
-            <h1 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">
-              <i class="fas fa-video"></i> Video Generator
-            </h1>
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+              <h1 style="margin: 0; font-size: 28px; font-weight: 700;">
+                <i class="fas fa-video"></i> Video Generator
+              </h1>
+              <button id="importTravelIdBtn" class="btn btn-secondary" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white;">
+                <i class="fas fa-download"></i> Importeer Travel ID
+              </button>
+            </div>
             <p style="margin: 0; opacity: 0.9; font-size: 14px;">
-              Maak een promotievideo van deze reis met AI-geselecteerde clips
+              Maak een promotievideo met AI-geselecteerde clips
             </p>
           </div>
 
           <!-- Travel Info -->
           <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-            <h2 style="margin: 0 0 12px 0; font-size: 18px; font-weight: 700; color: #111827;">
-              <i class="fas fa-plane-departure"></i> ${title}
-            </h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #111827;">
+                <i class="fas fa-plane-departure"></i> ${title}
+              </h2>
+              <input type="text" id="videoTitleInput" value="${title}" class="form-control" style="max-width: 300px; font-size: 14px;" placeholder="Video titel" />
+            </div>
             <div style="color: #6b7280; font-size: 14px;">
-              ${destinations.length} bestemmingen
+              ${destinations.length} bestemming${destinations.length !== 1 ? 'en' : ''}
             </div>
           </div>
 
@@ -165,6 +178,8 @@
       const newVideoBtn = container.querySelector('#newVideoBtn');
       const saveBtn = container.querySelector('#saveToMyVideosBtn');
       const videoNameInput = container.querySelector('#videoNameInput');
+      const importBtn = container.querySelector('#importTravelIdBtn');
+      const titleInput = container.querySelector('#videoTitleInput');
 
       // Duration slider
       durationSlider?.addEventListener('input', (e) => {
@@ -197,6 +212,16 @@
       // New video
       newVideoBtn?.addEventListener('click', () => {
         this.resetGenerator(container);
+      });
+
+      // Import Travel ID
+      importBtn?.addEventListener('click', () => this.importTravelId(container));
+
+      // Update title when changed
+      titleInput?.addEventListener('change', (e) => {
+        if (this.travelData) {
+          this.travelData.title = e.target.value;
+        }
       });
     },
 
@@ -731,6 +756,32 @@
         const thumbnail = canvas.toDataURL('image/jpeg', 0.8);
         resolve(thumbnail);
       });
+    },
+
+    async importTravelId(container) {
+      const ideaId = prompt('Voer Travel Compositor ID in (bijv: wlhn3idkb7):');
+      if (!ideaId || !ideaId.trim()) return;
+
+      try {
+        const response = await fetch(`/api/ideas/${ideaId.trim()}`);
+        if (!response.ok) throw new Error('Reis niet gevonden');
+        
+        const data = await response.json();
+        
+        // Update travel data
+        this.travelData = data;
+        this.selectedClips = [];
+        
+        // Re-render
+        container.innerHTML = this.renderHTML();
+        this.attachEventListeners(container);
+        this.previewClips();
+        
+        alert(`Reis "${data.title || data.name}" geladen met ${data.destinations?.length || 0} bestemmingen!`);
+      } catch (error) {
+        console.error('[VideoGen] Import failed:', error);
+        alert(`Fout bij laden: ${error.message}`);
+      }
     },
 
     getApiBase() {

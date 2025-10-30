@@ -232,15 +232,9 @@
               if (back){ back.onclick = () => setMode('page'); }
             });
         } else {
-          // No ideaId, show empty state
-          view.innerHTML = `
-            <div style="border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:16px;max-width:980px;">
-              <div style="font-weight:700;font-size:18px;margin-bottom:6px;">${info.title}</div>
-              <div style="color:#475569;margin-bottom:12px;">Geen reis geselecteerd. Voeg <code>?ideaId=XXX</code> toe aan de URL.</div>
-              <button id="backToPageMode" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Terug</button>
-            </div>`;
-          const back = view.querySelector('#backToPageMode');
-          if (back){ back.onclick = () => setMode('page'); }
+          // No ideaId - mount standalone video generator
+          console.log('[Router] Mounting standalone video generator');
+          window.VideoGeneratorView.mount(view, null);
         }
       } else {
         // VideoGeneratorView not loaded yet
