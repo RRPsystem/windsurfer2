@@ -1,3 +1,10 @@
+// Helper to get base URL for internal API calls
+function getBaseUrl(req) {
+  const host = req.headers.host || 'localhost:5050';
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  return `${protocol}://${host}`;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -14,25 +21,63 @@ export default async function handler(req, res) {
   const {
     section = 'intro',
     country = '',
+    destination = '', // Specific destination (e.g., "Victoria Island")
     tone = 'inspiring',
     language = 'nl',
     count = 6,
     images = [],
+    useResearch = true, // Enable Google Search research
   } = body || {};
+
+  // Use destination if provided, otherwise use country
+  const location = destination || country;
+
+  // Fetch Google Search research if enabled
+  let research = null;
+  if (useResearch && location) {
+    try {
+      console.log('[AI Writer] Fetching research for:', location);
+      const researchResponse = await fetch(`${getBaseUrl(req)}/api/research/destination`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ destination: location, language })
+      });
+      
+      if (researchResponse.ok) {
+        research = await researchResponse.json();
+        console.log('[AI Writer] Research loaded:', {
+          highlights: research.highlights?.length || 0,
+          activities: research.activities?.length || 0
+        });
+      }
+    } catch (error) {
+      console.warn('[AI Writer] Research failed, continuing without:', error.message);
+    }
+  }
 
   const system = `Je bent een reiscontent schrijver. Schrijf in ${language}. Toon geen disclaimers. Gebruik korte, concrete zinnen.`;
 
   const makePrompt = () => {
     switch (section) {
       case 'intro':
-        return `Schrijf een concrete, informatieve inleiding van ongeveer 200 woorden over ${country}. 
+        let introPrompt = `Schrijf een concrete, informatieve inleiding van ongeveer 200 woorden over ${location}. 
 
-VERMIJD clichés zoals "land van tegenstellingen" of vage taal. Gebruik in plaats daarvan:
+VERMIJD clichés zoals "land van tegenstellingen", "absoluut de moeite waard" of vage taal. Gebruik in plaats daarvan:
 - Specifieke voorbeelden van steden, regio's of bezienswaardigheden
 - Concrete contrasten (bijv. moderne steden vs. traditionele dorpen)
 - Unieke culturele aspecten met voorbeelden
 
 Schrijf in 2-3 alinea's. Geen titel, geen subtitel. Direct beginnen met de tekst.`;
+
+        if (research && research.highlights && research.highlights.length > 0) {
+          introPrompt += `\n\nGebruik deze specifieke informatie in je tekst:\n${research.highlights.slice(0, 3).map((h, i) => `${i + 1}. ${h}`).join('\n')}`;
+        }
+        
+        if (research && research.culture && research.culture.length > 0) {
+          introPrompt += `\n\nCulturele context:\n${research.culture.slice(0, 2).join('\n')}`;
+        }
+        
+        return introPrompt;
 
       case 'highlights':
         return `Geef ${count} specifieke highlights voor ${country}. Wees concreet en uniek!
@@ -54,7 +99,7 @@ Geef JSON array met title (2-5 woorden) en summary (8-15 woorden):
 [{"title":"Kaasmarkt Alkmaar","summary":"Proef authentieke Goudse kaas op de traditionele kaasmarkt"}]`;
 
       case 'activities':
-        return `Geef ${count} specifieke activiteiten voor ${country}. Wees concreet!
+        let activitiesPrompt = `Geef ${count} specifieke activiteiten voor ${location}. Wees concreet!
 
 Voorbeelden van GOEDE activiteiten:
 - {"title":"Fushimi Inari","summary":"Wandel door duizenden rode torii poorten naar de bergtop"}
@@ -68,9 +113,14 @@ Voorbeelden van SLECHTE activiteiten (NIET doen):
 
 Voor elk item:
 - title: naam van plek/activiteit (2-5 woorden)
-- summary: wat je doet/ziet (8-15 woorden)
+- summary: wat je doet/ziet (8-15 woorden)`;
 
-Geef JSON array: [{"title":"..","summary":".."}]`;
+        if (research && research.activities && research.activities.length > 0) {
+          activitiesPrompt += `\n\nGebruik deze informatie voor inspiratie:\n${research.activities.map((a, i) => `${i + 1}. ${a}`).join('\n')}`;
+        }
+        
+        activitiesPrompt += `\n\nGeef JSON array: [{"title":"..","summary":".."}]`;
+        return activitiesPrompt;
 
       case 'extra':
         return `Schrijf een praktisch, informatief tekstblok van ongeveer 200 woorden over ${country}. Focus op:
