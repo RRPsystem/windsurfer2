@@ -1202,21 +1202,30 @@ class WebsiteBuilder {
                     
                     // Add transports
                     transports.forEach(transport => {
+                        // Support both TC format (segment/originCode) and PDF format (from/to)
                         const firstSegment = transport.segment && transport.segment[0];
-                        const departure = firstSegment?.departureAirportName || transport.originCode || '';
-                        const arrival = firstSegment?.arrivalAirportName || transport.targetCode || '';
+                        const departure = transport.from || transport.departureCity || 
+                                        firstSegment?.departureAirportName || transport.originCode || '';
+                        const arrival = transport.to || transport.arrivalCity || 
+                                      firstSegment?.arrivalAirportName || transport.targetCode || '';
                         
                         timelineItems.push({
                             day: transport.day || 0,
-                            type: 'transport',
+                            type: transport.type || 'transport', // Use actual type (flight/train/etc)
                             data: {
-                                departure,
-                                arrival,
-                                airline: transport.company || '',
-                                flightNumber: transport.transportNumber || '',
-                                departureTime: transport.departureTime || '',
+                                from: departure,
+                                to: arrival,
+                                departureCity: departure,
+                                arrivalCity: arrival,
+                                airline: transport.carrier || transport.airline || transport.company || '',
+                                carrier: transport.carrier || transport.airline || transport.company || '',
+                                flightNumber: transport.transportNumber || transport.flightNumber || '',
+                                transportNumber: transport.transportNumber || transport.flightNumber || '',
+                                departureTime: transport.time || transport.departureTime || '',
+                                time: transport.time || transport.departureTime || '',
                                 arrivalTime: transport.arrivalTime || '',
-                                duration: transport.duration || ''
+                                duration: transport.duration || '',
+                                class: transport.class || ''
                             }
                         });
                     });
