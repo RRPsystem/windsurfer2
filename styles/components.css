@@ -3313,21 +3313,20 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 
 /* Travel Timeline Container */
 .wb-travel-timeline {
-    max-width: 900px;
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 20px 40px 20px 120px; /* More padding on left to center content */
     position: relative;
 }
 
 .wb-travel-timeline::before {
     content: '';
     position: absolute;
-    left: 50%;
+    left: 80px; /* Move timeline line more to the left */
     top: 0;
     bottom: 0;
     width: 2px;
     background: linear-gradient(to bottom, #e5e7eb 0%, #e5e7eb 100%);
-    transform: translateX(-50%);
     z-index: 0;
 }
 

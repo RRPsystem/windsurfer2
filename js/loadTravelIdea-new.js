@@ -52,18 +52,53 @@ loadTravelIdea(data) {
             }
         }
 
-        // 2. Add intro text
-        if (description) {
-            try {
-                const intro = ComponentFactory.createComponent('content-flex', {
-                    title: 'Over deze reis',
-                    body: `<p>${description}</p>`,
-                    layout: 'none'
-                });
-                if (intro) canvas.appendChild(intro);
-            } catch (e) {
-                console.warn('Failed to create intro', e);
+        // 2. Add intro text with AI-generated content
+        try {
+            let introText = description;
+            
+            // Generate AI text about destinations if we have them
+            if (destinations.length > 0) {
+                console.log('[loadTravelIdea] Generating AI text for destinations...');
+                
+                // Create destination summary
+                const destNames = destinations.map(d => d.name || d.title).filter(Boolean).join(', ');
+                
+                // Call AI Writer to generate intro text
+                fetch('/api/ai-writer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        section: 'intro',
+                        destination: destNames,
+                        country: title,
+                        language: 'nl',
+                        useResearch: true
+                    })
+                }).then(r => r.json())
+                  .then(result => {
+                      if (result.intro && result.intro.text) {
+                          // Update the intro text with AI-generated content
+                          const introEl = canvas.querySelector('.wb-content-flex');
+                          if (introEl) {
+                              const bodyEl = introEl.querySelector('.content-body');
+                              if (bodyEl) {
+                                  bodyEl.innerHTML = `<p>${result.intro.text}</p>`;
+                                  console.log('[loadTravelIdea] AI text updated');
+                              }
+                          }
+                      }
+                  })
+                  .catch(err => console.warn('[loadTravelIdea] AI text generation failed:', err));
             }
+            
+            const intro = ComponentFactory.createComponent('content-flex', {
+                title: 'Over deze reis',
+                body: introText ? `<p>${introText}</p>` : '<p>Ontdek de mooiste plekken...</p>',
+                layout: 'none'
+            });
+            if (intro) canvas.appendChild(intro);
+        } catch (e) {
+            console.warn('Failed to create intro', e);
         }
 
         // 3. Create Travel Timeline with TC data
