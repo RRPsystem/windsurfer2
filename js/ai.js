@@ -67,8 +67,22 @@
   const mockData = {
     content_block: (params) => {
       const topic = params.section_title || params.page_title || 'dit onderwerp';
+      const subtitle = params.subtitle || '';
+      
+      // Generate more specific content based on subtitle
+      let intro = '';
+      let body = '';
+      
+      if (subtitle.toLowerCase().includes('doen') || subtitle.toLowerCase().includes('niet doen')) {
+        intro = `${topic} is absoluut de moeite waard! Dit is een unieke bestemming die je niet mag missen.`;
+        body = `Met zijn rijke cultuur, prachtige natuur en vriendelijke mensen biedt ${topic} een onvergetelijke ervaring. Of je nu op zoek bent naar avontuur, ontspanning of culturele verrijking, hier vind je het allemaal.\n\nDe beste tijd om te bezoeken is tijdens het droge seizoen, wanneer het weer perfect is voor outdoor activiteiten. Vergeet niet om lokale specialiteiten te proeven en de verborgen pareltjes te ontdekken die toeristen vaak missen.`;
+      } else {
+        intro = `${topic} is een fascinerend onderwerp met veel interessante aspecten.`;
+        body = `Van de geschiedenis tot moderne ontwikkelingen, ${topic} biedt een unieke kijk op dit gebied. Of je nu geïnteresseerd bent in de achtergrond, praktische toepassingen, of toekomstige ontwikkelingen, ${topic} heeft voor elk wat wils.\n\nDe diversiteit en diepgang maken het tot een boeiend onderwerp om te verkennen. Met de juiste aanpak en kennis kun je hier veel uit halen.`;
+      }
+      
       return {
-        text: `${topic} is een fascinerend onderwerp met veel interessante aspecten. Van de geschiedenis tot moderne ontwikkelingen, ${topic} biedt een unieke kijk op dit gebied.\n\nOf je nu geïnteresseerd bent in de achtergrond, praktische toepassingen, of toekomstige ontwikkelingen, ${topic} heeft voor elk wat wils. De diversiteit en diepgang maken het tot een boeiend onderwerp om te verkennen.`
+        text: `${intro}\n\n${body}`
       };
     },
     feature_media: (params) => {
@@ -147,12 +161,14 @@
       const result = await post(endpoint, payload);
       console.log('[BuilderAI] API response:', result);
       
-      // Check if response is generic/empty
+      // Check if response is generic/empty/unhelpful
       if (result && result.text && (
-        result.text.includes('Natuurlijk!') || 
+        result.text.includes('Natuurlijk') || 
         result.text.includes('Zeker!') ||
         result.text.includes('Waarover wil je') ||
         result.text.includes('welk onderwerp') ||
+        result.text.includes('Geef me een onderwerp') ||
+        result.text.includes('waar zou je graag') ||
         result.text.length < 100
       )) {
         console.warn('[BuilderAI] Generic/empty response detected, using mock data instead');
