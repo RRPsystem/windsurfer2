@@ -9,7 +9,8 @@ export default async function handler(req, res) {
   try {
     const {
       GOOGLE_SEARCH_API_KEY = '',
-      GOOGLE_SEARCH_CX = ''
+      GOOGLE_SEARCH_CX = '',
+      GOOGLE_PLACES_API_KEY = ''
     } = process.env;
 
     if (!GOOGLE_SEARCH_API_KEY || !GOOGLE_SEARCH_CX) {
@@ -18,6 +19,9 @@ export default async function handler(req, res) {
         message: 'Voeg GOOGLE_SEARCH_API_KEY en GOOGLE_SEARCH_CX toe aan environment variables'
       });
     }
+
+    // Places API is optional but recommended
+    const hasPlacesAPI = !!GOOGLE_PLACES_API_KEY;
 
     const { destination, language = 'nl' } = req.body;
 
@@ -42,6 +46,18 @@ export default async function handler(req, res) {
 
     const results = await Promise.all(searchPromises);
 
+    // Fetch Google Places data if available
+    let places = [];
+    if (hasPlacesAPI) {
+      try {
+        console.log('[Research] Fetching Places data...');
+        places = await searchPlaces(destination, GOOGLE_PLACES_API_KEY);
+        console.log('[Research] Found places:', places.length);
+      } catch (error) {
+        console.warn('[Research] Places search failed:', error.message);
+      }
+    }
+
     // Parse and structure the information
     const research = {
       destination,
@@ -49,6 +65,7 @@ export default async function handler(req, res) {
       bestTime: extractBestTime(results[1]),
       culture: extractCulture(results[2]),
       activities: extractActivities(results[3]),
+      places: places, // Google Places data
       sources: results.flatMap(r => r.items || []).slice(0, 5).map(item => ({
         title: item.title,
         url: item.link,
@@ -203,4 +220,66 @@ function extractActivities(searchResult) {
   }
 
   return [...new Set(activities)].slice(0, 5);
+}
+
+// Search Google Places API
+async function searchPlaces(destination, apiKey) {
+  // First, find the place to get coordinates
+  const textSearchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(destination + ' tourist attractions')}&key=${apiKey}`;
+  
+  const textSearchResponse = await fetch(textSearchUrl);
+  
+  if (!textSearchResponse.ok) {
+    throw new Error(`Places API error (${textSearchResponse.status})`);
+  }
+
+  const textSearchData = await textSearchResponse.json();
+  
+  if (textSearchData.status !== 'OK' || !textSearchData.results || textSearchData.results.length === 0) {
+    console.warn('[Research] No places found for:', destination);
+    return [];
+  }
+
+  // Get top places (max 10)
+  const topPlaces = textSearchData.results.slice(0, 10);
+  
+  // Fetch details for each place
+  const placeDetailsPromises = topPlaces.map(async (place) => {
+    try {
+      const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,rating,user_ratings_total,formatted_address,types,photos,opening_hours,website&key=${apiKey}`;
+      
+      const detailsResponse = await fetch(detailsUrl);
+      if (!detailsResponse.ok) return null;
+      
+      const detailsData = await detailsResponse.json();
+      if (detailsData.status !== 'OK') return null;
+      
+      const details = detailsData.result;
+      
+      return {
+        name: details.name,
+        rating: details.rating || null,
+        reviews: details.user_ratings_total || 0,
+        address: details.formatted_address || '',
+        types: details.types || [],
+        website: details.website || null,
+        photos: details.photos ? details.photos.slice(0, 3).map(photo => ({
+          reference: photo.photo_reference,
+          width: photo.width,
+          height: photo.height
+        })) : [],
+        openNow: details.opening_hours?.open_now || null
+      };
+    } catch (error) {
+      console.warn('[Research] Failed to fetch place details:', error.message);
+      return null;
+    }
+  });
+
+  const placesWithDetails = await Promise.all(placeDetailsPromises);
+  
+  // Filter out nulls and sort by rating
+  return placesWithDetails
+    .filter(p => p !== null)
+    .sort((a, b) => (b.rating || 0) - (a.rating || 0));
 }
