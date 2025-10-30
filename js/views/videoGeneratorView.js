@@ -69,14 +69,14 @@
             
             <div style="margin-bottom: 20px;">
               <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px;">
-                <i class="fas fa-clock"></i> Duur per bestemming (seconden)
+                <i class="fas fa-clock"></i> Duur per clip (seconden)
               </label>
-              <input type="range" id="clipDuration" min="2" max="5" value="3" step="0.5" 
+              <input type="range" id="clipDuration" min="2" max="15" value="5" step="0.5" 
                 style="width: 100%; height: 6px; border-radius: 5px; background: #e5e7eb; outline: none;">
               <div style="display: flex; justify-content: space-between; font-size: 12px; color: #6b7280; margin-top: 4px;">
                 <span>2s</span>
-                <span id="durationValue">3s</span>
-                <span>5s</span>
+                <span id="durationValue">5s</span>
+                <span>15s</span>
               </div>
             </div>
 

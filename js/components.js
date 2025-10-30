@@ -5389,11 +5389,12 @@ class ComponentFactory {
         hero.setAttribute('data-component', 'travel-hero');
         hero.id = this.generateId('travel_hero');
         
-        // Full width styling
+        // Full width styling met centered content
         hero.style.width = '100%';
-        hero.style.margin = '0';
+        hero.style.margin = '0 auto';
         hero.style.borderRadius = '0';
         hero.style.minHeight = '600px';
+        hero.style.marginBottom = '0';
 
         const toolbar = this.createToolbar();
         hero.appendChild(toolbar);
@@ -6451,7 +6452,7 @@ ComponentFactory.createTravelIntro = function(options = {}) {
     
     section.style.cssText = `
         max-width: 1200px;
-        margin: 60px auto;
+        margin: 40px auto;
         padding: 0 20px;
     `;
     

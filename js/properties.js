@@ -405,6 +405,65 @@ class PropertiesPanel {
         
         this.panel.appendChild(imageSection);
         
+        // Foto Hoogte Controle
+        const heightSection = document.createElement('div');
+        heightSection.style.marginBottom = '20px';
+        
+        const heightTitle = document.createElement('h5');
+        heightTitle.textContent = '📏 Foto Hoogte';
+        heightTitle.style.marginBottom = '12px';
+        heightTitle.style.fontSize = '14px';
+        heightTitle.style.fontWeight = '600';
+        heightSection.appendChild(heightTitle);
+        
+        const currentHeight = carousel?.querySelector('.carousel-image')?.offsetHeight || 300;
+        
+        const heightSlider = document.createElement('input');
+        heightSlider.type = 'range';
+        heightSlider.min = '150';
+        heightSlider.max = '600';
+        heightSlider.value = currentHeight;
+        heightSlider.step = '10';
+        heightSlider.style.width = '100%';
+        heightSlider.style.marginBottom = '8px';
+        
+        const heightValue = document.createElement('div');
+        heightValue.textContent = `${currentHeight}px`;
+        heightValue.style.textAlign = 'center';
+        heightValue.style.fontSize = '13px';
+        heightValue.style.color = '#6b7280';
+        heightValue.style.marginBottom = '8px';
+        
+        heightSlider.addEventListener('input', (e) => {
+            const newHeight = e.target.value;
+            heightValue.textContent = `${newHeight}px`;
+            
+            // Update alle carousel images
+            const allImages = component.querySelectorAll('.carousel-image');
+            allImages.forEach(img => {
+                img.style.height = `${newHeight}px`;
+            });
+            
+            // Update carousel container
+            if (carousel) {
+                carousel.style.height = `${newHeight}px`;
+            }
+        });
+        
+        heightSection.appendChild(heightSlider);
+        heightSection.appendChild(heightValue);
+        
+        const heightInfo = document.createElement('div');
+        heightInfo.style.fontSize = '12px';
+        heightInfo.style.color = '#6b7280';
+        heightInfo.style.padding = '8px';
+        heightInfo.style.background = '#f9fafb';
+        heightInfo.style.borderRadius = '6px';
+        heightInfo.textContent = 'Sleep de slider om de hoogte van de foto\'s aan te passen';
+        heightSection.appendChild(heightInfo);
+        
+        this.panel.appendChild(heightSection);
+        
         // Info
         const info = document.createElement('div');
         info.style.fontSize = '12px';
