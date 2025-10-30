@@ -1,16 +1,22 @@
 // api/booking-parse.js
 // Vercel Serverless Function for PDF parsing
 
-const pdfParse = require('pdf-parse');
 const { formidable } = require('formidable');
 const fs = require('fs').promises;
+const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+const { createCanvas } = require('canvas');
 
-const EXTRACTION_PROMPT = `Je bent een expert in het extraheren van reisgegevens uit boekingsbevestigingen.
+const VISION_EXTRACTION_PROMPT = `Je bent een expert in het analyseren van reisboekingsbevestigingen.
 
-Extraheer ALLE informatie uit deze boekingsbevestiging en geef het terug als JSON.
-Zoek naar vluchtnummers, luchthavencode, hotelnamen, data, tijden, etc.
+Analyseer deze PDF pagina's en extraheer ALLE reisgegevens die je ziet.
+Kijk naar tabellen, headers, kleine tekst, voetnoten - ALLES.
 
-BELANGRIJK: Vul ALLE velden in met de exacte informatie uit de PDF. Laat NIETS leeg als de informatie beschikbaar is.
+BELANGRIJK: 
+- Lees ALLE tekst op de pagina, ook kleine lettertjes
+- Herken tabellen en extracteer data uit kolommen
+- Zoek naar vluchtnummers, treinnummers, tijden, data
+- Let op verschillende transport types (vlucht, trein, bus, etc)
+- Vind hotel namen, adressen, check-in/out data
 
 {
   "title": "Bestemming of reis naam (bijv. 'Barcelona', 'Stedentrip Barcelona')",
@@ -57,11 +63,64 @@ Als informatie ECHT ontbreekt in de PDF, gebruik dan null.
 Maar probeer ALTIJD eerst de informatie te vinden voordat je null gebruikt.
 Geef ALLEEN de JSON terug, geen extra tekst of uitleg.`;
 
-async function extractBookingData(pdfText) {
+// Convert PDF to images
+async function pdfToImages(pdfBuffer) {
+  const images = [];
+  
+  try {
+    // Load PDF
+    const loadingTask = pdfjsLib.getDocument({
+      data: new Uint8Array(pdfBuffer),
+      useSystemFonts: true
+    });
+    
+    const pdf = await loadingTask.promise;
+    console.log(`[PDFToImages] PDF loaded, ${pdf.numPages} pages`);
+    
+    // Convert each page to image (max 5 pages to save costs)
+    const maxPages = Math.min(pdf.numPages, 5);
+    
+    for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const viewport = page.getViewport({ scale: 2.0 }); // Higher scale for better quality
+      
+      const canvas = createCanvas(viewport.width, viewport.height);
+      const context = canvas.getContext('2d');
+      
+      await page.render({
+        canvasContext: context,
+        viewport: viewport
+      }).promise;
+      
+      // Convert to base64
+      const imageBase64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+      images.push(imageBase64);
+      
+      console.log(`[PDFToImages] Page ${pageNum} converted`);
+    }
+    
+    return images;
+  } catch (error) {
+    console.error('[PDFToImages] Error:', error);
+    throw new Error(`PDF to image conversion failed: ${error.message}`);
+  }
+}
+
+// Extract booking data using GPT-4o Vision
+async function extractBookingDataWithVision(images) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error('OPENAI_API_KEY not configured');
   }
+
+  // Build messages with images
+  const imageMessages = images.map((base64, idx) => ({
+    type: "image_url",
+    image_url: {
+      url: `data:image/jpeg;base64,${base64}`,
+      detail: "high" // High detail for better text recognition
+    }
+  }));
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -70,25 +129,32 @@ async function extractBookingData(pdfText) {
       'Authorization': `Bearer ${apiKey}`
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages: [
         {
           role: 'system',
-          content: EXTRACTION_PROMPT
+          content: VISION_EXTRACTION_PROMPT
         },
         {
           role: 'user',
-          content: `Hier is de tekst uit de PDF:\n\n${pdfText}`
+          content: [
+            {
+              type: "text",
+              text: "Analyseer deze boekingsbevestiging en extraheer alle reisgegevens:"
+            },
+            ...imageMessages
+          ]
         }
       ],
       temperature: 0.1,
+      max_tokens: 4096,
       response_format: { type: "json_object" }
     })
   });
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`OpenAI API error: ${error}`);
+    throw new Error(`OpenAI Vision API error: ${error}`);
   }
 
   const data = await response.json();
@@ -161,16 +227,18 @@ export default async function handler(req, res) {
     // Read the file buffer
     const pdfBuffer = await fs.readFile(pdfFile.filepath);
 
-    // Parse PDF
-    const pdfData = await pdfParse(pdfBuffer);
-    const pdfText = pdfData.text;
+    console.log('[BookingParse] Converting PDF to images...');
+    
+    // Convert PDF pages to images
+    const images = await pdfToImages(pdfBuffer);
+    
+    console.log(`[BookingParse] Converted ${images.length} pages to images`);
 
-    console.log('[BookingParse] PDF extracted, text length:', pdfText.length);
+    // Extract structured data with GPT-4o Vision
+    console.log('[BookingParse] Analyzing with GPT-4o Vision...');
+    const bookingData = await extractBookingDataWithVision(images);
 
-    // Extract structured data with OpenAI
-    const bookingData = await extractBookingData(pdfText);
-
-    console.log('[BookingParse] Extraction successful:', JSON.stringify(bookingData, null, 2));
+    console.log('[BookingParse] Vision extraction successful:', JSON.stringify(bookingData, null, 2));
 
     // Clean up temp file
     try {
@@ -184,8 +252,8 @@ export default async function handler(req, res) {
       data: bookingData,
       meta: {
         filename: pdfFile.originalFilename || pdfFile.name,
-        pages: pdfData.numpages,
-        textLength: pdfText.length
+        pages: images.length,
+        method: 'gpt-4o-vision'
       }
     });
 
