@@ -28,16 +28,26 @@
                 console.log('[TravelDataService] Fetching travels from BOLT...');
 
                 // Check if we have BOLT_DB configured
-                if (!window.BOLT_DB || !window.BOLT_DB.url) {
+                if (!window.BOLT_DB || !window.BOLT_DB.url || !window.BOLT_DB.anonKey) {
                     console.warn('[TravelDataService] BOLT_DB not configured, returning sample data');
                     return this.getSampleTravels();
                 }
 
-                // Fetch from Supabase
-                const response = await fetch(`${window.BOLT_DB.url}/rest/v1/travels?select=*&order=priority.asc,created_at.desc`, {
+                // Get brand_id from multiple sources (priority order)
+                const urlParams = new URLSearchParams(window.location.search);
+                const brandId = urlParams.get('brand_id') ||                    // 1. URL parameter
+                               window.websiteBuilder?._edgeCtx?.brand_id ||    // 2. Deeplink context
+                               window.edgeCtx?.brand_id ||                     // 3. Legacy context
+                               window.BOLT_DB.brandId ||                       // 4. Config
+                               window.BRAND_ID ||                              // 5. Legacy global
+                               'default';                                      // 6. Fallback
+                
+                console.log('[TravelDataService] Using brand_id:', brandId);
+                
+                // Fetch from BOLT database (trip_brand_assignments with trips relation)
+                const response = await fetch(`${window.BOLT_DB.url}/rest/v1/trip_brand_assignments?select=*,trips(*)&brand_id=eq.${brandId}&is_published=eq.true&status=in.(accepted,mandatory)`, {
                     headers: {
                         'apikey': window.BOLT_DB.anonKey,
-                        'Authorization': `Bearer ${window.BOLT_DB.anonKey}`,
                         'Content-Type': 'application/json'
                     }
                 });
@@ -46,8 +56,15 @@
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
 
-                const travels = await response.json();
-                console.log('[TravelDataService] Fetched travels:', travels.length);
+                const assignments = await response.json();
+                console.log('[TravelDataService] Fetched assignments:', assignments.length);
+
+                // Extract trips from assignments
+                const travels = assignments
+                    .filter(a => a.trips) // Only assignments with trips
+                    .map(a => a.trips); // Extract trip object
+                
+                console.log('[TravelDataService] Extracted travels:', travels.length);
 
                 // Transform data naar component format
                 const transformedTravels = travels.map(t => this.transformTravel(t));
@@ -81,28 +98,19 @@
          */
         async getTravel(id) {
             try {
-                if (!window.BOLT_DB || !window.BOLT_DB.url) {
+                if (!window.BOLT_DB || !window.BOLT_DB.url || !window.BOLT_DB.anonKey) {
                     throw new Error('BOLT_DB not configured');
                 }
 
-                const response = await fetch(`${window.BOLT_DB.url}/rest/v1/travels?id=eq.${id}`, {
-                    headers: {
-                        'apikey': window.BOLT_DB.anonKey,
-                        'Authorization': `Bearer ${window.BOLT_DB.anonKey}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
-                const travels = await response.json();
-                if (travels.length === 0) {
+                // Haal alle reizen op en filter op ID (trips-api heeft geen single ID endpoint)
+                const travels = await this.getTravels({ forceRefresh: false });
+                const travel = travels.find(t => t.id === id);
+                
+                if (!travel) {
                     throw new Error('Travel not found');
                 }
 
-                return this.transformTravel(travels[0]);
+                return travel;
 
             } catch (error) {
                 console.error('[TravelDataService] Error fetching travel:', error);

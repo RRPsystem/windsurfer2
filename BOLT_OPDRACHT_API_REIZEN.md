@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS travels (
   image TEXT,
   
   -- Metadata
-  tags TEXT, -- Comma separated: "strand,tropisch,luxe"
+  tags TEXT, -- Comma separated: "strand,tropisch,luxe" (lowercase!)
   featured BOOLEAN DEFAULT false,
   priority INTEGER DEFAULT 999,
   status TEXT DEFAULT 'published', -- published, draft, archived
@@ -104,6 +104,75 @@ CREATE INDEX idx_news_status ON news_articles(status);
 CREATE INDEX idx_news_featured ON news_articles(featured);
 CREATE INDEX idx_news_published ON news_articles(published_at DESC);
 ```
+
+---
+
+## 🏷️ Filter Tags / Themes
+
+**BELANGRIJK: Travel Compositor gebruikt "themes", wij gebruiken "tags"**
+
+### Theme → Tag Mapping:
+
+De Website Builder converteert automatisch Travel Compositor themes naar tags:
+
+```javascript
+// Travel Compositor geeft:
+{
+  "themes": [
+    { "name": "Strand" },
+    { "name": "Luxe" },
+    { "name": "Tropisch" }
+  ]
+}
+
+// Wordt automatisch geconverteerd naar:
+{
+  "tags": "strand,luxe,tropisch"  // lowercase, comma separated
+}
+```
+
+### Standaard Filter Tags:
+
+**BOLT moet deze tags gebruiken in test data:**
+
+| Tag | Beschrijving | Emoji |
+|-----|--------------|-------|
+| `strand` | Strandvakanties | 🏖️ |
+| `rondreis` | Rondreizen | 🚗 |
+| `stedentrip` | Stedentrips | 🏙️ |
+| `safari` | Safari's | 🦁 |
+| `cultuur` | Culturele reizen | 🏛️ |
+| `natuur` | Natuurreizen | 🌲 |
+| `avontuur` | Avontuurreis | ⛰️ |
+| `luxe` | Luxe reizen | 💎 |
+| `tropisch` | Tropische bestemmingen | 🌴 |
+| `winter` | Wintervakanties | ❄️ |
+| `zomer` | Zomervakanties | ☀️ |
+| `familie` | Gezinsreizen | 👨‍👩‍👧‍👦 |
+| `romantisch` | Romantische reizen | 💑 |
+| `budget` | Budget reizen | 💰 |
+
+### Meerdere Tags:
+
+Een reis kan meerdere tags hebben:
+
+```sql
+-- Voorbeeld: Thailand strand reis
+tags: "strand,tropisch,luxe,zomer"
+
+-- Voorbeeld: Safari Tanzania
+tags: "safari,natuur,avontuur"
+
+-- Voorbeeld: Stedentrip Barcelona
+tags: "stedentrip,cultuur,strand"
+```
+
+### Filter Werking:
+
+1. **Travel Filter Bar** component toont filter buttons
+2. Gebruiker klikt op filter (bijv. "Strand")
+3. **Travel Overview** filtert reizen waar `tags` het woord "strand" bevat
+4. Alleen matching reizen worden getoond
 
 ---
 

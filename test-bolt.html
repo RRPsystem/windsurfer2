@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOLT API Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #1a202c;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .status {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .status.loading {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .config {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        
+        .config-item {
+            margin-bottom: 12px;
+        }
+        
+        .config-label {
+            color: #6b7280;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .config-value {
+            color: #1a202c;
+            word-break: break-all;
+        }
+        
+        .results {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .travel-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .travel-title {
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .travel-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: #6b7280;
+        }
+        
+        .travel-tags {
+            margin-top: 8px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .tag {
+            background: #eff6ff;
+            color: #1e40af;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 BOLT API Test</h1>
+        <p class="subtitle">Test de verbinding met BOLT's trips-api</p>
+        
+        <div id="status" class="status loading">
+            <span class="spinner"></span>
+            <span>Configuratie laden...</span>
+        </div>
+        
+        <div class="config">
+            <div class="config-item">
+                <div class="config-label">Supabase URL:</div>
+                <div class="config-value" id="configUrl">-</div>
+            </div>
+            <div class="config-item">
+                <div class="config-label">Anon Key:</div>
+                <div class="config-value" id="configKey">-</div>
+            </div>
+            <div class="config-item">
+                <div class="config-label">API Endpoint:</div>
+                <div class="config-value" id="configEndpoint">-</div>
+            </div>
+        </div>
+        
+        <button id="testBtn" onclick="testConnection()">
+            🚀 Test Verbinding
+        </button>
+        
+        <div id="results" style="display: none; margin-top: 20px;">
+            <h3 style="margin-bottom: 16px; color: #1a202c;">Gevonden Reizen:</h3>
+            <div class="results" id="travelsList"></div>
+        </div>
+    </div>
+    
+    <script src="config/bolt.js"></script>
+    <script src="js/services/travelDataService.js"></script>
+    
+    <script>
+        // Check configuratie
+        window.addEventListener('DOMContentLoaded', () => {
+            const statusEl = document.getElementById('status');
+            
+            if (window.BOLT_DB && window.BOLT_DB.url && window.BOLT_DB.anonKey) {
+                document.getElementById('configUrl').textContent = window.BOLT_DB.url;
+                document.getElementById('configKey').textContent = window.BOLT_DB.anonKey.substring(0, 50) + '...';
+                document.getElementById('configEndpoint').textContent = `${window.BOLT_DB.url}/functions/v1/trips-api?for_builder=true`;
+                
+                statusEl.className = 'status success';
+                statusEl.innerHTML = '<span>✅</span><span>Configuratie geladen!</span>';
+            } else {
+                statusEl.className = 'status error';
+                statusEl.innerHTML = '<span>❌</span><span>BOLT_DB niet gevonden! Check config/bolt.js</span>';
+                document.getElementById('testBtn').disabled = true;
+            }
+        });
+        
+        async function testConnection() {
+            const statusEl = document.getElementById('status');
+            const resultsEl = document.getElementById('results');
+            const travelsListEl = document.getElementById('travelsList');
+            const testBtn = document.getElementById('testBtn');
+            
+            // Reset
+            statusEl.className = 'status loading';
+            statusEl.innerHTML = '<span class="spinner"></span><span>Verbinding testen...</span>';
+            resultsEl.style.display = 'none';
+            testBtn.disabled = true;
+            
+            try {
+                console.log('[Test] Fetching travels from BOLT...');
+                
+                const response = await fetch(`${window.BOLT_DB.url}/functions/v1/trips-api?for_builder=true`, {
+                    headers: {
+                        'Authorization': `Bearer ${window.BOLT_DB.anonKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('[Test] Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const travels = await response.json();
+                console.log('[Test] Received travels:', travels);
+                
+                // Success!
+                statusEl.className = 'status success';
+                statusEl.innerHTML = `<span>✅</span><span>Verbinding succesvol! ${travels.length} reizen gevonden</span>`;
+                
+                // Show results
+                resultsEl.style.display = 'block';
+                travelsListEl.innerHTML = '';
+                
+                if (travels.length === 0) {
+                    travelsListEl.innerHTML = '<p style="color: #6b7280; text-align: center; padding: 20px;">Geen reizen gevonden. Voeg reizen toe in BOLT.</p>';
+                } else {
+                    travels.forEach(travel => {
+                        const card = document.createElement('div');
+                        card.className = 'travel-card';
+                        
+                        const tags = travel.tags ? travel.tags.split(',').map(t => t.trim()) : [];
+                        
+                        card.innerHTML = `
+                            <div class="travel-title">${travel.title || 'Geen titel'}</div>
+                            <div class="travel-meta">
+                                <span>📍 ${travel.location || '-'}</span>
+                                <span>⏱️ ${travel.duration || '-'}</span>
+                                <span>💰 €${travel.price || '-'}</span>
+                                <span>📊 ${travel.status || '-'}</span>
+                            </div>
+                            ${tags.length > 0 ? `
+                                <div class="travel-tags">
+                                    ${tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                        `;
+                        
+                        travelsListEl.appendChild(card);
+                    });
+                }
+                
+            } catch (error) {
+                console.error('[Test] Error:', error);
+                
+                statusEl.className = 'status error';
+                statusEl.innerHTML = `<span>❌</span><span>Fout: ${error.message}</span>`;
+                
+                // Show error details
+                resultsEl.style.display = 'block';
+                travelsListEl.innerHTML = `
+                    <div style="color: #991b1b; padding: 20px;">
+                        <strong>Error Details:</strong><br><br>
+                        ${error.message}<br><br>
+                        <strong>Mogelijke oorzaken:</strong><br>
+                        • BOLT API is nog niet deployed<br>
+                        • CORS is niet correct ingesteld<br>
+                        • Anon key is incorrect<br>
+                        • Geen internet verbinding<br><br>
+                        Check de browser console voor meer details.
+                    </div>
+                `;
+            } finally {
+                testBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

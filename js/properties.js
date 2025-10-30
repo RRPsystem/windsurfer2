@@ -2675,6 +2675,9 @@ class PropertiesPanel {
             case 'travel-overview':
                 this.createTravelOverviewProperties(component);
                 break;
+            case 'travel-filter-bar':
+                this.createTravelFilterBarProperties(component);
+                break;
             case 'travel-intro':
                 this.createTravelIntroProperties(component);
                 break;
@@ -5124,10 +5127,42 @@ PropertiesPanel.prototype.createTravelOverviewProperties = function(component) {
         });
     }
     
+    // Filter Preset
+    const presetSection = document.createElement('div');
+    presetSection.style.marginBottom = '20px';
+    
+    const presetLabel = document.createElement('label');
+    presetLabel.textContent = 'Filter Preset';
+    presetLabel.style.cssText = 'display: block; font-weight: 600; margin-bottom: 8px; color: #374151; font-size: 14px;';
+    presetSection.appendChild(presetLabel);
+    
+    const presetSelect = document.createElement('select');
+    presetSelect.style.cssText = 'width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;';
+    presetSelect.innerHTML = '<option value="">Geen (toon alle reizen)</option><option value="strand">Alleen Strandvakanties</option><option value="rondreis">Alleen Rondreizen</option><option value="stedentrip">Alleen Stedentrips</option><option value="safari">Alleen Safaris</option><option value="cultuur">Alleen Cultuur</option><option value="natuur">Alleen Natuur</option><option value="avontuur">Alleen Avontuur</option><option value="luxe">Alleen Luxe</option>';
+    
+    const currentPreset = component.dataset.filterPreset || '';
+    presetSelect.value = currentPreset;
+    
+    presetSelect.addEventListener('change', (e) => {
+        const preset = e.target.value;
+        component.dataset.filterPreset = preset;
+        
+        if (preset) {
+            const filterBtn = Array.from(component.querySelectorAll('.travel-filter-btn')).find(btn => btn.textContent.toLowerCase().includes(preset));
+            if (filterBtn) filterBtn.click();
+        } else {
+            const alleBtn = Array.from(component.querySelectorAll('.travel-filter-btn')).find(btn => btn.textContent === 'Alle');
+            if (alleBtn) alleBtn.click();
+        }
+    });
+    
+    presetSection.appendChild(presetSelect);
+    this.panel.appendChild(presetSection);
+    
     // Filter configuratie info
     const filterInfo = document.createElement('div');
     filterInfo.style.cssText = 'padding: 12px; background: #eff6ff; border-left: 3px solid #3b82f6; margin: 12px 0; font-size: 13px; color: #1e40af;';
-    filterInfo.innerHTML = '<strong>Filters:</strong><br>Dit component toont reizen uit Travel Compositor. Filters kunnen worden aangepast in de component opties of via BOLT configuratie.';
+    filterInfo.innerHTML = '<strong>Filters:</strong><br>Gebruik Filter Preset om deze pagina te beperken tot specifieke reizen. Bijvoorbeeld voor een aparte strandvakanties pagina.';
     this.panel.appendChild(filterInfo);
     
     // Data source info
@@ -5507,6 +5542,172 @@ PropertiesPanel.prototype.createHeroTravelSearchProperties = function(component)
     destInfo.textContent = 'Huidige: Thailand, Spanje, Italië, Griekenland, Frankrijk';
     this.panel.appendChild(destInfo);
     
+    const del = this.createButton('Blok verwijderen', () => {
+        if (confirm('Weet je zeker dat je dit blok wilt verwijderen?')) {
+            component.remove();
+            this.clearProperties();
+        }
+    });
+    del.style.background = '#dc2626';
+    del.style.borderColor = '#dc2626';
+    del.style.color = '#fff';
+    del.style.marginTop = '1rem';
+    this.panel.appendChild(del);
+};
+
+// Travel Filter Bar Properties
+PropertiesPanel.prototype.createTravelFilterBarProperties = function(component) {
+    const title = component.querySelector('h3');
+    if (title) {
+        this.createTextInput('Titel', title.textContent, (val) => {
+            title.textContent = val;
+        });
+    }
+    
+    // Filter Management
+    const filterSection = document.createElement('div');
+    filterSection.style.marginBottom = '20px';
+    
+    const filterTitle = document.createElement('h5');
+    filterTitle.textContent = '🏷️ Filters Beheren';
+    filterTitle.style.marginBottom = '12px';
+    filterTitle.style.fontSize = '14px';
+    filterTitle.style.fontWeight = '600';
+    filterSection.appendChild(filterTitle);
+    
+    // Current filters list
+    const filtersList = document.createElement('div');
+    filtersList.style.marginBottom = '12px';
+    
+    const updateFiltersList = () => {
+        filtersList.innerHTML = '';
+        const filterBtns = component.querySelectorAll('.travel-filter-btn');
+        
+        filterBtns.forEach((btn, idx) => {
+            const filterRow = document.createElement('div');
+            filterRow.style.display = 'flex';
+            filterRow.style.alignItems = 'center';
+            filterRow.style.gap = '8px';
+            filterRow.style.padding = '8px';
+            filterRow.style.background = '#f9fafb';
+            filterRow.style.borderRadius = '6px';
+            filterRow.style.marginBottom = '8px';
+            
+            const label = document.createElement('span');
+            label.textContent = btn.textContent;
+            label.style.flex = '1';
+            label.style.fontSize = '13px';
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.style.background = '#ef4444';
+            deleteBtn.style.color = 'white';
+            deleteBtn.style.border = 'none';
+            deleteBtn.style.padding = '6px 10px';
+            deleteBtn.style.borderRadius = '4px';
+            deleteBtn.style.cursor = 'pointer';
+            deleteBtn.onclick = () => {
+                btn.remove();
+                updateFiltersList();
+            };
+            
+            filterRow.appendChild(label);
+            if (btn.textContent !== 'Alle') { // Don't allow deleting "Alle"
+                filterRow.appendChild(deleteBtn);
+            }
+            filtersList.appendChild(filterRow);
+        });
+    };
+    
+    updateFiltersList();
+    filterSection.appendChild(filtersList);
+    
+    // Add filter input
+    const addFilterDiv = document.createElement('div');
+    addFilterDiv.style.display = 'flex';
+    addFilterDiv.style.gap = '8px';
+    addFilterDiv.style.marginBottom = '12px';
+    
+    const filterInput = document.createElement('input');
+    filterInput.type = 'text';
+    filterInput.placeholder = 'Nieuwe filter...';
+    filterInput.style.flex = '1';
+    filterInput.style.padding = '8px';
+    filterInput.style.border = '1px solid #d1d5db';
+    filterInput.style.borderRadius = '6px';
+    filterInput.style.fontSize = '13px';
+    
+    const addBtn = this.createButton('➕ Toevoegen', () => {
+        const filterName = filterInput.value.trim();
+        if (!filterName) return;
+        
+        // Add new filter button to component
+        const filterButtons = component.querySelector('.filter-buttons');
+        const newBtn = document.createElement('button');
+        newBtn.className = 'travel-filter-btn';
+        newBtn.dataset.filter = filterName.toLowerCase();
+        newBtn.textContent = filterName;
+        newBtn.style.cssText = `
+            padding: 12px 24px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            color: #374151;
+            border-radius: 24px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        `;
+        
+        // Add click handler
+        newBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const allBtns = component.querySelectorAll('.travel-filter-btn');
+            allBtns.forEach(b => {
+                b.classList.remove('active');
+                b.style.background = 'white';
+                b.style.color = '#374151';
+                b.style.borderColor = '#e5e7eb';
+            });
+            newBtn.classList.add('active');
+            newBtn.style.background = '#667eea';
+            newBtn.style.color = 'white';
+            newBtn.style.borderColor = '#667eea';
+            
+            document.dispatchEvent(new CustomEvent('travelFilterChange', {
+                bubbles: true,
+                detail: { filter: filterName.toLowerCase() }
+            }));
+        });
+        
+        filterButtons.appendChild(newBtn);
+        filterInput.value = '';
+        updateFiltersList();
+    });
+    
+    addBtn.style.background = '#667eea';
+    addBtn.style.borderColor = '#667eea';
+    addBtn.style.color = 'white';
+    addBtn.style.padding = '8px 16px';
+    addBtn.style.fontSize = '13px';
+    
+    addFilterDiv.appendChild(filterInput);
+    addFilterDiv.appendChild(addBtn);
+    filterSection.appendChild(addFilterDiv);
+    
+    const info = document.createElement('div');
+    info.style.fontSize = '12px';
+    info.style.color = '#6b7280';
+    info.style.padding = '8px';
+    info.style.background = '#f9fafb';
+    info.style.borderRadius = '6px';
+    info.textContent = 'Filters worden automatisch gekoppeld aan Travel Overview component';
+    filterSection.appendChild(info);
+    
+    this.panel.appendChild(filterSection);
+    
+    // Delete button
     const del = this.createButton('Blok verwijderen', () => {
         if (confirm('Weet je zeker dat je dit blok wilt verwijderen?')) {
             component.remove();

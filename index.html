@@ -249,6 +249,10 @@
                                 <i class="fas fa-globe-europe"></i>
                                 <span>🌍 Reizen Overzicht (Zoek & Boek)</span>
                             </div>
+                            <div class="component-item" draggable="true" data-component="travel-filter-bar">
+                                <i class="fas fa-filter"></i>
+                                <span>🔍 Reis Filters</span>
+                            </div>
                             <div class="component-item" draggable="true" data-component="animated-route-map">
                                 <i class="fas fa-map-marked-alt"></i>
                                 <span>🗺️ Geanimeerde Route Kaart</span>
@@ -434,15 +438,17 @@
           }
         })();
       </script>
+    <!-- BOLT Database Configuration -->
+    <script src="config/bolt.js"></script>
     <script src="js/layouts.js?v=117c0aa"></script>
     <script src="js/iconPicker.js?v=117c0aa"></script>
     <script src="js/sidebar.js?v=117c0aa"></script>
-    <script src="js/components.js?v=travel-layout-fix"></script>
+    <script src="js/components.js?v=travel-intro-fix"></script>
     <script src="js/animatedTravelMap.js?v=117c0aa"></script>
     <script src="js/dragdrop.js?v=117c0aa"></script>
     <script src="js/media.js?v=878206b"></script>
     <script src="js/routeOverview.js?v=117c0aa"></script>
-    <script src="js/properties.js?v=travel-layout-fix"></script>
+    <script src="js/properties.js?v=filter-system"></script>
     <script src="js/main.js?v=117c0aa"></script>
     <script src="js/menuLayoutModal.js?v=117c0aa"></script>
     <script>
@@ -470,11 +476,11 @@
           const forceSafe = u.searchParams.get('safe') === '1';
           // Safe Mode is now opt-in only via ?safe=1 (deeplink laadt standaard volledige builder)
           const safe = !!forceSafe;
-          const load = (src) => { const s=document.createElement('script'); s.src=src+'?v=057577a'; s.defer=true; document.head.appendChild(s); };
+          const load = (src) => { const s=document.createElement('script'); s.src=src+'?v=bolt-fix-2'; s.defer=true; document.head.appendChild(s); };
           if (!safe) {
             // Normal/Deeplink (volledige builder)
             // Load views first so they're available when router initializes
-            load('js/services/travelDataService.js');
+            load('js/services/travelDataService.js?v=trip-brand-assignments');
             load('js/views/menuFooterView.js');
             load('js/views/travelView.js');
             load('js/views/videoGeneratorView.js');
