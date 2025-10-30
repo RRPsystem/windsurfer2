@@ -66,9 +66,32 @@
   // Mock data for testing when API is not available
   const mockData = {
     content_block: (params) => {
-      const country = params.page_title || params.section_title || 'dit land';
+      const topic = params.section_title || params.page_title || 'dit onderwerp';
       return {
-        text: `${country} is een fascinerend land met een rijke geschiedenis en cultuur. Van bruisende steden tot serene natuurlandschappen, ${country} biedt bezoekers een unieke ervaring die moderne voorzieningen combineert met eeuwenoude tradities.\n\nOf je nu geïnteresseerd bent in historische bezienswaardigheden, culinaire avonturen, of natuurlijke schoonheid, ${country} heeft voor elk wat wils. De gastvrijheid van de lokale bevolking en de diverse attracties maken het tot een onvergetelijke bestemming.`
+        text: `${topic} is een fascinerend onderwerp met veel interessante aspecten. Van de geschiedenis tot moderne ontwikkelingen, ${topic} biedt een unieke kijk op dit gebied.\n\nOf je nu geïnteresseerd bent in de achtergrond, praktische toepassingen, of toekomstige ontwikkelingen, ${topic} heeft voor elk wat wils. De diversiteit en diepgang maken het tot een boeiend onderwerp om te verkennen.`
+      };
+    },
+    feature_media: (params) => {
+      const topic = params.section_title || params.page_title || 'dit onderwerp';
+      return {
+        text: `Ontdek alles over ${topic}. Met jarenlange ervaring en expertise bieden wij de beste oplossingen en diensten. Ons team staat klaar om je te helpen met professioneel advies en persoonlijke aandacht.\n\nWe combineren kwaliteit met innovatie om de beste resultaten te leveren. Vertrouw op onze expertise en ervaring.`
+      };
+    },
+    feature_highlight: (params) => {
+      const topic = params.section_title || params.page_title || 'onze diensten';
+      return {
+        items: [
+          { title: 'Professioneel', text: `Hoogwaardige ${topic} met aandacht voor detail` },
+          { title: 'Betrouwbaar', text: 'Jarenlange ervaring en tevreden klanten' },
+          { title: 'Innovatief', text: 'Moderne oplossingen en technieken' },
+          { title: 'Persoonlijk', text: 'Maatwerk en persoonlijke aandacht' }
+        ]
+      };
+    },
+    news_article: (params) => {
+      const topic = params.section_title || params.page_title || 'dit nieuws';
+      return {
+        text: `${topic} - In een recente ontwikkeling zijn er interessante veranderingen aangekondigd. Deze nieuwe ontwikkelingen bieden kansen en mogelijkheden voor de toekomst.\n\nExperts zijn positief over de vooruitzichten en verwachten dat dit een positieve impact zal hebben. Meer informatie volgt binnenkort.`
       };
     },
     feature_list: (params) => {
