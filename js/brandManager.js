@@ -462,6 +462,49 @@
       if (saved) {
         this.currentBrand = JSON.parse(saved);
         this.applyBrandSettings();
+        this.populateForm();
+      }
+    },
+    
+    populateForm() {
+      if (!this.currentBrand) return;
+      
+      // Populate form fields with saved values
+      const nameInput = document.getElementById('brandName');
+      const primaryColor = document.getElementById('brandColorPrimary');
+      const primaryHex = document.getElementById('brandColorPrimaryHex');
+      const secondaryColor = document.getElementById('brandColorSecondary');
+      const secondaryHex = document.getElementById('brandColorSecondaryHex');
+      const accentColor = document.getElementById('brandColorAccent');
+      const accentHex = document.getElementById('brandColorAccentHex');
+      const logoInput = document.getElementById('brandLogo');
+      
+      if (nameInput) nameInput.value = this.currentBrand.name || '';
+      
+      if (primaryColor && this.currentBrand.colors.primary) {
+        primaryColor.value = this.currentBrand.colors.primary;
+        if (primaryHex) primaryHex.value = this.currentBrand.colors.primary;
+        const preview = primaryHex?.nextElementSibling;
+        if (preview) preview.style.background = this.currentBrand.colors.primary;
+      }
+      
+      if (secondaryColor && this.currentBrand.colors.secondary) {
+        secondaryColor.value = this.currentBrand.colors.secondary;
+        if (secondaryHex) secondaryHex.value = this.currentBrand.colors.secondary;
+        const preview = secondaryHex?.nextElementSibling;
+        if (preview) preview.style.background = this.currentBrand.colors.secondary;
+      }
+      
+      if (accentColor && this.currentBrand.colors.accent) {
+        accentColor.value = this.currentBrand.colors.accent;
+        if (accentHex) accentHex.value = this.currentBrand.colors.accent;
+        const preview = accentHex?.nextElementSibling;
+        if (preview) preview.style.background = this.currentBrand.colors.accent;
+      }
+      
+      if (logoInput && this.currentBrand.logo) {
+        logoInput.value = this.currentBrand.logo;
+        this.updateLogoPreview(this.currentBrand.logo);
       }
     },
     
@@ -493,12 +536,84 @@
       
       // Update all components with brand colors
       this.updateComponentColors();
+      
+      // Show notification
+      if (window.websiteBuilder?.showNotification) {
+        window.websiteBuilder.showNotification('Brand kleuren toegepast op alle componenten!', 'success');
+      }
     },
     
     updateComponentColors() {
-      // This will be called when brand colors change
-      // Update all components on canvas to use new colors
       console.log('[BrandManager] Updating component colors...');
+      
+      const canvas = document.getElementById('canvas');
+      if (!canvas) return;
+      
+      const { primary, secondary, accent } = this.currentBrand.colors;
+      
+      // Update all buttons
+      canvas.querySelectorAll('.wb-button, .btn-primary').forEach(btn => {
+        btn.style.background = primary;
+        btn.style.borderColor = primary;
+      });
+      
+      // Update all secondary buttons
+      canvas.querySelectorAll('.btn-secondary').forEach(btn => {
+        btn.style.borderColor = primary;
+        btn.style.color = primary;
+      });
+      
+      // Update hero overlays
+      canvas.querySelectorAll('.wb-hero-banner, .wb-travel-hero').forEach(hero => {
+        const overlay = hero.querySelector('.hero-overlay');
+        if (overlay) {
+          // Keep opacity, just update color
+          const currentBg = overlay.style.background || '';
+          if (currentBg.includes('linear-gradient')) {
+            overlay.style.background = `linear-gradient(135deg, ${primary}dd 0%, ${secondary}dd 100%)`;
+          }
+        }
+      });
+      
+      // Update CTA sections
+      canvas.querySelectorAll('.wb-hero-cta').forEach(cta => {
+        cta.style.background = `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`;
+      });
+      
+      // Update accent elements
+      canvas.querySelectorAll('.accent-color').forEach(el => {
+        el.style.color = accent;
+      });
+      
+      // Update links
+      canvas.querySelectorAll('a:not(.btn)').forEach(link => {
+        link.style.color = primary;
+      });
+      
+      // Update travel timeline elements
+      canvas.querySelectorAll('.wb-travel-day-number').forEach(dayNum => {
+        dayNum.style.background = `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`;
+      });
+      
+      // Update feature media icons
+      canvas.querySelectorAll('.feature-icon').forEach(icon => {
+        icon.style.background = primary;
+      });
+      
+      // Update any element with data-brand-color attribute
+      canvas.querySelectorAll('[data-brand-color="primary"]').forEach(el => {
+        el.style.background = primary;
+      });
+      
+      canvas.querySelectorAll('[data-brand-color="secondary"]').forEach(el => {
+        el.style.background = secondary;
+      });
+      
+      canvas.querySelectorAll('[data-brand-color="accent"]').forEach(el => {
+        el.style.background = accent;
+      });
+      
+      console.log('[BrandManager] ✅ Component colors updated!');
     },
     
     renderMenuList() {
