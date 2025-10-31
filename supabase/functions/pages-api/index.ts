@@ -99,8 +99,10 @@ function buildHTML(page: any, supabaseUrl: string): string {
       margin: 0;
       padding: 0;
       width: 100%;
-      height: 100%;
+      min-height: 100%;
+      height: auto !important; /* Allow content to expand */
       overflow-x: hidden;
+      overflow-y: auto !important; /* Enable vertical scroll */
     }
     
     /* Preview mode styling */
