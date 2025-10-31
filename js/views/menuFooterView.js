@@ -118,7 +118,11 @@
         try {
           const key = sel.value==='custom' ? (customInput.value || 'custom') : sel.value;
           form.__menuMap[key] = JSON.parse(JSON.stringify(p.items || []));
-          window.LayoutsBuilder.renderMenuTree(treeWrap, form, key);
+          if (window.LayoutsBuilder && typeof window.LayoutsBuilder.renderMenuTree === 'function') {
+            window.LayoutsBuilder.renderMenuTree(treeWrap, form, key);
+          } else {
+            console.warn('[menuFooterView] LayoutsBuilder not available, skipping tree render');
+          }
           window.websiteBuilder?.showNotification('Preset toegepast', 'success');
           try { window.MenuPreview?.render(form.__menuMap); } catch (e) {}
         } catch (e) { console.warn(e); }
@@ -352,7 +356,13 @@
 
     // Helpers
     const currentKey = () => sel.value==='custom' ? (customInput.value || 'custom') : sel.value;
-    const updateView = () => window.LayoutsBuilder.renderMenuTree(treeWrap, form, currentKey());
+    const updateView = () => {
+      if (window.LayoutsBuilder && typeof window.LayoutsBuilder.renderMenuTree === 'function') {
+        window.LayoutsBuilder.renderMenuTree(treeWrap, form, currentKey());
+      } else {
+        console.warn('[menuFooterView] LayoutsBuilder not available for updateView');
+      }
+    };
     const renderTop = () => {
       // Render Header HTML using current forms (footer los onderaan)
       try {
