@@ -317,8 +317,20 @@
     },
     
     async getAIResponse(question) {
+      // Check for duplicate questions
+      const lastUserMessage = this.messages.filter(m => m.role === 'user').slice(-1)[0];
+      if (lastUserMessage && lastUserMessage.content === question) {
+        return "Ik heb deze vraag net beantwoord! Heb je een andere vraag of wil je meer details?";
+      }
+      
       // Get context about the system
       const context = this.getSystemContext();
+      
+      // Get conversation history for context
+      const conversationHistory = this.messages.slice(-4).map(m => ({
+        role: m.role,
+        content: m.content
+      }));
       
       // Call OpenAI API
       const response = await fetch('/api/ai-writer', {
@@ -328,6 +340,7 @@
           section: 'help',
           question: question,
           context: context,
+          history: conversationHistory,
           language: 'nl'
         })
       });
@@ -379,63 +392,145 @@ TROUBLESHOOTING:
     getFallbackResponse(question) {
       const q = question.toLowerCase();
       
-      // Video Generator
+      // Video Generator - specifieke vragen
+      if (q.includes('video') && q.includes('achtergrond')) {
+        return `Om een video als achtergrond te gebruiken in een hero blok:
+
+1. **Maak eerst je video:**
+   - Ga naar 🎬 Video Generator
+   - Kies clips en genereer video
+   - Download de video
+
+2. **Upload naar media:**
+   - Upload je video naar je media library
+   - Kopieer de video URL
+
+3. **Gebruik in Hero:**
+   - Voeg een Hero component toe
+   - Kies "Video achtergrond" optie
+   - Plak de video URL
+   - Stel overlay opacity in voor leesbaarheid
+
+De video speelt automatisch af als achtergrond!`;
+      }
+      
       if (q.includes('video') || q.includes('clip')) {
-        return `Om een video te maken:
-1. Klik op "Video Generator" in het menu
-2. Kies een thema (🦁 Safari, 🏝️ Tropisch Strand, etc.) of zoek zelf
-3. Selecteer clips uit Pexels
+        return `**Video Generator Snelgids:**
+
+📍 **Waar vind je het?**
+Klik op "🎬 Video Generator" in het dropdown menu bovenaan.
+
+🎨 **Hoe werkt het?**
+1. Kies een thema (🦁 Safari, 🏝️ Tropisch Strand, etc.)
+2. Of zoek zelf met custom zoekterm
+3. Selecteer clips door erop te klikken
 4. Klik "Genereer Video"
-5. Wacht op rendering (via Shotstack)
+5. Wacht 30-60 seconden op rendering
 6. Download je video!
 
-Je kunt meerdere clips combineren van verschillende thema's.`;
+💡 **Pro tip:** Combineer clips van verschillende thema's voor unieke video's!`;
       }
       
       // AI Writer
       if (q.includes('ai') || q.includes('tekst') || q.includes('content')) {
-        return `De AI Writer genereert nu unieke content met:
-- Google Search research voor highlights
-- Google Places voor ratings (4.7★, 12,453 reviews)
-- Max 200 woorden per tekst
-- Specifieke details per bestemming
+        return `**AI Content Generator:**
 
-Elke bestemming krijgt unieke content, geen duplicates meer!`;
+✨ **Wat maakt het uniek?**
+- Google Search research voor actuele info
+- Google Places ratings (bijv: 4.7★, 12,453 reviews)
+- Max 200 woorden per tekst
+- Specifieke highlights per bestemming
+
+📝 **Waar wordt het gebruikt?**
+- "Over deze reis" sectie bij Travel import
+- Automatisch gegenereerd per bestemming
+- Geen duplicates meer!
+
+🔧 **Werkt het niet?**
+Check of Google Search en Places API keys zijn ingesteld in je .env file.`;
       }
       
       // Travel Import
       if (q.includes('import') || q.includes('reis') || q.includes('travel')) {
-        return `Om een reis te importeren:
-1. Ga naar "Reizen" mode
-2. Kies "Travel Compositor" import methode
+        return `**Reis Importeren:**
+
+1. Selecteer "✈️ Reizen" in het menu
+2. Klik op "Travel Compositor Import"
 3. Voer je TC ID in (bijv: wlhn3idkb7)
 4. Klik "Laden"
-5. De reis wordt automatisch geladen met alle bestemmingen, hotels, etc.
 
-De timeline wordt automatisch gegenereerd!`;
+**Wat gebeurt er?**
+- Bestemmingen worden geladen
+- Hotels en accommodaties
+- Transports en transfers
+- Timeline wordt automatisch gegenereerd
+- AI tekst wordt gegenereerd per bestemming
+
+**Resultaat:** Complete reispagina met hero, intro, timeline en alle details!`;
+      }
+      
+      // Brand & Layout
+      if (q.includes('brand') || q.includes('kleur') || q.includes('menu') || q.includes('footer')) {
+        return `**Brand & Layout Manager:**
+
+📍 **Waar?** Klik op "🎨 Brand & Layout" in de header.
+
+**3 Tabs:**
+
+1. **Brand Tab:**
+   - Stel brand kleuren in
+   - Upload logo
+   - Kies primaire/secundaire/accent kleuren
+   
+2. **Menu/Header Tab:**
+   - Zie welk menu actief is (✓ ACTIEF)
+   - Preview verschillende layouts
+   - Activeer met één klik
+   
+3. **Footer Tab:**
+   - Zie welke footer actief is
+   - Kies tussen verschillende stijlen
+   - Direct toepassen
+
+**Voordeel:** Alles op één plek, duidelijke status indicators!`;
       }
       
       // CSS/Styling
       if (q.includes('css') || q.includes('styling') || q.includes('lelijk')) {
-        return `Als pagina's er lelijk uitzien (geen styling):
-1. Check of CSS files in Supabase Storage staan
-2. Zie BOLT_INSTRUCTIONS.md voor upload stappen
-3. Verifieer dat edge function de juiste CSS URLs gebruikt
-4. Clear browser cache (Ctrl+Shift+R)
+        return `**Styling Problemen Oplossen:**
 
-De CSS moet in Supabase Storage staan onder assets/styles/`;
+**BOLT Preview lelijk?**
+1. CSS moet inline in HTML staan
+2. Zie BOLT_PREVIEW_FIX.md voor instructies
+3. Deploy pages-preview edge function
+4. CSS wordt automatisch inline gezet
+
+**Lokaal geen styling?**
+1. Check of server draait (localhost:8080)
+2. Hard refresh: Ctrl+Shift+R
+3. Check console voor CSS load errors
+
+**Supabase deployment:**
+Upload CSS naar Supabase Storage onder assets/styles/`;
       }
       
       // Default
-      return `Ik kan je helpen met:
-- Video Generator (clips zoeken, video maken)
-- AI Writer (unieke content genereren)
-- Travel Compositor import
-- Components en layout
-- BOLT deployment
-- Troubleshooting
+      return `**Hoe kan ik helpen?**
 
-Stel gerust een specifieke vraag!`;
+Ik ken alles over:
+- 🎬 **Video Generator** - Clips zoeken en video's maken
+- 🤖 **AI Writer** - Unieke content genereren
+- ✈️ **Travel Import** - Reizen laden van Travel Compositor
+- 🎨 **Brand & Layout** - Kleuren, menu's en footers
+- 🔧 **Troubleshooting** - Problemen oplossen
+
+**Voorbeeldvragen:**
+- "Hoe maak ik een video als achtergrond?"
+- "Waarom zijn mijn AI teksten hetzelfde?"
+- "Hoe activeer ik een ander menu?"
+- "Waar vind ik de Video Generator?"
+
+Stel gerust je vraag!`;
     }
   };
   
