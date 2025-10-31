@@ -146,10 +146,29 @@ class MediaPicker {
       const tabs = Array.from(body.querySelectorAll('.tab-btn'));
       const panes = Array.from(body.querySelectorAll('.tab-content'));
       const setTab = (name) => {
-        tabs.forEach(t => t.classList.toggle('active', t.getAttribute('data-tab') === name));
-        panes.forEach(p => p.style.display = (p.getAttribute('data-tab') === name ? '' : 'none'));
+        console.log('[MediaPicker] Switching to tab:', name);
+        tabs.forEach(t => {
+          const isActive = t.getAttribute('data-tab') === name;
+          if (isActive) {
+            t.classList.add('active');
+          } else {
+            t.classList.remove('active');
+          }
+        });
+        panes.forEach(p => {
+          const isVisible = p.getAttribute('data-tab') === name;
+          p.style.display = isVisible ? 'block' : 'none';
+        });
       };
-      tabs.forEach(btn => btn.addEventListener('click', () => setTab(btn.getAttribute('data-tab'))));
+      tabs.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const tabName = btn.getAttribute('data-tab');
+          console.log('[MediaPicker] Tab button clicked:', tabName);
+          setTab(tabName);
+        });
+      });
 
       // Upload
       const uploadPane = body.querySelector('.tab-content[data-tab="upload"] input[type="file"]');
