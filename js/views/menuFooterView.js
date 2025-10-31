@@ -377,32 +377,83 @@
     // Initialize
     updateView();
     renderTop();
+    // Import function (inline since LayoutsBuilder might not be available)
+    async function importPagesFromBolt() {
+      try {
+        const callFn = (window.FnClient && window.FnClient.callFn) || null;
+        if (!callFn) {
+          console.warn('[MenuFooterView] FnClient not available');
+          return;
+        }
+        
+        const brandId = (window.BOLT_CONFIG && window.BOLT_CONFIG.brand_id) || '';
+        if (!brandId) {
+          console.warn('[MenuFooterView] No brand_id configured');
+          return;
+        }
+        
+        const menuKey = currentKey();
+        const resp = await callFn('pages-api/list', { brand_id: brandId, menu_key: menuKey });
+        
+        if (!resp || !resp.pages) {
+          console.warn('[MenuFooterView] No pages returned');
+          return;
+        }
+        
+        // Build menu items from pages
+        const items = resp.pages.map(p => ({
+          label: p.title || p.slug,
+          href: `/${p.slug}`,
+          page_id: p.id
+        }));
+        
+        // Update form
+        if (!form.__menuMap) form.__menuMap = {};
+        form.__menuMap[menuKey] = items;
+        
+        console.log(`[MenuFooterView] Imported ${items.length} pages for ${menuKey}`);
+        
+        // Update view if LayoutsBuilder is available
+        if (window.LayoutsBuilder && typeof window.LayoutsBuilder.renderMenuTree === 'function') {
+          window.LayoutsBuilder.renderMenuTree(treeWrap, form, menuKey);
+        }
+        
+        return items;
+      } catch (err) {
+        console.error('[MenuFooterView] Import error:', err);
+        throw err;
+      }
+    }
+    
     // Auto-import (once)
     (async () => { 
       try { 
-        await window.LayoutsBuilder.importPagesFromBoltIntoForm(form, treeWrap, currentKey()); 
+        await importPagesFromBolt();
         console.log('[MenuFooterView] Auto-import successful');
       } catch (e) {
         console.warn('[MenuFooterView] Auto-import failed:', e);
       }
     })();
-
-    // Wire controls
-    sel.onchange = () => { customInput.style.display = sel.value==='custom' ? '' : 'none'; updateView(); renderTop(); };
-    customInput.oninput = () => updateView();
+    
+    // Manual import button
     btnImport.onclick = async (e) => { 
       e.preventDefault(); 
       try {
         console.log('[MenuFooterView] Manual import started...');
-        await window.LayoutsBuilder.importPagesFromBoltIntoForm(form, treeWrap, currentKey()); 
+        await importPagesFromBolt();
         console.log('[MenuFooterView] Manual import successful');
         try { window.MenuPreview?.render(form.__menuMap); } catch (e) {}
         renderTop();
+        alert(`✅ Pagina's geïmporteerd! Check de menu structuur.`);
       } catch (err) {
         console.error('[MenuFooterView] Manual import failed:', err);
         alert('Pagina\'s importeren mislukt: ' + err.message);
       }
     };
+
+    // Wire controls
+    sel.onchange = () => { customInput.style.display = sel.value==='custom' ? '' : 'none'; updateView(); renderTop(); };
+    customInput.oninput = () => updateView();
     btnPublish.onclick = (e) => { e.preventDefault(); window.LayoutsBuilder.doMenuSavePublish(form, 'publish'); try { window.MenuPreview?.render(form.__menuMap); } catch (e) {}; renderTop(); };
 
     // Header actions
