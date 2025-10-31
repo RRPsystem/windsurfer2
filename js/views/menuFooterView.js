@@ -383,44 +383,74 @@
         const callFn = (window.FnClient && window.FnClient.callFn) || null;
         if (!callFn) {
           console.warn('[MenuFooterView] FnClient not available');
+          alert('❌ FnClient niet beschikbaar. Check of BOLT configuratie is geladen.');
           return;
         }
         
         const brandId = (window.BOLT_CONFIG && window.BOLT_CONFIG.brand_id) || '';
         if (!brandId) {
           console.warn('[MenuFooterView] No brand_id configured');
+          alert('❌ Geen brand_id geconfigureerd. Check BOLT_CONFIG in config/bolt.js');
           return;
         }
         
         const menuKey = currentKey();
+        console.log(`[MenuFooterView] Fetching pages for brand_id: ${brandId}, menu_key: ${menuKey}`);
+        
         const resp = await callFn('pages-api/list', { brand_id: brandId, menu_key: menuKey });
         
-        if (!resp || !resp.pages) {
-          console.warn('[MenuFooterView] No pages returned');
+        console.log('[MenuFooterView] API Response:', resp);
+        
+        if (!resp) {
+          console.warn('[MenuFooterView] No response from API');
+          alert('❌ Geen response van BOLT API');
+          return;
+        }
+        
+        if (!resp.pages || !Array.isArray(resp.pages)) {
+          console.warn('[MenuFooterView] No pages array in response:', resp);
+          alert(`❌ Geen pagina's gevonden in BOLT.\n\nResponse: ${JSON.stringify(resp, null, 2)}`);
+          return;
+        }
+        
+        if (resp.pages.length === 0) {
+          console.warn('[MenuFooterView] Empty pages array');
+          alert('⚠️ BOLT heeft nog geen pagina\'s. Maak eerst pagina\'s aan in BOLT.');
           return;
         }
         
         // Build menu items from pages
         const items = resp.pages.map(p => ({
-          label: p.title || p.slug,
-          href: `/${p.slug}`,
+          label: p.title || p.slug || 'Untitled',
+          href: `/${p.slug || ''}`,
           page_id: p.id
         }));
+        
+        console.log('[MenuFooterView] Built menu items:', items);
         
         // Update form
         if (!form.__menuMap) form.__menuMap = {};
         form.__menuMap[menuKey] = items;
         
         console.log(`[MenuFooterView] Imported ${items.length} pages for ${menuKey}`);
+        console.log('[MenuFooterView] Current menuMap:', form.__menuMap);
         
         // Update view if LayoutsBuilder is available
         if (window.LayoutsBuilder && typeof window.LayoutsBuilder.renderMenuTree === 'function') {
           window.LayoutsBuilder.renderMenuTree(treeWrap, form, menuKey);
+        } else {
+          // Fallback: show items in tree wrap
+          treeWrap.innerHTML = '<div style="padding: 20px; background: #f0fdf4; border: 2px solid #4ade80; border-radius: 8px;">' +
+            '<h4 style="margin: 0 0 12px 0; color: #16a34a;">✅ Geïmporteerde Pagina\'s:</h4>' +
+            '<ul style="margin: 0; padding-left: 20px;">' +
+            items.map(item => `<li><strong>${item.label}</strong> → ${item.href}</li>`).join('') +
+            '</ul></div>';
         }
         
         return items;
       } catch (err) {
         console.error('[MenuFooterView] Import error:', err);
+        alert(`❌ Import mislukt:\n\n${err.message}\n\nCheck console voor details.`);
         throw err;
       }
     }
