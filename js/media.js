@@ -46,13 +46,13 @@ class MediaPicker {
         </div>
 
         <div class="tab-content" data-tab="unsplash" style="display:none;">
-          <div class="mp-row">
-            <input type="text" class="form-control unsplash-query" placeholder="Zoekterm (bv. mountains, beach)" />
-            <button class="btn btn-primary btn-lg unsplash-search"><i class="fas fa-search"></i></button>
+          <div class="mp-row" style="margin-bottom: 16px;">
+            <input type="text" class="form-control unsplash-query" placeholder="Zoekterm (bv. mountains, beach)" value="travel" style="flex: 1; padding: 12px; font-size: 14px;" />
+            <button class="btn btn-primary btn-lg unsplash-search" style="margin-left: 8px;"><i class="fas fa-search"></i> Zoeken</button>
           </div>
           <div class="unsplash-grid"></div>
           <div class="mp-row mp-between mp-more-row">
-            <p class="unsplash-note"></p>
+            <p class="unsplash-note" style="font-size: 12px; color: #666;"></p>
             <button class="btn btn-primary btn-lg unsplash-more" disabled>Laad meer afbeeldingen</button>
           </div>
         </div>
@@ -170,6 +170,7 @@ class MediaPicker {
       if (true) {
         const unsplashPane = body.querySelector('.tab-content[data-tab="unsplash"]');
         const noteEl = unsplashPane ? unsplashPane.querySelector('.unsplash-note') : null;
+        const grid = unsplashPane ? unsplashPane.querySelector('.unsplash-grid') : null;
         const moreBtn = unsplashPane ? unsplashPane.querySelector('.unsplash-more') : null;
         const key = (window.MEDIA_CONFIG && (window.MEDIA_CONFIG.unsplashAccessKey || window.MEDIA_CONFIG.unsplashKey))
           ? (window.MEDIA_CONFIG.unsplashAccessKey || window.MEDIA_CONFIG.unsplashKey)
@@ -182,7 +183,6 @@ class MediaPicker {
         const runSearch = async (append = false) => {
           const qInput = unsplashPane ? unsplashPane.querySelector('.unsplash-query') : null;
           const q = (qInput && qInput.value ? qInput.value.trim() : '') || 'travel';
-          const grid = unsplashPane ? unsplashPane.querySelector('.unsplash-grid') : null;
           if (!append) {
             if (grid) grid.innerHTML = '<div style="color:#666;">Zoeken...</div>';
             currentPage = 1;
