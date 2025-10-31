@@ -634,6 +634,9 @@
             <button onclick="BrandManager.previewMenu('${menu.id}')">
               <i class="fas fa-eye"></i> Preview
             </button>
+            <button onclick="BrandManager.editMenuContent('${menu.id}')">
+              <i class="fas fa-edit"></i> Bewerk Inhoud
+            </button>
             ${!menu.active ? `
               <button class="primary" onclick="BrandManager.activateMenu('${menu.id}')">
                 Activeren
@@ -661,6 +664,9 @@
           <div class="layout-actions">
             <button onclick="BrandManager.previewFooter('${footer.id}')">
               <i class="fas fa-eye"></i> Preview
+            </button>
+            <button onclick="BrandManager.editFooterContent('${footer.id}')">
+              <i class="fas fa-edit"></i> Bewerk Inhoud
             </button>
             ${!footer.active ? `
               <button class="primary" onclick="BrandManager.activateFooter('${footer.id}')">
@@ -735,6 +741,46 @@
       alert(`✅ Footer "${footerId}" geactiveerd!`);
     },
     
+    editMenuContent(menuId) {
+      // Close Brand Manager
+      this.close();
+      
+      // Switch to Menu & Footer mode
+      const buildTypeSelect = document.getElementById('buildTypeSelect');
+      if (buildTypeSelect) {
+        buildTypeSelect.value = 'menu';
+        buildTypeSelect.dispatchEvent(new Event('change'));
+      }
+      
+      // Show notification
+      if (window.websiteBuilder?.showNotification) {
+        window.websiteBuilder.showNotification(
+          `Menu editor geopend voor "${menuId}". Bewerk de inhoud en klik "Opslaan".`,
+          'info'
+        );
+      }
+    },
+    
+    editFooterContent(footerId) {
+      // Close Brand Manager
+      this.close();
+      
+      // Switch to Menu & Footer mode
+      const buildTypeSelect = document.getElementById('buildTypeSelect');
+      if (buildTypeSelect) {
+        buildTypeSelect.value = 'menu';
+        buildTypeSelect.dispatchEvent(new Event('change'));
+      }
+      
+      // Show notification
+      if (window.websiteBuilder?.showNotification) {
+        window.websiteBuilder.showNotification(
+          `Footer editor geopend voor "${footerId}". Bewerk de inhoud en klik "Opslaan".`,
+          'info'
+        );
+      }
+    },
+    
     previewMenu(menuId) {
       alert(`Preview van menu: ${menuId}`);
       // TODO: Show preview modal
@@ -746,13 +792,13 @@
     },
     
     createNewMenu() {
-      alert('Nieuwe menu maken - TODO');
-      // TODO: Open menu builder
+      // Switch to Menu & Footer mode to create new
+      this.editMenuContent('new');
     },
     
     createNewFooter() {
-      alert('Nieuwe footer maken - TODO');
-      // TODO: Open footer builder
+      // Switch to Menu & Footer mode to create new
+      this.editFooterContent('new');
     }
   };
   
