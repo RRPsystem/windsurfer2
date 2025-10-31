@@ -238,14 +238,25 @@ class MediaPicker {
         const unsplashSearchBtn = unsplashPane ? unsplashPane.querySelector('.unsplash-search') : null;
         if (unsplashSearchBtn) unsplashSearchBtn.addEventListener('click', () => runSearch(false));
         if (moreBtn) moreBtn.addEventListener('click', () => { currentPage += 1; runSearch(true); });
-        // Auto-focus search input when tab opens
+        // Auto-focus search input when tab opens and run default search
         const unsplashTabBtn = tabs.find(b => b.getAttribute('data-tab')==='unsplash');
         if (unsplashTabBtn) unsplashTabBtn.addEventListener('click', () => {
           setTimeout(() => {
             const uqi = unsplashPane ? unsplashPane.querySelector('.unsplash-query') : null;
-            if (uqi) uqi.focus();
+            if (uqi) {
+              uqi.focus();
+              // Run default search if grid is empty
+              if (grid && grid.children.length === 0) {
+                runSearch(false);
+              }
+            }
           }, 0);
         });
+        
+        // Run default search if Unsplash is the default tab
+        if (defaultTab === 'unsplash') {
+          setTimeout(() => runSearch(false), 100);
+        }
       }
 
       // Pexels Videos
