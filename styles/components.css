@@ -3399,7 +3399,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 .roadbook-wrapper {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 40px 20px;
+    padding: 40px 0;
 }
 
 /* Hero / Countdown */
@@ -3408,15 +3408,16 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     text-align: center;
     padding: 60px 20px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 20px;
+    border-radius: 0;
     color: white;
-    margin-bottom: 40px;
+    margin-bottom: 0;
     overflow: hidden;
     min-height: 400px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    width: 100%;
 }
 
 /* Hero background media */
@@ -3495,6 +3496,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 /* Sections */
 .roadbook-section {
     margin-bottom: 50px;
+    padding: 0 20px;
 }
 
 .roadbook-section-title {
