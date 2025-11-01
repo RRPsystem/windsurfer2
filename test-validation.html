@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Joi Validation Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: white;
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 2.5em;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 600;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    button:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 8px;
+      display: none;
+    }
+    .result.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: block;
+    }
+    .result.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      display: block;
+    }
+    .error-list {
+      margin-top: 12px;
+      padding-left: 20px;
+    }
+    .error-list li {
+      margin-bottom: 8px;
+    }
+    .test-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .test-btn {
+      padding: 12px;
+      background: #f8f9fa;
+      color: #333;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+    .test-btn:hover {
+      background: #e9ecef;
+      border-color: #667eea;
+    }
+    pre {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 Joi Validation Test</h1>
+    
+    <div class="card">
+      <h2>Test Scenarios</h2>
+      <div class="test-buttons">
+        <button class="test-btn" onclick="fillValid()">✅ Geldige Data</button>
+        <button class="test-btn" onclick="fillInvalidEmail()">❌ Ongeldige Email</button>
+        <button class="test-btn" onclick="fillTooShort()">❌ Te Kort</button>
+        <button class="test-btn" onclick="fillXSS()">🔴 XSS Poging</button>
+        <button class="test-btn" onclick="fillSQLInjection()">🔴 SQL Injection</button>
+        <button class="test-btn" onclick="clearForm()">🗑️ Wis Formulier</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Contact Formulier</h2>
+      <form id="contactForm">
+        <div class="form-group">
+          <label for="name">Naam *</label>
+          <input type="text" id="name" name="name" placeholder="Jouw naam">
+        </div>
+
+        <div class="form-group">
+          <label for="email">E-mail *</label>
+          <input type="email" id="email" name="email" placeholder="jouw@email.nl">
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Telefoon (optioneel)</label>
+          <input type="tel" id="phone" name="phone" placeholder="+31 6 12345678">
+        </div>
+
+        <div class="form-group">
+          <label for="message">Bericht *</label>
+          <textarea id="message" name="message" placeholder="Jouw bericht..."></textarea>
+        </div>
+
+        <button type="submit" id="submitBtn">Verstuur</button>
+      </form>
+
+      <div class="result" id="result"></div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('contactForm');
+    const resultDiv = document.getElementById('result');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Versturen...';
+      resultDiv.className = 'result';
+      resultDiv.style.display = 'none';
+
+      const formData = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        message: document.getElementById('message').value,
+      };
+
+      try {
+        const response = await fetch('http://localhost:5050/api/contact', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          resultDiv.className = 'result success';
+          resultDiv.innerHTML = `
+            <strong>✅ Succes!</strong><br>
+            ${data.message}
+          `;
+          form.reset();
+        } else {
+          resultDiv.className = 'result error';
+          let errorHtml = '<strong>❌ Validatie Fouten:</strong>';
+          
+          if (data.details && Array.isArray(data.details)) {
+            errorHtml += '<ul class="error-list">';
+            data.details.forEach(err => {
+              errorHtml += `<li><strong>${err.field}:</strong> ${err.message}</li>`;
+            });
+            errorHtml += '</ul>';
+          } else {
+            errorHtml += `<p>${data.error}</p>`;
+          }
+          
+          resultDiv.innerHTML = errorHtml;
+        }
+      } catch (err) {
+        resultDiv.className = 'result error';
+        resultDiv.innerHTML = `
+          <strong>❌ Fout!</strong><br>
+          ${err.message}<br>
+          <small>Is de server gestart? (npm run dev)</small>
+        `;
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Verstuur';
+    });
+
+    // Test scenarios
+    function fillValid() {
+      document.getElementById('name').value = 'Jan Jansen';
+      document.getElementById('email').value = 'jan@example.com';
+      document.getElementById('phone').value = '+31 6 12345678';
+      document.getElementById('message').value = 'Dit is een geldig testbericht met voldoende tekst.';
+    }
+
+    function fillInvalidEmail() {
+      document.getElementById('name').value = 'Jan Jansen';
+      document.getElementById('email').value = 'geen-email';
+      document.getElementById('message').value = 'Test bericht met ongeldige email.';
+    }
+
+    function fillTooShort() {
+      document.getElementById('name').value = 'J';
+      document.getElementById('email').value = 'jan@example.com';
+      document.getElementById('message').value = 'Te kort';
+    }
+
+    function fillXSS() {
+      document.getElementById('name').value = String.fromCharCode(60) + 'script>alert(1)</script>';
+      document.getElementById('email').value = 'hacker@evil.com';
+      document.getElementById('message').value = String.fromCharCode(60) + 'img src=x onerror=alert(1)> Kwaadaardige code';
+    }
+
+    function fillSQLInjection() {
+      const quote = String.fromCharCode(39);
+      document.getElementById('name').value = quote + '; DROP TABLE users; --';
+      document.getElementById('email').value = 'sql@injection.com';
+      document.getElementById('message').value = '1' + quote + ' OR ' + quote + '1' + quote + '=' + quote + '1';
+    }
+
+    function clearForm() {
+      form.reset();
+      resultDiv.className = 'result';
+      resultDiv.style.display = 'none';
+    }
+  </script>
+</body>
+</html>

@@ -2,13 +2,44 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 const { spawn } = require('child_process');
+const { validate, schemas, Joi } = require('./middleware/validation');
 
 const app = express();
+
+// Security: Helmet for security headers
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable for now to avoid breaking existing functionality
+  crossOriginEmbedderPolicy: false
+}));
+
+// Security: Rate limiting
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit auth attempts to 10 per 15 minutes
+  message: 'Too many authentication attempts, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 app.use(cors({ origin: true, credentials: false }));
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
+
+// Apply rate limiting to API routes
+app.use('/api/', apiLimiter);
+app.use('/api/debug/auth', authLimiter);
 
 // Serve static files so you can preview index.html
 app.use(express.static(path.join(__dirname, '..')));
@@ -79,7 +110,7 @@ app.get('/api/ideas', async (req, res) => {
     };
 
     const url = `${TC_BASE_URL}/travelidea/${encodeURIComponent(micrositeId)}`;
-    console.log('[Proxy] GET', url, 'params=', params);
+    console.log('[Proxy] GET', url, 'params=', { ...params, micrositeId: '***' });
     const r = await axios.get(url, { params, headers: { Accept: 'application/json', 'Accept-Encoding': 'gzip', 'X-Microsite-Id': String(micrositeId), ...hdr } });
     const raw = r.data;
     const list = normalizeIdeaList(raw);
@@ -140,7 +171,7 @@ app.get('/api/ideas/:id', async (req, res) => {
       currency: req.query.currency || 'EUR',
     };
     const url = `${TC_BASE_URL}/travelidea/${encodeURIComponent(micrositeId)}/${encodeURIComponent(id)}`;
-    console.log('[Proxy] GET', url, 'params=', params);
+    console.log('[Proxy] GET', url, 'id=', id);
     const r = await axios.get(url, { params, headers: { Accept: 'application/json', 'Accept-Encoding': 'gzip', 'X-Microsite-Id': String(micrositeId), ...hdr } });
     const normalized = normalizeIdeaDetail(r.data);
     const fields = parseFields(req.query.fields);
@@ -587,6 +618,11 @@ if (!TC_BASE_URL) {
   console.warn('[TC] Missing TC_BASE_URL in server/.env');
 }
 
+// Security: Verify HTTPS in production
+if (process.env.NODE_ENV === 'production' && TC_BASE_URL && !TC_BASE_URL.startsWith('https://')) {
+  console.error('⚠️  SECURITY WARNING: TC_BASE_URL should use HTTPS in production!');
+}
+
 // Optional: token cache if TC requires OAuth. Placeholder for later.
 let cachedToken = null;
 let tokenExpiresAt = 0;
@@ -601,7 +637,7 @@ async function getAuthHeader() {
     const origin = new URL(TC_BASE_URL).origin; // e.g. https://online.travelcompositor.com
     if ((!cachedToken || Date.now() > tokenExpiresAt) && TC_USERNAME && TC_PASSWORD && TC_MICROSITE_ID) {
       const authUrl = `${origin}/resources/authentication/authenticate`;
-      console.log('[Auth] POST', authUrl, 'as', TC_USERNAME, 'microsite', TC_MICROSITE_ID);
+      console.log('[Auth] POST', authUrl, 'user=', TC_USERNAME ? '***' : 'none', 'microsite=', TC_MICROSITE_ID ? '***' : 'none');
       const resp = await axios.post(authUrl, {
         username: TC_USERNAME,
         password: TC_PASSWORD,
@@ -726,6 +762,10 @@ app.post('/api/video/generate', videoGenerateHandler);
 app.get('/api/video/status/:id', videoStatusHandler);
 app.post('/api/video/upload-voiceover', voiceoverUploadHandler);
 
+// Contact form route (with Joi validation)
+const contactHandler = require('./api/contact');
+app.post('/api/contact', contactHandler);
+
 app.listen(PORT, () => {
   console.log(`\n🚀 Server running at http://localhost:${PORT}`);
   console.log(`📁 Static files: http://localhost:${PORT}/index.html`);
@@ -733,5 +773,6 @@ app.listen(PORT, () => {
   console.log(`📄 PDF Parser: /api/booking/parse`);
   console.log(`🌐 URL Import: /api/booking/url-import`);
   console.log(`🎬 Video Generator: /api/video/generate`);
-  console.log(`📤 Git Push: /api/git/push\n`);
+  console.log(`📤 Git Push: /api/git/push`);
+  console.log(`📧 Contact Form: /api/contact\n`);
 });
