@@ -1698,7 +1698,7 @@ class WebsiteBuilder {
                         } catch (e) { setTimeout(() => resolve(cb()), 0); }
                     });
                     const contentJson = await awaitIdle(() => (typeof window.exportBuilderAsJSON === 'function') ? window.exportBuilderAsJSON() : (this.getProjectData() || {}));
-                    const htmlString = await awaitIdle(() => (typeof window.exportBuilderAsHTML === 'function') ? window.exportBuilderAsHTML(contentJson) : '');
+                    const htmlString = await awaitIdle(async () => (typeof window.exportBuilderAsHTML === 'function') ? await window.exportBuilderAsHTML(contentJson) : '');
                     // Ensure title/slug are present
                     const titleInput = document.getElementById('pageTitleInput');
                     const slugInput = document.getElementById('pageSlugInput');
@@ -1853,7 +1853,7 @@ class WebsiteBuilder {
 
 // Publish only for normal pages (not for templates)
 const pageHtml = (typeof window.exportBuilderAsHTML === 'function')
-  ? window.exportBuilderAsHTML(contentJson)
+  ? await window.exportBuilderAsHTML(contentJson)
   : '';
 
 let published = false;
