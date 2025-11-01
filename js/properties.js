@@ -5742,8 +5742,13 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
         });
         if (!res) return;
         
+        console.log('[Roadbook] Media selected:', res);
+        
         const hero = component.querySelector('.roadbook-hero');
-        if (!hero) return;
+        if (!hero) {
+            console.error('[Roadbook] Hero element not found');
+            return;
+        }
         
         // Remove existing media
         const existingVideo = hero.querySelector('video');
@@ -5751,8 +5756,18 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
         if (existingVideo) existingVideo.remove();
         if (existingSlider) existingSlider.remove();
         
+        // Determine media type and URL
+        const isVideo = res.type === 'video' || res.videoUrl;
+        const mediaUrl = res.videoUrl || res.url || res.fullUrl || res.regularUrl || res.dataUrl;
+        
+        if (!mediaUrl) {
+            console.error('[Roadbook] No media URL found in response:', res);
+            alert('Geen media URL gevonden');
+            return;
+        }
+        
         // Add new media
-        if (res.type === 'video' && res.videoUrl) {
+        if (isVideo) {
             // Add video
             const video = document.createElement('video');
             video.autoplay = true;
@@ -5760,22 +5775,24 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
             video.muted = true;
             video.playsInline = true;
             video.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;';
-            video.innerHTML = `<source src="${res.videoUrl}" type="video/mp4">`;
+            video.innerHTML = `<source src="${mediaUrl}" type="video/mp4">`;
             hero.insertBefore(video, hero.firstChild);
             
             // Store in dataset
-            component.dataset.heroVideo = res.videoUrl;
+            component.dataset.heroVideo = mediaUrl;
             delete component.dataset.heroImages;
-        } else if (res.url) {
-            // Add single image (could extend to slider later)
+            console.log('[Roadbook] Video added:', mediaUrl);
+        } else {
+            // Add single image
             const img = document.createElement('div');
             img.className = 'hero-slider';
-            img.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url(' + res.url + '); background-size: cover; background-position: center; z-index: 0;';
+            img.style.cssText = `position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url("${mediaUrl}"); background-size: cover; background-position: center; z-index: 0;`;
             hero.insertBefore(img, hero.firstChild);
             
             // Store in dataset
-            component.dataset.heroImages = res.url;
+            component.dataset.heroImages = mediaUrl;
             delete component.dataset.heroVideo;
+            console.log('[Roadbook] Image added:', mediaUrl);
         }
     });
     mediaBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
