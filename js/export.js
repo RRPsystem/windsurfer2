@@ -756,7 +756,7 @@ window.exportBuilderAsJSON = function exportBuilderAsJSON() {
   };
 };
 
-window.exportBuilderAsHTML = function exportBuilderAsHTML(contentJson) {
+window.exportBuilderAsHTML = async function exportBuilderAsHTML(contentJson) {
   const canvas = document.getElementById('canvas');
   const bodyHtml = canvas ? canvas.innerHTML : '<div></div>';
   const title = (contentJson && contentJson.title) ? contentJson.title : getCurrentPageMeta().title;
@@ -770,19 +770,65 @@ window.exportBuilderAsHTML = function exportBuilderAsHTML(contentJson) {
     }
   } catch (e) {}
 
+  // Inline CSS - Fetch and embed all CSS files
+  let inlineCSS = '';
+  try {
+    const baseUrl = window.location.origin;
+    const cssFiles = [
+      `${baseUrl}/styles/components.css`,
+      `${baseUrl}/styles/travel-templates.css`
+    ];
+    
+    // Fetch all CSS files in parallel
+    const cssPromises = cssFiles.map(url => 
+      fetch(url)
+        .then(res => res.ok ? res.text() : '')
+        .catch(() => '')
+    );
+    
+    const cssContents = await Promise.all(cssPromises);
+    inlineCSS = cssContents.filter(css => css).join('\n\n');
+  } catch (e) {
+    console.warn('[Export] Could not fetch CSS files for inline embedding:', e);
+  }
+  
   return `<!doctype html>
 <html lang="nl">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${title}</title>
-  <link rel="stylesheet" href="/styles/main.css">
-  <link rel="stylesheet" href="/styles/components.css">
+  
+  <!-- Font Awesome Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  
+  <!-- Inline CSS for maximum compatibility -->
+  <style>
+    /* Reset & Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+    }
+    
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+    
+    /* Component Styles */
+    ${inlineCSS}
+  </style>
 </head>
 <body>
   <span data-page-title-source style="display:none">${title}</span>
   ${bodyWrapped}
 </body>
 </html>`;
-
 };
