@@ -3394,6 +3394,8 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     background: #f9fafb;
     padding: 0;
     min-height: 100vh;
+    margin: 0 -24px; /* Break out of canvas padding */
+    width: calc(100% + 48px);
 }
 
 .roadbook-wrapper {

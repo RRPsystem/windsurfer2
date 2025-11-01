@@ -5947,9 +5947,9 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
                     display: flex;
                     gap: 0;
                     width: 100%;
-                    max-width: 900px;
+                    max-width: 700px;
                     margin: 0 auto;
-                    border-radius: 8px;
+                    border-radius: 6px;
                     overflow: hidden;
                     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
                 `;
@@ -5960,15 +5960,15 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
                 departureBox.style.cssText = `
                     background: #1f2937;
                     color: white;
-                    padding: 16px 24px;
+                    padding: 12px 20px;
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
-                    min-width: 160px;
+                    min-width: 140px;
                 `;
                 departureBox.innerHTML = `
-                    <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; margin-bottom: 4px;">Vertrek op</div>
-                    <div style="font-size: 18px; font-weight: 700; line-height: 1.2;">${departureText ? departureText.querySelector('span').textContent : ''}</div>
+                    <div style="font-size: 9px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; margin-bottom: 2px;">Vertrek op</div>
+                    <div style="font-size: 15px; font-weight: 700; line-height: 1.2;">${departureText ? departureText.querySelector('span').textContent : ''}</div>
                 `;
                 
                 bottomBar.appendChild(departureBox);
@@ -5982,8 +5982,8 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
             // Style countdown
             countdown.style.cssText = `
                 display: flex;
-                gap: 16px;
-                padding: 16px 24px;
+                gap: 12px;
+                padding: 12px 20px;
                 background: white;
                 flex: 1;
                 justify-content: center;
@@ -5993,17 +5993,17 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
                 item.style.cssText = 'text-align: center;';
             });
             countdown.querySelectorAll('.countdown-value').forEach(val => {
-                val.style.fontSize = '32px';
+                val.style.fontSize = '24px';
                 val.style.fontWeight = '700';
                 val.style.color = '#111827';
                 val.style.lineHeight = '1';
             });
             countdown.querySelectorAll('.countdown-label').forEach(label => {
-                label.style.fontSize = '10px';
+                label.style.fontSize = '9px';
                 label.style.color = '#6b7280';
                 label.style.textTransform = 'uppercase';
                 label.style.letterSpacing = '0.5px';
-                label.style.marginTop = '4px';
+                label.style.marginTop = '3px';
             });
         } else {
             countdown.style.cssText = `
