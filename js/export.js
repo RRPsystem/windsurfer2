@@ -23,7 +23,7 @@ class ExportManager {
         }
     }
 
-    showPreview(evt) {
+    async showPreview(evt) {
         // Open full web-based preview in a new tab using preview.html
         try {
             // Save canvas content to sessionStorage for preview
@@ -61,7 +61,10 @@ class ExportManager {
         // Fallback to inline iframe preview if something above fails
         const modal = document.getElementById('previewModal');
         const iframe = document.getElementById('previewFrame');
-        const html = this.generateHTML({ title: 'Preview', useBuilderCss: true, wrapWithLayout: true });
+        
+        // Use inline CSS for preview to avoid CSP issues
+        const html = await this.generatePreviewHTML();
+        
         iframe.removeAttribute('src');
         iframe.srcdoc = html;
         modal.style.display = 'block';
@@ -227,6 +230,66 @@ Upload deze bestanden naar je webserver om je website live te zetten.
         
         const blob = new Blob([zipContent], { type: 'text/plain' });
         this.downloadFile(blob, `${this.sanitizeFilename(options.title)}_export.txt`);
+    }
+
+    async generatePreviewHTML() {
+        const canvas = document.getElementById('canvas');
+        const bodyHtml = canvas ? canvas.innerHTML : '<div></div>';
+        
+        // Fetch CSS files inline
+        let inlineCSS = '';
+        try {
+            const baseUrl = window.location.origin;
+            const cssFiles = [
+                `${baseUrl}/styles/components.css`,
+                `${baseUrl}/styles/travel-templates.css`
+            ];
+            
+            const cssPromises = cssFiles.map(url => 
+                fetch(url)
+                    .then(res => res.ok ? res.text() : '')
+                    .catch(() => '')
+            );
+            
+            const cssContents = await Promise.all(cssPromises);
+            inlineCSS = cssContents.filter(css => css).join('\n\n');
+        } catch (e) {
+            console.warn('[Preview] Could not fetch CSS:', e);
+        }
+        
+        // Wrap with layout if available
+        let bodyWrapped = `\n  ${bodyHtml}`;
+        try {
+            const saved = localStorage.getItem('wb_project');
+            const layout = saved ? (JSON.parse(saved).layout || null) : null;
+            if (window.Layouts && typeof window.Layouts.renderWithLayout === 'function') {
+                bodyWrapped = window.Layouts.renderWithLayout(bodyWrapped, layout);
+            }
+        } catch (e) {}
+        
+        return `<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preview</title>
+  
+  <!-- Font Awesome Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  
+  <!-- Inline CSS -->
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #333; }
+    img { max-width: 100%; height: auto; }
+    
+    ${inlineCSS}
+  </style>
+</head>
+<body>
+  ${bodyWrapped}
+</body>
+</html>`;
     }
 
     generateHTML(options = {}, separateCSS = false) {
