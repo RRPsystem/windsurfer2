@@ -881,10 +881,11 @@
       const viewJsonBtn = contentEl.querySelector('#viewJsonBtn');
       const closeJsonBtn = contentEl.querySelector('#closeJsonBtn');
       const jsonViewer = contentEl.querySelector('#jsonViewer');
-
+      
+      // MODIFIED: Show output format selector instead of directly loading
       if (editBtn) {
         editBtn.addEventListener('click', () => {
-          this.editInBuilder(data);
+          this.showOutputFormatSelector(data);
         });
       }
 
@@ -1029,6 +1030,314 @@
 
       // Mount video generator
       window.VideoGeneratorView.mount(container, data);
+    },
+    
+    // NEW: Show output format selector (Reis Pagina, Roadbook, Offerte, Voucher)
+    showOutputFormatSelector(data) {
+      // Create modal overlay
+      const modal = document.createElement('div');
+      modal.className = 'output-format-modal';
+      modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 20000; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.3s;';
+      
+      modal.innerHTML = `
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: slideUp 0.3s;">
+          <h2 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700; color: #111827;">
+            <i class="fas fa-magic"></i> Kies Output Format
+          </h2>
+          <p style="margin: 0 0 24px 0; color: #6b7280; font-size: 14px;">
+            Hoe wil je deze reis gebruiken?
+          </p>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <!-- Reis Pagina -->
+            <div class="output-format-card" data-format="travel-page" style="
+              border: 2px solid #e5e7eb;
+              border-radius: 12px;
+              padding: 20px;
+              cursor: pointer;
+              transition: all 0.3s;
+              text-align: center;
+            ">
+              <div style="font-size: 48px; margin-bottom: 12px; color: #667eea;">
+                <i class="fas fa-plane-departure"></i>
+              </div>
+              <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #111827;">Reis Pagina</h3>
+              <p style="margin: 0; font-size: 12px; color: #6b7280;">Standaard reis website</p>
+            </div>
+            
+            <!-- Roadbook -->
+            <div class="output-format-card" data-format="roadbook" style="
+              border: 2px solid #e5e7eb;
+              border-radius: 12px;
+              padding: 20px;
+              cursor: pointer;
+              transition: all 0.3s;
+              text-align: center;
+            ">
+              <div style="font-size: 48px; margin-bottom: 12px; color: #10b981;">
+                <i class="fas fa-map-marked-alt"></i>
+              </div>
+              <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #111827;">Roadbook</h3>
+              <p style="margin: 0; font-size: 12px; color: #6b7280;">1-page reisboekje</p>
+            </div>
+            
+            <!-- Offerte (Coming Soon) -->
+            <div class="output-format-card" data-format="quote" style="
+              border: 2px solid #e5e7eb;
+              border-radius: 12px;
+              padding: 20px;
+              cursor: not-allowed;
+              transition: all 0.3s;
+              text-align: center;
+              opacity: 0.5;
+              position: relative;
+            ">
+              <div style="position: absolute; top: 8px; right: 8px; background: #fbbf24; color: white; font-size: 9px; padding: 3px 8px; border-radius: 4px; font-weight: 700;">SOON</div>
+              <div style="font-size: 48px; margin-bottom: 12px; color: #f59e0b;">
+                <i class="fas fa-file-invoice-dollar"></i>
+              </div>
+              <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #111827;">Offerte</h3>
+              <p style="margin: 0; font-size: 12px; color: #6b7280;">Prijsopgave document</p>
+            </div>
+            
+            <!-- Voucher (Coming Soon) -->
+            <div class="output-format-card" data-format="voucher" style="
+              border: 2px solid #e5e7eb;
+              border-radius: 12px;
+              padding: 20px;
+              cursor: not-allowed;
+              transition: all 0.3s;
+              text-align: center;
+              opacity: 0.5;
+              position: relative;
+            ">
+              <div style="position: absolute; top: 8px; right: 8px; background: #fbbf24; color: white; font-size: 9px; padding: 3px 8px; border-radius: 4px; font-weight: 700;">SOON</div>
+              <div style="font-size: 48px; margin-bottom: 12px; color: #ec4899;">
+                <i class="fas fa-ticket-alt"></i>
+              </div>
+              <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #111827;">Voucher</h3>
+              <p style="margin: 0; font-size: 12px; color: #6b7280;">Reis voucher</p>
+            </div>
+          </div>
+          
+          <!-- Roadbook Layout Selector (hidden by default) -->
+          <div id="roadbookLayoutSelector" style="display: none; padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 20px;">
+            <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 700; color: #111827;">
+              <i class="fas fa-palette"></i> Kies Roadbook Layout
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+              <div class="roadbook-layout-card" data-layout="1" style="
+                border: 2px solid #10b981;
+                border-radius: 8px;
+                padding: 12px;
+                cursor: pointer;
+                background: white;
+                text-align: center;
+              ">
+                <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: #059669; font-size: 24px;">
+                  <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <div style="font-weight: 600; font-size: 13px; color: #111827;">Layout 1</div>
+                <div style="font-size: 11px; color: #6b7280;">Classic</div>
+              </div>
+              
+              <div class="roadbook-layout-card" data-layout="2" style="
+                border: 2px solid #e5e7eb;
+                border-radius: 8px;
+                padding: 12px;
+                cursor: not-allowed;
+                background: #f9fafb;
+                text-align: center;
+                opacity: 0.6;
+                position: relative;
+              ">
+                <div style="position: absolute; top: 6px; right: 6px; background: #fbbf24; color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">SOON</div>
+                <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: #d97706; font-size: 24px;">
+                  <i class="fas fa-route"></i>
+                </div>
+                <div style="font-weight: 600; font-size: 13px; color: #6b7280;">Layout 2</div>
+                <div style="font-size: 11px; color: #9ca3af;">Modern</div>
+              </div>
+              
+              <div class="roadbook-layout-card" data-layout="3" style="
+                border: 2px solid #e5e7eb;
+                border-radius: 8px;
+                padding: 12px;
+                cursor: not-allowed;
+                background: #f9fafb;
+                text-align: center;
+                opacity: 0.6;
+                position: relative;
+              ">
+                <div style="position: absolute; top: 6px; right: 6px; background: #fbbf24; color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">SOON</div>
+                <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: #7c3aed; font-size: 24px;">
+                  <i class="fas fa-compass"></i>
+                </div>
+                <div style="font-weight: 600; font-size: 13px; color: #6b7280;">Layout 3</div>
+                <div style="font-size: 11px; color: #9ca3af;">Minimal</div>
+              </div>
+            </div>
+          </div>
+          
+          <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button id="cancelFormatBtn" style="
+              padding: 12px 24px;
+              background: #6b7280;
+              border: none;
+              border-radius: 8px;
+              color: white;
+              font-weight: 600;
+              cursor: pointer;
+            ">
+              <i class="fas fa-times"></i> Annuleren
+            </button>
+            <button id="confirmFormatBtn" disabled style="
+              padding: 12px 24px;
+              background: #9ca3af;
+              border: none;
+              border-radius: 8px;
+              color: white;
+              font-weight: 600;
+              cursor: not-allowed;
+            ">
+              <i class="fas fa-check"></i> Doorgaan
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Add animations
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { transform: translateY(30px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        .output-format-card:hover:not([data-format="quote"]):not([data-format="voucher"]) {
+          border-color: #667eea !important;
+          transform: translateY(-4px);
+          box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+        .roadbook-layout-card:hover:not([data-layout="2"]):not([data-layout="3"]) {
+          border-color: #10b981 !important;
+          transform: scale(1.05);
+        }
+      `;
+      document.head.appendChild(style);
+      
+      // State
+      let selectedFormat = null;
+      let selectedLayout = null;
+      
+      const confirmBtn = modal.querySelector('#confirmFormatBtn');
+      const cancelBtn = modal.querySelector('#cancelFormatBtn');
+      const roadbookLayoutSelector = modal.querySelector('#roadbookLayoutSelector');
+      
+      // Format card selection
+      modal.querySelectorAll('.output-format-card').forEach(card => {
+        if (card.dataset.format === 'quote' || card.dataset.format === 'voucher') return;
+        
+        card.addEventListener('click', () => {
+          // Deselect all
+          modal.querySelectorAll('.output-format-card').forEach(c => {
+            c.style.borderColor = '#e5e7eb';
+            c.style.background = 'white';
+          });
+          
+          // Select this one
+          card.style.borderColor = '#667eea';
+          card.style.background = '#f8f9ff';
+          selectedFormat = card.dataset.format;
+          
+          // Show roadbook layout selector if roadbook selected
+          if (selectedFormat === 'roadbook') {
+            roadbookLayoutSelector.style.display = 'block';
+            confirmBtn.disabled = true;
+            confirmBtn.style.background = '#9ca3af';
+            confirmBtn.style.cursor = 'not-allowed';
+            selectedLayout = null;
+          } else {
+            roadbookLayoutSelector.style.display = 'none';
+            confirmBtn.disabled = false;
+            confirmBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            confirmBtn.style.cursor = 'pointer';
+          }
+        });
+      });
+      
+      // Roadbook layout selection
+      modal.querySelectorAll('.roadbook-layout-card').forEach(card => {
+        if (card.dataset.layout === '2' || card.dataset.layout === '3') return;
+        
+        card.addEventListener('click', () => {
+          // Deselect all
+          modal.querySelectorAll('.roadbook-layout-card').forEach(c => {
+            c.style.borderColor = '#e5e7eb';
+            c.style.background = 'white';
+          });
+          
+          // Select this one
+          card.style.borderColor = '#10b981';
+          card.style.background = '#f0fdf4';
+          selectedLayout = card.dataset.layout;
+          
+          // Enable confirm button
+          confirmBtn.disabled = false;
+          confirmBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+          confirmBtn.style.cursor = 'pointer';
+        });
+      });
+      
+      // Cancel button
+      cancelBtn.addEventListener('click', () => {
+        modal.remove();
+        style.remove();
+      });
+      
+      // Confirm button
+      confirmBtn.addEventListener('click', () => {
+        if (!selectedFormat) return;
+        
+        modal.remove();
+        style.remove();
+        
+        if (selectedFormat === 'travel-page') {
+          // Load as normal travel page
+          this.editInBuilder(data);
+        } else if (selectedFormat === 'roadbook') {
+          // Load as roadbook with selected layout
+          this.loadAsRoadbook(data, selectedLayout);
+        }
+      });
+      
+      // Close on overlay click
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.remove();
+          style.remove();
+        }
+      });
+    },
+    
+    // NEW: Load data as roadbook
+    loadAsRoadbook(data, layout) {
+      console.log('[TravelView] Loading as Roadbook with layout:', layout);
+      console.log('[TravelView] Data:', data);
+      
+      // TODO: Convert TC data to roadbook format and load into builder
+      // For now, show a placeholder
+      this.showStatus('info', `🚧 Roadbook Layout ${layout} wordt geladen... (in development)`);
+      
+      // Close travel view and switch to page mode
+      setTimeout(() => {
+        if (window.WB_setMode) window.WB_setMode('page');
+      }, 2000);
     }
   };
 
