@@ -13,9 +13,9 @@ class AnimatedTravelMap {
     this.iconSize = options.iconSize || 32; // Default 32px
     this.animationSpeed = options.animationSpeed || 1; // 1 = normal, 2 = 2x faster, 0.5 = 2x slower
     
-    // Transport icons - SVG for rotation support
+    // Transport icons - Modern SVG for rotation support
     this.transportIcons = {
-      flight: '<svg width="32" height="32" viewBox="0 0 24 24" fill="#667eea"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>',
+      flight: (size) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="#667eea"><path d="M20.56 3.91c.59.59.59 1.54 0 2.12l-3.89 3.89 2.12 9.19-1.41 1.41-3.89-7.78-4.24 4.24.71 2.83-1.06 1.06-2.12-3.54-3.54-2.12 1.06-1.06 2.83.71 4.24-4.24-7.78-3.89 1.41-1.41 9.19 2.12 3.89-3.89c.59-.59 1.54-.59 2.12 0l.36.36z"/></svg>`,
       car: '🚗',
       train: '🚂',
       boat: '⛴️',
@@ -100,20 +100,24 @@ class AnimatedTravelMap {
   }
   
   addDestinationMarkers() {
-    // Collect unique destinations
+    // Collect unique destinations with their coordinates
     const destinations = new Map();
     
     this.routes.forEach(route => {
-      if (!destinations.has(route.from.name)) {
-        destinations.set(route.from.name, route.from.coords);
+      // Use coordinates as key to prevent duplicate locations
+      const fromKey = `${route.from.coords[0]},${route.from.coords[1]}`;
+      const toKey = `${route.to.coords[0]},${route.to.coords[1]}`;
+      
+      if (!destinations.has(fromKey)) {
+        destinations.set(fromKey, { name: route.from.name, coords: route.from.coords });
       }
-      if (!destinations.has(route.to.name)) {
-        destinations.set(route.to.name, route.to.coords);
+      if (!destinations.has(toKey)) {
+        destinations.set(toKey, { name: route.to.name, coords: route.to.coords });
       }
     });
     
     // Add markers
-    destinations.forEach((coords, name) => {
+    destinations.forEach((dest) => {
       const el = document.createElement('div');
       el.className = 'travel-map-marker';
       el.innerHTML = `
@@ -126,11 +130,11 @@ class AnimatedTravelMap {
           font-weight: 600;
           box-shadow: 0 2px 8px rgba(0,0,0,0.2);
           white-space: nowrap;
-        ">${name}</div>
+        ">${dest.name}</div>
       `;
       
       const marker = new mapboxgl.Marker(el)
-        .setLngLat(coords)
+        .setLngLat(dest.coords)
         .addTo(this.map);
       
       this.markers.push(marker);
@@ -246,13 +250,17 @@ class AnimatedTravelMap {
       });
       
       // Create moving marker
-      const icon = this.transportIcons[mode] || '📍';
+      const iconFunc = this.transportIcons[mode];
+      const icon = typeof iconFunc === 'function' ? iconFunc(this.iconSize) : (iconFunc || '📍');
       const markerEl = document.createElement('div');
       markerEl.innerHTML = `
         <div style="
-          font-size: ${this.iconSize}px;
+          width: ${this.iconSize}px;
+          height: ${this.iconSize}px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-          animation: bounce 0.5s ease-in-out infinite alternate;
         ">${icon}</div>
       `;
       
