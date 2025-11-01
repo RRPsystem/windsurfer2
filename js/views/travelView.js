@@ -1328,16 +1328,105 @@
     // NEW: Load data as roadbook
     loadAsRoadbook(data, layout) {
       console.log('[TravelView] Loading as Roadbook with layout:', layout);
-      console.log('[TravelView] Data:', data);
+      console.log('[TravelView] TC Data:', data);
       
-      // TODO: Convert TC data to roadbook format and load into builder
-      // For now, show a placeholder
-      this.showStatus('info', `🚧 Roadbook Layout ${layout} wordt geladen... (in development)`);
+      // Convert TC data to roadbook format
+      const roadbookData = this.convertTCToRoadbook(data);
+      console.log('[TravelView] Converted Roadbook Data:', roadbookData);
       
-      // Close travel view and switch to page mode
+      // Close travel view
+      if (window.WB_setMode) window.WB_setMode('page');
+      
+      // Wait for mode switch, then add roadbook to canvas
       setTimeout(() => {
-        if (window.WB_setMode) window.WB_setMode('page');
-      }, 2000);
+        const canvas = document.getElementById('canvas');
+        if (!canvas) {
+          console.error('[TravelView] Canvas not found');
+          return;
+        }
+        
+        // Clear canvas
+        canvas.innerHTML = '';
+        
+        // Create roadbook component
+        if (window.ComponentFactory && window.ComponentFactory.createRoadbook) {
+          const roadbook = window.ComponentFactory.createRoadbook(roadbookData);
+          canvas.appendChild(roadbook);
+          
+          this.showStatus('success', `✅ Roadbook Layout ${layout} geladen!`);
+          
+          // Hide status after 3 seconds
+          setTimeout(() => {
+            const statusEl = document.getElementById('travelStatus');
+            if (statusEl) statusEl.style.display = 'none';
+          }, 3000);
+        } else {
+          console.error('[TravelView] ComponentFactory.createRoadbook not found');
+        }
+      }, 300);
+    },
+    
+    // Convert Travel Compositor data to Roadbook format
+    convertTCToRoadbook(tcData) {
+      console.log('[TravelView] Converting TC data to Roadbook format...');
+      
+      // Extract title
+      const title = tcData.title || tcData.name || 'Jouw Reis';
+      
+      // Extract departure date (from first transport or dates object)
+      let departureDate = '2025-06-15'; // Default
+      if (tcData.dates && tcData.dates.departure) {
+        departureDate = tcData.dates.departure;
+      } else if (tcData.transports && tcData.transports.length > 0) {
+        departureDate = tcData.transports[0].departureDate || tcData.transports[0].date;
+      }
+      
+      // Convert transports
+      const transports = (tcData.transports || []).map(t => ({
+        from: t.departureCity || t.from || t.origin || 'Vertrek',
+        to: t.arrivalCity || t.to || t.target || 'Aankomst',
+        date: t.departureDate || t.date || '',
+        time: t.departureTime || t.time || '',
+        flightNumber: t.flightNumber || t.transportNumber || '',
+        type: t.type || t.transportType || 'flight'
+      }));
+      
+      // Convert hotels
+      const hotels = (tcData.hotels || []).map(h => {
+        const hotelData = h.hotelData || h;
+        return {
+          name: hotelData.name || hotelData.hotelName || 'Hotel',
+          location: hotelData.destination?.name || hotelData.address || 'Locatie',
+          checkIn: h.checkInDate || h.checkIn || '',
+          checkOut: h.checkOutDate || h.checkOut || '',
+          nights: h.nights || 0,
+          image: hotelData.images?.[0]?.url || hotelData.images?.[0] || hotelData.image || ''
+        };
+      });
+      
+      // Convert itinerary (from days or itinerary array)
+      const days = tcData.days || tcData.itinerary || tcData.dayToDay || [];
+      const itinerary = days.map((day, index) => ({
+        title: day.title || day.name || `Dag ${index + 1}`,
+        description: day.description || day.text || day.summary || '',
+        image: day.image || day.imageUrl || (day.images && day.images[0]) || ''
+      }));
+      
+      console.log('[TravelView] Converted:', {
+        title,
+        departureDate,
+        transports: transports.length,
+        hotels: hotels.length,
+        itinerary: itinerary.length
+      });
+      
+      return {
+        title,
+        departureDate,
+        transports,
+        hotels,
+        itinerary
+      };
     }
   };
 
