@@ -6932,7 +6932,7 @@ ComponentFactory.createTravelSearchCard = function(options = {}) {
     
     this.makeSelectable(section);
     return section;
-};
+}
 
 // ============================================
 // ROADBOOK COMPONENT (Layout 1 - Classic)
@@ -7114,4 +7114,11 @@ static setupRoadbookTimelineAnimation(container) {
     
     window.addEventListener('scroll', updateIconPosition);
     updateIconPosition();
+}
+
+}
+
+// Export ComponentFactory globally
+if (typeof window !== 'undefined') {
+    window.ComponentFactory = ComponentFactory;
 }
