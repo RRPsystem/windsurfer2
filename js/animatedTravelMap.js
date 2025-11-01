@@ -135,6 +135,28 @@ class AnimatedTravelMap {
       
       this.markers.push(marker);
     });
+    
+    // Create current location label (will be updated during animation)
+    const labelEl = document.createElement('div');
+    labelEl.className = 'current-location-label';
+    labelEl.style.cssText = `
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(102, 126, 234, 0.95);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 24px;
+      font-size: 16px;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 10;
+      white-space: nowrap;
+      display: none;
+    `;
+    this.container.parentElement.appendChild(labelEl);
+    this.currentLocationLabel = labelEl;
   }
   
   async startAnimation() {
@@ -178,6 +200,12 @@ class AnimatedTravelMap {
         console.error('[AnimatedTravelMap] Map not loaded yet');
         resolve();
         return;
+      }
+      
+      // Update current location label
+      if (this.currentLocationLabel) {
+        this.currentLocationLabel.textContent = `${from.name} → ${to.name}`;
+        this.currentLocationLabel.style.display = 'block';
       }
       
       // Create route line
@@ -241,6 +269,15 @@ class AnimatedTravelMap {
       const animate = () => {
         if (step >= steps) {
           movingMarker.remove();
+          // Update label to show arrival
+          if (this.currentLocationLabel) {
+            this.currentLocationLabel.textContent = `✓ ${to.name}`;
+            setTimeout(() => {
+              if (this.currentLocationLabel) {
+                this.currentLocationLabel.style.display = 'none';
+              }
+            }, 1000);
+          }
           resolve();
           return;
         }
@@ -255,12 +292,17 @@ class AnimatedTravelMap {
         
         movingMarker.setLngLat([lng, lat]);
         
-        // Calculate rotation angle for the icon
+        // Calculate rotation angle for the icon to follow the path
         if (mode === 'flight' && nextIndex > index) {
           const dx = coordinates[nextIndex][0] - coordinates[index][0];
           const dy = coordinates[nextIndex][1] - coordinates[index][1];
-          const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-          markerEl.style.transform = `rotate(${angle + 90}deg)`; // +90 because SVG points up by default
+          // Calculate bearing angle (0° = North, 90° = East)
+          const angle = Math.atan2(dx, dy) * (180 / Math.PI);
+          // Apply rotation to the marker element
+          const iconDiv = markerEl.querySelector('div');
+          if (iconDiv) {
+            iconDiv.style.transform = `rotate(${angle}deg)`;
+          }
         }
         
         step++;
@@ -336,6 +378,12 @@ class AnimatedTravelMap {
       this.markers.forEach(marker => marker.remove());
       this.map.remove();
       this.map = null;
+    }
+    
+    // Remove location label
+    if (this.currentLocationLabel && this.currentLocationLabel.parentElement) {
+      this.currentLocationLabel.parentElement.removeChild(this.currentLocationLabel);
+      this.currentLocationLabel = null;
     }
   }
   

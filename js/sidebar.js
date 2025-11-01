@@ -22,12 +22,13 @@
             });
         });
         
-        // Restore saved states
+        // Restore saved states (default: collapsed)
         categories.forEach(category => {
             const categoryId = category.dataset.categoryId;
             if (categoryId) {
                 const savedState = localStorage.getItem(`category-${categoryId}`);
-                if (savedState === 'collapsed') {
+                // Default to collapsed if no saved state
+                if (savedState === 'collapsed' || savedState === null) {
                     category.classList.add('collapsed');
                 }
             }
