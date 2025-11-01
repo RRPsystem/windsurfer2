@@ -5725,10 +5725,18 @@ PropertiesPanel.prototype.createTravelFilterBarProperties = function(component) 
 };
 
 PropertiesPanel.prototype.createRoadbookProperties = function(component) {
+    // Title input
+    const title = component.querySelector('.roadbook-title');
+    if (title) {
+        this.createTextInput('Reis Titel', title.textContent, (val) => {
+            title.textContent = val;
+        });
+    }
+    
     // Hero Media Selector
     const heroLabel = document.createElement('label');
     heroLabel.textContent = '🎬 Hero Achtergrond';
-    heroLabel.style.cssText = 'display: block; font-weight: 700; margin-bottom: 12px; color: #111827; font-size: 15px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;';
+    heroLabel.style.cssText = 'display: block; font-weight: 700; margin: 16px 0 12px; color: #111827; font-size: 15px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;';
     this.panel.appendChild(heroLabel);
     const mediaBtn = this.createButton('🎬 Media Kiezen (Foto/Video)', async () => {
         if (!window.MediaPicker) {
@@ -5758,7 +5766,13 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
         
         // Determine media type and URL
         const isVideo = res.type === 'video' || res.videoUrl;
-        const mediaUrl = res.videoUrl || res.url || res.fullUrl || res.regularUrl || res.dataUrl;
+        // For images, prefer fullUrl (highest quality) over url
+        let mediaUrl = res.videoUrl || res.fullUrl || res.regularUrl || res.url || res.dataUrl;
+        
+        // If Unsplash, force high quality
+        if (res.source === 'unsplash' && mediaUrl && !isVideo) {
+            mediaUrl = mediaUrl.replace(/w=\d+/, 'w=1920').replace(/&q=\d+/, '&q=85');
+        }
         
         if (!mediaUrl) {
             console.error('[Roadbook] No media URL found in response:', res);
@@ -5916,30 +5930,80 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
         if (!countdown) return;
         
         if (value === 'compact') {
+            const hero = component.querySelector('.roadbook-hero');
+            const departureText = component.querySelector('.roadbook-departure');
+            
+            // Style hero to position items at bottom
+            if (hero) {
+                hero.style.justifyContent = 'space-between';
+            }
+            
+            // Create wrapper for bottom bar
+            let bottomBar = hero.querySelector('.roadbook-bottom-bar');
+            if (!bottomBar) {
+                bottomBar = document.createElement('div');
+                bottomBar.className = 'roadbook-bottom-bar';
+                bottomBar.style.cssText = `
+                    display: flex;
+                    gap: 0;
+                    width: 100%;
+                    max-width: 900px;
+                    margin: 0 auto;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                `;
+                
+                // Dark departure box
+                const departureBox = document.createElement('div');
+                departureBox.className = 'departure-box';
+                departureBox.style.cssText = `
+                    background: #1f2937;
+                    color: white;
+                    padding: 16px 24px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    min-width: 160px;
+                `;
+                departureBox.innerHTML = `
+                    <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; margin-bottom: 4px;">Vertrek op</div>
+                    <div style="font-size: 18px; font-weight: 700; line-height: 1.2;">${departureText ? departureText.querySelector('span').textContent : ''}</div>
+                `;
+                
+                bottomBar.appendChild(departureBox);
+                bottomBar.appendChild(countdown);
+                
+                // Move to hero
+                if (departureText) departureText.remove();
+                hero.appendChild(bottomBar);
+            }
+            
+            // Style countdown
             countdown.style.cssText = `
                 display: flex;
                 gap: 16px;
-                justify-content: center;
-                padding: 16px;
+                padding: 16px 24px;
                 background: white;
-                color: #111827;
-                border-radius: 12px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                margin: 0;
-                max-width: 600px;
-                position: relative;
-                z-index: 10;
+                flex: 1;
+                justify-content: center;
+                align-items: center;
             `;
             countdown.querySelectorAll('.countdown-item').forEach(item => {
                 item.style.cssText = 'text-align: center;';
             });
             countdown.querySelectorAll('.countdown-value').forEach(val => {
-                val.style.fontSize = '24px';
+                val.style.fontSize = '32px';
+                val.style.fontWeight = '700';
                 val.style.color = '#111827';
+                val.style.lineHeight = '1';
             });
             countdown.querySelectorAll('.countdown-label').forEach(label => {
-                label.style.fontSize = '12px';
+                label.style.fontSize = '10px';
                 label.style.color = '#6b7280';
+                label.style.textTransform = 'uppercase';
+                label.style.letterSpacing = '0.5px';
+                label.style.marginTop = '4px';
             });
         } else {
             countdown.style.cssText = `
