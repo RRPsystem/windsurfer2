@@ -6934,10 +6934,10 @@ ComponentFactory.createTravelSearchCard = function(options = {}) {
     return section;
 }
 
-// ============================================
-// ROADBOOK COMPONENT (Layout 1 - Classic)
-// ============================================
-static createRoadbook(options = {}) {
+    // ============================================
+    // ROADBOOK COMPONENT (Layout 1 - Classic)
+    // ============================================
+    static createRoadbook(options = {}) {
     const section = document.createElement('section');
     section.className = 'wb-component wb-roadbook';
     section.setAttribute('data-component', 'roadbook');
@@ -7066,7 +7066,7 @@ static createRoadbook(options = {}) {
     return section;
 }
 
-static startRoadbookCountdown(countdownEl) {
+    static startRoadbookCountdown(countdownEl) {
     if (!countdownEl) return;
     
     const departureDate = new Date(countdownEl.dataset.departure).getTime();
@@ -7094,7 +7094,7 @@ static startRoadbookCountdown(countdownEl) {
     setInterval(updateCountdown, 60000); // Update every minute
 }
 
-static setupRoadbookTimelineAnimation(container) {
+    static setupRoadbookTimelineAnimation(container) {
     const icon = container.querySelector('.roadbook-timeline-icon');
     if (!icon) return;
     
