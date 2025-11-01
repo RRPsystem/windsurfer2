@@ -3404,12 +3404,49 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 
 /* Hero / Countdown */
 .roadbook-hero {
+    position: relative;
     text-align: center;
     padding: 60px 20px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 20px;
     color: white;
     margin-bottom: 40px;
+    overflow: hidden;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Hero background media */
+.roadbook-hero video,
+.roadbook-hero .hero-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
+/* Dark overlay for readability */
+.roadbook-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 0;
+}
+
+/* Hero content above background */
+.roadbook-hero > * {
+    position: relative;
+    z-index: 2;
 }
 
 .roadbook-title {
