@@ -237,8 +237,8 @@
         </div>
         ${this.renderTemplateSelector()}
         <div style="display: flex; gap: 12px; margin-top: 20px;">
-          <button id="loadTravelBtn" style="height: 48px; padding: 0 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px;"><i class="fas fa-download"></i> Reis Laden</button>
-          <button id="testApiBtn" style="height: 48px; padding: 0 24px; background: #6b7280; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;"><i class="fas fa-flask"></i> Test API</button>
+          <button id="loadTravelBtn" style="height: 48px; padding: 0 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; border: none; border-radius: 8px; color: white !important; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px;"><i class="fas fa-download"></i> Reis Laden</button>
+          <button id="testApiBtn" style="height: 48px; padding: 0 24px; background: #6b7280 !important; border: none; border-radius: 8px; color: white !important; font-weight: 600; cursor: pointer;"><i class="fas fa-flask"></i> Test API</button>
         </div>
       </div>`;
       const loadBtn = container.querySelector('#loadTravelBtn');
@@ -837,13 +837,13 @@
           ` : ''}
 
           <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-            <button id="editTravelBtn" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">
+            <button id="editTravelBtn" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px; background: #667eea !important; color: white !important; border: none;">
               <i class="fas fa-edit"></i> Bewerken in Builder
             </button>
-            <button id="generateVideoBtn" class="btn btn-video" style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); border: none; color: white;">
+            <button id="generateVideoBtn" class="btn btn-video" style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%) !important; border: none; color: white !important;">
               <i class="fas fa-video"></i> Maak Video
             </button>
-            <button id="viewJsonBtn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px;">
+            <button id="viewJsonBtn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px; background: #6b7280 !important; color: white !important; border: none;">
               <i class="fas fa-code"></i> Bekijk JSON
             </button>
           </div>
