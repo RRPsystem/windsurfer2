@@ -6960,8 +6960,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
     section._roadbookData = data;
     
     section.innerHTML += `
-        <div class="roadbook-wrapper">
-            <!-- Countdown Hero -->
+            <!-- Countdown Hero (fullwidth) -->
             <div class="roadbook-hero">
                 <h1 class="roadbook-title" contenteditable="true">${data.title}</h1>
                 <div class="roadbook-countdown" data-departure="${data.departureDate}">
@@ -6981,6 +6980,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                 <p class="roadbook-departure">Vertrek: <span>${new Date(data.departureDate).toLocaleDateString('nl-NL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span></p>
             </div>
             
+        <div class="roadbook-wrapper">
             <!-- Transport Cards -->
             ${data.transports.length > 0 ? `
                 <div class="roadbook-section">
