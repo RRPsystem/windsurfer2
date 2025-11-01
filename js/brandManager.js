@@ -534,6 +534,10 @@
       document.documentElement.style.setProperty('--brand-secondary', this.currentBrand.colors.secondary);
       document.documentElement.style.setProperty('--brand-accent', this.currentBrand.colors.accent);
       
+      // Apply text colors on brand backgrounds (always white for good contrast)
+      document.documentElement.style.setProperty('--brand-on-primary', '#ffffff');
+      document.documentElement.style.setProperty('--brand-on-secondary', '#ffffff');
+      
       // Update all components with brand colors
       this.updateComponentColors();
       

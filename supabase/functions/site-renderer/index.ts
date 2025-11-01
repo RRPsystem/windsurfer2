@@ -172,6 +172,8 @@ function buildCompleteHTML(
   --brand-primary: ${brandColors.primary};
   --brand-secondary: ${brandColors.secondary};
   --brand-accent: ${brandColors.accent};
+  --brand-on-primary: #ffffff;
+  --brand-on-secondary: #ffffff;
 }
 
 ${css}

@@ -204,6 +204,8 @@
       --brand-primary: ${brand.colors.primary};
       --brand-secondary: ${brand.colors.secondary};
       --brand-accent: ${brand.colors.accent};
+      --brand-on-primary: #ffffff;
+      --brand-on-secondary: #ffffff;
     }
         `;
       }

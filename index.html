@@ -1,813 +1,505 @@
 <!DOCTYPE html>
 <html lang="nl">
-
 <head>
     <meta charset="UTF-8">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-
-    <script>
-      // Controlled error handler: show real fatals, ignore only known benign noise.
-      (function installErrorFilters(){
-        try {
-          const isExt = (src) => typeof src === 'string' && src.indexOf('chrome-extension://') === 0;
-          const ignoreMsg = (msg='') => {
-            const s = String(msg||'');
-            return (
-              s.includes('attribute viewBox: Expected number') ||
-              s.includes("'[object Object]' is not valid JSON")
-            );
-          };
-          const showFatal = (msg, src) => {
-            try {
-              console.error('[WB][fatal]', msg, src||'');
-              let el = document.getElementById('wb-fatal');
-              if (!el) {
-                el = document.createElement('div');
-                el.id = 'wb-fatal';
-                el.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#b91c1c;color:#fff;padding:8px 12px;font:12px system-ui,Segoe UI,Roboto,Arial;z-index:2147483647;box-shadow:0 2px 6px rgba(0,0,0,.2)';
-                document.body.appendChild(el);
-              }
-              el.textContent = 'Fout tijdens laden: ' + String(msg||'') + (src? (' ('+src+')') : '');
-            } catch (e) {}
-          };
-          window.addEventListener('error', (e) => {
-            try {
-              const isElemError = e && e.target && e.target !== window;
-              if (isElemError) {
-                const tag = (e.target.tagName || '').toUpperCase();
-                const srcAttr = e.target.currentSrc || e.target.src || e.target.href || '';
-                // Ignore broken image/CSS loads; show only in console as debug
-                if (tag === 'IMG' || tag === 'LINK') {
-                  try { console.debug('[WB][img/link error]', tag, srcAttr); } catch (e) {}
-                  return; // do not show fatal banner for media/link errors
-                }
-              }
-              const src = (e && e.filename) || (e && e.target && e.target.src) || '';
-              const msg = e && e.message;
-              // Ignore generic script errors or empty messages (no actionable info)
-              if (!msg || msg === 'Script error.') {
-                try { console.debug('[WB][window error suppressed]', msg || '(empty)', src); } catch (e) {}
-                return;
-              }
-              // If the only info is the page URL itself, suppress
-              try { if (!msg && src && src.split('#')[0] === location.href.split('#')[0]) return; } catch (e) {}
-              if (isExt(src) || ignoreMsg(msg)) {
-                // ignore benign noise
-                e.stopImmediatePropagation();
-                return;
-              }
-              showFatal(msg, src);
-            } catch (e) {}
-          }, true);
-          window.addEventListener('unhandledrejection', (e) => {
-            try {
-              const r = e && e.reason;
-              const msg = (r && (r.message || r.toString())) || '';
-              const stack = (r && r.stack) || '';
-              if (!msg) { try { console.debug('[WB][promise rejection suppressed] (empty message)'); } catch (e) {} return; }
-              if (ignoreMsg(msg) || stack.indexOf('chrome-extension://') === 0) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                return;
-              }
-              showFatal(msg);
-            } catch (e) {}
-          });
-        } catch (e) {}
-      })();
-    </script>
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website Builder</title>
-    <!-- Deployment: 2025-10-25 22:18 PREVIEW FIXES -->
+    <title>AI Website Studio - Bouw je website in minuten met AI</title>
+    <meta name="description" content="Creëer professionele websites in minuten met onze AI-powered website builder. Geen code nodig, volledig aanpasbaar.">
+    
+    <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' ry='18' fill='%234CAF50'/%3E%3Ctext x='50' y='62' font-size='60' text-anchor='middle' fill='white'%3EW%3C/text%3E%3C/svg%3E">
-    <script src="js/versioning.js"></script>
-    <script src="js/debug-bolt.js"></script>
-    <link rel="stylesheet" href="styles/main.css?v=20251025g">
-    <link rel="stylesheet" href="styles/components.css?v=20251025g">
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- Mapbox GL JS -->
-    <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet">
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
+    
+    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4CAF50;
+            --primary-dark: #45a049;
+            --secondary: #2196F3;
+            --accent: #FF9800;
+            --dark: #1a1a1a;
+            --gray: #6b7280;
+            --light-gray: #f3f4f6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 900px;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero h1 .gradient-text {
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: clamp(1.1rem, 2vw, 1.5rem);
+            margin-bottom: 3rem;
+            opacity: 0.95;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 6rem 2rem;
+            background: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-header h2 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .section-header p {
+            font-size: 1.2rem;
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .feature-card {
+            padding: 2.5rem;
+            background: var(--light-gray);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .feature-card p {
+            color: var(--gray);
+            line-height: 1.8;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 6rem 2rem;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .step {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: white;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .step h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .step p {
+            color: var(--gray);
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 6rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            text-align: center;
+            color: white;
+        }
+
+        .cta-section h2 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+        }
+
+        .cta-section p {
+            font-size: 1.2rem;
+            margin-bottom: 2.5rem;
+            opacity: 0.95;
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 2rem;
+            background: var(--dark);
+            color: white;
+            text-align: center;
+        }
+
+        footer p {
+            opacity: 0.8;
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .cta-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
-        <div class="app-container">
-        <!-- Header -->
-        <header class="app-header">
-            <div class="header-left">
-                <h1 style="display:flex;align-items:center;gap:12px;">
-                    <i class="fas fa-code" style="font-size:24px;"></i>
-                    <span style="font-weight:700;font-size:18px;">Website Builder</span>
-                </h1>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content animate-in">
+            <h1>
+                <span class="gradient-text">AI Website Studio</span><br>
+                Bouw je website in minuten
+            </h1>
+            <p>
+                Creëer professionele websites zonder code. Powered by AI, volledig aanpasbaar, razendsnel live.
+            </p>
+            <div class="cta-buttons">
+                <a href="builder.html" class="btn btn-primary">
+                    <i class="fas fa-rocket"></i>
+                    Start nu gratis
+                </a>
+                <a href="#features" class="btn btn-secondary">
+                    <i class="fas fa-info-circle"></i>
+                    Meer info
+                </a>
             </div>
-            <div class="header-right">
-                <select id="buildTypeSelect" class="form-control" style="height:36px;padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:white;color:#1f2937;font-weight:600;font-size:14px;cursor:pointer;margin-right:16px;">
-                    <option value="page">📄 Web pagina</option>
-                    <option value="travel">✈️ Reizen</option>
-                    <option value="video-generator">🎬 Video Generator</option>
-                    <option value="news">📰 Nieuwsartikel</option>
-                    <option value="booking">📅 Bestemmingspagina</option>
-                    <option value="menu">🍽️ Menu & footer</option>
-                </select>
-                <div class="page-meta" style="display:flex;flex-direction:column;gap:4px;margin-right:16px;">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <label for="pageTitleInput" style="color:#f8fafc;font-size:11px;opacity:.8;min-width:35px;">Titel</label>
-                        <input id="pageTitleInput" class="form-control" placeholder="Pagina titel" style="width:240px;height:32px;padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:white;font-size:13px;" />
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Waarom AI Website Studio?</h2>
+                <p>Alles wat je nodig hebt om een professionele website te bouwen</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-magic"></i>
                     </div>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <label for="pageSlugInput" style="color:#f8fafc;font-size:11px;opacity:.8;min-width:35px;">Slug</label>
-                        <input id="pageSlugInput" class="form-control" placeholder="pagina-slug" style="width:240px;height:32px;padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:white;font-size:13px;" />
-                    </div>
+                    <h3>AI-Powered</h3>
+                    <p>Onze AI helpt je bij het maken van content, het kiezen van kleuren en het optimaliseren van je website.</p>
                 </div>
-                <span id="pageSaveStatus" style="color:#e2e8f0;font-size:12px;margin-right:12px;opacity:.9;white-space:nowrap;">Niet opgeslagen</span>
-                <button class="btn btn-secondary" id="brandManagerBtn" aria-label="Brand & Layout" title="Brand instellingen, menu en footer beheren" onclick="BrandManager.open()">
-                    <i class="fas fa-palette"></i> Brand & Layout
-                </button>
-                <button class="btn btn-secondary" id="pagesBtn" aria-label="Paginas beheren" title="Paginas beheren">
-                    <i class="fas fa-file-alt"></i> Pagina's
-                </button>
-                <button class="btn btn-secondary" id="openProjectBtn" aria-label="Openen" title="Projectbestand openen (.wbproj)">
-                    <i class="fas fa-folder-open"></i> Openen
-                </button>
-                <button class="btn btn-secondary" id="saveProjectBtn" aria-label="Opslaan" title="Project opslaan als bestand (.wbproj)">
-                    <i class="fas fa-save"></i> Opslaan
-                </button>
-                <button class="btn btn-secondary" id="previewBtn" aria-label="Preview">
-                    <i class="fas fa-eye"></i> Preview
-                </button>
-                <button class="btn btn-primary" id="exportBtn" aria-label="Export">
-                    <i class="fas fa-download"></i> Export
-                </button>
-                <button class="btn btn-primary" id="publishBtn" aria-label="Publish" title="Commit & Push via PowerShell">
-                    <i class="fas fa-cloud-upload-alt"></i> Publish
-                </button>
-                <button class="btn btn-primary" id="gitPushBtn" aria-label="Stuur naar GitHub" title="Commit & Push naar GitHub">
-                    <i class="fas fa-upload"></i> Stuur naar GitHub
-                </button>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-puzzle-piece"></i>
+                    </div>
+                    <h3>Drag & Drop</h3>
+                    <p>Intuïtieve drag & drop interface. Sleep componenten, pas aan en zie direct het resultaat.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Responsive Design</h3>
+                    <p>Je website ziet er perfect uit op alle apparaten - desktop, tablet en mobiel.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <h3>Brand Manager</h3>
+                    <p>Stel je brand kleuren in en pas ze automatisch toe op alle componenten.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Supersnel</h3>
+                    <p>Van idee naar live website in minuten. Geen wachttijden, geen gedoe.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>Geen Code Nodig</h3>
+                    <p>Bouw professionele websites zonder een regel code te schrijven.</p>
+                </div>
             </div>
-        </header>
-        <script>
-            // Build type selector handler
-            document.getElementById('buildTypeSelect')?.addEventListener('change', function(e) {
-                const mode = e.target.value;
-                console.log('[Header] Build type changed to:', mode);
-                if (window.WB_setMode) {
-                    window.WB_setMode(mode);
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2>Hoe werkt het?</h2>
+                <p>In 3 simpele stappen naar je eigen website</p>
+            </div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Kies je template</h3>
+                    <p>Start met een van onze professionele templates of begin vanaf nul</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Pas aan met AI</h3>
+                    <p>Sleep componenten, pas teksten aan en laat AI je helpen met content</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Publiceer direct</h3>
+                    <p>Klik op publiceren en je website is direct live op het web</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Klaar om te beginnen?</h2>
+            <p>Start vandaag nog met het bouwen van je droomwebsite</p>
+            <a href="builder.html" class="btn btn-primary" style="font-size: 1.2rem; padding: 1.2rem 3rem;">
+                <i class="fas fa-rocket"></i>
+                Start nu gratis
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 AI Website Studio. Gemaakt met <i class="fas fa-heart" style="color: #e74c3c;"></i> in Nederland</p>
+        </div>
+    </footer>
+
+    <script>
+        // Redirect to builder if deeplink parameters are present
+        (function() {
+            const url = new URL(window.location.href);
+            const hasDeeplink = url.searchParams.has('ctx') || 
+                               url.searchParams.has('api') || 
+                               url.searchParams.has('token') ||
+                               url.searchParams.has('page_id') ||
+                               url.searchParams.has('news_slug') ||
+                               url.searchParams.has('slug');
+            
+            if (hasDeeplink) {
+                // Preserve all query parameters and redirect to builder
+                window.location.href = 'builder.html' + url.search + url.hash;
+            }
+        })();
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
                 }
             });
-        </script>
-
-        <div class="app-body">
-            <!-- Sidebar met componenten -->
-            <aside class="sidebar">
-                <div class="component-categories">
-                    
-                    <!-- HERO COMPONENTEN -->
-                    <div class="category" data-category-id="hero">
-                        <div class="category-header">
-                            <h4><i class="fas fa-image category-icon"></i> Hero</h4>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </div>
-                        <div class="component-list">
-                            <div class="component-item" draggable="true" data-component="hero-page">
-                                <i class="fas fa-image"></i>
-                                <span>Hero Banner</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="hero-banner-cta">
-                                <i class="fas fa-bullhorn"></i>
-                                <span>Hero + CTA</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="hero-video-cta">
-                                <i class="fas fa-play-circle"></i>
-                                <span>Hero Video + CTA</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="hero-travel">
-                                <i class="fas fa-mountain-sun"></i>
-                                <span>Hero Travel</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="hero-travel-search">
-                                <i class="fas fa-search-location"></i>
-                                <span>Hero Zoek & Boek</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- CONTENT COMPONENTEN -->
-                    <div class="category" data-category-id="content">
-                        <div class="category-header">
-                            <h4><i class="fas fa-align-left category-icon"></i> Content</h4>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </div>
-                        <div class="component-list">
-                            <div class="component-item" draggable="true" data-component="content-flex">
-                                <i class="fas fa-align-left"></i>
-                                <span>Content Blok</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="feature-media">
-                                <i class="fas fa-square-split-horizontal"></i>
-                                <span>Feature + Media</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="feature-highlight">
-                                <i class="fas fa-star"></i>
-                                <span>Feature Highlight</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="travel-types">
-                                <i class="fas fa-th-large"></i>
-                                <span>Soorten Reizen</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="news-article">
-                                <i class="fas fa-newspaper"></i>
-                                <span>Nieuwsbericht</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="news-overview">
-                                <i class="fas fa-th-list"></i>
-                                <span>Nieuws Overzicht</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- MEDIA COMPONENTEN -->
-                    <div class="category" data-category-id="media">
-                        <div class="category-header">
-                            <h4><i class="fas fa-photo-film category-icon"></i> Media</h4>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </div>
-                        <div class="component-list">
-                            <div class="component-item" draggable="true" data-component="media-row">
-                                <i class="fas fa-images"></i>
-                                <span>Media Rij</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- CONTACT COMPONENTEN -->
-                    <div class="category" data-category-id="contact">
-                        <div class="category-header">
-                            <h4><i class="fas fa-envelope category-icon"></i> Contact</h4>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </div>
-                        <div class="component-list">
-                            <div class="component-item" draggable="true" data-component="jotform-embed">
-                                <i class="fas fa-wpforms"></i>
-                                <span>Formulier (Jotform)</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="contact-info">
-                                <i class="fas fa-address-card"></i>
-                                <span>Contact Info</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="contact-map-cta">
-                                <i class="fas fa-map-location-dot"></i>
-                                <span>Contact Map + CTA</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- REIS COMPONENTEN -->
-                    <div class="category" data-category-id="travel">
-                        <div class="category-header">
-                            <h4><i class="fas fa-plane-departure category-icon"></i> Reis Componenten</h4>
-                            <i class="fas fa-chevron-down toggle-icon"></i>
-                        </div>
-                        <div class="component-list">
-                            <div class="component-item" draggable="true" data-component="travel-hero">
-                                <i class="fas fa-image-polaroid"></i>
-                                <span>🎨 Reis Hero (5 styles)</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="travel-intro">
-                                <i class="fas fa-info-circle"></i>
-                                <span>Reis Intro (Titel + Tekst + Button)</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="travel-overview">
-                                <i class="fas fa-globe-europe"></i>
-                                <span>🌍 Reizen Overzicht (Zoek & Boek)</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="travel-filter-bar">
-                                <i class="fas fa-filter"></i>
-                                <span>🔍 Reis Filters</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="animated-route-map">
-                                <i class="fas fa-map-marked-alt"></i>
-                                <span>🗺️ Geanimeerde Route Kaart</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="travel-timeline">
-                                <i class="fas fa-route"></i>
-                                <span>Travel Timeline</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="travel-card-transport">
-                                <i class="fas fa-plane"></i>
-                                <span>Transport Card</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="travel-card-hotel">
-                                <i class="fas fa-hotel"></i>
-                                <span>Hotel Card</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="travel-card-destination">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>Destination Card</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="travel-card-transfer">
-                                <i class="fas fa-car"></i>
-                                <span>Transfer Card</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="travel-day-header">
-                                <i class="fas fa-calendar-day"></i>
-                                <span>Dag Header</span>
-                            </div>
-                            <div class="component-item" draggable="true" data-component="route-overview-btn">
-                                <i class="fas fa-route"></i>
-                                <span>Bekijk Route Button</span>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </aside>
-
-            <!-- Canvas gebied -->
-            <main class="canvas-area">
-                    <div class="device-selector">
-                        <button class="device-btn active" data-device="desktop">
-                            <i class="fas fa-desktop"></i>
-                        </button>
-                        <button class="device-btn" data-device="tablet">
-                            <i class="fas fa-tablet-alt"></i>
-                        </button>
-                        <button class="device-btn" data-device="mobile">
-                            <i class="fas fa-mobile-alt"></i>
-                        </button>
-                    </div>
-                <div class="canvas-wrapper">
-                    <div class="canvas" id="canvas">
-                        <div class="drop-zone">
-                            <div class="drop-zone-content">
-                                <i class="fas fa-plus-circle"></i>
-                                <p>Sleep componenten hierheen om te beginnen</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-
-            <!-- Properties panel -->
-            <aside class="properties-panel">
-                <h3>Eigenschappen</h3>
-                <div class="properties-content" id="propertiesContent">
-                    <p class="no-selection">Selecteer een element om eigenschappen te bewerken</p>
-                </div>
-            </aside>
-        </div>
-    </div>
-
-    <!-- Preview Modal -->
-    <div class="modal" id="previewModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button class="modal-close" id="closePreview">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <iframe id="previewFrame" title="Website preview" src="about:blank"></iframe>
-            </div>
-        </div>
-    </div>
-
-    <!-- Hidden file input for opening project files (.wbproj) -->
-    <input type="file" id="projectFileInput" accept=".wbproj,application/json" style="display:none" />
-
-    <!-- Optional local config for API keys (gitignored). Define window.MEDIA_CONFIG here if needed. -->
-    <script src="js/config.prod.js?v=2"></script>
-    <script src="js/config.local.js"></script>
-    <script>
-      // Step 1: Read params from both search and hash (?a=b after #) so deeplinks work
-      (function initDeepLinkParams(){
-        function parseHashQuery() {
-          try {
-            const h = location.hash || '';
-            const qIndex = h.indexOf('?');
-            if (qIndex === -1) return new URLSearchParams('');
-            return new URLSearchParams(h.slice(qIndex + 1));
-          } catch (e) { return new URLSearchParams(''); }
-        }
-        function getParam(name) {
-          const fromSearch = new URLSearchParams(location.search).get(name);
-          if (fromSearch) return fromSearch;
-          return parseHashQuery().get(name);
-        }
-        try {
-          const brandId = getParam('brand_id');
-          const token   = getParam('token');
-          const api     = getParam('api');     // Edge Functions base
-          const apiKey  = getParam('api_key') || getParam('apikey'); // Edge Functions API key (support both)
-          const tcApi   = getParam('tc_api');  // Travel Compositor proxy base
-
-          if (brandId) window.CURRENT_BRAND_ID = brandId;
-          if (token)   window.CURRENT_TOKEN = token;
-          if (api) {
-            window.BOLT_API = { baseUrl: api };
-            // Ensure Supabase client uses same base domain when provided via deeplink
-            window.BOLT_DB = window.BOLT_DB || {};
-            window.BOLT_DB.url = api.replace(/\/$/, '');
-            try { console.debug('[WB] Overriding BOLT_DB.url from deeplink api =', window.BOLT_DB.url); } catch (e) {}
-          }
-          if (apiKey) {
-            window.BOLT_API = window.BOLT_API || {};
-            window.BOLT_API.apiKey = apiKey;
-          }
-          if (tcApi)   window.TC_API_BASE = tcApi.replace(/\/$/, '');
-
-          // Also allow config.local.js to set BOLT_API if not provided in URL
-          window.BOLT_API = window.BOLT_API || (window.BOLT && window.BOLT.API) || null;
-        } catch (e) { console.warn('Query parsing failed', e); }
-
-        // Keep globals in sync if router changes the hash
-        window.addEventListener('hashchange', () => {
-          try {
-            const brandId = getParam('brand_id');
-            const token   = getParam('token');
-            const api     = getParam('api');
-            const apiKey  = getParam('api_key') || getParam('apikey');
-            const tcApi   = getParam('tc_api');
-            if (brandId) window.CURRENT_BRAND_ID = brandId;
-            if (token)   window.CURRENT_TOKEN = token;
-            if (api)     {
-              window.BOLT_API = window.BOLT_API || {}; window.BOLT_API.baseUrl = api;
-              window.BOLT_DB = window.BOLT_DB || {}; window.BOLT_DB.url = api.replace(/\/$/, '');
-              try { console.debug('[WB] (hashchange) Overriding BOLT_DB.url from api =', window.BOLT_DB.url); } catch (e) {}
-            }
-            if (apiKey)  { window.BOLT_API = window.BOLT_API || {}; window.BOLT_API.apiKey = apiKey; }
-            if (tcApi)   window.TC_API_BASE = tcApi.replace(/\/$/, '');
-          } catch (e) {}
         });
-      })();
-    </script>
-    <script>
-        (function(){
-          // Only initialize Supabase if config is present
-          if (!window.BOLT_DB || !window.BOLT_DB.url || !window.BOLT_DB.anonKey) {
-            // Quiet in local dev to avoid red console noise
-            console.info('[WB] BOLT_DB niet geconfigureerd (sla DB init/health over).');
-            return;
-          }
-          try {
-            window.db = window.supabase.createClient(window.BOLT_DB.url, window.BOLT_DB.anonKey);
-          } catch (e) {
-            console.warn('[WB] Supabase init mislukt:', e);
-            return;
-          }
-          // Health check only when same-origin to avoid 401 noise in local/offline
-          try {
-            var apiOrigin = new URL(window.BOLT_DB.url).origin;
-            if (apiOrigin === location.origin) {
-              fetch(window.BOLT_DB.url.replace(/\/$/,'') + '/auth/v1/health')
-                .then(r => console.log('DB health status:', r.status))
-                .catch(e => console.warn('DB health check failed:', e && (e.message||e)));
-            } else {
-              console.info('[WB] DB health check overgeslagen (cross-origin).');
-            }
-          } catch (e) {
-            console.warn('DB health check error:', e);
-          }
-        })();
-      </script>
-    <!-- BOLT Database Configuration -->
-    <script src="config/bolt.js"></script>
-    <script src="js/layouts.js?v=117c0aa"></script>
-    <script src="js/iconPicker.js?v=117c0aa"></script>
-    <script src="js/sidebar.js?v=117c0aa"></script>
-    <script src="js/components.js?v=travel-intro-fix"></script>
-    <script src="js/animatedTravelMap.js?v=117c0aa"></script>
-    <script src="js/dragdrop.js?v=117c0aa"></script>
-    <script src="js/media.js?v=878206b"></script>
-    <script src="js/routeOverview.js?v=117c0aa"></script>
-    <script src="js/properties.js?v=filter-system"></script>
-    <script src="js/main.js?v=117c0aa"></script>
-    <script src="js/menuLayoutModal.js?v=117c0aa"></script>
-    <script>
-      (function(){
-        try {
-          const u = new URL(window.location.href);
-          const forceSafe = u.searchParams.get('safe') === '1';
-          if (!forceSafe) {
-            var s = document.createElement('script'); s.src = 'js/export.js'; s.defer = true; document.head.appendChild(s);
-          } else {
-            console.info('[WB] export.js overgeslagen (Safe Mode)');
-          }
-        } catch (e) {
-          var s = document.createElement('script'); s.src = 'js/export.js'; s.defer = true; document.head.appendChild(s);
-        }
-      })();
-    </script>
-    <script src="js/router.js"></script>
-    <script>
-      // Safe Mode loader: skip non-essential bundles in deeplink or when ?safe=1
-      (function(){
-        try {
-          const u = new URL(window.location.href);
-          const isDeeplink = !!(u.searchParams.get('api') && u.searchParams.get('brand_id'));
-          const forceSafe = u.searchParams.get('safe') === '1';
-          // Safe Mode is now opt-in only via ?safe=1 (deeplink laadt standaard volledige builder)
-          const safe = !!forceSafe;
-          const load = (src) => { const s=document.createElement('script'); s.src=src+'?v=bolt-fix-2'; s.defer=true; document.head.appendChild(s); };
-          if (!safe) {
-            // Normal/Deeplink (volledige builder)
-            // Load views first so they're available when router initializes
-            load('js/services/travelDataService.js?v=trip-brand-assignments');
-            load('js/views/menuFooterView.js');
-            load('js/views/travelView.js');
-            load('js/views/videoGeneratorView.js');
-            load('js/ai.js');
-            load('js/publish.js');
-            load('js/fnClient.js');
-            load('js/menuRender.js');
-            load('js/layoutsBuilder.js');
-            load('js/brandHydrator.js');
-            console.info('[WB] Full Builder mode geladen (ook in deeplink)');
-          } else {
-            // Safe Mode: minimale scripts
-            try { load('js/publish.js'); } catch (e) {}
-            console.info('[WB] Safe Mode actief (?safe=1): alleen publish.js ingeladen');
-          }
-        } catch(e) { /* noop */ }
-      })();
-    </script>
-    <style>
-      /* Make fatal overlay non-blocking by default */
-      #fatalOverlay { pointer-events: none; }
-      #fatalOverlay .bar, #fatalOverlay button, #fatalOverlay a { pointer-events: auto; }
-    </style>
-    <script>
-      // Global emergency unfreeze helper
-      (function(){
-        try {
-          window.WB_unfreeze = function WB_unfreeze(){
-            try { document.body.classList.remove('modal-open'); } catch (e) {}
-            try { document.body.style.pointerEvents = 'auto'; document.body.style.overflow = ''; } catch (e) {}
-            // Hide known overlays
-            try {
-              const hide = (el) => { if (!el) return; el.style.pointerEvents = 'none'; el.classList.remove('show'); el.style.display = 'none'; };
-              ['fatalOverlay','wbOverlay','errorOverlay'].forEach(id => hide(document.getElementById(id)));
-              document.querySelectorAll('.wb-overlay,.wb-busy,.wb-blocker,.modal,.modal-backdrop').forEach(hide);
-            } catch (e) {}
-            // Re-enable canvas and main app surface
-            try { const cvs = document.getElementById('canvas'); if (cvs) cvs.style.pointerEvents = 'auto'; } catch (e) {}
-          };
-          // Bind Escape to unfreeze
-          window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') { try { window.WB_unfreeze(); } catch (e) {} } }, { passive:true });
-        } catch (e) {}
-      })();
-    </script>
-    <!-- Versioned include to bust CDN/browser caches; bump v per deploy -->
-    <script>
-      (function(){
-        try{
-          var q=new URL(location.href).searchParams;var enabled=q.get('debug')==='1';
-          var state={on:enabled,logs:[],mut:0,fps:0,long:0,stall:0,net:[]};
-          var ui=null;function el(t,a){var e=document.createElement(t);if(a)Object.assign(e.style,a);return e}
-          function render(){if(!state.on)return;try{if(!ui){ui=el('div',{position:'fixed',bottom:'10px',right:'10px',zIndex:99999,background:'rgba(17,24,39,.92)',color:'#e5e7eb',font:'12px system-ui,Segoe UI,Roboto,Arial',padding:'10px 12px',borderRadius:'8px',boxShadow:'0 6px 18px rgba(0,0,0,.35)',maxWidth:'420px',maxHeight:'45vh',overflow:'auto'});ui.id='wb-debug';document.body.appendChild(ui);}var h='DBG Ã‚Â· mut/s:'+state.mps+' Ã‚Â· long:'+state.long+' Ã‚Â· stall:'+state.stall+'ms';var n=state.net.slice(-5).map(function(x){return x.name+" "+x.status+" "+x.ms+"ms"}).join('<br>');ui.innerHTML='<div style="display:flex;align-items:center;gap:8px;justify-content:space-between"><b>'+h+'</b><button id="wb-dump" style="background:#374151;color:#fff;border:0;padding:4px 8px;border-radius:6px;cursor:pointer">dump</button></div><div style="margin-top:6px;opacity:.9">'+n+'</div>';var b=ui.querySelector('#wb-dump');b.onclick=function(){try{console.log(window.WB_dump&&window.WB_dump());}catch (e) {}}}catch (e) {}}
-          function ensureOn(){if(!state.on)return;render()}
-          window.addEventListener('keydown',function(e){if(e.ctrlKey&&e.altKey&&e.key.toLowerCase()==='d'){state.on=!state.on;if(!state.on){try{var n=document.getElementById('wb-debug');if(n)n.remove()}catch (e) {} } else {render();}}},{passive:true});
-          var po=null;function startPO(){try{po=new PerformanceObserver(function(list){list.getEntries().forEach(function(entry){state.long++;state.logs.push({t:'longtask',d:entry.duration});});ensureOn()});po.observe({type:'longtask',buffered:true});}catch (e) {}}
-          var last=performance.now();setInterval(function(){var now=performance.now(),dt=now-last;last=now;if(dt>250){state.stall=Math.max(state.stall,Math.round(dt));state.logs.push({t:'stall',d:dt});ensureOn()}},250);
-          var origFetch=window.fetch;window.fetch=function(input,init){var u=typeof input==='string'?input:(input&&input.url)||'';var t0=performance.now();return origFetch.apply(this,arguments).then(function(r){try{if(/\/functions\/v1\//.test(u)){state.net.push({name:(u.split('/functions/v1/')[1]||u).slice(0,60),ms:Math.round(performance.now()-t0),status:r.status});ensureOn()}}catch (e) {}return r}).catch(function(e){try{if(/\/functions\/v1\//.test(u)){state.net.push({name:(u.split('/functions/v1/')[1]||u).slice(0,60),ms:Math.round(performance.now()-t0),status:'ERR'});ensureOn()}}catch (e) {}throw e})}
-          function guardCanvas(){try{var c=document.getElementById('canvas');if(!c)return;var k=0;var mo=new MutationObserver(function(){k++});mo.observe(c,{childList:true,subtree:true,attributes:true,characterData:true});setInterval(function(){state.mps=k;k=0;ensureOn()},1000);}catch (e) {}}
-          window.WB_dump=function(){try{var btn=document.getElementById('saveProjectBtn');var center=(function(){var el=document.elementFromPoint(innerWidth/2,innerHeight/2);return el?{tag:el.tagName,id:el.id,cls:el.className}:null})();var canvas=document.getElementById('canvas');var comps=canvas?canvas.querySelectorAll('.wb-component').length:0;var ifr=canvas?canvas.querySelectorAll('iframe').length:0;var vid=canvas?canvas.querySelectorAll('video').length:0;return {saving:window.websiteBuilder&&window.websiteBuilder._savingInFlight,btnExists:!!btn,btnDisabled:btn&&btn.disabled,center,comps,ifr,vid,long:state.long,stall:state.stall,net:state.net.slice(-10)};}catch(e){return {err:String(e)}}}
-          if(state.on){render()}startPO();guardCanvas();
-        }catch (e) {}
-      })();
-    </script>
-    <script>
-      // Edit/deeplink media guard: stop autoplay in canvas and show popup preview on demand
-      (function(){
-        try {
-          const mkPoster = (embedUrl) => {
-            const ph = document.createElement('div');
-            ph.className = 'wb-media-ph';
-            ph.style.cssText = 'position:relative;width:100%;height:100%;background:#000;border-radius:8px;overflow:hidden;cursor:pointer;min-height:120px';
-            const img = document.createElement('div');
-            img.style.cssText = 'position:absolute;inset:0;background-size:cover;background-position:center;filter:brightness(.85)';
-            try {
-              const u = new URL(embedUrl);
-              const m = u.pathname.match(/\/embed\/([^\/?#]+)/);
-              const vid = m && m[1];
-              if (vid) img.style.backgroundImage = `url(https://img.youtube.com/vi/${vid}/hqdefault.jpg)`;
-            } catch (e) {}
-            const play = document.createElement('div');
-            play.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:68px;height:48px;background:rgba(0,0,0,.45);border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.25)';
-            play.innerHTML = '<svg viewBox="0 0 68 48" style="width:100%;height:100%"><path d="M66.52 7.74a8 8 0 0 0-5.65-5.66C56.5 1 34 1 34 1S11.5 1 7.13 2.08A8 8 0 0 0 1.48 7.74 83.3 83.3 0 0 0 0 24a83.3 83.3 0 0 0 1.48 16.26 8 8 0 0 0 5.65 5.66C11.5 47 34 47 34 47s22.5 0 26.87-1.08a8 8 0 0 0 5.65-5.66A83.3 83.3 0 0 0 68 24a83.3 83.3 0 0 0-1.48-16.26Z" fill="#212121" fill-opacity=".8"/><path d="M45 24 27 14v20" fill="#fff"/></svg>';
-            ph.appendChild(img); ph.appendChild(play);
-            ph.addEventListener('click', () => {
-              const overlayBg = document.createElement('div');
-              overlayBg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99998;display:flex;align-items:center;justify-content:center';
-              const box = document.createElement('div');
-              box.style.cssText = 'position:relative;width:min(90vw,960px);aspect-ratio:16/9;background:#000;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.4);overflow:hidden';
-              const close = document.createElement('button');
-              close.textContent = 'Ãƒ””';
-              close.setAttribute('aria-label','Sluiten');
-              close.style.cssText = 'position:absolute;top:8px;right:12px;width:32px;height:32px;border:none;border-radius:6px;background:rgba(0,0,0,.5);color:#fff;font-size:20px;line-height:1;cursor:pointer;z-index:2';
-              const frame = document.createElement('iframe');
-              frame.setAttribute('allow','autoplay; fullscreen; picture-in-picture');
-              frame.setAttribute('allowfullscreen','');
-              frame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
-              try {
-                const u = new URL(embedUrl); const p=u.searchParams;
-                p.set('autoplay','1'); p.set('mute','1'); p.set('controls','1'); p.delete('loop'); u.search=p.toString();
-                frame.src = u.toString();
-              } catch (e) { frame.src = embedUrl; }
-              const cleanup = () => { try { document.body.removeChild(overlayBg); } catch (e) {} };
-              close.onclick = cleanup; overlayBg.onclick = (e) => { if (e.target === overlayBg) cleanup(); };
-              box.appendChild(frame); box.appendChild(close); overlayBg.appendChild(box); document.body.appendChild(overlayBg);
+
+        // Animate elements on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeInUp 0.8s ease-out';
+                    observer.unobserve(entry.target);
+                }
             });
-            return ph;
-          };
+        }, observerOptions);
 
-          const guard = () => {
-            const canvas = document.getElementById('canvas'); if (!canvas) return;
-            // Neutralize iframes (e.g., YouTube/Vimeo/widgets)
-            canvas.querySelectorAll('iframe').forEach(ifr => {
-              if (ifr.dataset.wbGuarded === '1') return;
-              const src = ifr.src || ifr.getAttribute('src') || '';
-              if (!src) return;
-              ifr.dataset.wbGuarded = '1'; ifr.dataset.src = src;
-              try { ifr.src = 'about:blank'; } catch (e) {}
-              const poster = mkPoster(src);
-              ifr.replaceWith(poster);
-            });
-            // Pause <video>
-            canvas.querySelectorAll('video').forEach(v => {
-              try { v.pause(); v.preload='metadata'; v.autoplay=false; v.muted=true; } catch (e) {}
-            });
-          };
-
-          // Activate only in edit/deeplink
-          document.body.dataset.wbMode = document.body.dataset.wbMode || 'edit';
-          const run = () => { try { guard(); } catch (e) {} };
-          run();
-          const mo = new MutationObserver(() => run());
-          const canvas = document.getElementById('canvas');
-          if (canvas) mo.observe(canvas, { childList:true, subtree:true });
-        } catch (e) {}
-      })();
+        document.querySelectorAll('.feature-card, .step').forEach(el => {
+            observer.observe(el);
+        });
     </script>
-    <style id="wb-overlay-perf-css">
-      .mp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .18s ease-out;will-change:opacity}
-      .mp-overlay.is-open{opacity:1;pointer-events:auto}
-      .mp-drawer{position:fixed;top:0;right:0;height:100%;width:min(520px,95vw);transform:translateX(100%);transition:transform .22s ease-out;will-change:transform;contain:content;content-visibility:auto}
-      .mp-drawer.is-open{transform:translateX(0)}
-      .mp-overlay img{content-visibility:auto}
-      .mp-thumb img{max-width:100%;height:auto}
-    </style>
-    <script>
-      (function(){
-        try{
-          // Debounce Unsplash query
-          var input=document.querySelector('.unsplash-query');
-          if(input){
-            var t=null; var delay=300;
-            var handler=function(e){ clearTimeout(t); t=setTimeout(function(){
-              try{ var q=(e.target.value||'').trim(); if(q.length<3) return; if(typeof window.unsplashSearch==='function'){ window.unsplashSearch(q); }
-              else { input.dispatchEvent(new CustomEvent('unsplash:search',{detail:{q}})); } }catch (e) {}
-            }, delay); };
-            try{ input.addEventListener('input', function(e){ e.stopImmediatePropagation(); handler(e); }, {capture:true}); }catch (e) { input.addEventListener('input', handler); }
-          }
-          // Lightweight overlay close: class toggles, defer cleanup
-          var root=document;
-          root.addEventListener('click', function(ev){
-            try{
-              var closeEl = ev.target.closest && ev.target.closest('.mp-overlay .mp-close, .mp-overlay .fa-times, .mp-drawer .mp-close, .mp-drawer .fa-times');
-              if(!closeEl) return;
-              var overlay = document.querySelector('.mp-overlay');
-              var drawer  = document.querySelector('.mp-drawer');
-              ev.preventDefault(); ev.stopImmediatePropagation();
-              requestAnimationFrame(function(){
-                try{ if(drawer) drawer.classList.remove('is-open'); if(overlay) overlay.classList.remove('is-open'); }catch (e) {}
-                if(drawer){
-                  var onDone=function(e){ if(e.target!==drawer) return; try{ drawer.removeEventListener('transitionend', onDone); }catch (e) {} try{ document.body.style.overflow=''; }catch (e) {} };
-                  try{ drawer.addEventListener('transitionend', onDone, {once:true}); }catch (e) {}
-                } else { try{ document.body.style.overflow=''; }catch (e) {} }
-              });
-            }catch (e) {}
-          }, true);
-        }catch (e) {}
-      })();
-    </script>
-    <script src="js/deeplink.js?v=94487cd"></script>
-    <script src="js/settings.js"></script>
-    <script src="js/deeplink-utils.js"></script>
-    <script>
-      // Ensure "Terug naar Dashboard" preserves auth query params
-      document.addEventListener('DOMContentLoaded', () => {
-        try {
-          const btn = document.getElementById('backToDashboardBtn');
-          if (!btn) return;
-          btn.onclick = (e) => {
-            try { e.preventDefault(); } catch (e) {}
-            const apiBase = (window.BOLT_API && window.BOLT_API.baseUrl) || '';
-            if (!apiBase) {
-              try { window.websiteBuilder?.showNotification('Geen Bolt API baseUrl gevonden. Stel ?api= in de URL.', 'info'); } catch (e) {}
-              return;
-            }
-            const qp = new URLSearchParams();
-            if (window.CURRENT_BRAND_ID) qp.set('brand_id', window.CURRENT_BRAND_ID);
-            if (window.CURRENT_TOKEN) qp.set('token', window.CURRENT_TOKEN);
-            if (window.BOLT_API && window.BOLT_API.apiKey) qp.set('apikey', window.BOLT_API.apiKey);
-            const url = `${apiBase.replace(/\/$/, '')}/admin/website/pages${qp.toString() ? `?${qp.toString()}` : ''}`;
-            window.location.href = url;
-          };
-        } catch (e) {}
-      });
-    </script>
-    <script>
-      // Bolt header customization: keep only relevant buttons in deeplink/deeplink-like context
-      function applyBoltHeaderVisibility(){
-        try {
-          // Consider "Bolt context" if either a Bolt base is present OR the URL carries api+brand_id (deeplink)
-          const href = new URL(window.location.href);
-          const hasApiParam = !!href.searchParams.get('api');
-          const hasBrand = !!href.searchParams.get('brand_id');
-          const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl) || (hasApiParam && hasBrand);
-          if (!isBolt) return;
-          const pageMeta = document.querySelector('.app-header .page-meta');
-          if (pageMeta) pageMeta.style.display = '';
-          // Hide legacy/buttons we don't want in Bolt
-          const hideIds = [
-            'importTcBtn',
-            'headerBuilderBtn',
-            'footerBuilderBtn',
-            'openProjectBtn',
-            'exportBtn',
-            'gitPushBtn',
-            'publishBtn',
-            'layoutBtn',
-            'pagesBtn',
-            'newPageQuickBtn'
-          ];
-          // Apply hiding by IDs
-          hideIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-          // Also hide by text content for safety (Dutch variations)
-          try {
-            document.querySelectorAll('.app-header button, .app-header a').forEach(el => {
-              const t = (el.textContent || '').trim().toLowerCase();
-              if (t === 'importeer tc' || t === "pagina's" || t === 'paginas' || t === 'nieuwe pagina' || t === 'paginaÃ¢â‚¬â„¢s') {
-                el.style.display = 'none';
-              }
-            });
-          } catch (e) {}
-          // Ensure keep-visible (except pages buttons which we hide in Bolt context)
-          ['backToDashboardBtn','saveProjectBtn','previewBtn'].forEach(id => {
-            const el = document.getElementById(id); if (el) el.style.display = '';
-          });
-        } catch (e) {}
-      
-        try {
-          const href = new URL(window.location.href);
-          const isBolt = !!(window.BOLT_API && window.BOLT_API.baseUrl) || (!!href.searchParams.get('api') && !!href.searchParams.get('brand_id'));
-          if (!isBolt) return;
-
-          const headerRight = document.querySelector('.app-header .header-right');
-
-          // Old Bouwtype dropdown removed - using new buildTypeSelect in header instead
-
-          // Re-apply on hash changes and DOM mutations (e.g., after actions that reflow header)
-          if (!window.__WB_hashApplied) {
-            window.__WB_hashApplied = true;
-            window.addEventListener('hashchange', () => applyBoltHeaderVisibility());
-          }
-          try {
-            const header = document.querySelector('.app-header');
-            if (header) {
-              const mo = new MutationObserver(() => applyBoltHeaderVisibility());
-              mo.observe(header, { childList: true, subtree: true, attributes: true });
-            }
-          } catch (e) {}
-
-          // Save button is bound from js/main.js (setupBoltDeeplinkSave)
-          const saveBtn = document.getElementById('saveProjectBtn');
-          if (saveBtn) { try { window.websiteBuilder?.setupBoltDeeplinkSave(); } catch (e) {} }
-        } catch (e) {}
-      }
-    </script>
-    <script>
-      // Run header adjustments as soon as DOM is ready (and once more after a short delay)
-      document.addEventListener('DOMContentLoaded', () => {
-        try { applyBoltHeaderVisibility(); } catch (e) {}
-        setTimeout(() => { try { applyBoltHeaderVisibility(); } catch (e) {} }, 150);
-      });
-    </script>
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  
-  <!-- Page Exporter -->
-  <script src="js/pageExporter.js"></script>
-  
-  <!-- Brand Manager -->
-  <script src="js/brandManager.js"></script>
-  
-  <!-- TravelBro Help Assistant -->
-  <script src="js/travelBroHelp.js"></script>
 </body>
 </html>
-
-

@@ -18,12 +18,20 @@ Een moderne, gebruiksvriendelijke website builder waarmee je prachtige websites 
 
 ## 🚀 Aan de slag
 
-1. Open `index.html` in je webbrowser
+### Voor bezoekers
+1. Ga naar `https://www.ai-websitestudio.nl/` voor de landing page
+2. Klik op "Start nu gratis" om de builder te openen
+
+### Direct naar de builder
+1. Open `builder.html` in je webbrowser (of ga naar `/builder.html` op de live site)
 2. Sleep componenten van de zijbalk naar het canvas
 3. Klik op componenten om ze te selecteren en bewerken
 4. Gebruik het properties panel om styling aan te passen
 5. Test je website op verschillende apparaten
 6. Exporteer je website wanneer je klaar bent
+
+### Deeplinks
+Deeplinks met parameters (zoals `?ctx=...` of `?api=...`) worden automatisch doorgestuurd van de landing page naar de builder.
 
 ## 🧩 Beschikbare Componenten
 
