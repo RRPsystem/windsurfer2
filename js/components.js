@@ -81,7 +81,8 @@ class ComponentFactory {
             'route-overview-btn': this.createRouteOverviewButton,
             'travel-intro': this.createTravelIntro,
             'animated-route-map': this.createAnimatedRouteMap,
-            'travel-filter-bar': this.createTravelFilterBar
+            'travel-filter-bar': this.createTravelFilterBar,
+            'roadbook': this.createRoadbook
         };
 
         
@@ -6932,3 +6933,185 @@ ComponentFactory.createTravelSearchCard = function(options = {}) {
     this.makeSelectable(section);
     return section;
 };
+
+// ============================================
+// ROADBOOK COMPONENT (Layout 1 - Classic)
+// ============================================
+static createRoadbook(options = {}) {
+    const section = document.createElement('section');
+    section.className = 'wb-component wb-roadbook';
+    section.setAttribute('data-component', 'roadbook');
+    section.id = this.generateId('roadbook');
+    
+    const toolbar = this.createToolbar();
+    section.appendChild(toolbar);
+    this.addTypeBadge(section);
+    
+    // Default data structure
+    const data = {
+        title: options.title || 'Jouw Droomreis',
+        departureDate: options.departureDate || '2025-06-15',
+        transports: options.transports || [],
+        hotels: options.hotels || [],
+        itinerary: options.itinerary || []
+    };
+    
+    // Store data on component
+    section._roadbookData = data;
+    
+    section.innerHTML += `
+        <div class="roadbook-wrapper">
+            <!-- Countdown Hero -->
+            <div class="roadbook-hero">
+                <h1 class="roadbook-title" contenteditable="true">${data.title}</h1>
+                <div class="roadbook-countdown" data-departure="${data.departureDate}">
+                    <div class="countdown-item">
+                        <span class="countdown-value">--</span>
+                        <span class="countdown-label">Dagen</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-value">--</span>
+                        <span class="countdown-label">Uren</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-value">--</span>
+                        <span class="countdown-label">Minuten</span>
+                    </div>
+                </div>
+                <p class="roadbook-departure">Vertrek: <span>${new Date(data.departureDate).toLocaleDateString('nl-NL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span></p>
+            </div>
+            
+            <!-- Transport Cards -->
+            ${data.transports.length > 0 ? `
+                <div class="roadbook-section">
+                    <h2 class="roadbook-section-title">Jouw Vervoer</h2>
+                    <div class="roadbook-cards-grid">
+                        ${data.transports.map((t, i) => `
+                            <div class="roadbook-card">
+                                <div class="roadbook-card-icon"><i class="fas fa-plane"></i></div>
+                                <div class="roadbook-card-content">
+                                    <h3>${t.from || 'Vertrek'} → ${t.to || 'Aankomst'}</h3>
+                                    <p><i class="fas fa-calendar"></i> ${t.date || 'Datum'}</p>
+                                    <p><i class="fas fa-clock"></i> ${t.time || 'Tijd'}</p>
+                                </div>
+                                <button class="roadbook-card-more" data-type="transport" data-index="${i}">
+                                    <i class="fas fa-info-circle"></i> Meer info
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            
+            <!-- Hotel Cards -->
+            ${data.hotels.length > 0 ? `
+                <div class="roadbook-section">
+                    <h2 class="roadbook-section-title">Jouw Accommodaties</h2>
+                    <div class="roadbook-cards-grid">
+                        ${data.hotels.map((h, i) => `
+                            <div class="roadbook-card">
+                                <div class="roadbook-card-image" style="background-image: url('${h.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600'}')"></div>
+                                <div class="roadbook-card-content">
+                                    <h3>${h.name || 'Hotel'}</h3>
+                                    <p><i class="fas fa-map-marker-alt"></i> ${h.location || 'Locatie'}</p>
+                                    <p><i class="fas fa-calendar"></i> ${h.checkIn || 'Check-in'} - ${h.checkOut || 'Check-out'}</p>
+                                </div>
+                                <button class="roadbook-card-more" data-type="hotel" data-index="${i}">
+                                    <i class="fas fa-info-circle"></i> Meer info
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            
+            <!-- Timeline -->
+            ${data.itinerary.length > 0 ? `
+                <div class="roadbook-timeline">
+                    <h2 class="roadbook-section-title">Jouw Reis Dag voor Dag</h2>
+                    <div class="roadbook-timeline-container">
+                        <div class="roadbook-timeline-icon"><i class="fas fa-car"></i></div>
+                        <div class="roadbook-timeline-line"></div>
+                        <div class="roadbook-timeline-days">
+                            ${data.itinerary.map((day, i) => `
+                                <div class="roadbook-timeline-day ${i % 2 === 0 ? 'left' : 'right'}">
+                                    <div class="roadbook-timeline-day-content">
+                                        <div class="roadbook-timeline-day-number">Dag ${i + 1}</div>
+                                        <h3 contenteditable="true">${day.title || `Dag ${i + 1}`}</h3>
+                                        <p contenteditable="true">${day.description || 'Beschrijving...'}</p>
+                                        ${day.image ? `<img src="${day.image}" alt="${day.title}">` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    // Start countdown
+    setTimeout(() => {
+        const countdownEl = section.querySelector('.roadbook-countdown');
+        if (countdownEl) this.startRoadbookCountdown(countdownEl);
+    }, 100);
+    
+    // Setup scroll animation for timeline
+    setTimeout(() => {
+        const timeline = section.querySelector('.roadbook-timeline-container');
+        if (timeline) this.setupRoadbookTimelineAnimation(timeline);
+    }, 100);
+    
+    this.makeSelectable(section);
+    return section;
+}
+
+static startRoadbookCountdown(countdownEl) {
+    if (!countdownEl) return;
+    
+    const departureDate = new Date(countdownEl.dataset.departure).getTime();
+    
+    const updateCountdown = () => {
+        const now = new Date().getTime();
+        const distance = departureDate - now;
+        
+        if (distance < 0) {
+            countdownEl.innerHTML = '<p style="font-size: 24px; font-weight: 700; color: #10b981;">De reis is begonnen! 🎉</p>';
+            return;
+        }
+        
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        
+        const values = countdownEl.querySelectorAll('.countdown-value');
+        if (values[0]) values[0].textContent = days;
+        if (values[1]) values[1].textContent = hours;
+        if (values[2]) values[2].textContent = minutes;
+    };
+    
+    updateCountdown();
+    setInterval(updateCountdown, 60000); // Update every minute
+}
+
+static setupRoadbookTimelineAnimation(container) {
+    const icon = container.querySelector('.roadbook-timeline-icon');
+    if (!icon) return;
+    
+    const updateIconPosition = () => {
+        const containerRect = container.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        
+        // Calculate scroll progress
+        const scrollProgress = Math.max(0, Math.min(1, 
+            (windowHeight / 2 - containerRect.top) / containerRect.height
+        ));
+        
+        // Move icon
+        const iconTop = scrollProgress * (containerRect.height - 100);
+        icon.style.top = `${Math.max(0, iconTop)}px`;
+    };
+    
+    window.addEventListener('scroll', updateIconPosition);
+    updateIconPosition();
+}
