@@ -5883,8 +5883,18 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
     selectWrapper.appendChild(select);
     this.panel.appendChild(selectWrapper);
     
-    // Standard properties
-    this.createStandardProperties(component);
+    // Delete button
+    const del = this.createButton('Blok verwijderen', () => {
+        if (confirm('Weet je zeker dat je dit roadbook wilt verwijderen?')) {
+            component.remove();
+            this.clearProperties();
+        }
+    });
+    del.style.background = '#dc2626';
+    del.style.borderColor = '#dc2626';
+    del.style.color = '#fff';
+    del.style.marginTop = '1rem';
+    this.panel.appendChild(del);
 };
 
 // Initialize properties panel
