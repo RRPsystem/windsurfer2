@@ -7116,8 +7116,6 @@ ComponentFactory.setupRoadbookTimelineAnimation = function(container) {
     updateIconPosition();
 };
 
-}
-
 // Export ComponentFactory globally
 if (typeof window !== 'undefined') {
     window.ComponentFactory = ComponentFactory;
