@@ -5789,21 +5789,50 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
     countdownLabel.style.cssText = 'display: block; font-weight: 700; margin: 24px 0 12px; color: #111827; font-size: 15px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;';
     this.panel.appendChild(countdownLabel);
     
+    // Countdown toggle
     const countdownEnabled = component.dataset.countdownEnabled !== 'false';
-    const countdownToggle = this.createToggle('Countdown Tonen', countdownEnabled, (enabled) => {
+    const toggleWrapper = document.createElement('div');
+    toggleWrapper.style.cssText = 'display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding: 12px; background: #f9fafb; border-radius: 8px;';
+    
+    const toggleLabel = document.createElement('label');
+    toggleLabel.textContent = 'Countdown Tonen';
+    toggleLabel.style.cssText = 'font-weight: 600; color: #374151; font-size: 14px;';
+    
+    const toggleInput = document.createElement('input');
+    toggleInput.type = 'checkbox';
+    toggleInput.checked = countdownEnabled;
+    toggleInput.style.cssText = 'width: 44px; height: 24px; cursor: pointer;';
+    toggleInput.addEventListener('change', (e) => {
+        const enabled = e.target.checked;
         component.dataset.countdownEnabled = enabled;
         const countdown = component.querySelector('.roadbook-countdown');
         if (countdown) {
             countdown.style.display = enabled ? 'flex' : 'none';
         }
     });
-    this.panel.appendChild(countdownToggle);
     
+    toggleWrapper.appendChild(toggleLabel);
+    toggleWrapper.appendChild(toggleInput);
+    this.panel.appendChild(toggleWrapper);
+    
+    // Countdown style select
     const countdownStyle = component.dataset.countdownStyle || 'hero';
-    const styleSelect = this.createSelect('Countdown Stijl', [
-        { value: 'hero', label: 'Hero (Groot, in header)' },
-        { value: 'compact', label: 'Compact (Klein, onder header)' }
-    ], countdownStyle, (value) => {
+    const selectWrapper = document.createElement('div');
+    selectWrapper.style.cssText = 'margin-bottom: 16px;';
+    
+    const selectLabel = document.createElement('label');
+    selectLabel.textContent = 'Countdown Stijl';
+    selectLabel.style.cssText = 'display: block; font-weight: 600; margin-bottom: 8px; color: #374151; font-size: 14px;';
+    
+    const select = document.createElement('select');
+    select.style.cssText = 'width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: white;';
+    select.innerHTML = `
+        <option value="hero">Hero (Groot, in header)</option>
+        <option value="compact">Compact (Klein, onder header)</option>
+    `;
+    select.value = countdownStyle;
+    select.addEventListener('change', (e) => {
+        const value = e.target.value;
         component.dataset.countdownStyle = value;
         const countdown = component.querySelector('.roadbook-countdown');
         if (!countdown) return;
@@ -5849,7 +5878,10 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
             });
         }
     });
-    this.panel.appendChild(styleSelect);
+    
+    selectWrapper.appendChild(selectLabel);
+    selectWrapper.appendChild(select);
+    this.panel.appendChild(selectWrapper);
     
     // Standard properties
     this.createStandardProperties(component);
