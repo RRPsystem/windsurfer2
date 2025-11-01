@@ -178,14 +178,44 @@
 
         .feature-card {
             padding: 2.5rem;
-            background: var(--light-gray);
+            background: white;
             border-radius: 20px;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            border: 1px solid #e5e7eb;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 0;
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
         }
 
         .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transform: translateY(-15px) rotateX(5deg) scale(1.02);
+            box-shadow: 
+                0 30px 60px rgba(102, 126, 234, 0.2),
+                0 15px 30px rgba(118, 75, 162, 0.15);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .feature-card > * {
+            position: relative;
+            z-index: 1;
         }
 
         .feature-icon {
@@ -229,6 +259,18 @@
         .step {
             text-align: center;
             position: relative;
+            padding: 2rem;
+            background: white;
+            border-radius: 20px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+
+        .step:hover {
+            transform: translateY(-10px) rotateY(5deg) scale(1.05);
+            box-shadow: 
+                0 25px 50px rgba(102, 126, 234, 0.15),
+                0 10px 20px rgba(118, 75, 162, 0.1);
         }
 
         .step-number {
@@ -333,10 +375,10 @@
         <div class="hero-content animate-in">
             <h1>
                 <span class="gradient-text">AI Website Studio</span><br>
-                Bouw je website in minuten
+                Bouw je reis- en bestemmingswebsite in minuten
             </h1>
             <p>
-                Creëer professionele websites zonder code. Powered by AI, volledig aanpasbaar, razendsnel live.
+                De ultieme website builder voor reisbureaus en touroperators. Met AI-powered content, booking integraties en automatische routebeschrijvingen.
             </p>
             <div class="cta-buttons">
                 <a href="builder.html" class="btn btn-primary">
@@ -361,45 +403,45 @@
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <i class="fas fa-magic"></i>
+                        <i class="fas fa-plug"></i>
                     </div>
-                    <h3>AI-Powered</h3>
-                    <p>Onze AI helpt je bij het maken van content, het kiezen van kleuren en het optimaliseren van je website.</p>
+                    <h3>API Koppelingen</h3>
+                    <p>Directe integratie met booking engines en zoek & boek systemen. Realtime beschikbaarheid en prijzen.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <i class="fas fa-puzzle-piece"></i>
+                        <i class="fas fa-route"></i>
                     </div>
-                    <h3>Drag & Drop</h3>
-                    <p>Intuïtieve drag & drop interface. Sleep componenten, pas aan en zie direct het resultaat.</p>
+                    <h3>AI Routebeschrijvingen</h3>
+                    <p>Automatische routebeschrijvingen met OpenAI, Google Search en Google Places. Inclusief interactieve kaarten.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <i class="fas fa-mobile-alt"></i>
+                        <i class="fas fa-video"></i>
                     </div>
-                    <h3>Responsive Design</h3>
-                    <p>Je website ziet er perfect uit op alle apparaten - desktop, tablet en mobiel.</p>
+                    <h3>AI Video Generator</h3>
+                    <p>Genereer automatisch professionele video's voor je bestemmingen en reizen met AI.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <i class="fas fa-palette"></i>
+                        <i class="fas fa-globe-europe"></i>
                     </div>
-                    <h3>Brand Manager</h3>
-                    <p>Stel je brand kleuren in en pas ze automatisch toe op alle componenten.</p>
+                    <h3>Bestemmings Bibliotheek</h3>
+                    <p>Uitgebreide bibliotheek met bestemmingen, complete met content, foto's en informatie.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <i class="fas fa-bolt"></i>
+                        <i class="fas fa-images"></i>
                     </div>
-                    <h3>Supersnel</h3>
-                    <p>Van idee naar live website in minuten. Geen wachttijden, geen gedoe.</p>
+                    <h3>Media Selector</h3>
+                    <p>Kies media van YouTube, Pexels, Unsplash of upload je eigen bestanden. Alles in één interface.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <i class="fas fa-code"></i>
+                        <i class="fas fa-newspaper"></i>
                     </div>
-                    <h3>Geen Code Nodig</h3>
-                    <p>Bouw professionele websites zonder een regel code te schrijven.</p>
+                    <h3>Nieuwsberichten Systeem</h3>
+                    <p>Ingebouwd CMS voor nieuwsberichten en updates. Houd je klanten op de hoogte.</p>
                 </div>
             </div>
         </div>
@@ -415,18 +457,18 @@
             <div class="steps">
                 <div class="step">
                     <div class="step-number">1</div>
-                    <h3>Kies je template</h3>
-                    <p>Start met een van onze professionele templates of begin vanaf nul</p>
+                    <h3>Koppel je booking engine</h3>
+                    <p>Verbind met je bestaande systemen via API of start met onze bestemmings bibliotheek</p>
                 </div>
                 <div class="step">
                     <div class="step-number">2</div>
-                    <h3>Pas aan met AI</h3>
-                    <p>Sleep componenten, pas teksten aan en laat AI je helpen met content</p>
+                    <h3>Bouw met AI</h3>
+                    <p>Genereer automatisch routes, video's en content. Kies media van Unsplash, Pexels of YouTube</p>
                 </div>
                 <div class="step">
                     <div class="step-number">3</div>
-                    <h3>Publiceer direct</h3>
-                    <p>Klik op publiceren en je website is direct live op het web</p>
+                    <h3>Publiceer & Beheer</h3>
+                    <p>Ga live met één klik. Update nieuwsberichten en bestemmingen via het ingebouwde CMS</p>
                 </div>
             </div>
         </div>
