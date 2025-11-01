@@ -2687,6 +2687,9 @@ class PropertiesPanel {
             case 'route-overview-btn':
                 this.createRouteOverviewBtnProperties(component);
                 break;
+            case 'roadbook':
+                this.createRoadbookProperties(component);
+                break;
             case 'feature-media':
                 this.createFeatureMediaProperties(component);
                 break;
@@ -5719,6 +5722,133 @@ PropertiesPanel.prototype.createTravelFilterBarProperties = function(component) 
     del.style.color = '#fff';
     del.style.marginTop = '1rem';
     this.panel.appendChild(del);
+};
+
+PropertiesPanel.prototype.createRoadbookProperties = function(component) {
+    this.createHeader('Roadbook Instellingen');
+    
+    // Hero Media Selector
+    this.createSubheader('Hero Achtergrond');
+    const mediaBtn = this.createButton('🎬 Media Kiezen (Foto/Video)', async () => {
+        if (!window.MediaPicker) {
+            alert('Media Picker niet beschikbaar');
+            return;
+        }
+        
+        const res = await window.MediaPicker.open({ 
+            allowVideo: true,
+            defaultTab: 'pexels' 
+        });
+        if (!res) return;
+        
+        const hero = component.querySelector('.roadbook-hero');
+        if (!hero) return;
+        
+        // Remove existing media
+        const existingVideo = hero.querySelector('video');
+        const existingSlider = hero.querySelector('.hero-slider');
+        if (existingVideo) existingVideo.remove();
+        if (existingSlider) existingSlider.remove();
+        
+        // Add new media
+        if (res.type === 'video' && res.videoUrl) {
+            // Add video
+            const video = document.createElement('video');
+            video.autoplay = true;
+            video.loop = true;
+            video.muted = true;
+            video.playsInline = true;
+            video.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;';
+            video.innerHTML = `<source src="${res.videoUrl}" type="video/mp4">`;
+            hero.insertBefore(video, hero.firstChild);
+            
+            // Store in dataset
+            component.dataset.heroVideo = res.videoUrl;
+            delete component.dataset.heroImages;
+        } else if (res.url) {
+            // Add single image (could extend to slider later)
+            const img = document.createElement('div');
+            img.className = 'hero-slider';
+            img.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url(' + res.url + '); background-size: cover; background-position: center; z-index: 0;';
+            hero.insertBefore(img, hero.firstChild);
+            
+            // Store in dataset
+            component.dataset.heroImages = res.url;
+            delete component.dataset.heroVideo;
+        }
+    });
+    mediaBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    mediaBtn.style.color = '#fff';
+    mediaBtn.style.fontWeight = '700';
+    this.panel.appendChild(mediaBtn);
+    
+    // Countdown Settings
+    this.createSubheader('Countdown Instellingen');
+    
+    const countdownEnabled = component.dataset.countdownEnabled !== 'false';
+    const countdownToggle = this.createToggle('Countdown Tonen', countdownEnabled, (enabled) => {
+        component.dataset.countdownEnabled = enabled;
+        const countdown = component.querySelector('.roadbook-countdown');
+        if (countdown) {
+            countdown.style.display = enabled ? 'flex' : 'none';
+        }
+    });
+    this.panel.appendChild(countdownToggle);
+    
+    const countdownStyle = component.dataset.countdownStyle || 'hero';
+    const styleSelect = this.createSelect('Countdown Stijl', [
+        { value: 'hero', label: 'Hero (Groot, in header)' },
+        { value: 'compact', label: 'Compact (Klein, onder header)' }
+    ], countdownStyle, (value) => {
+        component.dataset.countdownStyle = value;
+        const countdown = component.querySelector('.roadbook-countdown');
+        if (!countdown) return;
+        
+        if (value === 'compact') {
+            countdown.style.cssText = `
+                display: flex;
+                gap: 16px;
+                justify-content: center;
+                padding: 16px;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                margin: -30px auto 30px;
+                max-width: 600px;
+                position: relative;
+                z-index: 10;
+            `;
+            countdown.querySelectorAll('.countdown-item').forEach(item => {
+                item.style.cssText = 'text-align: center;';
+            });
+            countdown.querySelectorAll('.countdown-value').forEach(val => {
+                val.style.fontSize = '24px';
+            });
+            countdown.querySelectorAll('.countdown-label').forEach(label => {
+                label.style.fontSize = '12px';
+            });
+        } else {
+            countdown.style.cssText = `
+                display: flex;
+                gap: 32px;
+                justify-content: center;
+                padding: 32px;
+            `;
+            countdown.querySelectorAll('.countdown-item').forEach(item => {
+                item.style.cssText = 'text-align: center;';
+            });
+            countdown.querySelectorAll('.countdown-value').forEach(val => {
+                val.style.fontSize = '48px';
+            });
+            countdown.querySelectorAll('.countdown-label').forEach(label => {
+                label.style.fontSize = '14px';
+            });
+        }
+    });
+    this.panel.appendChild(styleSelect);
+    
+    // Standard properties
+    this.createStandardProperties(component);
 };
 
 // Initialize properties panel
