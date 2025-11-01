@@ -5800,6 +5800,67 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
     mediaBtn.style.fontWeight = '700';
     this.panel.appendChild(mediaBtn);
     
+    // Hero height control
+    const heightLabel = document.createElement('label');
+    heightLabel.textContent = 'Hero Hoogte';
+    heightLabel.style.cssText = 'display: block; font-weight: 600; margin: 12px 0 8px; color: #374151; font-size: 14px;';
+    this.panel.appendChild(heightLabel);
+    
+    const heightInput = document.createElement('input');
+    heightInput.type = 'range';
+    heightInput.min = '300';
+    heightInput.max = '800';
+    heightInput.value = component.dataset.heroHeight || '400';
+    heightInput.style.cssText = 'width: 100%; margin-bottom: 8px;';
+    
+    const heightValue = document.createElement('div');
+    heightValue.textContent = heightInput.value + 'px';
+    heightValue.style.cssText = 'text-align: center; font-size: 12px; color: #6b7280; margin-bottom: 12px;';
+    
+    heightInput.addEventListener('input', (e) => {
+        const height = e.target.value;
+        component.dataset.heroHeight = height;
+        heightValue.textContent = height + 'px';
+        const hero = component.querySelector('.roadbook-hero');
+        if (hero) {
+            hero.style.minHeight = height + 'px';
+        }
+    });
+    
+    this.panel.appendChild(heightInput);
+    this.panel.appendChild(heightValue);
+    
+    // Overlay control
+    const overlayLabel = document.createElement('label');
+    overlayLabel.textContent = 'Donkere Overlay';
+    overlayLabel.style.cssText = 'display: block; font-weight: 600; margin: 12px 0 8px; color: #374151; font-size: 14px;';
+    this.panel.appendChild(overlayLabel);
+    
+    const overlayInput = document.createElement('input');
+    overlayInput.type = 'range';
+    overlayInput.min = '0';
+    overlayInput.max = '80';
+    overlayInput.value = component.dataset.heroOverlay || '40';
+    overlayInput.style.cssText = 'width: 100%; margin-bottom: 8px;';
+    
+    const overlayValue = document.createElement('div');
+    overlayValue.textContent = overlayInput.value + '%';
+    overlayValue.style.cssText = 'text-align: center; font-size: 12px; color: #6b7280; margin-bottom: 12px;';
+    
+    overlayInput.addEventListener('input', (e) => {
+        const opacity = e.target.value;
+        component.dataset.heroOverlay = opacity;
+        overlayValue.textContent = opacity + '%';
+        const hero = component.querySelector('.roadbook-hero');
+        if (hero) {
+            // Update CSS variable or inline style
+            hero.style.setProperty('--overlay-opacity', opacity / 100);
+        }
+    });
+    
+    this.panel.appendChild(overlayInput);
+    this.panel.appendChild(overlayValue);
+    
     // Countdown Settings
     const countdownLabel = document.createElement('label');
     countdownLabel.textContent = '⏱️ Countdown Instellingen';
@@ -5861,9 +5922,10 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
                 justify-content: center;
                 padding: 16px;
                 background: white;
+                color: #111827;
                 border-radius: 12px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                margin: -30px auto 30px;
+                margin: 0;
                 max-width: 600px;
                 position: relative;
                 z-index: 10;
@@ -5873,25 +5935,31 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
             });
             countdown.querySelectorAll('.countdown-value').forEach(val => {
                 val.style.fontSize = '24px';
+                val.style.color = '#111827';
             });
             countdown.querySelectorAll('.countdown-label').forEach(label => {
                 label.style.fontSize = '12px';
+                label.style.color = '#6b7280';
             });
         } else {
             countdown.style.cssText = `
                 display: flex;
                 gap: 32px;
                 justify-content: center;
-                padding: 32px;
+                padding: 0;
+                margin: 0;
+                background: transparent;
             `;
             countdown.querySelectorAll('.countdown-item').forEach(item => {
                 item.style.cssText = 'text-align: center;';
             });
             countdown.querySelectorAll('.countdown-value').forEach(val => {
                 val.style.fontSize = '48px';
+                val.style.color = 'white';
             });
             countdown.querySelectorAll('.countdown-label').forEach(label => {
                 label.style.fontSize = '14px';
+                label.style.color = 'rgba(255,255,255,0.9)';
             });
         }
     });
