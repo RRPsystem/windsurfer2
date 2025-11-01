@@ -5272,8 +5272,8 @@ PropertiesPanel.prototype.createAnimatedRouteMapProperties = function(component)
     this.createRangeInput('Icon Grootte', currentIconSize, 16, 64, 4, (val) => {
         if (travelMap) {
             travelMap.iconSize = parseInt(val);
-            travelMap.reset();
-            setTimeout(() => travelMap.startAnimation(), 500);
+            // Just update the size, no need to reset/restart
+            console.log('[Properties] Icon size updated to:', val);
         }
     });
     

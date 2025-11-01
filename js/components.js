@@ -6686,11 +6686,16 @@ ComponentFactory.createAnimatedRouteMap = function(options = {}) {
                 
                 playBtn.addEventListener('click', () => {
                     console.log('[AnimatedRouteMap] Play button clicked');
-                    if (travelMap.map && travelMap.map.loaded()) {
-                        travelMap.startAnimation();
-                    } else {
-                        console.error('[AnimatedRouteMap] Map not ready yet');
-                    }
+                    // Wait for map to be fully loaded
+                    const startWhenReady = () => {
+                        if (travelMap.map && travelMap.map.loaded()) {
+                            travelMap.startAnimation();
+                        } else {
+                            console.log('[AnimatedRouteMap] Waiting for map to load...');
+                            setTimeout(startWhenReady, 500);
+                        }
+                    };
+                    startWhenReady();
                 });
                 
                 resetBtn.addEventListener('click', () => {
