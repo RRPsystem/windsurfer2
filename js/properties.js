@@ -5725,10 +5725,11 @@ PropertiesPanel.prototype.createTravelFilterBarProperties = function(component) 
 };
 
 PropertiesPanel.prototype.createRoadbookProperties = function(component) {
-    this.createHeader('Roadbook Instellingen');
-    
     // Hero Media Selector
-    this.createSubheader('Hero Achtergrond');
+    const heroLabel = document.createElement('label');
+    heroLabel.textContent = '🎬 Hero Achtergrond';
+    heroLabel.style.cssText = 'display: block; font-weight: 700; margin-bottom: 12px; color: #111827; font-size: 15px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;';
+    this.panel.appendChild(heroLabel);
     const mediaBtn = this.createButton('🎬 Media Kiezen (Foto/Video)', async () => {
         if (!window.MediaPicker) {
             alert('Media Picker niet beschikbaar');
@@ -5783,7 +5784,10 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
     this.panel.appendChild(mediaBtn);
     
     // Countdown Settings
-    this.createSubheader('Countdown Instellingen');
+    const countdownLabel = document.createElement('label');
+    countdownLabel.textContent = '⏱️ Countdown Instellingen';
+    countdownLabel.style.cssText = 'display: block; font-weight: 700; margin: 24px 0 12px; color: #111827; font-size: 15px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;';
+    this.panel.appendChild(countdownLabel);
     
     const countdownEnabled = component.dataset.countdownEnabled !== 'false';
     const countdownToggle = this.createToggle('Countdown Tonen', countdownEnabled, (enabled) => {
