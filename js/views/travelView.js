@@ -189,11 +189,15 @@
 
     renderTemplateSelector() {
       return `<div style="padding-top: 16px; border-top: 1px solid #e5e7eb; margin-top: 16px;">
-        <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #374151; font-size: 13px;"><i class="fas fa-palette"></i> Kies Reis Template</label>
+        <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #374151; font-size: 13px;"><i class="fas fa-palette"></i> Kies Output Format</label>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
           <div class="template-card" data-template="1" style="position: relative; border: 2px solid #a5b4fc; border-radius: 8px; padding: 8px; cursor: pointer; background: #f5f7ff;">
             <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #c7d2fe 0%, #ddd6fe 100%); border-radius: 4px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; color: #4f46e5; font-size: 18px;"><i class="fas fa-plane-departure"></i></div>
             <div style="font-weight: 600; font-size: 11px; color: #374151; text-align: center;">Standaard</div>
+          </div>
+          <div class="template-card" data-template="roadbook" style="position: relative; border: 2px solid #e5e7eb; border-radius: 8px; padding: 8px; cursor: pointer; background: white;">
+            <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-radius: 4px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; color: #059669; font-size: 18px;"><i class="fas fa-map-marked-alt"></i></div>
+            <div style="font-weight: 600; font-size: 11px; color: #374151; text-align: center;">Roadbook</div>
           </div>
           <div class="template-card" data-template="2" style="position: relative; border: 2px solid #e5e7eb; border-radius: 8px; padding: 8px; cursor: not-allowed; background: #f9fafb; opacity: 0.6;">
             <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #fed7aa 0%, #fecaca 100%); border-radius: 4px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; color: #dc2626; font-size: 18px;"><i class="fas fa-mountain"></i></div>
@@ -410,7 +414,11 @@
         window.lastTravelData = travelData;
         
         setTimeout(() => {
-          if (window.websiteBuilder && window.websiteBuilder.loadTravelIdea) {
+          // Check if roadbook template is selected
+          if (this.selectedTemplate === 'roadbook') {
+            console.log('[TravelView] Loading as Roadbook');
+            this.loadAsRoadbook(travelData, '1');
+          } else if (window.websiteBuilder && window.websiteBuilder.loadTravelIdea) {
             console.log('[TravelView] Calling loadTravelIdea with:', travelData);
             window.websiteBuilder.loadTravelIdea(travelData);
             if (window.WB_setMode) window.WB_setMode('page');
@@ -604,7 +612,11 @@
         
         // Load into builder
         setTimeout(() => {
-          if (window.websiteBuilder && window.websiteBuilder.loadTravelIdea) {
+          // Check if roadbook template is selected
+          if (this.selectedTemplate === 'roadbook') {
+            console.log('[TravelView] Loading as Roadbook');
+            this.loadAsRoadbook(result.data, '1');
+          } else if (window.websiteBuilder && window.websiteBuilder.loadTravelIdea) {
             window.websiteBuilder.loadTravelIdea(result.data);
             if (window.WB_setMode) window.WB_setMode('page');
           }
@@ -630,8 +642,14 @@
       const titleInput = container.querySelector('#manualTitleInput');
       startBtn?.addEventListener('click', () => {
         const title = titleInput?.value?.trim() || 'Nieuwe Reis';
-        if (window.websiteBuilder && window.websiteBuilder.loadTravelIdea) {
-          window.websiteBuilder.loadTravelIdea({ name: title, title });
+        const travelData = { name: title, title };
+        
+        // Check if roadbook template is selected
+        if (this.selectedTemplate === 'roadbook') {
+          console.log('[TravelView] Loading as Roadbook');
+          this.loadAsRoadbook(travelData, '1');
+        } else if (window.websiteBuilder && window.websiteBuilder.loadTravelIdea) {
+          window.websiteBuilder.loadTravelIdea(travelData);
           if (window.WB_setMode) window.WB_setMode('page');
         } else {
           this.showStatus('error', 'Builder niet beschikbaar');
@@ -712,8 +730,16 @@
         console.log('[TravelView] Travel data loaded:', data);
 
         this.currentIdea = data;
-        this.renderTravelContent(data);
-        this.showStatus('success', '<i class="fas fa-check-circle"></i> Reis succesvol geladen!');
+        
+        // Check if roadbook template is selected - load directly
+        if (template === 'roadbook') {
+          console.log('[TravelView] Loading as Roadbook directly');
+          this.loadAsRoadbook(data, '1');
+          this.showStatus('success', '<i class="fas fa-check-circle"></i> Roadbook wordt geladen!');
+        } else {
+          this.renderTravelContent(data);
+          this.showStatus('success', '<i class="fas fa-check-circle"></i> Reis succesvol geladen!');
+        }
 
         // Hide status after 3 seconds
         setTimeout(() => {
@@ -882,10 +908,10 @@
       const closeJsonBtn = contentEl.querySelector('#closeJsonBtn');
       const jsonViewer = contentEl.querySelector('#jsonViewer');
       
-      // MODIFIED: Show output format selector instead of directly loading
+      // Edit in builder button
       if (editBtn) {
         editBtn.addEventListener('click', () => {
-          this.showOutputFormatSelector(data);
+          this.editInBuilder(data);
         });
       }
 
@@ -1369,17 +1395,43 @@
     // Convert Travel Compositor data to Roadbook format
     convertTCToRoadbook(tcData) {
       console.log('[TravelView] Converting TC data to Roadbook format...');
+      console.log('[TravelView] Full TC Data:', JSON.stringify(tcData, null, 2));
+      
+      // Store for debugging
+      window.lastTravelData = tcData;
       
       // Extract title
       const title = tcData.title || tcData.name || 'Jouw Reis';
       
-      // Extract departure date (from first transport or dates object)
-      let departureDate = '2025-06-15'; // Default
-      if (tcData.dates && tcData.dates.departure) {
+      // Extract departure date - try multiple sources
+      let departureDate = null;
+      
+      // 1. Check first hotel check-in (most reliable for auto trips)
+      if (tcData.hotels && tcData.hotels.length > 0 && tcData.hotels[0].checkInDate) {
+        departureDate = tcData.hotels[0].checkInDate;
+        console.log('[TravelView] Using first hotel check-in as departure:', departureDate);
+      }
+      // 2. Check dates object
+      else if (tcData.dates && tcData.dates.departure) {
         departureDate = tcData.dates.departure;
-      } else if (tcData.transports && tcData.transports.length > 0) {
+      }
+      // 3. Check first transport
+      else if (tcData.transports && tcData.transports.length > 0) {
         departureDate = tcData.transports[0].departureDate || tcData.transports[0].date;
       }
+      // 4. Check destinations
+      else if (tcData.destinations && tcData.destinations.length > 0 && tcData.destinations[0].startDate) {
+        departureDate = tcData.destinations[0].startDate;
+      }
+      
+      // Default to 3 months from now if no date found
+      if (!departureDate) {
+        const future = new Date();
+        future.setMonth(future.getMonth() + 3);
+        departureDate = future.toISOString().split('T')[0];
+      }
+      
+      console.log('[TravelView] Final departure date:', departureDate);
       
       // Convert transports
       const transports = (tcData.transports || []).map(t => ({
@@ -1405,7 +1457,31 @@
       });
       
       // Convert itinerary (from days or itinerary array)
-      const days = tcData.days || tcData.itinerary || tcData.dayToDay || [];
+      let days = tcData.days || tcData.itinerary || tcData.dayToDay || [];
+      
+      // If no days, create from destinations (expand by fromDay/toDay)
+      if (days.length === 0 && tcData.destinations && tcData.destinations.length > 0) {
+        console.log('[TravelView] No days found, creating from destinations');
+        days = [];
+        
+        tcData.destinations.forEach(dest => {
+          const fromDay = dest.fromDay || 1;
+          const toDay = dest.toDay || fromDay;
+          const numDays = toDay - fromDay + 1;
+          
+          // Create a day entry for each day in this destination
+          for (let i = 0; i < numDays; i++) {
+            const dayNum = fromDay + i;
+            days.push({
+              title: `Dag ${dayNum}: ${dest.name || 'Bestemming'}`,
+              description: i === 0 ? (dest.description || `Bezoek aan ${dest.name}`) : `Vervolg in ${dest.name}`,
+              image: dest.imageUrls?.[i % dest.imageUrls.length] || dest.image || dest.imageUrl || '',
+              destination: dest.name
+            });
+          }
+        });
+      }
+      
       const itinerary = days.map((day, index) => ({
         title: day.title || day.name || `Dag ${index + 1}`,
         description: day.description || day.text || day.summary || '',
