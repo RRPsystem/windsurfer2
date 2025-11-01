@@ -6932,12 +6932,12 @@ ComponentFactory.createTravelSearchCard = function(options = {}) {
     
     this.makeSelectable(section);
     return section;
-}
+};
 
-    // ============================================
-    // ROADBOOK COMPONENT (Layout 1 - Classic)
-    // ============================================
-    static createRoadbook(options = {}) {
+// ============================================
+// ROADBOOK COMPONENT (Layout 1 - Classic)
+// ============================================
+ComponentFactory.createRoadbook = function(options = {}) {
     const section = document.createElement('section');
     section.className = 'wb-component wb-roadbook';
     section.setAttribute('data-component', 'roadbook');
@@ -7053,20 +7053,20 @@ ComponentFactory.createTravelSearchCard = function(options = {}) {
     // Start countdown
     setTimeout(() => {
         const countdownEl = section.querySelector('.roadbook-countdown');
-        if (countdownEl) this.startRoadbookCountdown(countdownEl);
+        if (countdownEl) ComponentFactory.startRoadbookCountdown(countdownEl);
     }, 100);
     
     // Setup scroll animation for timeline
     setTimeout(() => {
         const timeline = section.querySelector('.roadbook-timeline-container');
-        if (timeline) this.setupRoadbookTimelineAnimation(timeline);
+        if (timeline) ComponentFactory.setupRoadbookTimelineAnimation(timeline);
     }, 100);
     
     this.makeSelectable(section);
     return section;
-}
+};
 
-    static startRoadbookCountdown(countdownEl) {
+ComponentFactory.startRoadbookCountdown = function(countdownEl) {
     if (!countdownEl) return;
     
     const departureDate = new Date(countdownEl.dataset.departure).getTime();
@@ -7092,9 +7092,9 @@ ComponentFactory.createTravelSearchCard = function(options = {}) {
     
     updateCountdown();
     setInterval(updateCountdown, 60000); // Update every minute
-}
+};
 
-    static setupRoadbookTimelineAnimation(container) {
+ComponentFactory.setupRoadbookTimelineAnimation = function(container) {
     const icon = container.querySelector('.roadbook-timeline-icon');
     if (!icon) return;
     
@@ -7114,7 +7114,7 @@ ComponentFactory.createTravelSearchCard = function(options = {}) {
     
     window.addEventListener('scroll', updateIconPosition);
     updateIconPosition();
-}
+};
 
 }
 
