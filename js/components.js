@@ -6963,26 +6963,32 @@ ComponentFactory.createRoadbook = function(options = {}) {
     
     // Get brand logo and colors from localStorage
     let brandLogo = 'https://via.placeholder.com/120x40/667eea/ffffff?text=Logo';
-    let brandPrimary = '#99cc33';
+    let brandPrimary = '#99cc34'; // Your green color as default
     try {
         const brandSettings = localStorage.getItem('brandSettings');
+        console.log('[Roadbook] Brand settings from localStorage:', brandSettings);
         if (brandSettings) {
             const brand = JSON.parse(brandSettings);
+            console.log('[Roadbook] Parsed brand:', brand);
             if (brand.logo) {
                 brandLogo = brand.logo;
             }
             // Check both old and new format
             if (brand.colors && brand.colors.primary) {
                 brandPrimary = brand.colors.primary;
+                console.log('[Roadbook] Using brand.colors.primary:', brandPrimary);
             } else if (brand.primaryColor) {
                 brandPrimary = brand.primaryColor;
+                console.log('[Roadbook] Using brand.primaryColor:', brandPrimary);
             }
-            // Apply to CSS variable
-            document.documentElement.style.setProperty('--brand-primary', brandPrimary);
-            console.log('[Roadbook] Applied brand color:', brandPrimary);
+        } else {
+            console.log('[Roadbook] No brand settings found, using default:', brandPrimary);
         }
+        // Apply to CSS variable
+        document.documentElement.style.setProperty('--brand-primary', brandPrimary);
+        console.log('[Roadbook] Applied brand color to CSS:', brandPrimary);
     } catch (e) {
-        console.warn('[Roadbook] Could not load brand settings:', e);
+        console.error('[Roadbook] Error loading brand settings:', e);
     }
     
     section.innerHTML += `
