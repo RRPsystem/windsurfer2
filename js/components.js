@@ -7154,7 +7154,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         
                         <!-- Animated Car -->
                         <div class="roadbook-timeline-car">
-                            <img src="images/roadbook-car.png" alt="Car">
+                            <img src="/images/roadbook-car.png" alt="Car" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fas fa-car\\'></i>';">
                         </div>
                         
                         <!-- Days -->
@@ -7183,29 +7183,30 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                         </a>
                                         
                                         <!-- Highlights -->
-                                        ${day.highlights && day.highlights.length > 0 ? `
-                                            <div class="roadbook-day-highlights">
-                                                ${day.highlights.slice(0, 4).map(h => `
-                                                    <div class="roadbook-highlight-item">
-                                                        <div class="roadbook-highlight-icon">
-                                                            <i class="fas ${h.icon || 'fa-star'}"></i>
-                                                        </div>
-                                                        <div class="roadbook-highlight-content">
-                                                            <h4 class="editable" contenteditable="true">${h.title || 'Highlight'}</h4>
-                                                            <p class="editable" contenteditable="true">${h.text || h.description || ''}</p>
-                                                        </div>
+                                        <div class="roadbook-day-highlights">
+                                            ${(day.highlights && day.highlights.length > 0 ? day.highlights : [
+                                                { icon: 'fa-map-marker-alt', title: 'Tourist Attraction:', text: 'Bezienswaardigheden' },
+                                                { icon: 'fa-shopping-bag', title: 'Best Buy:', text: 'Lokale producten' },
+                                                { icon: 'fa-utensils', title: 'Food Speciality:', text: 'Lokale gerechten' },
+                                                { icon: 'fa-hiking', title: 'Activity:', text: 'Activiteiten' }
+                                            ]).slice(0, 4).map(h => `
+                                                <div class="roadbook-highlight-item">
+                                                    <div class="roadbook-highlight-icon">
+                                                        <i class="fas ${h.icon || 'fa-star'}"></i>
                                                     </div>
-                                                `).join('')}
-                                            </div>
-                                        ` : ''}
+                                                    <div class="roadbook-highlight-content">
+                                                        <h4 class="editable" contenteditable="true">${h.title || 'Highlight'}</h4>
+                                                        <p class="editable" contenteditable="true">${h.text || h.description || ''}</p>
+                                                    </div>
+                                                </div>
+                                            `).join('')}
+                                        </div>
                                         
                                         <!-- Hotel Bar -->
-                                        ${day.hotel || day.accommodation ? `
-                                            <div class="roadbook-hotel-bar">
-                                                <i class="fas fa-hotel"></i>
-                                                <span class="editable" contenteditable="true"><strong>${day.hotel || day.accommodation}</strong></span>
-                                            </div>
-                                        ` : ''}
+                                        <div class="roadbook-hotel-bar">
+                                            <i class="fas fa-hotel"></i>
+                                            <span class="editable" contenteditable="true"><strong>${day.hotel || day.accommodation || 'Hotel / Accommodatie'}</strong></span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
