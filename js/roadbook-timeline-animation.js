@@ -96,7 +96,7 @@ class RoadbookTimelineAnimation {
 
 // Auto-initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-    const timelines = document.querySelectorAll('.roadbook-animated-timeline');
+    const timelines = document.querySelectorAll('.roadbook-animated-timeline-section');
     timelines.forEach(timeline => {
         new RoadbookTimelineAnimation(timeline);
     });
