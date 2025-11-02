@@ -7131,66 +7131,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                 </div>
             ` : ''}
             
-            <!-- Hotel Cards -->
-            ${data.hotels.length > 0 ? `
-                <div id="accommodaties" class="roadbook-section">
-                    <h2 class="roadbook-section-title">Jouw Accommodaties</h2>
-                    <div class="roadbook-cards-carousel-wrapper">
-                        <div class="roadbook-cards-grid" data-carousel="hotels">
-                        ${data.hotels.map((h, i) => `
-                            <div class="roadbook-card hotel-card" data-hotel-index="${i}">
-                                <div class="roadbook-card-image">
-                                    <img src="${h.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600'}" alt="${h.name || 'Hotel'}">
-                                    <div class="roadbook-card-overlay"></div>
-                                    <div class="roadbook-card-badge">
-                                        <i class="fas fa-hotel"></i>
-                                    </div>
-                                    <div class="roadbook-card-carousel-controls">
-                                        <button class="roadbook-carousel-btn" onclick="window.ComponentFactory.prevHotelImage(this)">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <button class="roadbook-carousel-btn" onclick="window.ComponentFactory.nextHotelImage(this)">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="roadbook-card-content">
-                                    <h3>${h.name || 'Hotel'}</h3>
-                                    ${h.description ? `<p class="roadbook-card-intro">${h.description}</p>` : ''}
-                                    <div class="roadbook-card-details">
-                                        <div class="roadbook-card-detail">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                            <span>${h.location || 'Locatie'}</span>
-                                        </div>
-                                        <div class="roadbook-card-detail">
-                                            <i class="fas fa-calendar"></i>
-                                            <span>${h.checkIn || 'Check-in'} - ${h.checkOut || 'Check-out'}</span>
-                                        </div>
-                                        ${h.nights ? `
-                                            <div class="roadbook-card-detail">
-                                                <i class="fas fa-moon"></i>
-                                                <span>${h.nights} nachten</span>
-                                            </div>
-                                        ` : ''}
-                                    </div>
-                                    <button class="roadbook-card-more" onclick="window.ComponentFactory.openHotelDetailPanel(${JSON.stringify(h).replace(/"/g, '&quot;')})">
-                                        <i class="fas fa-info-circle"></i> Meer informatie
-                                    </button>
-                                </div>
-                            </div>
-                        `).join('')}
-                        </div>
-                        <div class="roadbook-carousel-nav">
-                            <button class="roadbook-carousel-nav-btn" onclick="window.ComponentFactory.scrollCarousel(this, 'prev')">
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <button class="roadbook-carousel-nav-btn" onclick="window.ComponentFactory.scrollCarousel(this, 'next')">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            ` : ''}
+            <!-- Hotels are now in the timeline above, no separate section needed -->
             
             <!-- Timeline -->
             ${data.itinerary.length > 0 ? `

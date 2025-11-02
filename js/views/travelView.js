@@ -1443,38 +1443,19 @@
         type: t.type || t.transportType || 'flight'
       }));
       
-      // Convert hotels
+      // Convert hotels - use SAME structure as travel cards
       const hotels = (tcData.hotels || tcData.accommodations || []).map((h, idx) => {
-        const hotelData = h.hotel || h;
-        
-        console.log(`[TravelView] Hotel ${idx}:`, {
-          name: hotelData.name,
-          checkIn: h.checkInDate || h.checkIn,
-          imageUrls: hotelData.imageUrls?.length,
-          images: hotelData.images?.length,
-          description: hotelData.description?.substring(0, 50)
-        });
-        
-        // Extract all images - check multiple possible fields
-        let images = [];
-        if (hotelData.imageUrls && Array.isArray(hotelData.imageUrls)) {
-          images = hotelData.imageUrls;
-        } else if (hotelData.images && Array.isArray(hotelData.images)) {
-          images = hotelData.images.map(img => img.url || img);
-        } else if (hotelData.image) {
-          images = [hotelData.image];
-        }
-        
+        // Direct access - same as travel cards
         return {
-          name: hotelData.name || hotelData.hotelName || 'Hotel',
-          location: hotelData.destination?.name || hotelData.address || hotelData.city || 'Locatie',
+          name: h.hotelName || h.name || 'Hotel',
+          location: h.destination?.name || h.city || h.address || 'Locatie',
           checkIn: h.checkInDate || h.checkIn || '',
           checkOut: h.checkOutDate || h.checkOut || '',
           nights: h.nights || 0,
-          image: images[0] || '',
-          images: images,
-          description: hotelData.description || hotelData.summary || hotelData.intro || '',
-          fullDescription: hotelData.fullDescription || hotelData.longDescription || hotelData.detailedDescription || hotelData.description || ''
+          image: h.images?.[0] || h.image || '',
+          images: h.images || [],
+          description: h.description || h.summary || '',
+          fullDescription: h.fullDescription || h.longDescription || h.description || ''
         };
       });
       
