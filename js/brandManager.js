@@ -88,7 +88,7 @@
                   <div class="form-group">
                     <label>Logo</label>
                     <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                      <button class="btn btn-secondary" id="uploadLogoBtn" style="flex: 0 0 auto;">
+                      <button class="btn btn-secondary" id="uploadLogoBtn" style="flex: 0 0 auto; min-width: 140px; padding: 8px 16px; white-space: nowrap;">
                         <i class="fas fa-upload"></i> Upload Logo
                       </button>
                       <input type="text" id="brandLogo" class="form-control" placeholder="Of plak URL..." style="flex: 1;">
