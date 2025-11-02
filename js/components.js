@@ -7126,8 +7126,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                     </div>
                                 </div>
                                 <div class="roadbook-card-content">
-                                    <h3>${h.name || 'Luxury Hotel'}</h3>
-                                    <p class="roadbook-card-intro">${h.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec feugiat lacinia tortor molestie. Nunc imperdiet commodo nunc, a porta arcu dignissim et amet dictum tortor molestie iaculis tortor molestie.'}</p>
+                                    <h3>${h.name || 'Hotel'}</h3>
+                                    ${h.description ? `<p class="roadbook-card-intro">${h.description}</p>` : ''}
                                     <div class="roadbook-card-details">
                                         <div class="roadbook-card-detail">
                                             <i class="fas fa-map-marker-alt"></i>
@@ -7185,6 +7185,20 @@ ComponentFactory.createRoadbook = function(options = {}) {
         if (countdownEl) ComponentFactory.startRoadbookCountdown(countdownEl);
     }, 100);
     
+    // Store hotel data on cards for carousel
+    setTimeout(() => {
+        const hotelCards = section.querySelectorAll('.hotel-card');
+        hotelCards.forEach((card, index) => {
+            const hotelData = data.hotels[index];
+            if (hotelData) {
+                card._hotelData = {
+                    images: hotelData.images || [hotelData.image],
+                    currentImageIndex: 0
+                };
+            }
+        });
+    }, 100);
+    
     // Setup scroll animation for timeline
     setTimeout(() => {
         const timeline = section.querySelector('.roadbook-timeline-container');
@@ -7212,6 +7226,10 @@ ComponentFactory.createRoadbook = function(options = {}) {
         if (underline) underline.style.background = primaryColor;
         section.querySelectorAll('.roadbook-stat-icon').forEach(icon => {
             icon.style.background = primaryColor;
+        });
+        // Apply to card badges
+        section.querySelectorAll('.roadbook-card-badge').forEach(badge => {
+            badge.style.background = primaryColor;
         });
         
         // Apply secondary color

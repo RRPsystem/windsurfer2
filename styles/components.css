@@ -3709,6 +3709,9 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     box-shadow: 0 2px 12px rgba(0,0,0,0.08);
     transition: transform 0.3s, box-shadow 0.3s;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .roadbook-card:hover {
@@ -3796,6 +3799,9 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 /* Card Content */
 .roadbook-card-content {
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 .roadbook-card-content h3 {
@@ -3833,7 +3839,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .roadbook-card-more {
-    margin-top: 16px;
+    margin-top: auto;
     padding: 12px 20px;
     background: var(--brand-primary, #84cc16);
     color: white;
