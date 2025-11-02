@@ -19,14 +19,14 @@ class RoadbookTimelineAnimation {
         
         if (!this.car || this.dayItems.length === 0) return;
         
-        // Position car at START badge initially
+        // Position car at START badge initially (relative to road container)
         setTimeout(() => {
             const startBadge = this.container.querySelector('.roadbook-start-badge');
-            if (startBadge) {
+            if (startBadge && this.roadLine) {
+                const roadRect = this.roadLine.getBoundingClientRect();
                 const badgeRect = startBadge.getBoundingClientRect();
-                const scrollTop = window.pageYOffset;
-                const carTop = badgeRect.top + scrollTop + 40; // Position below START
-                this.car.style.top = `${carTop}px`;
+                const relativeTop = badgeRect.top - roadRect.top + 40;
+                this.car.style.top = `${relativeTop}px`;
             }
         }, 100);
         
@@ -50,11 +50,12 @@ class RoadbookTimelineAnimation {
     }
     
     updateCarPosition() {
-        const scrollTop = window.pageYOffset;
-        const viewportHeight = window.innerHeight;
-        const viewportCenter = scrollTop + (viewportHeight / 2);
+        if (!this.car || this.dayItems.length === 0 || !this.roadLine) return;
         
-        // Find closest day item
+        const roadRect = this.roadLine.getBoundingClientRect();
+        const viewportMiddle = window.innerHeight / 2;
+        
+        // Find closest day badge to viewport middle
         let closestDay = null;
         let closestDistance = Infinity;
         
@@ -62,25 +63,20 @@ class RoadbookTimelineAnimation {
             const badge = day.querySelector('.roadbook-day-badge');
             if (!badge) return;
             
-            const badgeTop = badge.getBoundingClientRect().top + scrollTop;
-            const distance = Math.abs(viewportCenter - badgeTop);
+            const rect = badge.getBoundingClientRect();
+            const badgeMiddle = rect.top + rect.height / 2;
+            const distance = Math.abs(badgeMiddle - viewportMiddle);
             
             if (distance < closestDistance) {
                 closestDistance = distance;
-                closestDay = day;
+                closestDay = badge;
             }
         });
         
-        // Position car at closest day
-        if (closestDay && this.car) {
-            const badge = closestDay.querySelector('.roadbook-day-badge');
-            if (badge) {
-                const badgeRect = badge.getBoundingClientRect();
-                const carTop = badgeRect.top + (badgeRect.height / 2);
-                
-                // Update car position (fixed, so just update top)
-                this.car.style.top = `${carTop}px`;
-            }
+        if (closestDay) {
+            const badgeRect = closestDay.getBoundingClientRect();
+            const relativeTop = badgeRect.top - roadRect.top;
+            this.car.style.top = `${relativeTop}px`;
         }
     }
     
