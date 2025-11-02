@@ -7017,41 +7017,41 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             ${data.title || 'MARIANA TRENCH'}
                             <span class="roadbook-intro-underline"></span>
                         </h1>
-                        <p class="roadbook-intro-subtitle">Deepest Place In The Ocean</p>
+                        <p class="roadbook-intro-subtitle">${data.subtitle || 'Deepest Place In The Ocean'}</p>
                     </div>
                     <div class="roadbook-intro-right">
                         <p class="roadbook-intro-text">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sollicitudin purus sit amet elementum blandit. Sed ex quam, malesuada sem libero eu ante. Quis nec arcu eget enim. Sed cursus volutpat finibus. Morbi ut ornare purus. Vivamus congue suscipit ius nec. Fusce. Nam auctor velit nec nisi molestie, ut maximus bibendum amet. Nam dolor nunc, consequat nec sollicitudin vel, non modo vitae ex. Vestibulum molestie massa latis in auctor. Donec et ultrices erat, eu pulvinar est. Integer pretium laoreet ac sollicitudin commodo.
+                            ${data.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sollicitudin purus sit amet elementum blandit. Sed ex quam, malesuada sem libero eu ante. Quis nec arcu eget enim. Sed cursus volutpat finibus. Morbi ut ornare purus. Vivamus congue suscipit ius nec. Fusce. Nam auctor velit nec nisi molestie, ut maximus bibendum amet. Nam dolor nunc, consequat nec sollicitudin vel, non modo vitae ex. Vestibulum molestie massa latis in auctor. Donec et ultrices erat, eu pulvinar est. Integer pretium laoreet ac sollicitudin commodo.'}
                         </p>
                     </div>
                 </div>
                 
                 <div class="roadbook-intro-stats">
-                    <div class="roadbook-stat">
+                    <div class="roadbook-stat" data-stat-type="date">
                         <div class="roadbook-stat-icon">
                             <i class="fas fa-calendar-alt"></i>
                         </div>
                         <div class="roadbook-stat-content">
-                            <div class="roadbook-stat-label">Adventure Begins</div>
+                            <div class="roadbook-stat-label">Aankomst Bestemming</div>
                             <div class="roadbook-stat-value">${new Date(data.departureDate).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
                         </div>
                     </div>
-                    <div class="roadbook-stat">
+                    <div class="roadbook-stat" data-stat-type="duration">
                         <div class="roadbook-stat-icon">
                             <i class="fas fa-clock"></i>
                         </div>
                         <div class="roadbook-stat-content">
-                            <div class="roadbook-stat-label">Duration</div>
-                            <div class="roadbook-stat-value">${data.itinerary?.length || 5} Days</div>
+                            <div class="roadbook-stat-label">Duur</div>
+                            <div class="roadbook-stat-value">${data.duration || (data.itinerary?.length || 5)} Dagen</div>
                         </div>
                     </div>
-                    <div class="roadbook-stat">
+                    <div class="roadbook-stat" data-stat-type="weather">
                         <div class="roadbook-stat-icon">
                             <i class="fas fa-cloud-sun"></i>
                         </div>
                         <div class="roadbook-stat-content">
-                            <div class="roadbook-stat-label">Weather</div>
-                            <div class="roadbook-stat-value">Summer - 95° to 100.4°</div>
+                            <div class="roadbook-stat-label">Weerstype</div>
+                            <div class="roadbook-stat-value">Zomer - 95° tot 100°</div>
                         </div>
                     </div>
                 </div>
