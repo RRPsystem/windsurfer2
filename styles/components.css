@@ -4396,7 +4396,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 .roadbook-animated-timeline-section {
     width: 100vw;
     margin-left: calc(-50vw + 50%);
-    background: linear-gradient(to bottom, var(--brand-primary, #84cc16) 300px, #f9fafb 300px);
+    background: linear-gradient(to bottom, var(--brand-primary, #84cc16) 500px, #f9fafb 500px);
     position: relative;
     overflow: hidden;
 }
@@ -4566,6 +4566,19 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     aspect-ratio: 4/3;
 }
 
+.roadbook-day-photo::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1;
+    transition: opacity 0.5s ease;
+}
+
+.roadbook-day-item.active .roadbook-day-photo::before {
+    opacity: 0;
+}
+
 .roadbook-day-photo img {
     width: 100%;
     height: 100%;
@@ -4632,6 +4645,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
     margin-top: 24px;
+    margin-bottom: 24px;
 }
 
 .roadbook-highlight-item {
