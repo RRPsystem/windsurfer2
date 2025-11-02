@@ -14,8 +14,11 @@
     },
     
     createUI() {
-      // Check if UI already exists
-      if (document.getElementById('brandManagerPanel')) return;
+      // Remove old UI if exists (force recreate)
+      const oldPanel = document.getElementById('brandManagerPanel');
+      if (oldPanel) {
+        oldPanel.remove();
+      }
       
       const panel = document.createElement('div');
       panel.id = 'brandManagerPanel';
