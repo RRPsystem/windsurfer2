@@ -7249,9 +7249,13 @@ ComponentFactory.createTimelineCards = function(data) {
                         <i class="fas fa-${t.type === 'train' ? 'train' : t.type === 'bus' ? 'bus' : 'plane'}"></i>
                     </div>
                     <div class="roadbook-card-content">
-                        <div class="roadbook-card-detail" style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-plane" style="color: var(--brand-primary, #84cc16); font-size: 1.2rem;"></i>
-                            <span class="editable" contenteditable="true" style="color: var(--brand-primary, #84cc16); font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">VERTREK: ${t.date || '25 JAN, 2018'}</span>
+                        <div style="margin-bottom: 16px;">
+                            <div class="roadbook-card-detail" style="margin-bottom: 8px;">
+                                <i class="fas fa-plane" style="color: var(--brand-primary, #84cc16); font-size: 1.2rem;"></i>
+                            </div>
+                            <div class="editable" contenteditable="true" style="color: var(--brand-primary, #84cc16); font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                VERTREK: ${t.date || '25 JAN, 2018'}
+                            </div>
                         </div>
                         
                         ${t.company ? `
