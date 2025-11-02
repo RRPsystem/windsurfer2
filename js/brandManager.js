@@ -391,20 +391,41 @@
       this.syncColorInputs('brandColorAccent', 'brandColorAccentHex');
       
       // Logo upload button
-      document.getElementById('uploadLogoBtn')?.addEventListener('click', async () => {
-        if (!window.MediaPicker) {
-          alert('Media Picker niet beschikbaar');
-          return;
-        }
+      document.getElementById('uploadLogoBtn')?.addEventListener('click', () => {
+        // Create hidden file input
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.style.display = 'none';
         
-        const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
-        if (res) {
-          const logoUrl = res.url || res.fullUrl || res.regularUrl || res.dataUrl;
-          if (logoUrl) {
-            document.getElementById('brandLogo').value = logoUrl;
-            this.updateLogoPreview(logoUrl);
+        fileInput.addEventListener('change', (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          
+          // Check file size (max 2MB)
+          if (file.size > 2 * 1024 * 1024) {
+            alert('Logo is te groot! Max 2MB.');
+            return;
           }
-        }
+          
+          // Convert to base64
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const base64 = event.target.result;
+            document.getElementById('brandLogo').value = base64;
+            this.updateLogoPreview(base64);
+            console.log('[BrandManager] Logo uploaded, size:', (base64.length / 1024).toFixed(2), 'KB');
+          };
+          reader.onerror = () => {
+            alert('Fout bij uploaden logo');
+          };
+          reader.readAsDataURL(file);
+        });
+        
+        // Trigger file picker
+        document.body.appendChild(fileInput);
+        fileInput.click();
+        document.body.removeChild(fileInput);
       });
       
       // Logo preview
