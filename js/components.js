@@ -7013,16 +7013,14 @@ ComponentFactory.createRoadbook = function(options = {}) {
             <div class="roadbook-intro">
                 <div class="roadbook-intro-content">
                     <div class="roadbook-intro-left">
-                        <h1 class="roadbook-intro-title">
+                        <h1 class="roadbook-intro-title editable" contenteditable="true" data-field="title">
                             ${data.title || 'MARIANA TRENCH'}
                             <span class="roadbook-intro-underline"></span>
                         </h1>
-                        <p class="roadbook-intro-subtitle">${data.subtitle || 'Deepest Place In The Ocean'}</p>
+                        <p class="roadbook-intro-subtitle editable" contenteditable="true" data-field="subtitle">${data.subtitle || 'Deepest Place In The Ocean'}</p>
                     </div>
                     <div class="roadbook-intro-right">
-                        <p class="roadbook-intro-text">
-                            ${data.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sollicitudin purus sit amet elementum blandit. Sed ex quam, malesuada sem libero eu ante. Quis nec arcu eget enim. Sed cursus volutpat finibus. Morbi ut ornare purus. Vivamus congue suscipit ius nec. Fusce. Nam auctor velit nec nisi molestie, ut maximus bibendum amet. Nam dolor nunc, consequat nec sollicitudin vel, non modo vitae ex. Vestibulum molestie massa latis in auctor. Donec et ultrices erat, eu pulvinar est. Integer pretium laoreet ac sollicitudin commodo.'}
-                        </p>
+                        <p class="roadbook-intro-text editable" contenteditable="true" data-field="description">${data.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sollicitudin purus sit amet elementum blandit. Sed ex quam, malesuada sem libero eu ante. Quis nec arcu eget enim. Sed cursus volutpat finibus. Morbi ut ornare purus. Vivamus congue suscipit ius nec. Fusce. Nam auctor velit nec nisi molestie, ut maximus bibendum amet. Nam dolor nunc, consequat nec sollicitudin vel, non modo vitae ex. Vestibulum molestie massa latis in auctor. Donec et ultrices erat, eu pulvinar est. Integer pretium laoreet ac sollicitudin commodo.'}</p>
                     </div>
                 </div>
                 
@@ -7032,8 +7030,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             <i class="fas fa-calendar-alt"></i>
                         </div>
                         <div class="roadbook-stat-content">
-                            <div class="roadbook-stat-label">Aankomst Bestemming</div>
-                            <div class="roadbook-stat-value">${new Date(data.departureDate).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                            <div class="roadbook-stat-label editable" contenteditable="true">Aankomst Bestemming</div>
+                            <div class="roadbook-stat-value editable" contenteditable="true">${new Date(data.departureDate).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
                         </div>
                     </div>
                     <div class="roadbook-stat" data-stat-type="duration">
@@ -7041,17 +7039,17 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             <i class="fas fa-clock"></i>
                         </div>
                         <div class="roadbook-stat-content">
-                            <div class="roadbook-stat-label">Duur</div>
-                            <div class="roadbook-stat-value">${data.duration || (data.itinerary?.length || 5)} Dagen</div>
+                            <div class="roadbook-stat-label editable" contenteditable="true">Duur</div>
+                            <div class="roadbook-stat-value editable" contenteditable="true">${data.duration || (data.itinerary?.length || 5)} Dagen</div>
                         </div>
                     </div>
                     <div class="roadbook-stat" data-stat-type="weather">
                         <div class="roadbook-stat-icon">
-                            <i class="fas fa-cloud-sun"></i>
+                            <i class="fas fa-sun"></i>
                         </div>
                         <div class="roadbook-stat-content">
-                            <div class="roadbook-stat-label">Weerstype</div>
-                            <div class="roadbook-stat-value">Zomer - 95° tot 100°</div>
+                            <div class="roadbook-stat-label editable" contenteditable="true">Weerstype</div>
+                            <div class="roadbook-stat-value editable" contenteditable="true">Zomer - 95° tot 100°</div>
                         </div>
                     </div>
                 </div>
@@ -7061,7 +7059,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
             <!-- Timeline: Transport + Hotels Combined -->
             ${(data.transports.length > 0 || data.hotels.length > 0) ? `
                 <div class="roadbook-section">
-                    <h2 class="roadbook-section-title">Jouw Reis Timeline</h2>
+                    <h2 class="roadbook-section-title editable" contenteditable="true">Jouw Reis Timeline</h2>
                     <div class="roadbook-cards-carousel-wrapper">
                         <div class="roadbook-cards-grid" data-carousel="timeline">
                         ${this.createTimelineCards(data).join('')}
@@ -7197,7 +7195,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
             <!-- Timeline -->
             ${data.itinerary.length > 0 ? `
                 <div id="itinerary" class="roadbook-timeline">
-                    <h2 class="roadbook-section-title">Jouw Reis Dag voor Dag</h2>
+                    <h2 class="roadbook-section-title editable" contenteditable="true">Jouw Reis Dag voor Dag</h2>
                     <div class="roadbook-timeline-container">
                         <div class="roadbook-timeline-icon"><i class="fas fa-car"></i></div>
                         <div class="roadbook-timeline-line"></div>
@@ -7306,22 +7304,22 @@ ComponentFactory.createTimelineCards = function(data) {
                     <div class="roadbook-card-content">
                         <div class="roadbook-card-detail" style="margin-bottom: 12px; color: var(--brand-primary, #84cc16); font-weight: 600; font-size: 0.85rem;">
                             <i class="fas fa-calendar-alt" style="width: 20px;"></i>
-                            <span style="text-transform: uppercase; letter-spacing: 0.5px;">VERTREK: ${t.date || '25 JAN, 2018'}</span>
+                            <span class="editable" contenteditable="true" style="text-transform: uppercase; letter-spacing: 0.5px;">VERTREK: ${t.date || '25 JAN, 2018'}</span>
                         </div>
                         
                         <div class="roadbook-transport-route">
                             <div class="roadbook-transport-station">
-                                <div class="roadbook-transport-station-name">${t.from || 'LOREM STA'}</div>
-                                <div class="roadbook-transport-time">${t.departureTime || t.time || '09.30'}</div>
-                                <div class="roadbook-transport-address">${t.departureAddress || 'Avenue Thiers DP 1463 06008 Nice Cedex 1'}</div>
+                                <div class="roadbook-transport-station-name editable" contenteditable="true">${t.from || 'LOREM STA'}</div>
+                                <div class="roadbook-transport-time editable" contenteditable="true">${t.departureTime || t.time || '09.30'}</div>
+                                <div class="roadbook-transport-address editable" contenteditable="true">${t.departureAddress || 'Avenue Thiers DP 1463 06008 Nice Cedex 1'}</div>
                             </div>
                             <div class="roadbook-transport-arrow">
                                 <i class="fas fa-arrow-right"></i>
                             </div>
                             <div class="roadbook-transport-station">
-                                <div class="roadbook-transport-station-name">${t.to || 'LOREM STA'}</div>
-                                <div class="roadbook-transport-time">${t.arrivalTime || t.time || '09.30'}</div>
-                                <div class="roadbook-transport-address">${t.arrivalAddress || 'Avenue Thiers DP 1463 06008 Nice Cedex 1'}</div>
+                                <div class="roadbook-transport-station-name editable" contenteditable="true">${t.to || 'LOREM STA'}</div>
+                                <div class="roadbook-transport-time editable" contenteditable="true">${t.arrivalTime || t.time || '09.30'}</div>
+                                <div class="roadbook-transport-address editable" contenteditable="true">${t.arrivalAddress || 'Avenue Thiers DP 1463 06008 Nice Cedex 1'}</div>
                             </div>
                         </div>
                         
@@ -7363,20 +7361,20 @@ ComponentFactory.createTimelineCards = function(data) {
                         ` : ''}
                     </div>
                     <div class="roadbook-card-content">
-                        <h3>${h.name || 'Hotel'}</h3>
+                        <h3 class="editable" contenteditable="true">${h.name || 'Hotel'}</h3>
                         <div class="roadbook-card-details">
                             <div class="roadbook-card-detail">
                                 <i class="fas fa-map-marker-alt"></i>
-                                <span>${h.location || 'Locatie'}</span>
+                                <span class="editable" contenteditable="true">${h.location || 'Locatie'}</span>
                             </div>
                             <div class="roadbook-card-detail">
                                 <i class="fas fa-calendar"></i>
-                                <span>${h.checkIn || 'Check-in'} - ${h.checkOut || 'Check-out'}</span>
+                                <span class="editable" contenteditable="true">${h.checkIn || 'Check-in'} - ${h.checkOut || 'Check-out'}</span>
                             </div>
                             ${h.nights ? `
                                 <div class="roadbook-card-detail">
                                     <i class="fas fa-moon"></i>
-                                    <span>${h.nights} nachten</span>
+                                    <span class="editable" contenteditable="true">${h.nights} nachten</span>
                                 </div>
                             ` : ''}
                         </div>
@@ -7525,26 +7523,6 @@ ComponentFactory.openHotelDetailPanel = function(hotelData) {
                 </div>
             </div>
             
-            <!-- Map -->
-            ${hotelData.location ? `
-                <div class="roadbook-panel-section">
-                    <h3 class="roadbook-panel-section-title">
-                        <i class="fas fa-map-marked-alt"></i>
-                        Locatie
-                    </h3>
-                    <div class="roadbook-panel-map">
-                        <iframe 
-                            width="100%" 
-                            height="250" 
-                            frameborder="0" 
-                            style="border:0; border-radius: 8px;" 
-                            src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(hotelData.location + (hotelData.name ? ' ' + hotelData.name : ''))}&zoom=14"
-                            allowfullscreen>
-                        </iframe>
-                    </div>
-                </div>
-            ` : ''}
-            
             <!-- Description -->
             ${hotelData.fullDescription || hotelData.description ? `
                 <div class="roadbook-panel-section">
@@ -7573,6 +7551,26 @@ ComponentFactory.openHotelDetailPanel = function(hotelData) {
                     <div class="roadbook-facility-tag"><i class="fas fa-cocktail"></i> Bar</div>
                 </div>
             </div>
+            
+            <!-- Map (after facilities) -->
+            ${hotelData.location ? `
+                <div class="roadbook-panel-section">
+                    <h3 class="roadbook-panel-section-title">
+                        <i class="fas fa-map-marked-alt"></i>
+                        Locatie
+                    </h3>
+                    <div class="roadbook-panel-map">
+                        <iframe 
+                            width="100%" 
+                            height="250" 
+                            frameborder="0" 
+                            style="border:0; border-radius: 8px;" 
+                            src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(hotelData.location + (hotelData.name ? ' ' + hotelData.name : ''))}&zoom=14"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+            ` : ''}
         </div>
     `;
     document.body.appendChild(panel);

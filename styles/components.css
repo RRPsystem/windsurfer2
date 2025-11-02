@@ -4136,6 +4136,24 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
+/* Inline Editing Styles */
+.editable {
+    outline: none;
+    transition: background-color 0.2s;
+}
+
+.editable:hover {
+    background-color: rgba(132, 204, 22, 0.05);
+    cursor: text;
+}
+
+.editable:focus {
+    background-color: rgba(132, 204, 22, 0.1);
+    box-shadow: 0 0 0 2px rgba(132, 204, 22, 0.2);
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+
 .roadbook-panel-info-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
