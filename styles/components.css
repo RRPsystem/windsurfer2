@@ -4427,9 +4427,9 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 
 .roadbook-timeline-road {
     position: relative;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 20px 100px;
+    width: 100%;
+    margin: 0;
+    padding: 0 0 100px 0;
     background: #f9fafb;
 }
 
@@ -4463,18 +4463,18 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .roadbook-timeline-car {
-    position: absolute;
+    position: fixed;
     left: 50%;
-    top: 0;
-    transform: translateX(-50%);
+    top: 50%;
+    transform: translate(-50%, -50%);
     width: 60px;
     height: 90px;
     z-index: 10;
-    transition: top 0.3s ease;
     filter: drop-shadow(0 6px 20px rgba(0,0,0,0.3));
     display: flex;
     align-items: center;
     justify-content: center;
+    pointer-events: none;
 }
 
 .roadbook-timeline-car img {
@@ -4543,8 +4543,8 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 .roadbook-day-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 60px;
-    align-items: center;
+    gap: 0;
+    align-items: stretch;
 }
 
 .roadbook-day-item:nth-of-type(odd) .roadbook-day-photo {
@@ -4569,10 +4569,8 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 
 .roadbook-day-photo {
     position: relative;
-    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-    aspect-ratio: 4/3;
+    min-height: 400px;
 }
 
 .roadbook-day-photo::before {
@@ -4600,7 +4598,8 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .roadbook-day-info {
-    padding: 20px;
+    padding: 60px 80px;
+    background: white;
 }
 
 .roadbook-day-location {
