@@ -6980,6 +6980,21 @@ ComponentFactory.createRoadbook = function(options = {}) {
                 <p class="roadbook-departure">Vertrek: <span>${new Date(data.departureDate).toLocaleDateString('nl-NL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span></p>
             </div>
             
+            <!-- Sticky Navigation Menu -->
+            <nav class="roadbook-nav">
+                <div class="roadbook-nav-content">
+                    <div class="roadbook-nav-logo">
+                        <img src="https://via.placeholder.com/120x40/667eea/ffffff?text=Logo" alt="Logo" />
+                    </div>
+                    <ul class="roadbook-nav-menu">
+                        <li><a href="#accommodaties"><i class="fas fa-home"></i> Accommodaties</a></li>
+                        <li><a href="#itinerary"><i class="fas fa-map-marked-alt"></i> Itinerary</a></li>
+                        <li><a href="#praktisch"><i class="fas fa-info-circle"></i> Praktisch</a></li>
+                        <li><a href="#contact"><i class="fas fa-envelope"></i> Contact</a></li>
+                    </ul>
+                </div>
+            </nav>
+            
         <div class="roadbook-wrapper">
             <!-- Transport Cards -->
             ${data.transports.length > 0 ? `
@@ -7005,7 +7020,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
             
             <!-- Hotel Cards -->
             ${data.hotels.length > 0 ? `
-                <div class="roadbook-section">
+                <div id="accommodaties" class="roadbook-section">
                     <h2 class="roadbook-section-title">Jouw Accommodaties</h2>
                     <div class="roadbook-cards-grid">
                         ${data.hotels.map((h, i) => `
@@ -7027,7 +7042,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
             
             <!-- Timeline -->
             ${data.itinerary.length > 0 ? `
-                <div class="roadbook-timeline">
+                <div id="itinerary" class="roadbook-timeline">
                     <h2 class="roadbook-section-title">Jouw Reis Dag voor Dag</h2>
                     <div class="roadbook-timeline-container">
                         <div class="roadbook-timeline-icon"><i class="fas fa-car"></i></div>
