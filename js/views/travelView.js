@@ -1488,9 +1488,20 @@
         image: day.image || day.imageUrl || (day.images && day.images[0]) || ''
       }));
       
+      // Extract description/intro text
+      const description = tcData.description || tcData.summary || tcData.intro || '';
+      
+      // Extract subtitle
+      const subtitle = tcData.subtitle || tcData.tagline || tcData.slogan || '';
+      
+      // Extract duration
+      const duration = tcData.duration || tcData.numberOfDays || itinerary.length || 0;
+      
       console.log('[TravelView] Converted:', {
         title,
         departureDate,
+        description: description.substring(0, 50) + '...',
+        duration,
         transports: transports.length,
         hotels: hotels.length,
         itinerary: itinerary.length
@@ -1498,7 +1509,10 @@
       
       return {
         title,
+        subtitle,
         departureDate,
+        description,
+        duration,
         transports,
         hotels,
         itinerary

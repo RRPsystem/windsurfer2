@@ -5725,6 +5725,88 @@ PropertiesPanel.prototype.createTravelFilterBarProperties = function(component) 
 };
 
 PropertiesPanel.prototype.createRoadbookProperties = function(component) {
+    // Intro Section
+    const introLabel = document.createElement('label');
+    introLabel.textContent = '📝 Intro Sectie';
+    introLabel.style.cssText = 'display: block; font-weight: 700; margin: 0 0 12px; color: #111827; font-size: 15px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;';
+    this.panel.appendChild(introLabel);
+    
+    const introTitle = component.querySelector('.roadbook-intro-title');
+    if (introTitle) {
+        const titleText = introTitle.childNodes[0]?.textContent?.trim() || introTitle.textContent.trim();
+        this.createTextInput('Intro Titel', titleText, (val) => {
+            introTitle.childNodes[0].textContent = val + '\n                            ';
+        });
+    }
+    
+    const introSubtitle = component.querySelector('.roadbook-intro-subtitle');
+    if (introSubtitle) {
+        this.createTextInput('Subtitle', introSubtitle.textContent, (val) => {
+            introSubtitle.textContent = val;
+        });
+    }
+    
+    const introText = component.querySelector('.roadbook-intro-text');
+    if (introText) {
+        const textarea = document.createElement('textarea');
+        textarea.className = 'form-control';
+        textarea.rows = 4;
+        textarea.value = introText.textContent.trim();
+        textarea.style.cssText = 'width: 100%; margin-bottom: 12px; font-size: 14px;';
+        textarea.addEventListener('input', (e) => {
+            introText.textContent = e.target.value;
+        });
+        
+        const textLabel = document.createElement('label');
+        textLabel.textContent = 'Intro Tekst';
+        textLabel.className = 'form-label';
+        this.panel.appendChild(textLabel);
+        this.panel.appendChild(textarea);
+    }
+    
+    // Stat Icons
+    const statsLabel = document.createElement('label');
+    statsLabel.textContent = '📊 Stat Iconen';
+    statsLabel.style.cssText = 'display: block; font-weight: 700; margin: 24px 0 12px; color: #111827; font-size: 15px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;';
+    this.panel.appendChild(statsLabel);
+    
+    const stats = component.querySelectorAll('.roadbook-stat');
+    stats.forEach((stat, idx) => {
+        const icon = stat.querySelector('.roadbook-stat-icon i');
+        const label = stat.querySelector('.roadbook-stat-label');
+        const value = stat.querySelector('.roadbook-stat-value');
+        
+        const statHeader = document.createElement('div');
+        statHeader.textContent = `Stat ${idx + 1}`;
+        statHeader.style.cssText = 'font-weight: 600; margin: 16px 0 8px; color: #374151;';
+        this.panel.appendChild(statHeader);
+        
+        // Icon picker
+        const iconBtn = this.createButton(`🎨 Icoon ${idx + 1} Kiezen`, async () => {
+            if (window.IconPicker) {
+                const result = await window.IconPicker.open({ current: icon.className });
+                if (result && result.icon) {
+                    icon.className = result.icon;
+                }
+            }
+        });
+        this.panel.appendChild(iconBtn);
+        
+        // Label
+        if (label) {
+            this.createTextInput(`Label ${idx + 1}`, label.textContent, (val) => {
+                label.textContent = val;
+            });
+        }
+        
+        // Value
+        if (value) {
+            this.createTextInput(`Waarde ${idx + 1}`, value.textContent, (val) => {
+                value.textContent = val;
+            });
+        }
+    });
+    
     // Title input
     const title = component.querySelector('.roadbook-title');
     if (title) {
