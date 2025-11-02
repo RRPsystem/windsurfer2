@@ -7249,31 +7249,46 @@ ComponentFactory.createTimelineCards = function(data) {
                         <i class="fas fa-${t.type === 'train' ? 'train' : t.type === 'bus' ? 'bus' : 'plane'}"></i>
                     </div>
                     <div class="roadbook-card-content">
-                        <div class="roadbook-card-detail" style="margin-bottom: 12px; color: var(--brand-primary, #84cc16); font-weight: 600; font-size: 0.85rem;">
-                            <i class="fas fa-calendar-alt" style="width: 20px;"></i>
-                            <span class="editable" contenteditable="true" style="text-transform: uppercase; letter-spacing: 0.5px;">VERTREK: ${t.date || '25 JAN, 2018'}</span>
+                        <div class="roadbook-card-detail" style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-plane" style="color: var(--brand-primary, #84cc16); font-size: 1.2rem;"></i>
+                            <span class="editable" contenteditable="true" style="color: var(--brand-primary, #84cc16); font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">VERTREK: ${t.date || '25 JAN, 2018'}</span>
                         </div>
+                        
+                        ${t.company ? `
+                            <div class="roadbook-card-detail" style="margin-bottom: 8px; font-weight: 600; font-size: 1rem;">
+                                <i class="fas fa-building" style="color: #6b7280;"></i>
+                                <span class="editable" contenteditable="true">${t.company}</span>
+                            </div>
+                        ` : ''}
+                        
+                        ${t.flightNumber ? `
+                            <div class="roadbook-card-detail" style="margin-bottom: 12px; color: #6b7280;">
+                                <i class="fas fa-ticket-alt"></i>
+                                <span class="editable" contenteditable="true">Vlucht ${t.flightNumber}</span>
+                            </div>
+                        ` : ''}
                         
                         <div class="roadbook-transport-route">
                             <div class="roadbook-transport-station">
-                                <div class="roadbook-transport-station-name editable" contenteditable="true">${t.from || 'LOREM STA'}</div>
-                                <div class="roadbook-transport-time editable" contenteditable="true">${t.departureTime || t.time || '09.30'}</div>
-                                <div class="roadbook-transport-address editable" contenteditable="true">${t.departureAddress || 'Avenue Thiers DP 1463 06008 Nice Cedex 1'}</div>
+                                <div class="roadbook-transport-station-name editable" contenteditable="true">${t.from || 'VERTREK'}</div>
+                                <div class="roadbook-transport-time editable" contenteditable="true">${t.departureTime || '09:30'}</div>
+                                <div class="roadbook-transport-address editable" contenteditable="true">${t.fromCity || t.from || 'Luchthaven'}</div>
                             </div>
                             <div class="roadbook-transport-arrow">
                                 <i class="fas fa-arrow-right"></i>
+                                ${t.duration ? `<div style="font-size: 0.75rem; color: #9ca3af; margin-top: 4px;">${t.duration}</div>` : ''}
                             </div>
                             <div class="roadbook-transport-station">
-                                <div class="roadbook-transport-station-name editable" contenteditable="true">${t.to || 'LOREM STA'}</div>
-                                <div class="roadbook-transport-time editable" contenteditable="true">${t.arrivalTime || t.time || '09.30'}</div>
-                                <div class="roadbook-transport-address editable" contenteditable="true">${t.arrivalAddress || 'Avenue Thiers DP 1463 06008 Nice Cedex 1'}</div>
+                                <div class="roadbook-transport-station-name editable" contenteditable="true">${t.to || 'AANKOMST'}</div>
+                                <div class="roadbook-transport-time editable" contenteditable="true">${t.arrivalTime || '09:30'}</div>
+                                <div class="roadbook-transport-address editable" contenteditable="true">${t.toCity || t.to || 'Luchthaven'}</div>
                             </div>
                         </div>
                         
-                        ${t.arrivalDate ? `
-                            <div class="roadbook-card-detail" style="margin-top: 12px; color: var(--brand-primary, #84cc16); font-weight: 600;">
-                                <i class="fas fa-calendar-check"></i>
-                                <span>AANKOMST: ${t.arrivalDate}</span>
+                        ${t.baggageInfo ? `
+                            <div class="roadbook-card-detail" style="margin-top: 12px; color: #6b7280;">
+                                <i class="fas fa-suitcase"></i>
+                                <span class="editable" contenteditable="true">Bagage: ${t.baggageInfo}</span>
                             </div>
                         ` : ''}
                     </div>
@@ -7316,8 +7331,13 @@ ComponentFactory.createTimelineCards = function(data) {
                     </div>
                     <div class="roadbook-card-content">
                         <h3 class="editable" contenteditable="true">${h.name || 'Hotel'}</h3>
+                        ${h.chain ? `
+                            <div style="font-size: 0.85rem; color: #6b7280; margin-bottom: 8px; font-weight: 500;">
+                                ${h.chain}
+                            </div>
+                        ` : ''}
                         ${h.description ? `
-                            <p class="roadbook-card-description editable" contenteditable="true">${h.description}</p>
+                            <p class="roadbook-card-description editable" contenteditable="true">${h.description.substring(0, 150)}${h.description.length > 150 ? '...' : ''}</p>
                         ` : ''}
                         <div class="roadbook-card-details">
                             <div class="roadbook-card-detail">
@@ -7331,7 +7351,19 @@ ComponentFactory.createTimelineCards = function(data) {
                             ${h.nights ? `
                                 <div class="roadbook-card-detail">
                                     <i class="fas fa-moon"></i>
-                                    <span class="editable" contenteditable="true">${h.nights} nachten</span>
+                                    <span class="editable" contenteditable="true">${h.nights} ${h.nights === 1 ? 'nacht' : 'nachten'}</span>
+                                </div>
+                            ` : ''}
+                            ${h.roomType ? `
+                                <div class="roadbook-card-detail">
+                                    <i class="fas fa-bed"></i>
+                                    <span class="editable" contenteditable="true">${h.roomType}</span>
+                                </div>
+                            ` : ''}
+                            ${h.mealPlan ? `
+                                <div class="roadbook-card-detail">
+                                    <i class="fas fa-utensils"></i>
+                                    <span class="editable" contenteditable="true">${h.mealPlan}</span>
                                 </div>
                             ` : ''}
                         </div>
