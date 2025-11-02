@@ -7304,9 +7304,9 @@ ComponentFactory.createTimelineCards = function(data) {
                         <i class="fas fa-${t.type === 'train' ? 'train' : t.type === 'bus' ? 'bus' : 'plane'}"></i>
                     </div>
                     <div class="roadbook-card-content">
-                        <div class="roadbook-card-detail" style="margin-bottom: 12px; color: var(--brand-primary, #84cc16); font-weight: 600;">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>VERTREK: ${t.date || '25 JAN, 2018'}</span>
+                        <div class="roadbook-card-detail" style="margin-bottom: 12px; color: var(--brand-primary, #84cc16); font-weight: 600; font-size: 0.85rem;">
+                            <i class="fas fa-calendar-alt" style="width: 20px;"></i>
+                            <span style="text-transform: uppercase; letter-spacing: 0.5px;">VERTREK: ${t.date || '25 JAN, 2018'}</span>
                         </div>
                         
                         <div class="roadbook-transport-route">
@@ -7389,8 +7389,12 @@ ComponentFactory.createTimelineCards = function(data) {
         });
     });
     
-    // Sort by date (optional - if you want chronological order)
-    // cards.sort((a, b) => new Date(a.date) - new Date(b.date));
+    // Sort by date (chronological order)
+    cards.sort((a, b) => {
+        const dateA = new Date(a.date || '2099-12-31');
+        const dateB = new Date(b.date || '2099-12-31');
+        return dateA - dateB;
+    });
     
     return cards.map(c => c.html);
 };
