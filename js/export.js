@@ -257,6 +257,9 @@ Upload deze bestanden naar je webserver om je website live te zetten.
             console.warn('[Preview] Could not fetch CSS:', e);
         }
         
+        // Get brand primary color from root element
+        const brandPrimary = getComputedStyle(document.documentElement).getPropertyValue('--brand-primary').trim() || '#84cc16';
+        
         // Wrap with layout if available
         let bodyWrapped = `\n  ${bodyHtml}`;
         try {
@@ -279,6 +282,10 @@ Upload deze bestanden naar je webserver om je website live te zetten.
   
   <!-- Inline CSS -->
   <style>
+    :root {
+      --brand-primary: ${brandPrimary};
+    }
+    
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #333; }
     img { max-width: 100%; height: auto; }

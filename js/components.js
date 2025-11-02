@@ -7187,6 +7187,32 @@ ComponentFactory.createRoadbook = function(options = {}) {
         if (timeline) ComponentFactory.setupRoadbookTimelineAnimation(timeline);
     }, 100);
     
+    // Setup active menu tracking on scroll
+    setTimeout(() => {
+        const menuLinks = section.querySelectorAll('.roadbook-nav-menu a');
+        const sections = Array.from(menuLinks).map(link => {
+            const href = link.getAttribute('href');
+            return href ? section.querySelector(href) : null;
+        }).filter(Boolean);
+        
+        const updateActiveMenu = () => {
+            const scrollPos = window.scrollY + 100;
+            
+            sections.forEach((sec, index) => {
+                const top = sec.offsetTop;
+                const bottom = top + sec.offsetHeight;
+                
+                if (scrollPos >= top && scrollPos < bottom) {
+                    menuLinks.forEach(link => link.classList.remove('active'));
+                    menuLinks[index]?.classList.add('active');
+                }
+            });
+        };
+        
+        window.addEventListener('scroll', updateActiveMenu);
+        updateActiveMenu();
+    }, 100);
+    
     // Apply roadbook colors on load
     setTimeout(() => {
         // Get brand primary color if no custom color is set
@@ -7198,8 +7224,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
             section.dataset.roadbookPrimaryColor = brandPrimary;
         }
         
-        // Apply primary color
-        section.querySelectorAll('.roadbook-section-title').forEach(el => el.style.color = primaryColor);
+        // Apply primary color (but keep section titles black)
         const nav = section.querySelector('.roadbook-nav');
         if (nav) nav.style.borderBottomColor = primaryColor;
         const subtitle = section.querySelector('.roadbook-intro-subtitle');
@@ -7252,11 +7277,13 @@ ComponentFactory.createTimelineCards = function(data) {
                         <i class="fas fa-${t.type === 'train' ? 'train' : t.type === 'bus' ? 'bus' : 'plane'}"></i>
                     </div>
                     <div class="roadbook-card-content">
-                        <div class="roadbook-card-detail" style="margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
-                            <i class="fas fa-plane" style="color: ${brandPrimary}; font-size: 1.2rem; flex-shrink: 0;"></i>
-                            <span class="editable" contenteditable="true" style="color: ${brandPrimary}; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <div style="margin-bottom: 16px;">
+                            <div style="margin-bottom: 8px;">
+                                <i class="fas fa-plane" style="color: ${brandPrimary}; font-size: 1.2rem;"></i>
+                            </div>
+                            <div class="editable" contenteditable="true" style="color: ${brandPrimary}; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">
                                 VERTREK: ${t.date || '25 JAN, 2018'}
-                            </span>
+                            </div>
                         </div>
                         
                         ${t.company ? `
