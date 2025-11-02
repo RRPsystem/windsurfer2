@@ -6250,11 +6250,23 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
     colorSectionLabel.style.cssText = 'display: block; font-weight: 700; margin: 24px 0 12px; color: #111827; font-size: 15px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;';
     this.panel.appendChild(colorSectionLabel);
     
-    this.createColorInput('Primaire Kleur (Titels)', component.dataset.roadbookPrimaryColor || '#FF9800', (color) => {
+    // Get brand primary color as default
+    const brandPrimary = getComputedStyle(document.documentElement).getPropertyValue('--brand-primary').trim() || '#84cc16';
+    
+    this.createColorInput('Primaire Kleur (Titels)', component.dataset.roadbookPrimaryColor || brandPrimary, (color) => {
         component.dataset.roadbookPrimaryColor = color;
         component.querySelectorAll('.roadbook-section-title').forEach(el => el.style.color = color);
         const nav = component.querySelector('.roadbook-nav');
         if (nav) nav.style.borderBottomColor = color;
+        
+        // Update intro section
+        const subtitle = component.querySelector('.roadbook-intro-subtitle');
+        if (subtitle) subtitle.style.color = color;
+        const underline = component.querySelector('.roadbook-intro-underline');
+        if (underline) underline.style.background = color;
+        component.querySelectorAll('.roadbook-stat-icon').forEach(icon => {
+            icon.style.background = color;
+        });
     });
     
     this.createColorInput('Secundaire Kleur (Buttons)', component.dataset.roadbookSecondaryColor || '#667eea', (color) => {

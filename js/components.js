@@ -7139,6 +7139,39 @@ ComponentFactory.createRoadbook = function(options = {}) {
         if (timeline) ComponentFactory.setupRoadbookTimelineAnimation(timeline);
     }, 100);
     
+    // Apply roadbook colors on load
+    setTimeout(() => {
+        // Get brand primary color if no custom color is set
+        const brandPrimary = getComputedStyle(document.documentElement).getPropertyValue('--brand-primary').trim() || '#84cc16';
+        const primaryColor = section.dataset.roadbookPrimaryColor || brandPrimary;
+        
+        // Set default if not already set
+        if (!section.dataset.roadbookPrimaryColor) {
+            section.dataset.roadbookPrimaryColor = brandPrimary;
+        }
+        
+        // Apply primary color
+        section.querySelectorAll('.roadbook-section-title').forEach(el => el.style.color = primaryColor);
+        const nav = section.querySelector('.roadbook-nav');
+        if (nav) nav.style.borderBottomColor = primaryColor;
+        const subtitle = section.querySelector('.roadbook-intro-subtitle');
+        if (subtitle) subtitle.style.color = primaryColor;
+        const underline = section.querySelector('.roadbook-intro-underline');
+        if (underline) underline.style.background = primaryColor;
+        section.querySelectorAll('.roadbook-stat-icon').forEach(icon => {
+            icon.style.background = primaryColor;
+        });
+        
+        // Apply secondary color
+        if (section.dataset.roadbookSecondaryColor) {
+            const color = section.dataset.roadbookSecondaryColor;
+            section.querySelectorAll('.roadbook-card-more').forEach(btn => {
+                btn.style.backgroundColor = color;
+                btn.style.borderColor = color;
+            });
+        }
+    }, 200);
+    
     this.makeSelectable(section);
     return section;
 };
