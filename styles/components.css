@@ -4475,6 +4475,8 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     align-items: center;
     justify-content: center;
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .roadbook-timeline-car img {
@@ -4570,7 +4572,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 .roadbook-day-photo {
     position: relative;
     overflow: hidden;
-    min-height: 400px;
+    height: 100%;
 }
 
 .roadbook-day-photo::before {
@@ -4689,14 +4691,15 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .roadbook-hotel-bar {
-    background: #374151;
+    background: #4b5563;
     color: white;
     padding: 16px 24px;
     border-radius: 8px;
-    margin-top: 24px;
     display: flex;
     align-items: center;
     gap: 12px;
+    margin-top: 24px;
+    max-width: fit-content;
 }
 
 .roadbook-hotel-bar i {
