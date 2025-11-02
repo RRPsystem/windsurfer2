@@ -4403,8 +4403,10 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 
 .roadbook-timeline-header {
     text-align: center;
-    padding: 60px 20px 60px;
+    padding: 60px 20px 150px;
     color: white;
+    position: relative;
+    z-index: 1;
 }
 
 .roadbook-timeline-header h2 {
@@ -4428,8 +4430,8 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 .roadbook-timeline-road {
     position: relative;
     width: 100%;
-    margin: 0;
-    padding: 0 0 100px 0;
+    margin: -100px 0 0 0;
+    padding: 100px 0 100px 0;
     background: #f9fafb;
 }
 
