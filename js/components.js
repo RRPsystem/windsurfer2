@@ -7236,6 +7236,9 @@ ComponentFactory.createTimelineCards = function(data) {
         firstHotel: data.hotels?.[0]
     });
     
+    // Get brand primary color
+    const brandPrimary = getComputedStyle(document.documentElement).getPropertyValue('--brand-primary').trim() || '#84cc16';
+    
     const cards = [];
     
     // Add transport cards
@@ -7249,13 +7252,11 @@ ComponentFactory.createTimelineCards = function(data) {
                         <i class="fas fa-${t.type === 'train' ? 'train' : t.type === 'bus' ? 'bus' : 'plane'}"></i>
                     </div>
                     <div class="roadbook-card-content">
-                        <div style="margin-bottom: 16px;">
-                            <div class="roadbook-card-detail" style="margin-bottom: 8px;">
-                                <i class="fas fa-plane" style="color: var(--brand-primary, #84cc16); font-size: 1.2rem;"></i>
-                            </div>
-                            <div class="editable" contenteditable="true" style="color: var(--brand-primary, #84cc16); font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <div class="roadbook-card-detail" style="margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
+                            <i class="fas fa-plane" style="color: ${brandPrimary}; font-size: 1.2rem; flex-shrink: 0;"></i>
+                            <span class="editable" contenteditable="true" style="color: ${brandPrimary}; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">
                                 VERTREK: ${t.date || '25 JAN, 2018'}
-                            </div>
+                            </span>
                         </div>
                         
                         ${t.company ? `
