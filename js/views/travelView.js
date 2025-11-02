@@ -1444,15 +1444,27 @@
       }));
       
       // Convert hotels
-      const hotels = (tcData.hotels || []).map(h => {
-        const hotelData = h.hotelData || h;
+      const hotels = (tcData.hotels || tcData.accommodations || []).map(h => {
+        const hotelData = h.hotel || h;
+        
+        // Extract all images
+        let images = [];
+        if (hotelData.images && Array.isArray(hotelData.images)) {
+          images = hotelData.images.map(img => img.url || img);
+        } else if (hotelData.image) {
+          images = [hotelData.image];
+        }
+        
         return {
           name: hotelData.name || hotelData.hotelName || 'Hotel',
           location: hotelData.destination?.name || hotelData.address || 'Locatie',
           checkIn: h.checkInDate || h.checkIn || '',
           checkOut: h.checkOutDate || h.checkOut || '',
           nights: h.nights || 0,
-          image: hotelData.images?.[0]?.url || hotelData.images?.[0] || hotelData.image || ''
+          image: images[0] || '',
+          images: images,
+          description: hotelData.description || hotelData.summary || '',
+          fullDescription: hotelData.fullDescription || hotelData.longDescription || hotelData.description || ''
         };
       });
       
