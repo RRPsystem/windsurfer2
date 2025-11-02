@@ -1444,8 +1444,16 @@
       }));
       
       // Convert hotels
-      const hotels = (tcData.hotels || tcData.accommodations || []).map(h => {
+      const hotels = (tcData.hotels || tcData.accommodations || []).map((h, idx) => {
         const hotelData = h.hotel || h;
+        
+        console.log(`[TravelView] Hotel ${idx}:`, {
+          name: hotelData.name,
+          checkIn: h.checkInDate || h.checkIn,
+          imageUrls: hotelData.imageUrls?.length,
+          images: hotelData.images?.length,
+          description: hotelData.description?.substring(0, 50)
+        });
         
         // Extract all images - check multiple possible fields
         let images = [];
