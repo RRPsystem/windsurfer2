@@ -5733,11 +5733,34 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
         });
     }
     
-    // Hero Media Selector
+    // Hero Background Type Selector
     const heroLabel = document.createElement('label');
     heroLabel.textContent = '🎬 Hero Achtergrond';
     heroLabel.style.cssText = 'display: block; font-weight: 700; margin: 16px 0 12px; color: #111827; font-size: 15px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;';
     this.panel.appendChild(heroLabel);
+    
+    // Background type selector
+    const bgTypeWrapper = document.createElement('div');
+    bgTypeWrapper.style.cssText = 'margin-bottom: 16px;';
+    
+    const bgTypeLabel = document.createElement('label');
+    bgTypeLabel.textContent = 'Type Achtergrond';
+    bgTypeLabel.style.cssText = 'display: block; font-weight: 600; margin-bottom: 8px; color: #374151; font-size: 14px;';
+    
+    const bgTypeSelect = document.createElement('select');
+    bgTypeSelect.style.cssText = 'width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: white;';
+    bgTypeSelect.innerHTML = `
+        <option value="media">Foto/Video</option>
+        <option value="color">Solid Kleur</option>
+        <option value="gradient">Gradient</option>
+    `;
+    bgTypeSelect.value = component.dataset.heroBgType || 'media';
+    
+    bgTypeWrapper.appendChild(bgTypeLabel);
+    bgTypeWrapper.appendChild(bgTypeSelect);
+    this.panel.appendChild(bgTypeWrapper);
+    
+    // Media button (shown when type = media)
     const mediaBtn = this.createButton('🎬 Media Kiezen (Foto/Video)', async () => {
         if (!window.MediaPicker) {
             alert('Media Picker niet beschikbaar');
@@ -5812,7 +5835,114 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
     mediaBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
     mediaBtn.style.color = '#fff';
     mediaBtn.style.fontWeight = '700';
+    mediaBtn.style.display = bgTypeSelect.value === 'media' ? 'block' : 'none';
     this.panel.appendChild(mediaBtn);
+    
+    // Solid color picker (shown when type = color)
+    const colorWrapper = document.createElement('div');
+    colorWrapper.style.cssText = 'margin-bottom: 16px;';
+    colorWrapper.style.display = bgTypeSelect.value === 'color' ? 'block' : 'none';
+    
+    const colorLabel = document.createElement('label');
+    colorLabel.textContent = 'Achtergrond Kleur';
+    colorLabel.style.cssText = 'display: block; font-weight: 600; margin-bottom: 8px; color: #374151; font-size: 14px;';
+    
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.value = component.dataset.heroBgColor || '#667eea';
+    colorInput.style.cssText = 'width: 100%; height: 50px; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer;';
+    colorInput.addEventListener('change', (e) => {
+        const hero = component.querySelector('.roadbook-hero');
+        if (hero) {
+            component.dataset.heroBgColor = e.target.value;
+            hero.style.background = e.target.value;
+            // Remove media
+            const video = hero.querySelector('video');
+            const slider = hero.querySelector('.hero-slider');
+            if (video) video.remove();
+            if (slider) slider.remove();
+        }
+    });
+    
+    colorWrapper.appendChild(colorLabel);
+    colorWrapper.appendChild(colorInput);
+    this.panel.appendChild(colorWrapper);
+    
+    // Gradient controls (shown when type = gradient)
+    const gradientWrapper = document.createElement('div');
+    gradientWrapper.style.cssText = 'margin-bottom: 16px;';
+    gradientWrapper.style.display = bgTypeSelect.value === 'gradient' ? 'block' : 'none';
+    
+    const gradientLabel = document.createElement('label');
+    gradientLabel.textContent = 'Gradient Kleuren';
+    gradientLabel.style.cssText = 'display: block; font-weight: 600; margin-bottom: 8px; color: #374151; font-size: 14px;';
+    
+    const gradientColors = document.createElement('div');
+    gradientColors.style.cssText = 'display: flex; gap: 8px; margin-bottom: 8px;';
+    
+    const color1Input = document.createElement('input');
+    color1Input.type = 'color';
+    color1Input.value = component.dataset.heroGradientColor1 || '#667eea';
+    color1Input.style.cssText = 'flex: 1; height: 50px; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer;';
+    
+    const color2Input = document.createElement('input');
+    color2Input.type = 'color';
+    color2Input.value = component.dataset.heroGradientColor2 || '#764ba2';
+    color2Input.style.cssText = 'flex: 1; height: 50px; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer;';
+    
+    const updateGradient = () => {
+        const hero = component.querySelector('.roadbook-hero');
+        if (hero) {
+            component.dataset.heroGradientColor1 = color1Input.value;
+            component.dataset.heroGradientColor2 = color2Input.value;
+            hero.style.background = `linear-gradient(135deg, ${color1Input.value} 0%, ${color2Input.value} 100%)`;
+            // Remove media
+            const video = hero.querySelector('video');
+            const slider = hero.querySelector('.hero-slider');
+            if (video) video.remove();
+            if (slider) slider.remove();
+        }
+    };
+    
+    color1Input.addEventListener('change', updateGradient);
+    color2Input.addEventListener('change', updateGradient);
+    
+    gradientColors.appendChild(color1Input);
+    gradientColors.appendChild(color2Input);
+    gradientWrapper.appendChild(gradientLabel);
+    gradientWrapper.appendChild(gradientColors);
+    this.panel.appendChild(gradientWrapper);
+    
+    // Background type change handler
+    bgTypeSelect.addEventListener('change', (e) => {
+        const type = e.target.value;
+        component.dataset.heroBgType = type;
+        
+        // Show/hide controls
+        mediaBtn.style.display = type === 'media' ? 'block' : 'none';
+        colorWrapper.style.display = type === 'color' ? 'block' : 'none';
+        gradientWrapper.style.display = type === 'gradient' ? 'block' : 'none';
+        
+        // Apply background
+        const hero = component.querySelector('.roadbook-hero');
+        if (!hero) return;
+        
+        if (type === 'color') {
+            hero.style.background = component.dataset.heroBgColor || '#667eea';
+            const video = hero.querySelector('video');
+            const slider = hero.querySelector('.hero-slider');
+            if (video) video.remove();
+            if (slider) slider.remove();
+        } else if (type === 'gradient') {
+            const c1 = component.dataset.heroGradientColor1 || '#667eea';
+            const c2 = component.dataset.heroGradientColor2 || '#764ba2';
+            hero.style.background = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
+            const video = hero.querySelector('video');
+            const slider = hero.querySelector('.hero-slider');
+            if (video) video.remove();
+            if (slider) slider.remove();
+        }
+    });
     
     // Hero height control
     const heightLabel = document.createElement('label');
