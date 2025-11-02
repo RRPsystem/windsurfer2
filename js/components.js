@@ -82,7 +82,9 @@ class ComponentFactory {
             'travel-intro': this.createTravelIntro,
             'animated-route-map': this.createAnimatedRouteMap,
             'travel-filter-bar': this.createTravelFilterBar,
-            'roadbook': this.createRoadbook
+            'roadbook': this.createRoadbook,
+            'roadbook-v1': this.createRoadbookV1,
+            'roadbook-animated-timeline': this.createRoadbookAnimatedTimeline
         };
 
         
@@ -7696,6 +7698,152 @@ ComponentFactory.setupRoadbookTimelineAnimation = function(container) {
     
     window.addEventListener('scroll', updateIconPosition);
     updateIconPosition();
+};
+
+// Create Roadbook Animated Timeline
+ComponentFactory.createRoadbookAnimatedTimeline = function(options = {}) {
+    const section = document.createElement('section');
+    section.className = 'wb-component roadbook-animated-timeline';
+    section.setAttribute('data-component', 'roadbook-animated-timeline');
+    section.id = this.generateId('roadbook_animated_timeline');
+    
+    const toolbar = this.createToolbar();
+    section.appendChild(toolbar);
+    this.addTypeBadge(section);
+    
+    // Get brand primary color
+    const brandPrimary = getComputedStyle(document.documentElement).getPropertyValue('--brand-primary').trim() || '#84cc16';
+    
+    // Sample data
+    const days = options.days || [
+        {
+            day: 1,
+            location: 'Penguin Beach',
+            subtitle: 'Province / Penguin City',
+            distance: '0 km vanaf start',
+            description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sollicitudin purus sit amet elementum blandit.',
+            image: 'https://images.unsplash.com/photo-1551244072-5d12893278ab?w=800',
+            highlights: [
+                { icon: 'fa-map-marker-alt', title: 'Tourist Attraction:', text: 'Sunrise Point of Riverview' },
+                { icon: 'fa-shopping-bag', title: 'Best Buy Of This Place:', text: 'Handmade Wooden Accessories' },
+                { icon: 'fa-utensils', title: 'Food Speciality:', text: 'Sushie' },
+                { icon: 'fa-hiking', title: 'Activity:', text: 'Two Hours Boating Ride' }
+            ],
+            hotel: 'TOUR DELIGHT: Dinner with Ice Cream Treat'
+        },
+        {
+            day: 2,
+            location: 'Lake City',
+            subtitle: 'Province / Lake City',
+            distance: '45 km vanaf Penguin Beach',
+            description: 'Vivamus congue suscipit ius nec. Fusce. Nam auctor velit nec nisi molestie, ut maximus bibendum amet.',
+            image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
+            highlights: [
+                { icon: 'fa-map-marker-alt', title: 'Tourist Attraction:', text: 'Sunrise Point of Riverview' },
+                { icon: 'fa-shopping-bag', title: 'Best Buy Of This Place:', text: 'Handmade Wooden Accessories' },
+                { icon: 'fa-utensils', title: 'Food Speciality:', text: 'Sushie' },
+                { icon: 'fa-hiking', title: 'Activity:', text: 'Two Hours Boating Ride' }
+            ],
+            hotel: 'TOUR DELIGHT: Dinner with Ice Cream Treat'
+        },
+        {
+            day: 3,
+            location: 'Blue Sky City',
+            subtitle: 'Province / Blue Sky',
+            distance: '78 km vanaf Lake City',
+            description: 'Nam dolor nunc, consequat nec sollicitudin vel, non modo vitae ex. Vestibulum molestie massa latis in auctor.',
+            image: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800',
+            highlights: [
+                { icon: 'fa-map-marker-alt', title: 'Tourist Attraction:', text: 'Sunrise Point of Riverview' },
+                { icon: 'fa-shopping-bag', title: 'Best Buy Of This Place:', text: 'Handmade Wooden Accessories' },
+                { icon: 'fa-utensils', title: 'Food Speciality:', text: 'Sushie' },
+                { icon: 'fa-hiking', title: 'Activity:', text: 'Two Hours Boating Ride' }
+            ],
+            hotel: 'TOUR DELIGHT: Dinner with Ice Cream Treat'
+        }
+    ];
+    
+    section.innerHTML = `
+        <!-- Header -->
+        <div class="roadbook-timeline-header">
+            <h2 class="editable" contenteditable="true">DE REIS <strong>DAG BIJ DAG</strong></h2>
+            <p class="editable" contenteditable="true">Highlights Of Your Journey</p>
+        </div>
+        
+        <!-- Timeline Road -->
+        <div class="roadbook-timeline-road">
+            <!-- Start Badge -->
+            <div class="roadbook-start-badge">START</div>
+            
+            <!-- Vertical Road Line -->
+            <div class="roadbook-road-line"></div>
+            
+            <!-- Animated Car -->
+            <div class="roadbook-timeline-car">
+                <i class="fas fa-car"></i>
+            </div>
+            
+            <!-- Days -->
+            ${days.map((day, index) => `
+                <div class="roadbook-day-item" data-day="${day.day}">
+                    <!-- Day Badge -->
+                    <div class="roadbook-day-badge">Day ${day.day}</div>
+                    
+                    <!-- Day Content -->
+                    <div class="roadbook-day-content">
+                        <!-- Photo -->
+                        <div class="roadbook-day-photo">
+                            <img src="${day.image}" alt="${day.location}">
+                        </div>
+                        
+                        <!-- Info -->
+                        <div class="roadbook-day-info">
+                            <h3 class="roadbook-day-location editable" contenteditable="true">${day.location}</h3>
+                            <p class="roadbook-day-subtitle editable" contenteditable="true">${day.subtitle}</p>
+                            <p class="roadbook-day-distance editable" contenteditable="true">${day.distance}</p>
+                            
+                            <p class="roadbook-day-description editable" contenteditable="true">${day.description}</p>
+                            
+                            <a href="#" class="roadbook-read-more" onclick="event.preventDefault(); alert('Open slide panel met meer info');">
+                                Lees verder <i class="fas fa-arrow-right"></i>
+                            </a>
+                            
+                            <!-- Highlights -->
+                            <div class="roadbook-day-highlights">
+                                ${day.highlights.map(h => `
+                                    <div class="roadbook-highlight-item">
+                                        <div class="roadbook-highlight-icon">
+                                            <i class="fas ${h.icon}"></i>
+                                        </div>
+                                        <div class="roadbook-highlight-content">
+                                            <h4 class="editable" contenteditable="true">${h.title}</h4>
+                                            <p class="editable" contenteditable="true">${h.text}</p>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            
+                            <!-- Hotel Bar -->
+                            <div class="roadbook-hotel-bar">
+                                <i class="fas fa-star"></i>
+                                <span class="editable" contenteditable="true"><strong>${day.hotel}</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    // Initialize animation after render
+    setTimeout(() => {
+        if (window.RoadbookTimelineAnimation) {
+            new window.RoadbookTimelineAnimation(section);
+        }
+    }, 100);
+    
+    this.makeSelectable(section);
+    return section;
 };
 
 // Export ComponentFactory globally

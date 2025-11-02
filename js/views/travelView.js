@@ -1520,7 +1520,8 @@
       if (!duration && tcData.departureDate && tcData.returnDate) {
         const start = new Date(tcData.departureDate);
         const end = new Date(tcData.returnDate);
-        duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        // Add 1 to include both start and end day (12-19 juni = 8 dagen)
+        duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
       }
       
       // Fallback to itinerary length
