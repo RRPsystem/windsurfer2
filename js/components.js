@@ -7289,6 +7289,12 @@ ComponentFactory.createRoadbook = function(options = {}) {
 
 // Create Timeline Cards (Transport + Hotels in chronological order)
 ComponentFactory.createTimelineCards = function(data) {
+    console.log('[createTimelineCards] Input data:', {
+        transports: data.transports?.length,
+        hotels: data.hotels?.length,
+        firstHotel: data.hotels?.[0]
+    });
+    
     const cards = [];
     
     // Add transport cards
@@ -7338,6 +7344,13 @@ ComponentFactory.createTimelineCards = function(data) {
     // Add hotel cards
     (data.hotels || []).forEach((h, i) => {
         const hotelImages = h.images || [h.image] || ['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600'];
+        console.log(`[createTimelineCards] Hotel ${i}:`, {
+            name: h.name,
+            checkIn: h.checkIn,
+            images: hotelImages.length,
+            description: h.description?.substring(0, 30)
+        });
+        
         cards.push({
             type: 'hotel',
             date: h.checkIn,
@@ -7391,6 +7404,8 @@ ComponentFactory.createTimelineCards = function(data) {
     });
     
     // Sort by date (chronological order)
+    console.log('[createTimelineCards] Before sort:', cards.map(c => ({ type: c.type, date: c.date })));
+    
     cards.sort((a, b) => {
         // Parse dates more reliably
         const parseDate = (dateStr) => {
@@ -7406,6 +7421,8 @@ ComponentFactory.createTimelineCards = function(data) {
         const dateB = parseDate(b.date);
         return dateA - dateB;
     });
+    
+    console.log('[createTimelineCards] After sort:', cards.map(c => ({ type: c.type, date: c.date })));
     
     return cards.map(c => c.html);
 };
