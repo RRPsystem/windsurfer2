@@ -1433,29 +1433,45 @@
       
       console.log('[TravelView] Final departure date:', departureDate);
       
-      // Convert transports
+      // Convert transports - use ALL available data
       const transports = (tcData.transports || []).map(t => ({
-        from: t.departureCity || t.from || t.origin || 'Vertrek',
-        to: t.arrivalCity || t.to || t.target || 'Aankomst',
+        from: t.originCode || t.departureCity || t.from || 'Vertrek',
+        to: t.targetCode || t.arrivalCity || t.to || 'Aankomst',
+        fromCity: t.originDestinationCode || t.originCode || '',
+        toCity: t.targetDestinationCode || t.targetCode || '',
         date: t.departureDate || t.date || '',
-        time: t.departureTime || t.time || '',
-        flightNumber: t.flightNumber || t.transportNumber || '',
-        type: t.type || t.transportType || 'flight'
+        departureTime: t.departureTime || t.time || '',
+        arrivalTime: t.arrivalTime || '',
+        arrivalDate: t.arrivalDate || '',
+        flightNumber: t.transportNumber || t.flightNumber || '',
+        company: t.company || '',
+        duration: t.duration || '',
+        baggageInfo: t.baggageInfo || '',
+        type: t.transportType?.toLowerCase() || t.type || 'flight'
       }));
       
-      // Convert hotels - use SAME structure as travel cards
+      // Convert hotels - extract from hotelData nested object
       const hotels = (tcData.hotels || tcData.accommodations || []).map((h, idx) => {
-        // Direct access - same as travel cards
+        const hotelData = h.hotelData || h.hotel || h;
+        
+        // Extract image URLs from images array
+        const images = hotelData.images?.map(img => img.url || img) || [];
+        
         return {
-          name: h.hotelName || h.name || 'Hotel',
-          location: h.destination?.name || h.city || h.address || 'Locatie',
+          name: hotelData.name || h.hotelName || 'Hotel',
+          location: hotelData.destination?.name || hotelData.address || 'Locatie',
           checkIn: h.checkInDate || h.checkIn || '',
           checkOut: h.checkOutDate || h.checkOut || '',
           nights: h.nights || 0,
-          image: h.images?.[0] || h.image || '',
-          images: h.images || [],
-          description: h.description || h.summary || '',
-          fullDescription: h.fullDescription || h.longDescription || h.description || ''
+          roomType: h.roomTypes || '',
+          mealPlan: h.mealPlan || '',
+          image: images[0] || '',
+          images: images,
+          description: hotelData.description || '',
+          fullDescription: hotelData.description || '',
+          address: hotelData.address || '',
+          phone: hotelData.phoneNumber || '',
+          chain: hotelData.chain || ''
         };
       });
       
