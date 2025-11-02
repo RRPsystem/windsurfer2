@@ -41,26 +41,11 @@ class RoadbookTimelineAnimation {
         if (this.isAnimating) return;
         
         requestAnimationFrame(() => {
-            this.checkCarVisibility();
             this.updateActiveDays();
             this.isAnimating = false;
         });
         
         this.isAnimating = true;
-    }
-    
-    checkCarVisibility() {
-        if (!this.car || !this.container) return;
-        
-        const containerRect = this.container.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        
-        // Hide car if timeline is not in viewport
-        if (containerRect.bottom < 0 || containerRect.top > viewportHeight) {
-            this.car.style.opacity = '0';
-        } else {
-            this.car.style.opacity = '1';
-        }
     }
     
     updateCarPosition() {
