@@ -7362,6 +7362,9 @@ ComponentFactory.createTimelineCards = function(data) {
                     </div>
                     <div class="roadbook-card-content">
                         <h3 class="editable" contenteditable="true">${h.name || 'Hotel'}</h3>
+                        ${h.description ? `
+                            <p class="roadbook-card-description editable" contenteditable="true">${h.description}</p>
+                        ` : ''}
                         <div class="roadbook-card-details">
                             <div class="roadbook-card-detail">
                                 <i class="fas fa-map-marker-alt"></i>
@@ -7389,8 +7392,18 @@ ComponentFactory.createTimelineCards = function(data) {
     
     // Sort by date (chronological order)
     cards.sort((a, b) => {
-        const dateA = new Date(a.date || '2099-12-31');
-        const dateB = new Date(b.date || '2099-12-31');
+        // Parse dates more reliably
+        const parseDate = (dateStr) => {
+            if (!dateStr) return new Date('2099-12-31');
+            // Handle YYYY-MM-DD format
+            if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+                return new Date(dateStr);
+            }
+            return new Date(dateStr);
+        };
+        
+        const dateA = parseDate(a.date);
+        const dateB = parseDate(b.date);
         return dateA - dateB;
     });
     

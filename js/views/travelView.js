@@ -1508,8 +1508,20 @@
       // Extract subtitle
       const subtitle = tcData.subtitle || tcData.tagline || tcData.slogan || '';
       
-      // Extract duration
-      const duration = tcData.duration || tcData.numberOfDays || itinerary.length || 0;
+      // Extract duration - calculate from dates if not provided
+      let duration = tcData.duration || tcData.numberOfDays || 0;
+      
+      // If no duration, calculate from departure and return dates
+      if (!duration && tcData.departureDate && tcData.returnDate) {
+        const start = new Date(tcData.departureDate);
+        const end = new Date(tcData.returnDate);
+        duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+      }
+      
+      // Fallback to itinerary length
+      if (!duration) {
+        duration = itinerary.length || 0;
+      }
       
       console.log('[TravelView] Converted:', {
         title,
