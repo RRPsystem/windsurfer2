@@ -4471,12 +4471,20 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     z-index: 10;
     transition: top 0.3s ease;
     filter: drop-shadow(0 6px 20px rgba(0,0,0,0.3));
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .roadbook-timeline-car img {
     width: 100%;
     height: 100%;
     object-fit: contain;
+}
+
+.roadbook-timeline-car i {
+    font-size: 40px;
+    color: #ef4444;
 }
 
 .roadbook-start-badge {
@@ -4538,22 +4546,22 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     align-items: center;
 }
 
-.roadbook-day-item:nth-child(odd) .roadbook-day-photo {
+.roadbook-day-item:nth-of-type(odd) .roadbook-day-photo {
     grid-column: 1;
     grid-row: 1;
 }
 
-.roadbook-day-item:nth-child(odd) .roadbook-day-info {
+.roadbook-day-item:nth-of-type(odd) .roadbook-day-info {
     grid-column: 2;
     grid-row: 1;
 }
 
-.roadbook-day-item:nth-child(even) .roadbook-day-photo {
+.roadbook-day-item:nth-of-type(even) .roadbook-day-photo {
     grid-column: 2;
     grid-row: 1;
 }
 
-.roadbook-day-item:nth-child(even) .roadbook-day-info {
+.roadbook-day-item:nth-of-type(even) .roadbook-day-info {
     grid-column: 1;
     grid-row: 1;
 }
@@ -4706,14 +4714,14 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         gap: 30px;
     }
     
-    .roadbook-day-item:nth-child(odd) .roadbook-day-photo,
-    .roadbook-day-item:nth-child(even) .roadbook-day-photo {
+    .roadbook-day-item:nth-of-type(odd) .roadbook-day-photo,
+    .roadbook-day-item:nth-of-type(even) .roadbook-day-photo {
         grid-column: 1;
         grid-row: 1;
     }
     
-    .roadbook-day-item:nth-child(odd) .roadbook-day-info,
-    .roadbook-day-item:nth-child(even) .roadbook-day-info {
+    .roadbook-day-item:nth-of-type(odd) .roadbook-day-info,
+    .roadbook-day-item:nth-of-type(even) .roadbook-day-info {
         grid-column: 1;
         grid-row: 2;
     }
