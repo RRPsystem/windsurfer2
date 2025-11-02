@@ -19,17 +19,14 @@ class RoadbookTimelineAnimation {
         
         if (!this.car || this.dayItems.length === 0) return;
         
-        // Position car at first day initially
+        // Position car at START badge initially
         setTimeout(() => {
-            const firstDay = this.dayItems[0];
-            if (firstDay) {
-                const badge = firstDay.querySelector('.roadbook-day-badge');
-                if (badge) {
-                    const badgeRect = badge.getBoundingClientRect();
-                    const scrollTop = window.pageYOffset;
-                    const carTop = badgeRect.top + scrollTop;
-                    this.car.style.top = `${carTop}px`;
-                }
+            const startBadge = this.container.querySelector('.roadbook-start-badge');
+            if (startBadge) {
+                const badgeRect = startBadge.getBoundingClientRect();
+                const scrollTop = window.pageYOffset;
+                const carTop = badgeRect.top + scrollTop + 40; // Position below START
+                this.car.style.top = `${carTop}px`;
             }
         }, 100);
         

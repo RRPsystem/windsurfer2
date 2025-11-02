@@ -6961,8 +6961,9 @@ ComponentFactory.createRoadbook = function(options = {}) {
     // Store data on component
     section._roadbookData = data;
     
-    // Get brand logo from localStorage
+    // Get brand logo and colors from localStorage
     let brandLogo = 'https://via.placeholder.com/120x40/667eea/ffffff?text=Logo';
+    let brandPrimary = '#99cc33';
     try {
         const brandSettings = localStorage.getItem('brandSettings');
         if (brandSettings) {
@@ -6970,9 +6971,14 @@ ComponentFactory.createRoadbook = function(options = {}) {
             if (brand.logo) {
                 brandLogo = brand.logo;
             }
+            if (brand.primaryColor) {
+                brandPrimary = brand.primaryColor;
+                // Apply to CSS variable
+                document.documentElement.style.setProperty('--brand-primary', brandPrimary);
+            }
         }
     } catch (e) {
-        console.warn('[Roadbook] Could not load brand logo:', e);
+        console.warn('[Roadbook] Could not load brand settings:', e);
     }
     
     section.innerHTML += `
