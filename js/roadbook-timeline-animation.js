@@ -81,18 +81,17 @@ class RoadbookTimelineAnimation {
     }
     
     updateActiveDays() {
-        const scrollTop = window.pageYOffset;
-        const viewportHeight = window.innerHeight;
-        const triggerPoint = scrollTop + (viewportHeight * 0.6);
+        const viewportMiddle = window.innerHeight / 2;
         
         this.dayItems.forEach(day => {
             const badge = day.querySelector('.roadbook-day-badge');
             if (!badge) return;
             
-            const badgeTop = badge.getBoundingClientRect().top + scrollTop;
+            const rect = badge.getBoundingClientRect();
+            const badgeMiddle = rect.top + rect.height / 2;
             
-            // Activate day when it reaches trigger point
-            if (badgeTop <= triggerPoint) {
+            // Check if badge is near viewport middle (where car is)
+            if (Math.abs(badgeMiddle - viewportMiddle) < 100) {
                 day.classList.add('active');
             } else {
                 day.classList.remove('active');

@@ -6971,11 +6971,15 @@ ComponentFactory.createRoadbook = function(options = {}) {
             if (brand.logo) {
                 brandLogo = brand.logo;
             }
-            if (brand.primaryColor) {
+            // Check both old and new format
+            if (brand.colors && brand.colors.primary) {
+                brandPrimary = brand.colors.primary;
+            } else if (brand.primaryColor) {
                 brandPrimary = brand.primaryColor;
-                // Apply to CSS variable
-                document.documentElement.style.setProperty('--brand-primary', brandPrimary);
             }
+            // Apply to CSS variable
+            document.documentElement.style.setProperty('--brand-primary', brandPrimary);
+            console.log('[Roadbook] Applied brand color:', brandPrimary);
         }
     } catch (e) {
         console.warn('[Roadbook] Could not load brand settings:', e);
