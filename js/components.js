@@ -7168,7 +7168,24 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         </div>
                         
                         <!-- Days -->
-                        ${data.itinerary.map((day, i) => `
+                        ${data.itinerary.map((day, i) => {
+                            // Check if this is first occurrence of this location
+                            const location = day.title || day.destination || 'Bestemming';
+                            const prevDay = i > 0 ? data.itinerary[i - 1] : null;
+                            const prevLocation = prevDay ? (prevDay.title || prevDay.destination || '') : '';
+                            const isNewLocation = location !== prevLocation;
+                            
+                            // Find how many consecutive days at this location
+                            let dayCount = 1;
+                            for (let j = i + 1; j < data.itinerary.length; j++) {
+                                const nextLoc = data.itinerary[j].title || data.itinerary[j].destination || '';
+                                if (nextLoc === location) dayCount++;
+                                else break;
+                            }
+                            
+                            const dayRange = dayCount > 1 ? `Dag ${i + 1}-${i + dayCount}` : `Dag ${i + 1}`;
+                            
+                            return `
                             <div class="roadbook-day-item" data-day="${i + 1}">
                                 <!-- Day Badge -->
                                 <div class="roadbook-day-badge">Dag ${i + 1}</div>
@@ -7182,7 +7199,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                     
                                     <!-- Info -->
                                     <div class="roadbook-day-info">
-                                        <h3 class="roadbook-day-location editable" contenteditable="true">${day.title || day.destination || 'Bestemming'}</h3>
+                                        <h3 class="roadbook-day-location editable" contenteditable="true">${isNewLocation ? dayRange + ': ' + location : 'Verblijf in ' + location}</h3>
                                         <p class="roadbook-day-subtitle editable" contenteditable="true">${day.subtitle || day.location || 'Provincie / Stad'}</p>
                                         ${day.distance ? `<p class="roadbook-day-distance editable" contenteditable="true">${day.distance}</p>` : ''}
                                         
@@ -7220,7 +7237,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                     </div>
                                 </div>
                             </div>
-                        `).join('')}
+                        `;
+                        }).join('')}
                     </div>
                 </div>
             ` : ''}
