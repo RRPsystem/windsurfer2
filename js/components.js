@@ -7009,6 +7009,53 @@ ComponentFactory.createRoadbook = function(options = {}) {
                 </div>
             </nav>
             
+            <!-- Intro Section -->
+            <div class="roadbook-intro">
+                <div class="roadbook-intro-content">
+                    <div class="roadbook-intro-left">
+                        <h1 class="roadbook-intro-title">${data.title || 'Jouw Reis'}</h1>
+                        <p class="roadbook-intro-subtitle">Deepest Place in The Ocean</p>
+                    </div>
+                    <div class="roadbook-intro-right">
+                        <p class="roadbook-intro-text">
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed malesuada quam sit amet maximus sit hendrerit. Mauris volutpat, nunc ut ultricies auctor, nisl turpis ultricies quam, eget fermentum nibh sapien vel mauris. Sed in consequat nisl. Mauris in semper quam, vivamus congue ligula eget mi luctus, eget molestie lorem commodo. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed malesuada quam sit amet maximus sit hendrerit. Mauris volutpat, nunc ut ultricies auctor.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="roadbook-intro-divider"></div>
+                
+                <div class="roadbook-intro-stats">
+                    <div class="roadbook-stat">
+                        <div class="roadbook-stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="roadbook-stat-content">
+                            <div class="roadbook-stat-label">Aankomst Bestemming</div>
+                            <div class="roadbook-stat-value">${new Date(data.departureDate).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                        </div>
+                    </div>
+                    <div class="roadbook-stat">
+                        <div class="roadbook-stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="roadbook-stat-content">
+                            <div class="roadbook-stat-label">Duur</div>
+                            <div class="roadbook-stat-value">${data.itinerary?.length || 0} Dagen</div>
+                        </div>
+                    </div>
+                    <div class="roadbook-stat">
+                        <div class="roadbook-stat-icon">
+                            <i class="fas fa-sun"></i>
+                        </div>
+                        <div class="roadbook-stat-content">
+                            <div class="roadbook-stat-label">Weerstype</div>
+                            <div class="roadbook-stat-value">Zomer - 95° to 100.4°</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
         <div class="roadbook-wrapper">
             <!-- Transport Cards -->
             ${data.transports.length > 0 ? `
