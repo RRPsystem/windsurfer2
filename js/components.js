@@ -6959,6 +6959,20 @@ ComponentFactory.createRoadbook = function(options = {}) {
     // Store data on component
     section._roadbookData = data;
     
+    // Get brand logo from localStorage
+    let brandLogo = 'https://via.placeholder.com/120x40/667eea/ffffff?text=Logo';
+    try {
+        const brandSettings = localStorage.getItem('brandSettings');
+        if (brandSettings) {
+            const brand = JSON.parse(brandSettings);
+            if (brand.logo) {
+                brandLogo = brand.logo;
+            }
+        }
+    } catch (e) {
+        console.warn('[Roadbook] Could not load brand logo:', e);
+    }
+    
     section.innerHTML += `
             <!-- Countdown Hero (fullwidth) -->
             <div class="roadbook-hero">
@@ -6984,7 +6998,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
             <nav class="roadbook-nav">
                 <div class="roadbook-nav-content">
                     <div class="roadbook-nav-logo">
-                        <img src="https://via.placeholder.com/120x40/667eea/ffffff?text=Logo" alt="Logo" />
+                        <img src="${brandLogo}" alt="Logo" />
                     </div>
                     <ul class="roadbook-nav-menu">
                         <li><a href="#accommodaties"><i class="fas fa-home"></i> Accommodaties</a></li>

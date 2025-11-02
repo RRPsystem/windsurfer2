@@ -83,8 +83,13 @@
                   </div>
                   
                   <div class="form-group">
-                    <label>Logo URL</label>
-                    <input type="text" id="brandLogo" class="form-control" placeholder="https://...">
+                    <label>Logo</label>
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                      <button class="btn btn-secondary" id="uploadLogoBtn" style="flex: 0 0 auto;">
+                        <i class="fas fa-upload"></i> Upload Logo
+                      </button>
+                      <input type="text" id="brandLogo" class="form-control" placeholder="Of plak URL..." style="flex: 1;">
+                    </div>
                     <div id="logoPreview" class="logo-preview"></div>
                   </div>
                   
@@ -384,6 +389,23 @@
       this.syncColorInputs('brandColorPrimary', 'brandColorPrimaryHex');
       this.syncColorInputs('brandColorSecondary', 'brandColorSecondaryHex');
       this.syncColorInputs('brandColorAccent', 'brandColorAccentHex');
+      
+      // Logo upload button
+      document.getElementById('uploadLogoBtn')?.addEventListener('click', async () => {
+        if (!window.MediaPicker) {
+          alert('Media Picker niet beschikbaar');
+          return;
+        }
+        
+        const res = await window.MediaPicker.openImage({ defaultTab: 'upload' });
+        if (res) {
+          const logoUrl = res.url || res.fullUrl || res.regularUrl || res.dataUrl;
+          if (logoUrl) {
+            document.getElementById('brandLogo').value = logoUrl;
+            this.updateLogoPreview(logoUrl);
+          }
+        }
+      });
       
       // Logo preview
       document.getElementById('brandLogo')?.addEventListener('input', (e) => {
