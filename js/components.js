@@ -7810,8 +7810,24 @@ ComponentFactory.createRoadbookAnimatedTimeline = function(options = {}) {
     section.appendChild(toolbar);
     this.addTypeBadge(section);
     
-    // Get brand primary color
-    const brandPrimary = getComputedStyle(document.documentElement).getPropertyValue('--brand-primary').trim() || '#84cc16';
+    // Get brand primary color from localStorage
+    let brandPrimary = '#99cc34'; // Your green color as default
+    try {
+        const brandSettings = localStorage.getItem('brandSettings');
+        console.log('[Timeline] Brand settings:', brandSettings);
+        if (brandSettings) {
+            const brand = JSON.parse(brandSettings);
+            if (brand.colors && brand.colors.primary) {
+                brandPrimary = brand.colors.primary;
+            } else if (brand.primaryColor) {
+                brandPrimary = brand.primaryColor;
+            }
+        }
+        document.documentElement.style.setProperty('--brand-primary', brandPrimary);
+        console.log('[Timeline] Applied brand color:', brandPrimary);
+    } catch (e) {
+        console.error('[Timeline] Error loading brand:', e);
+    }
     
     // Sample data
     const days = options.days || [
