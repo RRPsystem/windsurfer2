@@ -3460,7 +3460,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     z-index: 100;
     background: white;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--brand-primary, #e5e7eb);
 }
 
 .roadbook-nav-content {
@@ -3473,8 +3473,10 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .roadbook-nav-logo img {
-    height: 40px;
+    height: 60px;
     width: auto;
+    max-width: 200px;
+    object-fit: contain;
 }
 
 .roadbook-nav-menu {
@@ -3501,7 +3503,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .roadbook-nav-menu a:hover {
-    color: #667eea;
+    color: var(--brand-primary, #667eea);
 }
 
 .roadbook-nav-menu a i {
@@ -3560,7 +3562,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     font-size: 2rem;
     font-weight: 700;
     margin-bottom: 30px;
-    color: #111827;
+    color: var(--brand-primary, #111827);
 }
 
 /* Cards Grid */
