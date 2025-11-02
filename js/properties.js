@@ -6162,6 +6162,27 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
     selectWrapper.appendChild(select);
     this.panel.appendChild(selectWrapper);
     
+    // Roadbook Color Customization
+    const colorSectionLabel = document.createElement('label');
+    colorSectionLabel.textContent = '🎨 Roadbook Kleuren';
+    colorSectionLabel.style.cssText = 'display: block; font-weight: 700; margin: 24px 0 12px; color: #111827; font-size: 15px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;';
+    this.panel.appendChild(colorSectionLabel);
+    
+    this.createColorInput('Primaire Kleur (Titels)', component.dataset.roadbookPrimaryColor || '#FF9800', (color) => {
+        component.dataset.roadbookPrimaryColor = color;
+        component.querySelectorAll('.roadbook-section-title').forEach(el => el.style.color = color);
+        const nav = component.querySelector('.roadbook-nav');
+        if (nav) nav.style.borderBottomColor = color;
+    });
+    
+    this.createColorInput('Secundaire Kleur (Buttons)', component.dataset.roadbookSecondaryColor || '#667eea', (color) => {
+        component.dataset.roadbookSecondaryColor = color;
+        component.querySelectorAll('.roadbook-card-more').forEach(btn => {
+            btn.style.backgroundColor = color;
+            btn.style.borderColor = color;
+        });
+    });
+    
     // Delete button
     const del = this.createButton('Blok verwijderen', () => {
         if (confirm('Weet je zeker dat je dit roadbook wilt verwijderen?')) {
