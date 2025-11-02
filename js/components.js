@@ -7164,7 +7164,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         
                         <!-- Animated Car -->
                         <div class="roadbook-timeline-car">
-                            <img src="images/auto.png" alt="Car" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fas fa-car\\'></i>';">
+                            <img src="images/auto.png" alt="Car" onerror="console.error('Auto image failed to load'); this.parentElement.innerHTML='<i class=\\'fas fa-car\\'></i>';">
                         </div>
                         
                         <!-- Days -->
