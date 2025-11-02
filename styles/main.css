@@ -6,6 +6,9 @@
     --brand-on-secondary: #ffffff;
 }
 
+/* Import Roadbook Timeline Styles */
+@import url('roadbook-timeline.css');
+
 /* Modal base */
 .modal {
     position: fixed;

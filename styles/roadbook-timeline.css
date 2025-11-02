@@ -1,6 +1,6 @@
 /* Roadbook Animated Timeline - Full Width */
 
-.roadbook-animated-timeline {
+.roadbook-animated-timeline-section {
     width: 100%;
     background: linear-gradient(to bottom, var(--brand-primary, #84cc16) 300px, #f9fafb 300px);
     position: relative;

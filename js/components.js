@@ -7135,25 +7135,81 @@ ComponentFactory.createRoadbook = function(options = {}) {
             
             <!-- Hotels are now in the timeline above, no separate section needed -->
             
-            <!-- Timeline -->
+            <!-- Animated Timeline: Dag bij Dag -->
             ${data.itinerary.length > 0 ? `
-                <div id="itinerary" class="roadbook-timeline">
-                    <h2 class="roadbook-section-title editable" contenteditable="true">Jouw Reis Dag voor Dag</h2>
-                    <div class="roadbook-timeline-container">
-                        <div class="roadbook-timeline-icon"><i class="fas fa-car"></i></div>
-                        <div class="roadbook-timeline-line"></div>
-                        <div class="roadbook-timeline-days">
-                            ${data.itinerary.map((day, i) => `
-                                <div class="roadbook-timeline-day ${i % 2 === 0 ? 'left' : 'right'}">
-                                    <div class="roadbook-timeline-day-content">
-                                        <div class="roadbook-timeline-day-number">Dag ${i + 1}</div>
-                                        <h3 contenteditable="true">${day.title || `Dag ${i + 1}`}</h3>
-                                        <p contenteditable="true">${day.description || 'Beschrijving...'}</p>
-                                        ${day.image ? `<img src="${day.image}" alt="${day.title}">` : ''}
+                <div id="itinerary" class="roadbook-animated-timeline-section">
+                    <!-- Header -->
+                    <div class="roadbook-timeline-header">
+                        <h2 class="editable" contenteditable="true">DE REIS <strong>DAG BIJ DAG</strong></h2>
+                        <p class="editable" contenteditable="true">Highlights Of Your Journey</p>
+                    </div>
+                    
+                    <!-- Timeline Road -->
+                    <div class="roadbook-timeline-road">
+                        <!-- Start Badge -->
+                        <div class="roadbook-start-badge">START</div>
+                        
+                        <!-- Vertical Road Line -->
+                        <div class="roadbook-road-line"></div>
+                        
+                        <!-- Animated Car -->
+                        <div class="roadbook-timeline-car">
+                            <i class="fas fa-car"></i>
+                        </div>
+                        
+                        <!-- Days -->
+                        ${data.itinerary.map((day, i) => `
+                            <div class="roadbook-day-item" data-day="${i + 1}">
+                                <!-- Day Badge -->
+                                <div class="roadbook-day-badge">Dag ${i + 1}</div>
+                                
+                                <!-- Day Content -->
+                                <div class="roadbook-day-content">
+                                    <!-- Photo -->
+                                    <div class="roadbook-day-photo">
+                                        <img src="${day.image || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800'}" alt="${day.title || 'Dag ' + (i + 1)}">
+                                    </div>
+                                    
+                                    <!-- Info -->
+                                    <div class="roadbook-day-info">
+                                        <h3 class="roadbook-day-location editable" contenteditable="true">${day.title || day.destination || 'Bestemming'}</h3>
+                                        <p class="roadbook-day-subtitle editable" contenteditable="true">${day.subtitle || day.location || 'Provincie / Stad'}</p>
+                                        ${day.distance ? `<p class="roadbook-day-distance editable" contenteditable="true">${day.distance}</p>` : ''}
+                                        
+                                        <p class="roadbook-day-description editable" contenteditable="true">${day.description || 'Beschrijving van deze dag...'}</p>
+                                        
+                                        <a href="#" class="roadbook-read-more" onclick="event.preventDefault(); alert('Open slide panel met meer info');">
+                                            Lees verder <i class="fas fa-arrow-right"></i>
+                                        </a>
+                                        
+                                        <!-- Highlights -->
+                                        ${day.highlights && day.highlights.length > 0 ? `
+                                            <div class="roadbook-day-highlights">
+                                                ${day.highlights.slice(0, 4).map(h => `
+                                                    <div class="roadbook-highlight-item">
+                                                        <div class="roadbook-highlight-icon">
+                                                            <i class="fas ${h.icon || 'fa-star'}"></i>
+                                                        </div>
+                                                        <div class="roadbook-highlight-content">
+                                                            <h4 class="editable" contenteditable="true">${h.title || 'Highlight'}</h4>
+                                                            <p class="editable" contenteditable="true">${h.text || h.description || ''}</p>
+                                                        </div>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        ` : ''}
+                                        
+                                        <!-- Hotel Bar -->
+                                        ${day.hotel || day.accommodation ? `
+                                            <div class="roadbook-hotel-bar">
+                                                <i class="fas fa-hotel"></i>
+                                                <span class="editable" contenteditable="true"><strong>${day.hotel || day.accommodation}</strong></span>
+                                            </div>
+                                        ` : ''}
                                     </div>
                                 </div>
-                            `).join('')}
-                        </div>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
             ` : ''}
@@ -7164,6 +7220,14 @@ ComponentFactory.createRoadbook = function(options = {}) {
     setTimeout(() => {
         const countdownEl = section.querySelector('.roadbook-countdown');
         if (countdownEl) ComponentFactory.startRoadbookCountdown(countdownEl);
+    }, 100);
+    
+    // Initialize animated timeline
+    setTimeout(() => {
+        const timelineSection = section.querySelector('.roadbook-animated-timeline-section');
+        if (timelineSection && window.RoadbookTimelineAnimation) {
+            new window.RoadbookTimelineAnimation(timelineSection);
+        }
     }, 100);
     
     // Store hotel data on cards for carousel
