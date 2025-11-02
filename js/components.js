@@ -7062,7 +7062,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
             ${data.transports.length > 0 ? `
                 <div class="roadbook-section">
                     <h2 class="roadbook-section-title">Jouw Vervoer</h2>
-                    <div class="roadbook-cards-grid">
+                    <div class="roadbook-cards-carousel-wrapper">
+                        <div class="roadbook-cards-grid" data-carousel="transport">
                         ${data.transports.map((t, i) => `
                             <div class="roadbook-card transport-card">
                                 <div class="roadbook-card-badge">
@@ -7099,6 +7100,15 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                 </div>
                             </div>
                         `).join('')}
+                        </div>
+                        <div class="roadbook-carousel-nav">
+                            <button class="roadbook-carousel-nav-btn" onclick="window.ComponentFactory.scrollCarousel(this, 'prev')">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="roadbook-carousel-nav-btn" onclick="window.ComponentFactory.scrollCarousel(this, 'next')">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             ` : ''}
@@ -7107,7 +7117,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
             ${data.hotels.length > 0 ? `
                 <div id="accommodaties" class="roadbook-section">
                     <h2 class="roadbook-section-title">Jouw Accommodaties</h2>
-                    <div class="roadbook-cards-grid">
+                    <div class="roadbook-cards-carousel-wrapper">
+                        <div class="roadbook-cards-grid" data-carousel="hotels">
                         ${data.hotels.map((h, i) => `
                             <div class="roadbook-card hotel-card" data-hotel-index="${i}">
                                 <div class="roadbook-card-image">
@@ -7150,6 +7161,15 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                 </div>
                             </div>
                         `).join('')}
+                        </div>
+                        <div class="roadbook-carousel-nav">
+                            <button class="roadbook-carousel-nav-btn" onclick="window.ComponentFactory.scrollCarousel(this, 'prev')">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="roadbook-carousel-nav-btn" onclick="window.ComponentFactory.scrollCarousel(this, 'next')">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             ` : ''}
@@ -7244,6 +7264,19 @@ ComponentFactory.createRoadbook = function(options = {}) {
     
     this.makeSelectable(section);
     return section;
+};
+
+// Cards Carousel Navigation
+ComponentFactory.scrollCarousel = function(btn, direction) {
+    const wrapper = btn.closest('.roadbook-cards-carousel-wrapper');
+    const carousel = wrapper.querySelector('.roadbook-cards-grid');
+    const cardWidth = 380 + 24; // card width + gap
+    const scrollAmount = direction === 'prev' ? -cardWidth : cardWidth;
+    
+    carousel.scrollBy({
+        left: scrollAmount,
+        behavior: 'smooth'
+    });
 };
 
 // Hotel Image Carousel Functions
