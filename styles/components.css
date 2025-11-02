@@ -4396,14 +4396,14 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 .roadbook-animated-timeline-section {
     width: 100vw;
     margin-left: calc(-50vw + 50%);
-    background: linear-gradient(to bottom, var(--brand-primary, #84cc16) 450px, #f9fafb 450px);
+    background: var(--brand-primary, #84cc16);
     position: relative;
     overflow: visible;
 }
 
 .roadbook-timeline-header {
     text-align: center;
-    padding: 60px 20px 200px;
+    padding: 60px 20px 80px;
     color: white;
     position: relative;
     z-index: 1;
@@ -4431,8 +4431,8 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     position: relative;
     width: 100%;
     margin: 0;
-    padding: 0 0 100px 0;
-    background: transparent;
+    padding: 80px 0 100px 0;
+    background: #f9fafb;
 }
 
 .roadbook-road-line {
