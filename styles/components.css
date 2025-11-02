@@ -4396,14 +4396,14 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 .roadbook-animated-timeline-section {
     width: 100vw;
     margin-left: calc(-50vw + 50%);
-    background: linear-gradient(to bottom, var(--brand-primary, #84cc16) 250px, #f9fafb 250px);
+    background: linear-gradient(to bottom, var(--brand-primary, #84cc16) 600px, #f9fafb 600px);
     position: relative;
     overflow: hidden;
 }
 
 .roadbook-timeline-header {
     text-align: center;
-    padding: 60px 20px 40px;
+    padding: 60px 20px 120px;
     color: white;
 }
 
