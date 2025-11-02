@@ -397,7 +397,7 @@
           return;
         }
         
-        const res = await window.MediaPicker.openImage({ defaultTab: 'upload' });
+        const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
         if (res) {
           const logoUrl = res.url || res.fullUrl || res.regularUrl || res.dataUrl;
           if (logoUrl) {
@@ -480,7 +480,25 @@
     },
     
     loadBrandSettings() {
-      const saved = localStorage.getItem('brandSettings');
+      // Get brand_id from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const brandId = urlParams.get('brand_id');
+      
+      let saved = null;
+      
+      if (brandId) {
+        // Try to load brand-specific settings
+        const key = `brandSettings_${brandId}`;
+        saved = localStorage.getItem(key);
+        console.log('[BrandManager] Loading settings for brand:', brandId, saved ? '✅' : '❌');
+      }
+      
+      // Fallback to default settings
+      if (!saved) {
+        saved = localStorage.getItem('brandSettings');
+        console.log('[BrandManager] Using default settings');
+      }
+      
       if (saved) {
         this.currentBrand = JSON.parse(saved);
         this.applyBrandSettings();
@@ -541,7 +559,20 @@
         logo: document.getElementById('brandLogo')?.value || ''
       };
       
+      // Get brand_id from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const brandId = urlParams.get('brand_id');
+      
+      if (brandId) {
+        // Save per brand
+        const key = `brandSettings_${brandId}`;
+        localStorage.setItem(key, JSON.stringify(settings));
+        console.log('[BrandManager] Settings saved for brand:', brandId);
+      }
+      
+      // Also save as default (for backwards compatibility)
       localStorage.setItem('brandSettings', JSON.stringify(settings));
+      
       this.currentBrand = settings;
       this.applyBrandSettings();
       
