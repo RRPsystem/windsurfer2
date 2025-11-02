@@ -3502,7 +3502,8 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     transition: color 0.2s;
 }
 
-.roadbook-nav-menu a:hover {
+.roadbook-nav-menu a:hover,
+.roadbook-nav-menu a.active {
     color: var(--brand-primary, #667eea);
 }
 
@@ -3691,7 +3692,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     font-size: 2rem;
     font-weight: 700;
     margin-bottom: 30px;
-    color: var(--brand-primary, #111827);
+    color: #111827;
 }
 
 /* Roadbook Cards Carousel */
