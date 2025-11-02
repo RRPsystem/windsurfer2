@@ -7064,16 +7064,39 @@ ComponentFactory.createRoadbook = function(options = {}) {
                     <h2 class="roadbook-section-title">Jouw Vervoer</h2>
                     <div class="roadbook-cards-grid">
                         ${data.transports.map((t, i) => `
-                            <div class="roadbook-card">
-                                <div class="roadbook-card-icon"><i class="fas fa-plane"></i></div>
-                                <div class="roadbook-card-content">
-                                    <h3>${t.from || 'Vertrek'} → ${t.to || 'Aankomst'}</h3>
-                                    <p><i class="fas fa-calendar"></i> ${t.date || 'Datum'}</p>
-                                    <p><i class="fas fa-clock"></i> ${t.time || 'Tijd'}</p>
+                            <div class="roadbook-card transport-card">
+                                <div class="roadbook-card-badge">
+                                    <i class="fas fa-${t.type === 'train' ? 'train' : t.type === 'bus' ? 'bus' : 'plane'}"></i>
                                 </div>
-                                <button class="roadbook-card-more" data-type="transport" data-index="${i}">
-                                    <i class="fas fa-info-circle"></i> Meer info
-                                </button>
+                                <div class="roadbook-card-content">
+                                    <div class="roadbook-card-detail" style="margin-bottom: 12px; color: var(--brand-primary, #84cc16); font-weight: 600;">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <span>VERTREK: ${t.date || '25 JAN, 2018'}</span>
+                                    </div>
+                                    
+                                    <div class="roadbook-transport-route">
+                                        <div class="roadbook-transport-station">
+                                            <div class="roadbook-transport-station-name">${t.from || 'LOREM STA'}</div>
+                                            <div class="roadbook-transport-time">${t.departureTime || '09.30'}</div>
+                                            <div class="roadbook-transport-address">${t.departureAddress || 'Avenue Thiers DP 1463 06008 Nice Cedex 1'}</div>
+                                        </div>
+                                        <div class="roadbook-transport-arrow">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </div>
+                                        <div class="roadbook-transport-station">
+                                            <div class="roadbook-transport-station-name">${t.to || 'LOREM STA'}</div>
+                                            <div class="roadbook-transport-time">${t.arrivalTime || '09.30'}</div>
+                                            <div class="roadbook-transport-address">${t.arrivalAddress || 'Avenue Thiers DP 1463 06008 Nice Cedex 1'}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    ${t.arrivalDate ? `
+                                        <div class="roadbook-card-detail" style="margin-top: 12px; color: var(--brand-primary, #84cc16); font-weight: 600;">
+                                            <i class="fas fa-calendar-check"></i>
+                                            <span>AANKOMST: ${t.arrivalDate}</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
                             </div>
                         `).join('')}
                     </div>
@@ -7086,16 +7109,45 @@ ComponentFactory.createRoadbook = function(options = {}) {
                     <h2 class="roadbook-section-title">Jouw Accommodaties</h2>
                     <div class="roadbook-cards-grid">
                         ${data.hotels.map((h, i) => `
-                            <div class="roadbook-card">
-                                <div class="roadbook-card-image" style="background-image: url('${h.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600'}')"></div>
-                                <div class="roadbook-card-content">
-                                    <h3>${h.name || 'Hotel'}</h3>
-                                    <p><i class="fas fa-map-marker-alt"></i> ${h.location || 'Locatie'}</p>
-                                    <p><i class="fas fa-calendar"></i> ${h.checkIn || 'Check-in'} - ${h.checkOut || 'Check-out'}</p>
+                            <div class="roadbook-card hotel-card" data-hotel-index="${i}">
+                                <div class="roadbook-card-image">
+                                    <img src="${h.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600'}" alt="${h.name || 'Hotel'}">
+                                    <div class="roadbook-card-overlay"></div>
+                                    <div class="roadbook-card-badge">
+                                        <i class="fas fa-hotel"></i>
+                                    </div>
+                                    <div class="roadbook-card-carousel-controls">
+                                        <button class="roadbook-carousel-btn" onclick="window.ComponentFactory.prevHotelImage(this)">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <button class="roadbook-carousel-btn" onclick="window.ComponentFactory.nextHotelImage(this)">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                                <button class="roadbook-card-more" data-type="hotel" data-index="${i}">
-                                    <i class="fas fa-info-circle"></i> Meer info
-                                </button>
+                                <div class="roadbook-card-content">
+                                    <h3>${h.name || 'Luxury Hotel'}</h3>
+                                    <p class="roadbook-card-intro">${h.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec feugiat lacinia tortor molestie. Nunc imperdiet commodo nunc, a porta arcu dignissim et amet dictum tortor molestie iaculis tortor molestie.'}</p>
+                                    <div class="roadbook-card-details">
+                                        <div class="roadbook-card-detail">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <span>${h.location || 'Locatie'}</span>
+                                        </div>
+                                        <div class="roadbook-card-detail">
+                                            <i class="fas fa-calendar"></i>
+                                            <span>${h.checkIn || 'Check-in'} - ${h.checkOut || 'Check-out'}</span>
+                                        </div>
+                                        ${h.nights ? `
+                                            <div class="roadbook-card-detail">
+                                                <i class="fas fa-moon"></i>
+                                                <span>${h.nights} nachten</span>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                    <button class="roadbook-card-more" onclick="window.ComponentFactory.openHotelDetailPanel(${JSON.stringify(h).replace(/"/g, '&quot;')})">
+                                        <i class="fas fa-info-circle"></i> Meer informatie
+                                    </button>
+                                </div>
                             </div>
                         `).join('')}
                     </div>
@@ -7174,6 +7226,164 @@ ComponentFactory.createRoadbook = function(options = {}) {
     
     this.makeSelectable(section);
     return section;
+};
+
+// Hotel Image Carousel Functions
+ComponentFactory.prevHotelImage = function(btn) {
+    const card = btn.closest('.hotel-card');
+    const img = card.querySelector('.roadbook-card-image img');
+    const hotelData = card._hotelData || { images: [img.src] };
+    const currentIndex = hotelData.currentImageIndex || 0;
+    const newIndex = currentIndex === 0 ? hotelData.images.length - 1 : currentIndex - 1;
+    hotelData.currentImageIndex = newIndex;
+    img.src = hotelData.images[newIndex];
+    card._hotelData = hotelData;
+};
+
+ComponentFactory.nextHotelImage = function(btn) {
+    const card = btn.closest('.hotel-card');
+    const img = card.querySelector('.roadbook-card-image img');
+    const hotelData = card._hotelData || { images: [img.src] };
+    const currentIndex = hotelData.currentImageIndex || 0;
+    const newIndex = (currentIndex + 1) % hotelData.images.length;
+    hotelData.currentImageIndex = newIndex;
+    img.src = hotelData.images[newIndex];
+    card._hotelData = hotelData;
+};
+
+// Hotel Detail Panel
+ComponentFactory.openHotelDetailPanel = function(hotelData) {
+    // Remove existing panel
+    const existing = document.querySelector('.roadbook-detail-panel');
+    if (existing) existing.remove();
+    const existingOverlay = document.querySelector('.roadbook-panel-overlay');
+    if (existingOverlay) existingOverlay.remove();
+    
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'roadbook-panel-overlay';
+    overlay.onclick = () => ComponentFactory.closeHotelDetailPanel();
+    document.body.appendChild(overlay);
+    
+    // Create panel
+    const panel = document.createElement('div');
+    panel.className = 'roadbook-detail-panel';
+    panel.innerHTML = `
+        <div class="roadbook-panel-header">
+            <h2 class="roadbook-panel-title">${hotelData.name || 'Hotel Details'}</h2>
+            <button class="roadbook-panel-close" onclick="window.ComponentFactory.closeHotelDetailPanel()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="roadbook-panel-content">
+            <!-- Gallery -->
+            <div class="roadbook-panel-gallery">
+                <div class="roadbook-panel-main-image">
+                    <img src="${hotelData.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800'}" alt="${hotelData.name}">
+                </div>
+                <div class="roadbook-panel-thumbnails">
+                    ${[hotelData.image, hotelData.image, hotelData.image, hotelData.image].map((img, i) => `
+                        <div class="roadbook-panel-thumbnail ${i === 0 ? 'active' : ''}">
+                            <img src="${img || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200'}" alt="Photo ${i + 1}">
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <!-- Info Grid -->
+            <div class="roadbook-panel-section">
+                <h3 class="roadbook-panel-section-title">
+                    <i class="fas fa-info-circle"></i>
+                    Informatie
+                </h3>
+                <div class="roadbook-panel-info-grid">
+                    <div class="roadbook-panel-info-item">
+                        <div class="roadbook-panel-info-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="roadbook-panel-info-text">
+                            <div class="roadbook-panel-info-label">Locatie</div>
+                            <div class="roadbook-panel-info-value">${hotelData.location || 'Niet opgegeven'}</div>
+                        </div>
+                    </div>
+                    <div class="roadbook-panel-info-item">
+                        <div class="roadbook-panel-info-icon">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                        <div class="roadbook-panel-info-text">
+                            <div class="roadbook-panel-info-label">Check-in</div>
+                            <div class="roadbook-panel-info-value">${hotelData.checkIn || 'Niet opgegeven'}</div>
+                        </div>
+                    </div>
+                    <div class="roadbook-panel-info-item">
+                        <div class="roadbook-panel-info-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="roadbook-panel-info-text">
+                            <div class="roadbook-panel-info-label">Check-out</div>
+                            <div class="roadbook-panel-info-value">${hotelData.checkOut || 'Niet opgegeven'}</div>
+                        </div>
+                    </div>
+                    <div class="roadbook-panel-info-item">
+                        <div class="roadbook-panel-info-icon">
+                            <i class="fas fa-moon"></i>
+                        </div>
+                        <div class="roadbook-panel-info-text">
+                            <div class="roadbook-panel-info-label">Nachten</div>
+                            <div class="roadbook-panel-info-value">${hotelData.nights || 0} nachten</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Description -->
+            <div class="roadbook-panel-section">
+                <h3 class="roadbook-panel-section-title">
+                    <i class="fas fa-align-left"></i>
+                    Beschrijving
+                </h3>
+                <p class="roadbook-panel-text">${hotelData.fullDescription || hotelData.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec feugiat lacinia tortor molestie. Nunc imperdiet commodo nunc, a porta arcu dignissim et amet dictum tortor molestie iaculis tortor molestie. Sed in consequat nisl. Mauris in semper quam, vivamus congue ligula eget mi luctus, eget molestie lorem commodo.'}</p>
+            </div>
+            
+            <!-- Facilities -->
+            <div class="roadbook-panel-section">
+                <h3 class="roadbook-panel-section-title">
+                    <i class="fas fa-star"></i>
+                    Faciliteiten
+                </h3>
+                <div class="roadbook-panel-facilities">
+                    <div class="roadbook-facility-tag"><i class="fas fa-wifi"></i> Gratis WiFi</div>
+                    <div class="roadbook-facility-tag"><i class="fas fa-swimming-pool"></i> Zwembad</div>
+                    <div class="roadbook-facility-tag"><i class="fas fa-dumbbell"></i> Fitness</div>
+                    <div class="roadbook-facility-tag"><i class="fas fa-spa"></i> Spa</div>
+                    <div class="roadbook-facility-tag"><i class="fas fa-utensils"></i> Restaurant</div>
+                    <div class="roadbook-facility-tag"><i class="fas fa-parking"></i> Parkeren</div>
+                    <div class="roadbook-facility-tag"><i class="fas fa-concierge-bell"></i> Roomservice</div>
+                    <div class="roadbook-facility-tag"><i class="fas fa-cocktail"></i> Bar</div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(panel);
+    
+    // Trigger animation
+    setTimeout(() => {
+        overlay.classList.add('open');
+        panel.classList.add('open');
+    }, 10);
+};
+
+ComponentFactory.closeHotelDetailPanel = function() {
+    const panel = document.querySelector('.roadbook-detail-panel');
+    const overlay = document.querySelector('.roadbook-panel-overlay');
+    
+    if (panel) panel.classList.remove('open');
+    if (overlay) overlay.classList.remove('open');
+    
+    setTimeout(() => {
+        if (panel) panel.remove();
+        if (overlay) overlay.remove();
+    }, 400);
 };
 
 ComponentFactory.startRoadbookCountdown = function(countdownEl) {
