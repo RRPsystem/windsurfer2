@@ -1447,9 +1447,11 @@
       const hotels = (tcData.hotels || tcData.accommodations || []).map(h => {
         const hotelData = h.hotel || h;
         
-        // Extract all images
+        // Extract all images - check multiple possible fields
         let images = [];
-        if (hotelData.images && Array.isArray(hotelData.images)) {
+        if (hotelData.imageUrls && Array.isArray(hotelData.imageUrls)) {
+          images = hotelData.imageUrls;
+        } else if (hotelData.images && Array.isArray(hotelData.images)) {
           images = hotelData.images.map(img => img.url || img);
         } else if (hotelData.image) {
           images = [hotelData.image];
@@ -1457,14 +1459,14 @@
         
         return {
           name: hotelData.name || hotelData.hotelName || 'Hotel',
-          location: hotelData.destination?.name || hotelData.address || 'Locatie',
+          location: hotelData.destination?.name || hotelData.address || hotelData.city || 'Locatie',
           checkIn: h.checkInDate || h.checkIn || '',
           checkOut: h.checkOutDate || h.checkOut || '',
           nights: h.nights || 0,
           image: images[0] || '',
           images: images,
-          description: hotelData.description || hotelData.summary || '',
-          fullDescription: hotelData.fullDescription || hotelData.longDescription || hotelData.description || ''
+          description: hotelData.description || hotelData.summary || hotelData.intro || '',
+          fullDescription: hotelData.fullDescription || hotelData.longDescription || hotelData.detailedDescription || hotelData.description || ''
         };
       });
       
