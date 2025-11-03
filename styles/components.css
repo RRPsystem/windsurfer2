@@ -4403,7 +4403,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 
 .roadbook-timeline-header {
     text-align: center;
-    padding: 60px 20px 0;
+    padding: 60px 20px 40px; /* space for title/subtitle inside the 600px */
     color: white;
     position: relative;
     z-index: 1;
@@ -4430,9 +4430,10 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 .roadbook-timeline-road {
     position: relative;
     width: 100%;
-    margin: -600px 0 0 0;
-    padding: 600px 0 100px 0;
-    background: transparent;
+    margin: -600px 0 0 0; /* pull road up into the colored area */
+    padding: 600px 0 100px 0; /* ensure day 1 starts exactly at 600px */
+    background: transparent; /* only the road is visible over the colored area */
+    z-index: 2; /* road above header so START sits on top */
 }
 
 .roadbook-road-line {
@@ -4547,6 +4548,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     grid-template-columns: 1fr 1fr;
     gap: 0;
     align-items: stretch;
+    background: #fff; /* ensure text/photo area is clean white under the colored header */
 }
 
 .roadbook-day-item:nth-of-type(odd) .roadbook-day-photo {
