@@ -6,6 +6,7 @@ class RoadbookTimelineAnimation {
         this.car = null;
         this.dayItems = [];
         this.roadLine = null;
+        this.roadContainer = null;
         this.isAnimating = false;
         
         this.init();
@@ -14,6 +15,7 @@ class RoadbookTimelineAnimation {
     init() {
         // Get all day items
         this.dayItems = Array.from(this.container.querySelectorAll('.roadbook-day-item'));
+        this.roadContainer = this.container.querySelector('.roadbook-timeline-road');
         this.roadLine = this.container.querySelector('.roadbook-road-line');
         this.car = this.container.querySelector('.roadbook-timeline-car');
         
@@ -22,18 +24,21 @@ class RoadbookTimelineAnimation {
         // Position car at START badge initially (relative to road container)
         setTimeout(() => {
             const startBadge = this.container.querySelector('.roadbook-start-badge');
-            if (startBadge && this.roadLine) {
-                const roadRect = this.roadLine.getBoundingClientRect();
+            if (startBadge && this.roadContainer) {
+                const containerRect = this.roadContainer.getBoundingClientRect();
                 const badgeRect = startBadge.getBoundingClientRect();
-                const relativeTop = badgeRect.top - roadRect.top + 40;
-                this.car.style.top = `${relativeTop}px`;
+                const badgeMiddle = badgeRect.top + badgeRect.height / 2;
+                const relativeTop = badgeMiddle - containerRect.top - (this.car.offsetHeight / 2);
+                this.car.style.top = `${Math.max(0, relativeTop)}px`;
             }
         }, 100);
         
         // Setup scroll listener
         window.addEventListener('scroll', () => this.onScroll(), { passive: true });
+        window.addEventListener('resize', () => this.onScroll(), { passive: true });
         
         // Initial update
+        this.updateCarPosition();
         this.onScroll();
     }
     
@@ -41,6 +46,8 @@ class RoadbookTimelineAnimation {
         if (this.isAnimating) return;
         
         requestAnimationFrame(() => {
+            // Move car with scroll and update active day styling
+            this.updateCarPosition();
             this.updateActiveDays();
             this.isAnimating = false;
         });
@@ -49,9 +56,9 @@ class RoadbookTimelineAnimation {
     }
     
     updateCarPosition() {
-        if (!this.car || this.dayItems.length === 0 || !this.roadLine) return;
+        if (!this.car || this.dayItems.length === 0 || !this.roadContainer) return;
         
-        const roadRect = this.roadLine.getBoundingClientRect();
+        const containerRect = this.roadContainer.getBoundingClientRect();
         const viewportMiddle = window.innerHeight / 2;
         
         // Find closest day badge to viewport middle
@@ -74,7 +81,10 @@ class RoadbookTimelineAnimation {
         
         if (closestDay) {
             const badgeRect = closestDay.getBoundingClientRect();
-            const relativeTop = badgeRect.top - roadRect.top;
+            const badgeMiddle = badgeRect.top + badgeRect.height / 2;
+            let relativeTop = badgeMiddle - containerRect.top - (this.car.offsetHeight / 2);
+            // clamp within container
+            relativeTop = Math.max(0, Math.min(relativeTop, this.roadContainer.scrollHeight - this.car.offsetHeight));
             this.car.style.top = `${relativeTop}px`;
         }
     }
