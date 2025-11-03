@@ -4396,14 +4396,14 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 .roadbook-animated-timeline-section {
     width: 100vw;
     margin-left: calc(-50vw + 50%);
-    background: linear-gradient(to bottom, var(--brand-primary, #84cc16) 600px, #f9fafb 600px);
+    background: var(--brand-primary, #84cc16);
     position: relative;
     overflow: visible;
 }
 
 .roadbook-timeline-header {
     text-align: center;
-    padding: 60px 20px 40px; /* space for title/subtitle inside the 600px */
+    padding: 80px 20px;
     color: white;
     position: relative;
     z-index: 1;
@@ -4430,10 +4430,9 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 .roadbook-timeline-road {
     position: relative;
     width: 100%;
-    margin: -600px 0 0 0; /* pull road up into the colored area */
-    padding: 600px 0 100px 0; /* ensure day 1 starts exactly at 600px */
-    background: transparent; /* only the road is visible over the colored area */
-    z-index: 2; /* road above header so START sits on top */
+    margin: 0;
+    padding: 0 0 100px 0;
+    background: #f9fafb;
 }
 
 .roadbook-road-line {
@@ -4494,7 +4493,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 .roadbook-start-badge {
     position: absolute;
     left: 50%;
-    top: 0;
+    top: -30px;
     transform: translateX(-50%);
     background: #4b5563;
     color: white;
@@ -4502,7 +4501,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     border-radius: 20px;
     font-weight: 600;
     font-size: 0.9rem;
-    z-index: 2;
+    z-index: 5;
 }
 
 .roadbook-day-item {
