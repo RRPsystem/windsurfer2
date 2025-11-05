@@ -60,9 +60,11 @@ class RoadbookTimelineAnimation {
     }
     
     onScroll() {
+        console.log('[Timeline] onScroll called, isAnimating:', this.isAnimating);
         if (this.isAnimating) return;
         
         requestAnimationFrame(() => {
+            console.log('[Timeline] Updating car position...');
             // Move car with scroll and update active day styling
             this.updateCarPosition();
             this.updateActiveDays();
@@ -73,7 +75,11 @@ class RoadbookTimelineAnimation {
     }
     
     updateCarPosition() {
-        if (!this.car || this.dayItems.length === 0 || !this.roadContainer) return;
+        console.log('[Car] updateCarPosition called');
+        if (!this.car || this.dayItems.length === 0 || !this.roadContainer) {
+            console.warn('[Car] Cannot update - missing elements');
+            return;
+        }
         
         const containerRect = this.roadContainer.getBoundingClientRect();
         const viewportMiddle = window.innerHeight / 2;
