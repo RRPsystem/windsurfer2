@@ -4429,8 +4429,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 .roadbook-timeline-road {
     position: relative;
     width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
+    margin: 0;
     padding: 0 0 100px 0;
     background: #f9fafb;
 }
@@ -4550,8 +4549,8 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     gap: 0;
     align-items: start;
     background: #fff;
-    max-width: 1200px;
-    margin: 0 auto;
+    width: 100%;
+    margin: 0;
 }
 
 .roadbook-day-item:nth-of-type(odd) .roadbook-day-photo {
@@ -4575,9 +4574,9 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .roadbook-day-item:nth-of-type(even) .roadbook-hotel-bar {
-    margin-left: -80px;
+    margin-left: 0;
     margin-right: -80px;
-    padding-left: calc(50% - 600px + 80px);
+    padding-left: calc(50% - 40px);
     padding-right: 80px;
 }
 
@@ -4713,9 +4712,9 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     gap: 12px;
     margin-top: 24px;
     margin-left: -80px;
-    margin-right: -80px;
+    margin-right: 0;
     padding-left: 80px;
-    padding-right: calc(50% - 600px + 80px);
+    padding-right: calc(50% - 40px);
 }
 
 .roadbook-hotel-bar i {
