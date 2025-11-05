@@ -32,7 +32,7 @@
       const title = this.travelData?.title || this.travelData?.name || 'Jouw Reis';
       
       return `
-        <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 20px; min-height: 100vh;">
           <!-- Header -->
           <div style="background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); border-radius: 12px; padding: 24px; margin-bottom: 24px; color: white;">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">

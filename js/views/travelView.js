@@ -1050,8 +1050,12 @@
       if (!container) {
         container = document.createElement('div');
         container.id = 'videoGeneratorContainer';
-        container.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #f9fafb; z-index: 10000; overflow-y: auto;';
+        container.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #f9fafb; z-index: 10000; overflow-y: auto; overflow-x: hidden;';
         document.body.appendChild(container);
+      } else {
+        // Ensure scrolling is enabled if container already exists
+        container.style.overflowY = 'auto';
+        container.style.overflowX = 'hidden';
       }
 
       // Mount video generator
