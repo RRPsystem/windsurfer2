@@ -4394,16 +4394,15 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 /* ===== ROADBOOK ANIMATED TIMELINE ===== */
 
 .roadbook-animated-timeline-section {
-    width: 100vw;
-    margin-left: calc(-50vw + 50%);
-    background: var(--brand-primary, #84cc16);
+    width: 100%;
+    background: linear-gradient(to bottom, var(--brand-primary, #84cc16) 180px, #f9fafb 180px);
     position: relative;
     overflow: visible;
 }
 
 .roadbook-timeline-header {
     text-align: center;
-    padding: 80px 20px;
+    padding: 40px 20px 50px;
     color: white;
     position: relative;
     z-index: 1;
@@ -4441,7 +4440,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     top: 0;
     bottom: 0;
     width: 80px;
-    background: #6b7280;
+    background: #9ca3af;
     transform: translateX(-50%);
     z-index: 1;
     border-radius: 40px;
@@ -4469,15 +4468,16 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     left: 50%;
     top: 0;
     transform: translateX(-50%);
-    width: 60px;
-    height: 90px;
+    width: 70px;
+    height: 100px;
     z-index: 10;
     filter: drop-shadow(0 6px 20px rgba(0,0,0,0.3));
     display: flex;
     align-items: center;
     justify-content: center;
     pointer-events: none;
-    transition: top 0.3s ease-out;
+    transition: top 0.5s ease-out;
+    background: transparent;
 }
 
 .roadbook-timeline-car img {
