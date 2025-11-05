@@ -7259,11 +7259,20 @@ ComponentFactory.createRoadbook = function(options = {}) {
     
     // Initialize animated timeline
     setTimeout(() => {
+        console.log('[Roadbook] Looking for timeline section...');
         const timelineSection = section.querySelector('.roadbook-animated-timeline-section');
+        console.log('[Roadbook] Timeline section found:', !!timelineSection);
+        console.log('[Roadbook] RoadbookTimelineAnimation available:', !!window.RoadbookTimelineAnimation);
         if (timelineSection && window.RoadbookTimelineAnimation) {
+            console.log('[Roadbook] Initializing timeline animation...');
             new window.RoadbookTimelineAnimation(timelineSection);
+        } else {
+            console.warn('[Roadbook] Cannot initialize timeline:', {
+                section: !!timelineSection,
+                animation: !!window.RoadbookTimelineAnimation
+            });
         }
-    }, 100);
+    }, 500);
     
     // Store hotel data on cards for carousel
     setTimeout(() => {
