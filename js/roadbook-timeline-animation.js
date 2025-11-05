@@ -13,13 +13,30 @@ class RoadbookTimelineAnimation {
     }
     
     init() {
+        console.log('[Timeline Init] ===== STARTING INITIALIZATION =====');
         // Get all day items
         this.dayItems = Array.from(this.container.querySelectorAll('.roadbook-day-item'));
         this.roadContainer = this.container.querySelector('.roadbook-timeline-road');
         this.roadLine = this.container.querySelector('.roadbook-road-line');
         this.car = this.container.querySelector('.roadbook-timeline-car');
         
-        if (!this.car || this.dayItems.length === 0) return;
+        console.log('[Timeline Init]', {
+            container: !!this.container,
+            dayItems: this.dayItems.length,
+            roadContainer: !!this.roadContainer,
+            roadLine: !!this.roadLine,
+            car: !!this.car
+        });
+        
+        if (!this.car || this.dayItems.length === 0) {
+            console.warn('[Timeline Init] Cannot initialize - missing car or days:', {
+                hasCar: !!this.car,
+                dayCount: this.dayItems.length
+            });
+            return;
+        }
+        
+        console.log('[Timeline Init] ✅ All elements found, setting up animation...');
         
         // Position car at START badge initially (relative to road container)
         setTimeout(() => {
