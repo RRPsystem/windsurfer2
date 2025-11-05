@@ -440,8 +440,8 @@
         return 'Provence France lavender fields countryside';
       }
       
-      // Default: generic travel search
-      return `${destination} travel destination aerial landscape`;
+      // Default: just use destination name for better, more specific results
+      return `${destination}`;
     },
     
     attachClipEventListeners(clipGrid) {
