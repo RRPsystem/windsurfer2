@@ -88,7 +88,7 @@ class RoadbookTimelineAnimation {
         let closestDay = null;
         let closestDistance = Infinity;
         
-        this.dayItems.forEach(day => {
+        this.dayItems.forEach((day, index) => {
             const badge = day.querySelector('.roadbook-day-badge');
             if (!badge) return;
             
@@ -99,6 +99,7 @@ class RoadbookTimelineAnimation {
             if (distance < closestDistance) {
                 closestDistance = distance;
                 closestDay = badge;
+                console.log('[Car] Closest badge is now day', index + 1, 'at distance', distance.toFixed(2));
             }
         });
         
