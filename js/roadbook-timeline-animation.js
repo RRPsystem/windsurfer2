@@ -108,7 +108,10 @@ class RoadbookTimelineAnimation {
             let relativeTop = badgeMiddle - containerRect.top - (this.car.offsetHeight / 2);
             // clamp within container
             relativeTop = Math.max(0, Math.min(relativeTop, this.roadContainer.scrollHeight - this.car.offsetHeight));
+            console.log('[Car] Moving to:', relativeTop, 'px (was:', this.car.style.top, ')');
             this.car.style.top = `${relativeTop}px`;
+        } else {
+            console.warn('[Car] No closest day found!');
         }
     }
     
