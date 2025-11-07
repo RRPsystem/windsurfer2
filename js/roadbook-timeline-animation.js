@@ -50,9 +50,19 @@ class RoadbookTimelineAnimation {
             }
         }, 100);
         
-        // Setup scroll listener
+        // Setup scroll listener - listen to document for ALL scroll events
+        document.addEventListener('scroll', () => this.onScroll(), { passive: true, capture: true });
         window.addEventListener('scroll', () => this.onScroll(), { passive: true });
         window.addEventListener('resize', () => this.onScroll(), { passive: true });
+        
+        // Also check for scroll on parent containers
+        let parent = this.container.parentElement;
+        while (parent) {
+            parent.addEventListener('scroll', () => this.onScroll(), { passive: true });
+            parent = parent.parentElement;
+        }
+        
+        console.log('[Timeline Init] Scroll listeners attached');
         
         // Initial update
         this.updateCarPosition();
