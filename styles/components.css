@@ -4521,8 +4521,8 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     left: 50%;
     top: 100px;
     transform: translateX(-50%);
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     background: white;
     border: 6px solid #9ca3af;
     border-radius: 50%;
@@ -4530,7 +4530,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     color: #4b5563;
     z-index: 10;
     transition: all 0.3s ease;
@@ -4575,9 +4575,9 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 
 .roadbook-day-item:nth-of-type(even) .roadbook-hotel-bar {
     margin-left: 0;
-    margin-right: -100px;
-    padding-left: calc(50% - 40px);
-    padding-right: 100px;
+    margin-right: -100vw;
+    padding-left: calc(50% - 60px);
+    padding-right: calc(100vw - 50% + 60px);
 }
 
 .roadbook-day-photo {
@@ -4709,18 +4709,19 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .roadbook-hotel-bar {
-    background: #4b5563;
-    color: white;
-    padding: 16px 24px;
-    border-radius: 0;
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-top: 24px;
-    margin-left: -100px;
+    background: #4b5563;
+    color: white;
+    padding: 16px 20px;
+    margin-top: 30px;
+    border-radius: 0;
+    font-size: 1rem;
+    margin-left: -100vw;
     margin-right: 0;
-    padding-left: 100px;
-    padding-right: calc(50% - 40px);
+    padding-left: calc(100vw - 50% + 60px);
+    padding-right: calc(50% - 60px);
 }
 
 .roadbook-hotel-bar i {

@@ -7189,12 +7189,12 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                 else break;
                             }
                             
-                            const dayRange = dayCount > 1 ? `Dag ${i + 1}-${i + dayCount}` : `Dag ${i + 1}`;
+                            const dayRange = dayCount > 1 ? `${i + 1}-${i + dayCount}` : `${i + 1}`;
                             
                             return `
                             <div class="roadbook-day-item" data-day="${i + 1}">
                                 <!-- Day Badge -->
-                                <div class="roadbook-day-badge">Dag ${i + 1}</div>
+                                <div class="roadbook-day-badge">Stop ${i + 1}</div>
                                 
                                 <!-- Day Content -->
                                 <div class="roadbook-day-content">
@@ -7205,7 +7205,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                     
                                     <!-- Info -->
                                     <div class="roadbook-day-info">
-                                        <h3 class="roadbook-day-location editable" contenteditable="true">${isNewLocation ? dayRange + ': ' + location : 'Verblijf in ' + location}</h3>
+                                        <h3 class="roadbook-day-location editable" contenteditable="true">${location}${dayCount > 1 ? ' (Dag ' + dayRange + ')' : ''}</h3>
                                         <p class="roadbook-day-subtitle editable" contenteditable="true">${day.subtitle || day.location || 'Provincie / Stad'}</p>
                                         ${day.distance ? `<p class="roadbook-day-distance editable" contenteditable="true">${day.distance}</p>` : ''}
                                         
@@ -7238,7 +7238,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                         <!-- Hotel Bar -->
                                         <div class="roadbook-hotel-bar">
                                             <i class="fas fa-hotel"></i>
-                                            <span class="editable" contenteditable="true"><strong>${day.hotel || day.accommodation || 'Hotel / Accommodatie'}</strong></span>
+                                            <span class="editable" contenteditable="true">${day.hotel || day.accommodation || 'Hotel naam'}</span>
                                         </div>
                                     </div>
                                 </div>
