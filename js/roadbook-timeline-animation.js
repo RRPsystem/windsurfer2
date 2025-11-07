@@ -81,39 +81,27 @@ class RoadbookTimelineAnimation {
             return;
         }
         
+        // Get scroll position
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
         const containerRect = this.roadContainer.getBoundingClientRect();
+        const containerTop = scrollY + containerRect.top;
+        
+        // Calculate car position based on scroll
+        // Car should be at viewport middle
         const viewportMiddle = window.innerHeight / 2;
+        const carPositionInViewport = scrollY + viewportMiddle;
         
-        // Find closest day badge to viewport middle
-        let closestDay = null;
-        let closestDistance = Infinity;
+        // Convert to position relative to container
+        let relativeTop = carPositionInViewport - containerTop - (this.car.offsetHeight / 2);
         
-        this.dayItems.forEach((day, index) => {
-            const badge = day.querySelector('.roadbook-day-badge');
-            if (!badge) return;
-            
-            const rect = badge.getBoundingClientRect();
-            const badgeMiddle = rect.top + rect.height / 2;
-            const distance = Math.abs(badgeMiddle - viewportMiddle);
-            
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestDay = badge;
-                console.log('[Car] Closest badge is now day', index + 1, 'at distance', distance.toFixed(2));
-            }
-        });
+        // Clamp within container bounds
+        relativeTop = Math.max(0, Math.min(relativeTop, this.roadContainer.offsetHeight - this.car.offsetHeight));
         
-        if (closestDay) {
-            const badgeRect = closestDay.getBoundingClientRect();
-            const badgeMiddle = badgeRect.top + badgeRect.height / 2;
-            let relativeTop = badgeMiddle - containerRect.top - (this.car.offsetHeight / 2);
-            // clamp within container
-            relativeTop = Math.max(0, Math.min(relativeTop, this.roadContainer.scrollHeight - this.car.offsetHeight));
-            console.log('[Car] Moving to:', relativeTop, 'px (was:', this.car.style.top, ')');
-            this.car.style.top = `${relativeTop}px`;
-        } else {
-            console.warn('[Car] No closest day found!');
-        }
+        console.log('[Car] ScrollY:', scrollY, 'RelativeTop:', relativeTop.toFixed(2));
+        this.car.style.top = `${relativeTop}px`;
+        
+        // Find and highlight closest day
+        this.updateActiveDays();
     }
     
     updateActiveDays() {
