@@ -98,7 +98,7 @@ class RoadbookTimelineAnimation {
         relativeTop = Math.max(0, Math.min(relativeTop, this.roadContainer.offsetHeight - this.car.offsetHeight));
         
         console.log('[Car] ScrollY:', scrollY, 'RelativeTop:', relativeTop.toFixed(2));
-        this.car.style.top = `${relativeTop}px`;
+        this.car.style.setProperty('top', `${relativeTop}px`, 'important');
         
         // Find and highlight closest day
         this.updateActiveDays();
