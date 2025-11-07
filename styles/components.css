@@ -4466,7 +4466,6 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 .roadbook-timeline-car {
     position: absolute;
     left: 50%;
-    top: 0;
     transform: translateX(-50%);
     width: 70px;
     height: 100px;
@@ -4476,8 +4475,9 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     align-items: center;
     justify-content: center;
     pointer-events: none;
-    transition: top 0.5s ease-out;
+    transition: top 0.1s linear;
     background: transparent;
+    will-change: top;
 }
 
 .roadbook-timeline-car img {
