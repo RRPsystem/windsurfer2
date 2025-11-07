@@ -4507,7 +4507,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 
 .roadbook-day-item {
     position: relative;
-    margin-bottom: 100px;
+    margin-bottom: 0;
     opacity: 1;
     transition: opacity 0.5s ease;
 }
@@ -4532,7 +4532,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     font-weight: 700;
     font-size: 1.1rem;
     color: #4b5563;
-    z-index: 3;
+    z-index: 10;
     transition: all 0.3s ease;
 }
 
@@ -4548,7 +4548,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     grid-template-columns: 1fr 1fr;
     gap: 0;
     align-items: stretch;
-    background: #fff;
+    background: transparent;
     width: 100%;
     margin: 0;
 }
