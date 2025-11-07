@@ -7181,6 +7181,9 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             const prevLocation = prevDay ? (prevDay.title || prevDay.destination || '') : '';
                             const isNewLocation = location !== prevLocation;
                             
+                            // Skip if not a new location (already rendered)
+                            if (!isNewLocation) return '';
+                            
                             // Find how many consecutive days at this location
                             let dayCount = 1;
                             for (let j = i + 1; j < data.itinerary.length; j++) {
@@ -7205,7 +7208,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                     
                                     <!-- Info -->
                                     <div class="roadbook-day-info">
-                                        <h3 class="roadbook-day-location editable" contenteditable="true">${location}${dayCount > 1 ? ' (Dag ' + dayRange + ')' : ''}</h3>
+                                        <h3 class="roadbook-day-location editable" contenteditable="true">${location}${dayCount > 1 ? ` (Dag ${dayRange})` : ''}</h3>
                                         <p class="roadbook-day-subtitle editable" contenteditable="true">${day.subtitle || day.location || 'Provincie / Stad'}</p>
                                         ${day.distance ? `<p class="roadbook-day-distance editable" contenteditable="true">${day.distance}</p>` : ''}
                                         
