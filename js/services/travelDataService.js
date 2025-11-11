@@ -195,17 +195,22 @@
                 // Get base URL (remove trailing slash and /functions/v1 if present)
                 const baseUrl = window.BOLT_DB.url.replace(/\/+$/, '').replace(/\/functions\/v1$/, '');
                 
+                // Get JWT token from URL (has trips:write scope)
+                const urlParams = new URLSearchParams(window.location.search);
+                const jwtToken = urlParams.get('token');
+                
                 // Use sync-from-builder API instead of direct table access
                 // This bypasses RLS and handles proper trip creation
                 const saveUrl = `${baseUrl}/functions/v1/sync-from-builder`;
                 
                 console.log('[TravelDataService] Saving to URL:', saveUrl);
+                console.log('[TravelDataService] Using JWT token:', jwtToken ? 'Yes' : 'No (using anonKey)');
                 console.log('[TravelDataService] Data to save:', dbTravel);
 
                 const response = await fetch(saveUrl, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${window.BOLT_DB.anonKey}`,
+                        'Authorization': `Bearer ${jwtToken || window.BOLT_DB.anonKey}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
