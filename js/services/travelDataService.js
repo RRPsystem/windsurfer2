@@ -192,7 +192,14 @@
                 // Transform naar database format
                 const dbTravel = this.transformToDb(travelData);
 
-                const response = await fetch(`${window.BOLT_DB.url}/rest/v1/travels`, {
+                // Get base URL (remove trailing slash and /functions/v1 if present)
+                const baseUrl = window.BOLT_DB.url.replace(/\/+$/, '').replace(/\/functions\/v1$/, '');
+                const saveUrl = `${baseUrl}/rest/v1/trips`;
+                
+                console.log('[TravelDataService] Saving to URL:', saveUrl);
+                console.log('[TravelDataService] Data to save:', dbTravel);
+
+                const response = await fetch(saveUrl, {
                     method: 'POST',
                     headers: {
                         'apikey': window.BOLT_DB.anonKey,
