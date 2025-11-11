@@ -44,11 +44,18 @@
                 
                 console.log('[TravelDataService] Using brand_id:', brandId);
                 
+                // Get base URL (remove trailing slash and /functions/v1 if present)
+                const baseUrl = window.BOLT_DB.url.replace(/\/+$/, '').replace(/\/functions\/v1$/, '');
+                console.log('[TravelDataService] Base URL:', baseUrl);
+                
                 // Try trips-api endpoint first (recommended by BOLT)
                 let travels = [];
                 try {
                     console.log('[TravelDataService] Trying trips-api endpoint...');
-                    const apiResponse = await fetch(`${window.BOLT_DB.url}/functions/v1/trips-api?for_builder=true`, {
+                    const apiUrl = `${baseUrl}/functions/v1/trips-api?for_builder=true`;
+                    console.log('[TravelDataService] API URL:', apiUrl);
+                    
+                    const apiResponse = await fetch(apiUrl, {
                         headers: {
                             'Authorization': `Bearer ${window.BOLT_DB.anonKey}`,
                             'Content-Type': 'application/json'
@@ -86,7 +93,10 @@
                     console.warn('[TravelDataService] trips-api failed, falling back to direct query:', apiError.message);
                     
                     // Fallback: Direct Supabase query
-                    const response = await fetch(`${window.BOLT_DB.url}/rest/v1/trip_brand_assignments?select=*,trips(*)&brand_id=eq.${brandId}&is_published=eq.true&status=in.(accepted,mandatory)`, {
+                    const fallbackUrl = `${baseUrl}/rest/v1/trip_brand_assignments?select=*,trips(*)&brand_id=eq.${brandId}&is_published=eq.true&status=in.(accepted,mandatory)`;
+                    console.log('[TravelDataService] Fallback URL:', fallbackUrl);
+                    
+                    const response = await fetch(fallbackUrl, {
                         headers: {
                             'apikey': window.BOLT_DB.anonKey,
                             'Content-Type': 'application/json'
