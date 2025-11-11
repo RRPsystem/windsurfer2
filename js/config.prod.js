@@ -5,6 +5,10 @@ window.BOLT_DB = {
   anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1YWFvZ2R4eGRjYWt4cnllY253Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2MzY3MzMsImV4cCI6MjA3NDIxMjczM30.EqZK_6xjEAVwUtsYj6nENe4x8-7At_oRAVsPMDvJBSI"
 };
 
+// Travel Compositor API configuration
+window.TRAVEL_COMPOSITOR_API_BASE = "https://online.travelcompositor.com/resources";
+window.TRAVEL_COMPOSITOR_MICROSITE_ID = "rondreis-planner";
+
 // Load media API keys from environment (Vercel)
 (async function loadMediaConfig() {
   try {
