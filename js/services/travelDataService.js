@@ -373,12 +373,12 @@
         filterTravels(travels, options = {}) {
             let filtered = [...travels];
 
-            // Filter op status
-            if (options.status) {
+            // Filter op status (SKIP - reizen zijn al gefilterd door de query op is_published)
+            // De status field in trips tabel is niet hetzelfde als assignment status
+            // We filteren al op is_published=true in de query, dus alle reizen hier zijn al "published"
+            if (options.status && options.status !== 'published') {
+                // Alleen filteren als expliciet een andere status wordt gevraagd
                 filtered = filtered.filter(t => t.status === options.status);
-            } else {
-                // Standaard alleen published tonen
-                filtered = filtered.filter(t => t.status === 'published');
             }
 
             // Filter op featured
