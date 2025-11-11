@@ -341,37 +341,29 @@
          * Transform component format naar database format
          */
         transformToDb(travel) {
-            return {
-                title: travel.title || travel.name,
-                name: travel.title || travel.name,
-                location: travel.location || travel.destination,
-                destination: travel.location || travel.destination,
-                duration: travel.duration,
-                days: travel.days || this.extractDays(travel.duration),
-                price: travel.priceRaw || travel.price,
-                currency: travel.currency || 'EUR',
-                description: travel.description || travel.intro,
-                intro: travel.description || travel.intro,
-                image: travel.image,
-                main_image: travel.image,
-                tags: travel.tags || travel.travelType || '',
-                travel_type: travel.tags || travel.travelType || '',
-                
-                // BOLT metadata
-                featured: travel.featured || false,
-                priority: travel.priority || 999,
+            // Only include fields that exist in the trips table
+            // Based on the schema, we'll use minimal fields that are likely to exist
+            const dbTravel = {
+                title: travel.title || travel.name || 'Untitled',
+                description: travel.description || travel.intro || '',
+                image: travel.image || '',
+                price: travel.priceRaw || travel.price || 0,
+                duration: travel.duration || '',
+                location: travel.location || travel.destination || '',
                 status: travel.status || 'published',
-                source: travel.source || 'manual',
-                
-                // Extra data (JSON)
-                destinations: travel.destinations || [],
-                hotels: travel.hotels || [],
-                transports: travel.transports || [],
-                
-                // Timestamps
-                created_at: travel.createdAt || new Date().toISOString(),
-                updated_at: new Date().toISOString()
+                source: travel.source || 'travel-compositor'
             };
+            
+            // Add optional fields only if they exist in the data
+            if (travel.days) dbTravel.days = travel.days;
+            if (travel.tags) dbTravel.tags = travel.tags;
+            if (travel.featured !== undefined) dbTravel.featured = travel.featured;
+            if (travel.priority) dbTravel.priority = travel.priority;
+            if (travel.destinations) dbTravel.destinations = travel.destinations;
+            if (travel.hotels) dbTravel.hotels = travel.hotels;
+            if (travel.transports) dbTravel.transports = travel.transports;
+            
+            return dbTravel;
         },
 
         /**
