@@ -1,7 +1,10 @@
 // js/views/travelView.js
 // Travel Compositor integration view
+// Version: 2025-11-11-22:26 (with BOLT save)
 
 (function() {
+  console.log('[TravelView] Loading version 2025-11-11-22:26 with BOLT save functionality');
+  
   const TravelView = {
     currentIdea: null,
     micrositeId: null,
