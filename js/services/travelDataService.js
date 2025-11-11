@@ -126,19 +126,79 @@
                     console.log('[TravelDataService] Extracted travels (fallback):', travels.length);
                 }
 
-                // Transform data naar component format
-                const transformedTravels = travels.map(t => this.transformTravel(t));
+                // Enrich each trip with Travel Compositor detail data
+                console.log('[TravelDataService] Enriching trips with Travel Compositor data...');
+                const enrichedTravels = await Promise.all(
+                    travels.map(async (trip) => {
+                        try {
+                            // Get Travel Compositor detail data
+                            const tcData = await this.getTravelCompositorDetail(trip.id);
+                            if (tcData) {
+                                console.log('[TravelDataService] Enriched trip:', trip.id, 'with TC data');
+                                // Merge TC data with trip data
+                                return {
+                                    ...trip,
+                                    // Override with TC data
+                                    title: tcData.title || tcData.largeTitle || trip.title,
+                                    description: tcData.description || trip.description,
+                                    featured_image: tcData.imageUrl || trip.featured_image,
+                                    price: tcData.pricePerPerson?.amount || tcData.totalPrice?.amount || trip.price,
+                                    duration_days: tcData.counters?.hotelNights || trip.duration_days,
+                                    // Add TC specific data
+                                    tc_data: tcData
+                                };
+                            }
+                            return trip;
+                        } catch (error) {
+                            console.warn('[TravelDataService] Failed to enrich trip:', trip.id, error);
+                            return trip; // Return original if enrichment fails
+                        }
+                    })
+                );
 
-                // Update cache
-                this.cache.travels = transformedTravels;
+                // Transform and cache
+                const transformed = enrichedTravels.map(t => this.transformTravel(t));
+                this.cache.travels = transformed;
                 this.cache.lastFetch = Date.now();
 
-                return this.filterTravels(transformedTravels, options);
+                return this.filterTravels(transformed, options);
 
             } catch (error) {
                 console.error('[TravelDataService] Error fetching travels:', error);
                 // Fallback naar sample data
                 return this.getSampleTravels();
+            }
+        },
+
+        /**
+         * Haal Travel Compositor detail data op voor een reis
+         * @param {string} ideaId - Travel Compositor idea ID
+         * @returns {Promise<Object>} Travel Compositor data
+         */
+        async getTravelCompositorDetail(ideaId) {
+            try {
+                // Get microsite ID from config or environment
+                const micrositeId = window.TRAVEL_COMPOSITOR_MICROSITE_ID || 'rondreis-planner';
+                
+                // Construct API URL (use proxy if available, otherwise direct)
+                const apiBase = window.TRAVEL_COMPOSITOR_API_BASE || '/api';
+                const url = `${apiBase}/ideas/${ideaId}?micrositeId=${micrositeId}&lang=NL`;
+                
+                console.log('[TravelDataService] Fetching TC detail:', url);
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    console.warn('[TravelDataService] TC API returned:', response.status);
+                    return null;
+                }
+                
+                const data = await response.json();
+                return data;
+                
+            } catch (error) {
+                console.warn('[TravelDataService] Error fetching TC detail:', error);
+                return null;
             }
         },
 
