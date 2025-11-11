@@ -731,14 +731,48 @@
 
         this.currentIdea = data;
         
+        // Save to BOLT database
+        try {
+          if (window.TravelDataService) {
+            console.log('[TravelView] Saving travel to BOLT...');
+            const savedTravel = await window.TravelDataService.saveTravel({
+              title: data.title || data.largeTitle,
+              name: data.title || data.largeTitle,
+              location: data.destinations?.[0]?.name || '',
+              destination: data.destinations?.[0]?.name || '',
+              duration: `${data.counters?.hotelNights || 0} dagen`,
+              days: data.counters?.hotelNights || 0,
+              price: data.pricePerPerson?.amount || data.totalPrice?.amount || 0,
+              currency: data.pricePerPerson?.currency || data.totalPrice?.currency || 'EUR',
+              description: data.description || '',
+              intro: data.description || '',
+              image: data.imageUrl || '',
+              main_image: data.imageUrl || '',
+              tags: data.themes?.map(t => t.name).join(',') || '',
+              travel_type: data.themes?.map(t => t.name).join(',') || '',
+              featured: false,
+              priority: 999,
+              status: 'published',
+              source: 'travel-compositor',
+              destinations: data.destinations || [],
+              hotels: data.itinerary?.filter(i => i.type === 'HOTEL') || [],
+              transports: data.itinerary?.filter(i => i.type === 'TRANSPORT_BASE') || []
+            });
+            console.log('[TravelView] Travel saved to BOLT:', savedTravel);
+          }
+        } catch (saveError) {
+          console.error('[TravelView] Error saving to BOLT:', saveError);
+          // Don't block the UI, just log the error
+        }
+        
         // Check if roadbook template is selected - load directly
         if (template === 'roadbook') {
           console.log('[TravelView] Loading as Roadbook directly');
           this.loadAsRoadbook(data, '1');
-          this.showStatus('success', '<i class="fas fa-check-circle"></i> Roadbook wordt geladen!');
+          this.showStatus('success', '<i class="fas fa-check-circle"></i> Roadbook wordt geladen en opgeslagen!');
         } else {
           this.renderTravelContent(data);
-          this.showStatus('success', '<i class="fas fa-check-circle"></i> Reis succesvol geladen!');
+          this.showStatus('success', '<i class="fas fa-check-circle"></i> Reis succesvol geladen en opgeslagen!');
         }
 
         // Hide status after 3 seconds
