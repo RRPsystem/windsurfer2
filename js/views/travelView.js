@@ -734,9 +734,9 @@
 
         this.currentIdea = data;
         
-        // Save to BOLT database
+        // Save to BOLT database (optional - will fail due to CORS, but builder will save it)
         try {
-          if (window.TravelDataService) {
+          if (window.TravelDataService && false) { // Disabled for now due to CORS
             console.log('[TravelView] Saving travel to BOLT...');
             const savedTravel = await window.TravelDataService.saveTravel({
               title: data.title || data.largeTitle,
