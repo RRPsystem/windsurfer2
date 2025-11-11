@@ -358,10 +358,8 @@
             
             // Add optional fields
             if (travel.slug) dbTravel.slug = travel.slug;
-            if (travel.destinations && travel.destinations.length > 0) {
-                // Store first destination ID if available
-                dbTravel.destination_id = travel.destinations[0].code || null;
-            }
+            // destination_id is a UUID field - skip for now unless we have a real UUID
+            // Travel Compositor destinations use codes like "AAZ-2" which are not UUIDs
             if (travel.gallery) dbTravel.gallery = travel.gallery;
             if (travel.departure_dates) dbTravel.departure_dates = travel.departure_dates;
             
