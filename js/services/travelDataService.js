@@ -346,7 +346,16 @@
             // created_at, updated_at, page_id, author_type, author_id, is_mandatory, 
             // enabled_for_brands, enabled_for_franchise
             
+            // Get brand_id from context
+            const urlParams = new URLSearchParams(window.location.search);
+            const brandId = urlParams.get('brand_id') || 
+                           window.websiteBuilder?._edgeCtx?.brand_id || 
+                           window.edgeCtx?.brand_id || 
+                           window.BOLT_DB?.brandId || 
+                           window.BRAND_ID;
+            
             const dbTravel = {
+                brand_id: brandId, // Required for RLS policy
                 title: travel.title || travel.name || 'Untitled',
                 description: travel.description || travel.intro || '',
                 featured_image: travel.image || travel.imageUrl || '',
