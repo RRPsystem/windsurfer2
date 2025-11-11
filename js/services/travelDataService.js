@@ -194,7 +194,10 @@
 
                 // Get base URL (remove trailing slash and /functions/v1 if present)
                 const baseUrl = window.BOLT_DB.url.replace(/\/+$/, '').replace(/\/functions\/v1$/, '');
-                const saveUrl = `${baseUrl}/rest/v1/trips`;
+                
+                // Use sync-from-builder API instead of direct table access
+                // This bypasses RLS and handles proper trip creation
+                const saveUrl = `${baseUrl}/functions/v1/sync-from-builder`;
                 
                 console.log('[TravelDataService] Saving to URL:', saveUrl);
                 console.log('[TravelDataService] Data to save:', dbTravel);
@@ -202,12 +205,13 @@
                 const response = await fetch(saveUrl, {
                     method: 'POST',
                     headers: {
-                        'apikey': window.BOLT_DB.anonKey,
                         'Authorization': `Bearer ${window.BOLT_DB.anonKey}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=representation'
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(dbTravel)
+                    body: JSON.stringify({
+                        type: 'trip',
+                        data: dbTravel
+                    })
                 });
 
                 if (!response.ok) {
@@ -353,6 +357,12 @@
                            window.edgeCtx?.brand_id || 
                            window.BOLT_DB?.brandId || 
                            window.BRAND_ID;
+            
+            console.log('[TravelDataService] transformToDb - brand_id:', brandId);
+            
+            if (!brandId) {
+                console.error('[TravelDataService] No brand_id found! RLS policy will fail.');
+            }
             
             const dbTravel = {
                 brand_id: brandId, // Required for RLS policy
