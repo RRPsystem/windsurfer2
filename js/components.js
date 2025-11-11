@@ -1096,6 +1096,24 @@ class ComponentFactory {
             img.style.transform = 'scale(1)';
         });
 
+        // Click handler - navigate to travel detail page
+        card.addEventListener('click', function(e) {
+            // Don't navigate if clicking the book button
+            if (e.target === bookBtn || bookBtn.contains(e.target)) {
+                e.stopPropagation();
+                console.log('[TravelCard] Book clicked for:', travel.title);
+                // TODO: Open booking form or redirect to booking page
+                alert(`Boeken: ${travel.title}\n\nDeze functie wordt binnenkort toegevoegd!`);
+                return;
+            }
+            
+            // Navigate to detail page
+            console.log('[TravelCard] Card clicked, navigating to:', travel.id);
+            // TODO: Implement proper navigation
+            // For now, show travel details
+            alert(`Reis Details:\n\nTitel: ${travel.title}\nLocatie: ${travel.location}\nDuur: ${travel.duration}\nPrijs: ${travel.price}\n\nDetail pagina wordt binnenkort toegevoegd!`);
+        });
+
         return card;
     }
 
