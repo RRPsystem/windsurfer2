@@ -309,31 +309,30 @@
         transformTravel(dbTravel) {
             return {
                 id: dbTravel.id,
-                title: dbTravel.title || dbTravel.name,
-                location: dbTravel.location || dbTravel.destination,
-                duration: dbTravel.duration || `${dbTravel.days || 0} dagen`,
-                price: this.formatPrice(dbTravel.price, dbTravel.currency),
+                title: dbTravel.title,
+                location: dbTravel.destination_id || '',
+                duration: `${dbTravel.duration_days || 0} dagen`,
+                price: this.formatPrice(dbTravel.price),
                 priceRaw: dbTravel.price,
-                currency: dbTravel.currency || 'EUR',
-                description: dbTravel.description || dbTravel.intro,
-                image: dbTravel.image || dbTravel.main_image || dbTravel.header_image,
-                tags: dbTravel.tags || dbTravel.travel_type || '',
+                description: dbTravel.description || dbTravel.content || '',
+                image: dbTravel.featured_image || '',
+                tags: '',
                 
                 // BOLT metadata
-                featured: dbTravel.featured || false,
+                featured: dbTravel.is_featured || false,
                 priority: dbTravel.priority || 999,
-                status: dbTravel.status || 'published',
-                source: dbTravel.source || 'manual',
+                status: dbTravel.status || 'draft',
                 
                 // Extra data
-                days: dbTravel.days,
-                destinations: dbTravel.destinations,
-                hotels: dbTravel.hotels,
-                transports: dbTravel.transports,
+                days: dbTravel.duration_days,
+                slug: dbTravel.slug,
+                gallery: dbTravel.gallery,
+                departure_dates: dbTravel.departure_dates,
                 
                 // Timestamps
                 createdAt: dbTravel.created_at,
-                updatedAt: dbTravel.updated_at
+                updatedAt: dbTravel.updated_at,
+                publishedAt: dbTravel.published_at
             };
         },
 
@@ -341,27 +340,30 @@
          * Transform component format naar database format
          */
         transformToDb(travel) {
-            // Only include fields that exist in the trips table
-            // Based on the schema, we'll use minimal fields that are likely to exist
+            // Map to actual trips table columns
+            // Available columns: id, brand_id, title, slug, content, description, destination_id, 
+            // price, duration_days, departure_dates, featured_image, gallery, status, published_at,
+            // created_at, updated_at, page_id, author_type, author_id, is_mandatory, 
+            // enabled_for_brands, enabled_for_franchise
+            
             const dbTravel = {
                 title: travel.title || travel.name || 'Untitled',
                 description: travel.description || travel.intro || '',
-                image: travel.image || '',
-                price: travel.priceRaw || travel.price || 0,
-                duration: travel.duration || '',
-                location: travel.location || travel.destination || '',
-                status: travel.status || 'published',
-                source: travel.source || 'travel-compositor'
+                featured_image: travel.image || travel.imageUrl || '',
+                price: parseFloat(travel.priceRaw || travel.price || 0),
+                duration_days: parseInt(travel.days || 0),
+                status: travel.status || 'draft', // draft, published
+                content: travel.description || travel.intro || '' // Full content
             };
             
-            // Add optional fields only if they exist in the data
-            if (travel.days) dbTravel.days = travel.days;
-            if (travel.tags) dbTravel.tags = travel.tags;
-            if (travel.featured !== undefined) dbTravel.featured = travel.featured;
-            if (travel.priority) dbTravel.priority = travel.priority;
-            if (travel.destinations) dbTravel.destinations = travel.destinations;
-            if (travel.hotels) dbTravel.hotels = travel.hotels;
-            if (travel.transports) dbTravel.transports = travel.transports;
+            // Add optional fields
+            if (travel.slug) dbTravel.slug = travel.slug;
+            if (travel.destinations && travel.destinations.length > 0) {
+                // Store first destination ID if available
+                dbTravel.destination_id = travel.destinations[0].code || null;
+            }
+            if (travel.gallery) dbTravel.gallery = travel.gallery;
+            if (travel.departure_dates) dbTravel.departure_dates = travel.departure_dates;
             
             return dbTravel;
         },
