@@ -44,27 +44,77 @@
                 
                 console.log('[TravelDataService] Using brand_id:', brandId);
                 
-                // Fetch from BOLT database (trip_brand_assignments with trips relation)
-                const response = await fetch(`${window.BOLT_DB.url}/rest/v1/trip_brand_assignments?select=*,trips(*)&brand_id=eq.${brandId}&is_published=eq.true&status=in.(accepted,mandatory)`, {
-                    headers: {
-                        'apikey': window.BOLT_DB.anonKey,
-                        'Content-Type': 'application/json'
+                // Try trips-api endpoint first (recommended by BOLT)
+                let travels = [];
+                try {
+                    console.log('[TravelDataService] Trying trips-api endpoint...');
+                    const apiResponse = await fetch(`${window.BOLT_DB.url}/functions/v1/trips-api?for_builder=true`, {
+                        headers: {
+                            'Authorization': `Bearer ${window.BOLT_DB.anonKey}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (apiResponse.ok) {
+                        const apiData = await apiResponse.json();
+                        console.log('[TravelDataService] trips-api response:', apiData);
+                        
+                        // Filter for this brand and published trips
+                        travels = (apiData.trips || [])
+                            .filter(t => {
+                                // Check if trip is assigned to this brand
+                                const assignment = t.brand_assignments?.find(a => a.brand_id === brandId);
+                                return assignment && assignment.is_published === true;
+                            })
+                            .map(t => {
+                                // Get assignment for this brand
+                                const assignment = t.brand_assignments?.find(a => a.brand_id === brandId);
+                                return {
+                                    ...t,
+                                    featured: assignment?.is_featured || false,
+                                    priority: assignment?.priority || 999,
+                                    assignmentId: assignment?.id,
+                                    assignmentStatus: assignment?.status
+                                };
+                            });
+                        
+                        console.log('[TravelDataService] Filtered travels from trips-api:', travels.length);
+                    } else {
+                        throw new Error(`trips-api returned ${apiResponse.status}`);
                     }
-                });
+                } catch (apiError) {
+                    console.warn('[TravelDataService] trips-api failed, falling back to direct query:', apiError.message);
+                    
+                    // Fallback: Direct Supabase query
+                    const response = await fetch(`${window.BOLT_DB.url}/rest/v1/trip_brand_assignments?select=*,trips(*)&brand_id=eq.${brandId}&is_published=eq.true&status=in.(accepted,mandatory)`, {
+                        headers: {
+                            'apikey': window.BOLT_DB.anonKey,
+                            'Content-Type': 'application/json'
+                        }
+                    });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    const assignments = await response.json();
+                    console.log('[TravelDataService] Fetched assignments (fallback):', assignments.length);
+
+                    // Extract trips from assignments and merge featured/priority from assignment
+                    travels = assignments
+                        .filter(a => a.trips) // Only assignments with trips
+                        .map(a => ({
+                            ...a.trips, // Trip data
+                            // Override with assignment-level featured/priority if present
+                            featured: a.is_featured !== undefined ? a.is_featured : a.trips.featured,
+                            priority: a.priority !== undefined ? a.priority : a.trips.priority,
+                            // Keep assignment metadata
+                            assignmentId: a.id,
+                            assignmentStatus: a.status
+                        }));
+                    
+                    console.log('[TravelDataService] Extracted travels (fallback):', travels.length);
                 }
-
-                const assignments = await response.json();
-                console.log('[TravelDataService] Fetched assignments:', assignments.length);
-
-                // Extract trips from assignments
-                const travels = assignments
-                    .filter(a => a.trips) // Only assignments with trips
-                    .map(a => a.trips); // Extract trip object
-                
-                console.log('[TravelDataService] Extracted travels:', travels.length);
 
                 // Transform data naar component format
                 const transformedTravels = travels.map(t => this.transformTravel(t));
