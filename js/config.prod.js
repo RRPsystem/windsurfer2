@@ -6,8 +6,6 @@ window.BOLT_DB = {
 };
 
 // Travel Compositor API configuration
-// Use local proxy to avoid CORS issues
-window.TRAVEL_COMPOSITOR_API_BASE = "/api/travel-compositor";
 window.TRAVEL_COMPOSITOR_MICROSITE_ID = "rondreis-planner";
 
 // Load media API keys from environment (Vercel)

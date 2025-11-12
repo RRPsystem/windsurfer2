@@ -180,9 +180,9 @@
                 // Get microsite ID from config or environment
                 const micrositeId = window.TRAVEL_COMPOSITOR_MICROSITE_ID || 'rondreis-planner';
                 
-                // Construct API URL - correct TC API format
-                const apiBase = window.TRAVEL_COMPOSITOR_API_BASE || '/api';
-                const url = `${apiBase}/travelidea/${micrositeId}/info/${ideaId}?lang=NL`;
+                // Construct API URL via proxy
+                const path = `travelidea/${micrositeId}/info/${ideaId}`;
+                const url = `/api/travel-compositor?path=${encodeURIComponent(path)}&lang=NL`;
                 
                 console.log('[TravelDataService] Fetching TC detail:', url);
                 
