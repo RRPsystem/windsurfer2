@@ -5,17 +5,17 @@ window.BOLT_DB = {
   anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1YWFvZ2R4eGRjYWt4cnllY253Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2MzY3MzMsImV4cCI6MjA3NDIxMjczM30.EqZK_6xjEAVwUtsYj6nENe4x8-7At_oRAVsPMDvJBSI"
 };
 
-// Travel Compositor API configuration (default fallback)
-window.TRAVEL_COMPOSITOR_API_BASE = "https://online.travelcompositor.com/resources";
+// Travel Compositor API configuration
+// Use local proxy to avoid CORS issues
+window.TRAVEL_COMPOSITOR_API_BASE = "/api/travel-compositor";
 window.TRAVEL_COMPOSITOR_MICROSITE_ID = "rondreis-planner";
 
-// Load API keys and config from environment (Vercel)
-(async function loadConfig() {
+// Load media API keys from environment (Vercel)
+(async function loadMediaConfig() {
   try {
-    // Try to load media config
-    const mediaResponse = await fetch('/api/config/media');
-    if (mediaResponse.ok) {
-      const config = await mediaResponse.json();
+    const response = await fetch('/api/config/media');
+    if (response.ok) {
+      const config = await response.json();
       window.MEDIA_CONFIG = window.MEDIA_CONFIG || {};
       if (config.pexelsKey) window.MEDIA_CONFIG.pexelsKey = config.pexelsKey;
       if (config.unsplashKey) window.MEDIA_CONFIG.unsplashKey = config.unsplashKey;
@@ -23,20 +23,7 @@ window.TRAVEL_COMPOSITOR_MICROSITE_ID = "rondreis-planner";
       if (config.mapboxToken) window.MEDIA_CONFIG.mapboxToken = config.mapboxToken;
       console.log('[Config] Media API keys loaded from environment');
     }
-    
-    // Try to load TC API URL from environment
-    const tcResponse = await fetch('/api/config/travel-compositor');
-    if (tcResponse.ok) {
-      const tcConfig = await tcResponse.json();
-      if (tcConfig.apiUrl) {
-        window.TRAVEL_COMPOSITOR_API_BASE = tcConfig.apiUrl;
-        console.log('[Config] Travel Compositor API URL loaded from environment');
-      }
-      if (tcConfig.micrositeId) {
-        window.TRAVEL_COMPOSITOR_MICROSITE_ID = tcConfig.micrositeId;
-      }
-    }
   } catch (error) {
-    console.warn('[Config] Could not load config from environment:', error.message);
+    console.warn('[Config] Could not load media keys from environment:', error.message);
   }
 })();
