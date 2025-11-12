@@ -320,13 +320,13 @@
             
             return {
                 id: dbTravel.id,
-                title: dbTravel.title || 'Onbekende reis',
-                location: dbTravel.destination_id || 'Onbekend',
-                duration: `${dbTravel.duration_days || 7} dagen`,
-                price: this.formatPrice(dbTravel.price || 999),
-                priceRaw: dbTravel.price || 999,
-                description: description || 'Ontdek deze prachtige reis!',
-                image: dbTravel.featured_image || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
+                title: dbTravel.title || '',
+                location: dbTravel.destination_id || '',
+                duration: `${dbTravel.duration_days || 0} dagen`,
+                price: this.formatPrice(dbTravel.price),
+                priceRaw: dbTravel.price,
+                description: description,
+                image: dbTravel.featured_image || '',
                 tags: '',
                 
                 // BOLT metadata
@@ -351,12 +351,6 @@
          * Transform component format naar database format
          */
         transformToDb(travel) {
-            // Map to actual trips table columns
-            // Available columns: id, brand_id, title, slug, content, description, destination_id, 
-            // price, duration_days, departure_dates, featured_image, gallery, status, published_at,
-            // created_at, updated_at, page_id, author_type, author_id, is_mandatory, 
-            // enabled_for_brands, enabled_for_franchise
-            
             // Get brand_id from context
             const urlParams = new URLSearchParams(window.location.search);
             const brandId = urlParams.get('brand_id') || 
@@ -365,29 +359,50 @@
                            window.BOLT_DB?.brandId || 
                            window.BRAND_ID;
             
+            console.log('[TravelDataService] transformToDb input:', travel);
             console.log('[TravelDataService] transformToDb - brand_id:', brandId);
             
             if (!brandId) {
                 console.error('[TravelDataService] No brand_id found! RLS policy will fail.');
             }
             
+            // Extract price - handle different formats
+            let price = 0;
+            if (typeof travel.price === 'number') {
+                price = travel.price;
+            } else if (travel.priceRaw) {
+                price = parseFloat(travel.priceRaw);
+            } else if (typeof travel.price === 'string') {
+                price = parseFloat(travel.price.replace(/[^0-9.]/g, ''));
+            }
+            
+            // Extract duration
+            let duration = 0;
+            if (travel.duration_days) {
+                duration = parseInt(travel.duration_days);
+            } else if (travel.days) {
+                duration = parseInt(travel.days);
+            } else if (typeof travel.duration === 'string') {
+                duration = parseInt(travel.duration.replace(/[^0-9]/g, ''));
+            }
+            
             const dbTravel = {
-                brand_id: brandId, // Required for RLS policy
-                title: travel.title || travel.name || 'Untitled',
-                description: travel.description || travel.intro || '',
-                featured_image: travel.image || travel.imageUrl || '',
-                price: parseFloat(travel.priceRaw || travel.price || 0),
-                duration_days: parseInt(travel.days || 0),
-                status: travel.status || 'draft', // draft, published
-                content: travel.description || travel.intro || '' // Full content
+                brand_id: brandId,
+                title: travel.title || 'Onbekende reis',
+                description: travel.description || '',
+                featured_image: travel.featured_image || travel.image || travel.imageUrl || '',
+                price: price,
+                duration_days: duration,
+                status: travel.status || 'draft',
+                content: travel.description || ''
             };
             
             // Add optional fields
+            if (travel.id) dbTravel.id = travel.id;
             if (travel.slug) dbTravel.slug = travel.slug;
-            // destination_id is a UUID field - skip for now unless we have a real UUID
-            // Travel Compositor destinations use codes like "AAZ-2" which are not UUIDs
-            if (travel.gallery) dbTravel.gallery = travel.gallery;
-            if (travel.departure_dates) dbTravel.departure_dates = travel.departure_dates;
+            if (travel.destination_id) dbTravel.destination_id = travel.destination_id;
+            
+            console.log('[TravelDataService] transformToDb output:', dbTravel);
             
             return dbTravel;
         },
