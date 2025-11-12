@@ -308,15 +308,25 @@
          * Transform database travel naar component format
          */
         transformTravel(dbTravel) {
+            // Ensure description is a string
+            let description = '';
+            if (typeof dbTravel.description === 'string') {
+                description = dbTravel.description;
+            } else if (dbTravel.description && typeof dbTravel.description === 'object') {
+                description = JSON.stringify(dbTravel.description);
+            } else if (dbTravel.content) {
+                description = dbTravel.content;
+            }
+            
             return {
                 id: dbTravel.id,
-                title: dbTravel.title,
-                location: dbTravel.destination_id || '',
-                duration: `${dbTravel.duration_days || 0} dagen`,
-                price: this.formatPrice(dbTravel.price),
-                priceRaw: dbTravel.price,
-                description: dbTravel.description || dbTravel.content || '',
-                image: dbTravel.featured_image || '',
+                title: dbTravel.title || 'Onbekende reis',
+                location: dbTravel.destination_id || 'Onbekend',
+                duration: `${dbTravel.duration_days || 7} dagen`,
+                price: this.formatPrice(dbTravel.price || 999),
+                priceRaw: dbTravel.price || 999,
+                description: description || 'Ontdek deze prachtige reis!',
+                image: dbTravel.featured_image || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
                 tags: '',
                 
                 // BOLT metadata
