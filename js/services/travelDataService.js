@@ -190,6 +190,9 @@
                 
                 if (!response.ok) {
                     console.warn('[TravelDataService] TC API returned:', response.status);
+                    // Log response body for debugging
+                    const errorText = await response.text();
+                    console.warn('[TravelDataService] TC API error body:', errorText);
                     return null;
                 }
                 
