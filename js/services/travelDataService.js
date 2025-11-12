@@ -177,8 +177,8 @@
          */
         async getTravelCompositorDetail(ideaId) {
             try {
-                // Use existing /api/ideas/[id] proxy with info parameter
-                const url = `/api/ideas/${ideaId}?info=1&lang=NL`;
+                // Use existing /api/ideas/[id] proxy WITHOUT info parameter (try regular endpoint)
+                const url = `/api/ideas/${ideaId}?language=NL`;
                 
                 console.log('[TravelDataService] Fetching TC detail:', url);
                 
