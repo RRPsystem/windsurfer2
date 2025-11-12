@@ -126,38 +126,13 @@
                     console.log('[TravelDataService] Extracted travels (fallback):', travels.length);
                 }
 
-                // Enrich each trip with Travel Compositor detail data
-                console.log('[TravelDataService] Enriching trips with Travel Compositor data...');
-                const enrichedTravels = await Promise.all(
-                    travels.map(async (trip) => {
-                        try {
-                            // Get Travel Compositor detail data
-                            const tcData = await this.getTravelCompositorDetail(trip.id);
-                            if (tcData) {
-                                console.log('[TravelDataService] Enriched trip:', trip.id, 'with TC data');
-                                // Merge TC data with trip data
-                                return {
-                                    ...trip,
-                                    // Override with TC data
-                                    title: tcData.title || tcData.largeTitle || trip.title,
-                                    description: tcData.description || trip.description,
-                                    featured_image: tcData.imageUrl || trip.featured_image,
-                                    price: tcData.pricePerPerson?.amount || tcData.totalPrice?.amount || trip.price,
-                                    duration_days: tcData.counters?.hotelNights || trip.duration_days,
-                                    // Add TC specific data
-                                    tc_data: tcData
-                                };
-                            }
-                            return trip;
-                        } catch (error) {
-                            console.warn('[TravelDataService] Failed to enrich trip:', trip.id, error);
-                            return trip; // Return original if enrichment fails
-                        }
-                    })
-                );
+                // NOTE: TC enrichment disabled - using database data directly
+                // The trip.id is a UUID, not the TC numeric ideaId
+                // To enable TC enrichment, add a tc_idea_id column to trips table
+                console.log('[TravelDataService] Using trip data from database (TC enrichment disabled)');
 
                 // Transform and cache
-                const transformed = enrichedTravels.map(t => this.transformTravel(t));
+                const transformed = travels.map(t => this.transformTravel(t));
                 this.cache.travels = transformed;
                 this.cache.lastFetch = Date.now();
 
