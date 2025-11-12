@@ -177,12 +177,8 @@
          */
         async getTravelCompositorDetail(ideaId) {
             try {
-                // Get microsite ID from config or environment
-                const micrositeId = window.TRAVEL_COMPOSITOR_MICROSITE_ID || 'rondreis-planner';
-                
-                // Construct API URL via proxy
-                const path = `travelidea/${micrositeId}/info/${ideaId}`;
-                const url = `/api/travel-compositor?path=${encodeURIComponent(path)}&lang=NL`;
+                // Use existing /api/ideas/[id] proxy with info parameter
+                const url = `/api/ideas/${ideaId}?info=1&lang=NL`;
                 
                 console.log('[TravelDataService] Fetching TC detail:', url);
                 
