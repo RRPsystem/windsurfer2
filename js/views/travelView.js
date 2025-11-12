@@ -739,21 +739,14 @@
           if (window.TravelDataService) {
             console.log('[TravelView] Saving travel to BOLT...');
             const savedTravel = await window.TravelDataService.saveTravel({
-              trip_id: data.id || crypto.randomUUID(),
-              title: data.title || data.largeTitle,
+              id: data.id || crypto.randomUUID(),
+              title: data.title || data.largeTitle || 'Onbekende reis',
               description: data.description || '',
-              destinations: data.destinations || [],
-              duration_days: data.counters?.hotelNights || 0,
-              price_from: data.pricePerPerson?.amount || data.totalPrice?.amount || 0,
-              images: data.imageUrl ? [data.imageUrl] : [],
-              tags: data.themes?.map(t => t.name) || [],
-              is_featured: false,
-              featured_priority: null,
-              // Extra data for reference
-              image: data.imageUrl || '',
-              imageUrl: data.imageUrl || '',
-              days: data.counters?.hotelNights || 0,
+              featured_image: data.imageUrl || '',
               price: data.pricePerPerson?.amount || data.totalPrice?.amount || 0,
+              duration_days: data.counters?.hotelNights || 0,
+              destination_id: data.destinations?.[0]?.code || '',
+              status: 'draft',
               source: 'travel-compositor'
             });
             console.log('[TravelView] Travel saved to BOLT:', savedTravel);
