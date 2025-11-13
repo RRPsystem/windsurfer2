@@ -392,8 +392,10 @@
                 content: travel.description || ''
             };
             
-            // Add optional fields
-            if (travel.id) dbTravel.id = travel.id;
+            // Add optional fields (only if valid UUID format)
+            if (travel.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(travel.id)) {
+                dbTravel.id = travel.id;
+            }
             if (travel.slug) dbTravel.slug = travel.slug;
             if (travel.destination_id) dbTravel.destination_id = travel.destination_id;
             
