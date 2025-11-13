@@ -215,7 +215,9 @@
                 // Clear cache
                 this.clearCache();
 
-                return this.transformTravel(saved[0]);
+                // Handle both array and single object response
+                const savedTrip = Array.isArray(saved) ? saved[0] : saved;
+                return this.transformTravel(savedTrip);
 
             } catch (error) {
                 console.error('[TravelDataService] Error saving travel:', error);

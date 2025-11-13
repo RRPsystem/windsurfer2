@@ -773,20 +773,26 @@
             
             const savedTravel = await window.TravelDataService.saveTravel(travelData);
             console.log('[TravelView] Travel saved to BOLT:', savedTravel);
+            
+            // DEBUG: Show success and wait before redirect
+            this.showStatus('success', `✅ Reis opgeslagen! ID: ${savedTravel.id} - Check console voor details`);
+            
+            // Wait 5 seconds before redirect to see logs
+            await new Promise(resolve => setTimeout(resolve, 5000));
           }
         } catch (saveError) {
           console.error('[TravelView] Error saving to BOLT:', saveError);
-          // Don't block the UI, just log the error
+          this.showStatus('error', `❌ Fout bij opslaan: ${saveError.message}`);
+          // Don't redirect on error
+          return;
         }
         
         // Check if roadbook template is selected - load directly
         if (template === 'roadbook') {
           console.log('[TravelView] Loading as Roadbook directly');
           this.loadAsRoadbook(data, '1');
-          this.showStatus('success', '<i class="fas fa-check-circle"></i> Roadbook wordt geladen en opgeslagen!');
         } else {
           this.renderTravelContent(data);
-          this.showStatus('success', '<i class="fas fa-check-circle"></i> Reis succesvol geladen en opgeslagen!');
         }
 
         // Hide status after 3 seconds
