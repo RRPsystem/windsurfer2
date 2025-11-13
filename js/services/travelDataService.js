@@ -397,7 +397,10 @@
                 dbTravel.id = travel.id;
             }
             if (travel.slug) dbTravel.slug = travel.slug;
-            if (travel.destination_id) dbTravel.destination_id = travel.destination_id;
+            // Only add destination_id if it's a valid UUID
+            if (travel.destination_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(travel.destination_id)) {
+                dbTravel.destination_id = travel.destination_id;
+            }
             
             console.log('[TravelDataService] transformToDb output:', dbTravel);
             
