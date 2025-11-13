@@ -732,30 +732,39 @@
         const data = await response.json();
         console.log('[TravelView] ===== TC API RESPONSE =====');
         console.log('[TravelView] Full data:', data);
-        console.log('[TravelView] Title:', data.title, data.largeTitle);
-        console.log('[TravelView] Description:', data.description);
-        console.log('[TravelView] Image:', data.imageUrl);
-        console.log('[TravelView] Price:', data.pricePerPerson, data.totalPrice);
-        console.log('[TravelView] Duration:', data.counters);
-        console.log('[TravelView] Destinations:', data.destinations);
-        console.log('[TravelView] ========================');
 
         this.currentIdea = data;
         
-        // Save to BOLT database via sync-from-builder endpoint
+        // Save to BOLT database
         try {
           if (window.TravelDataService) {
             console.log('[TravelView] Saving travel to BOLT...');
             
-            // Extract all possible fields from TC data
+            // Extract data from TC response structure
+            const firstDestination = data.destinations?.[0];
+            const firstHotel = data.hotels?.[0];
+            const totalNights = data.hotels?.reduce((sum, h) => sum + (h.nights || 0), 0) || 0;
+            
+            // Create title from destinations (e.g. "Rondreis Dublin, Belfast, Galway")
+            const destinationNames = [...new Set(data.destinations?.map(d => d.name) || [])];
+            const title = destinationNames.length > 0 
+              ? `Rondreis ${destinationNames.slice(0, 3).join(', ')}${destinationNames.length > 3 ? '...' : ''}`
+              : 'Rondreis';
+            
+            // Calculate total price from all components
+            let totalPrice = 0;
+            data.hotels?.forEach(h => totalPrice += h.priceBreakdown?.totalPrice?.microsite?.amount || 0);
+            data.transports?.forEach(t => totalPrice += t.priceBreakdown?.totalPrice?.microsite?.amount || 0);
+            data.cars?.forEach(c => totalPrice += c.priceBreakdown?.totalPrice?.microsite?.amount || 0);
+            
             const travelData = {
-              id: data.id || crypto.randomUUID(),
-              title: data.title || data.largeTitle || data.name || '',
-              description: data.description || data.intro || data.summary || '',
-              featured_image: data.imageUrl || data.image || data.headerImage || '',
-              price: data.pricePerPerson?.amount || data.totalPrice?.amount || data.price || 0,
-              duration_days: data.counters?.hotelNights || data.counters?.days || data.duration || 0,
-              destination_id: data.destinations?.[0]?.code || data.destinations?.[0]?.name || '',
+              id: crypto.randomUUID(),
+              title: title,
+              description: firstDestination?.description || '',
+              featured_image: firstDestination?.imageUrls?.[0] || firstHotel?.hotelData?.images?.[0]?.url || '',
+              price: Math.round(totalPrice),
+              duration_days: totalNights,
+              destination_id: firstDestination?.code || '',
               status: 'draft',
               source: 'travel-compositor'
             };
