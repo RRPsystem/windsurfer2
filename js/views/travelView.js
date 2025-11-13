@@ -730,7 +730,15 @@
         }
 
         const data = await response.json();
-        console.log('[TravelView] Travel data loaded:', data);
+        console.log('[TravelView] ===== TC API RESPONSE =====');
+        console.log('[TravelView] Full data:', data);
+        console.log('[TravelView] Title:', data.title, data.largeTitle);
+        console.log('[TravelView] Description:', data.description);
+        console.log('[TravelView] Image:', data.imageUrl);
+        console.log('[TravelView] Price:', data.pricePerPerson, data.totalPrice);
+        console.log('[TravelView] Duration:', data.counters);
+        console.log('[TravelView] Destinations:', data.destinations);
+        console.log('[TravelView] ========================');
 
         this.currentIdea = data;
         
@@ -738,17 +746,23 @@
         try {
           if (window.TravelDataService) {
             console.log('[TravelView] Saving travel to BOLT...');
-            const savedTravel = await window.TravelDataService.saveTravel({
+            
+            // Extract all possible fields from TC data
+            const travelData = {
               id: data.id || crypto.randomUUID(),
-              title: data.title || data.largeTitle || 'Onbekende reis',
-              description: data.description || '',
-              featured_image: data.imageUrl || '',
-              price: data.pricePerPerson?.amount || data.totalPrice?.amount || 0,
-              duration_days: data.counters?.hotelNights || 0,
-              destination_id: data.destinations?.[0]?.code || '',
+              title: data.title || data.largeTitle || data.name || '',
+              description: data.description || data.intro || data.summary || '',
+              featured_image: data.imageUrl || data.image || data.headerImage || '',
+              price: data.pricePerPerson?.amount || data.totalPrice?.amount || data.price || 0,
+              duration_days: data.counters?.hotelNights || data.counters?.days || data.duration || 0,
+              destination_id: data.destinations?.[0]?.code || data.destinations?.[0]?.name || '',
               status: 'draft',
               source: 'travel-compositor'
-            });
+            };
+            
+            console.log('[TravelView] Prepared data for save:', travelData);
+            
+            const savedTravel = await window.TravelDataService.saveTravel(travelData);
             console.log('[TravelView] Travel saved to BOLT:', savedTravel);
           }
         } catch (saveError) {
