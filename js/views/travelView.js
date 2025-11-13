@@ -758,7 +758,7 @@
             data.cars?.forEach(c => totalPrice += c.priceBreakdown?.totalPrice?.microsite?.amount || 0);
             
             const travelData = {
-              id: crypto.randomUUID(),
+              // Don't set id - let BOLT auto-generate UUID
               title: title,
               description: firstDestination?.description || '',
               featured_image: firstDestination?.imageUrls?.[0] || firstHotel?.hotelData?.images?.[0]?.url || '',
