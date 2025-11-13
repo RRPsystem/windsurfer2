@@ -764,7 +764,7 @@
               featured_image: firstDestination?.imageUrls?.[0] || firstHotel?.hotelData?.images?.[0]?.url || '',
               price: Math.round(totalPrice),
               duration_days: totalNights,
-              destination_id: firstDestination?.code || '',
+              // Don't set destination_id - BOLT expects UUID, not code
               status: 'draft',
               source: 'travel-compositor'
             };
