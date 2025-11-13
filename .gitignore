@@ -29,6 +29,9 @@ out/
 # Local server secrets
 server/.env
 js/config.local.js
+.env
+.env.local
+.env.*.local
 
 # BOLT Configuration (optioneel - anon key is publiek maar kan in gitignore)
 # config/bolt.js
