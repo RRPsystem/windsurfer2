@@ -226,6 +226,39 @@
         },
 
         /**
+         * Maak een nette slug van een titel of fallback ID
+         */
+        slugify(title, fallbackId) {
+            try {
+                const source = title || fallbackId || '';
+                if (!source) {
+                    return 'trip-' + Math.random().toString(36).slice(2, 8);
+                }
+
+                const base = source
+                    .toString()
+                    .normalize('NFKD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '')
+                    .slice(0, 80);
+
+                if (!base) {
+                    return 'trip-' + Math.random().toString(36).slice(2, 8);
+                }
+
+                // Voeg eventueel een korte suffix toe om botsende slugs te verminderen
+                const suffix = fallbackId ? '-' + String(fallbackId).slice(-6) : '';
+                return base + suffix;
+
+            } catch (e) {
+                console.warn('[TravelDataService] slugify error, falling back to random slug', e);
+                return 'trip-' + Math.random().toString(36).slice(2, 8);
+            }
+        },
+
+        /**
          * Update een reis
          * @param {string} id - Reis ID
          * @param {Object} updates - Updates
@@ -380,6 +413,9 @@
             } else if (typeof travel.duration === 'string') {
                 duration = parseInt(travel.duration.replace(/[^0-9]/g, ''));
             }
+
+            // Zorg dat we altijd een slug hebben (vereist door database NOT NULL constraint)
+            const slug = travel.slug || this.slugify(travel.title, travel.id || travel.tcIdeaId || travel.tcId);
             
             const dbTravel = {
                 brand_id: brandId,
@@ -389,14 +425,14 @@
                 price: price,
                 duration_days: duration,
                 status: travel.status || 'draft',
-                content: travel.description || ''
+                content: travel.description || '',
+                slug: slug
             };
-            
+
             // Add optional fields (only if valid UUID format)
             if (travel.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(travel.id)) {
                 dbTravel.id = travel.id;
             }
-            if (travel.slug) dbTravel.slug = travel.slug;
             // Only add destination_id if it's a valid UUID
             if (travel.destination_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(travel.destination_id)) {
                 dbTravel.destination_id = travel.destination_id;
