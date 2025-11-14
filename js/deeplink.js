@@ -206,30 +206,73 @@
   // Always local-first save behavior
   installSaveMonkeyPatch();
   
-  // Check if this is a new trip (content_type=trips but no page_id)
+  // Handle travel/trip loading
   const kind = determineKind(ctx);
-  if (kind === 'travel' && !ctx.page_id) {
-    log('New trip detected - will show Travel View');
-    // Show Travel View for new trips after DOM is ready
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
-        try {
-          if (window.TravelView && typeof window.TravelView.show === 'function') {
-            log('Opening Travel View for new trip');
-            window.TravelView.show();
-          } else {
-            warn('TravelView not available yet, retrying...');
-            setTimeout(() => {
-              if (window.TravelView && typeof window.TravelView.show === 'function') {
-                window.TravelView.show();
+  if (kind === 'travel') {
+    const tripId = u && u.searchParams.get('trip_id');
+    
+    if (tripId) {
+      // Load existing trip by ID
+      log('Existing trip detected, loading trip_id:', tripId);
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(async () => {
+          try {
+            if (window.TravelDataService && window.TravelView) {
+              log('Loading existing trip from database...');
+              const travel = await window.TravelDataService.getTravel(tripId);
+              if (travel) {
+                log('Trip loaded, rendering in TravelView:', travel.title);
+                if (typeof window.TravelView.renderTravelContent === 'function') {
+                  window.TravelView.renderTravelContent(travel);
+                } else {
+                  warn('TravelView.renderTravelContent not available');
+                }
+              } else {
+                warn('Trip not found:', tripId);
               }
-            }, 500);
+            } else {
+              warn('TravelDataService or TravelView not available yet, retrying...');
+              setTimeout(async () => {
+                try {
+                  if (window.TravelDataService && window.TravelView) {
+                    const travel = await window.TravelDataService.getTravel(tripId);
+                    if (travel && typeof window.TravelView.renderTravelContent === 'function') {
+                      window.TravelView.renderTravelContent(travel);
+                    }
+                  }
+                } catch (e) {
+                  warn('Retry failed to load trip:', e);
+                }
+              }, 1000);
+            }
+          } catch (e) {
+            warn('Failed to load existing trip:', e);
           }
-        } catch (e) {
-          warn('Failed to show Travel View:', e);
-        }
-      }, 300);
-    });
+        }, 500);
+      });
+    } else if (!ctx.page_id) {
+      // New trip (no trip_id and no page_id)
+      log('New trip detected - will show Travel View');
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+          try {
+            if (window.TravelView && typeof window.TravelView.show === 'function') {
+              log('Opening Travel View for new trip');
+              window.TravelView.show();
+            } else {
+              warn('TravelView not available yet, retrying...');
+              setTimeout(() => {
+                if (window.TravelView && typeof window.TravelView.show === 'function') {
+                  window.TravelView.show();
+                }
+              }, 500);
+            }
+          } catch (e) {
+            warn('Failed to show Travel View:', e);
+          }
+        }, 300);
+      });
+    }
   }
   
   // Auto-load page content if page_id is present
