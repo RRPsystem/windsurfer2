@@ -51,8 +51,8 @@
                 // Use direct Supabase query (trips-api requires special auth)
                 let travels = [];
                 
-                // Direct Supabase query
-                const fallbackUrl = `${baseUrl}/rest/v1/trip_brand_assignments?select=*,trips(*)&brand_id=eq.${brandId}&is_published=eq.true&status=in.(accepted,mandatory)`;
+                // Direct Supabase query - haal ALLE trips op voor deze brand (ook drafts voor bewerking)
+                const fallbackUrl = `${baseUrl}/rest/v1/trip_brand_assignments?select=*,trips(*)&brand_id=eq.${brandId}`;
                 console.log('[TravelDataService] Query URL:', fallbackUrl);
                 
                 const response = await fetch(fallbackUrl, {
