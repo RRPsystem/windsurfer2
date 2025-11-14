@@ -775,7 +775,7 @@
             console.log('[TravelView] Travel saved to BOLT:', savedTravel);
             
             // DEBUG: Show success and wait before redirect
-            this.showStatus('success', `✅ Reis opgeslagen! ID: ${savedTravel.id} - Check console voor details`);
+            this.showStatus('success', `✅ Importeren gelukt! Reis is opgeslagen - ID: ${savedTravel.id}`);
             
             // Wait 5 seconds before redirect to see logs
             await new Promise(resolve => setTimeout(resolve, 5000));
