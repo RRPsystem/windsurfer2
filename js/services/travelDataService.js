@@ -419,7 +419,7 @@
                 price: price,
                 duration_days: duration,
                 status: travel.status || 'draft',
-                content: travel.description || '',
+                content: travel.content || travel.html || travel.description || '',
                 slug: slug
             };
 
