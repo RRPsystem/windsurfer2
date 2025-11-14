@@ -52,7 +52,7 @@
                 let travels = [];
                 
                 // Direct Supabase query - haal ALLE trips op voor deze brand (ook drafts voor bewerking)
-                const fallbackUrl = `${baseUrl}/rest/v1/trip_brand_assignments?select=*,trips(*)&brand_id=eq.${brandId}`;
+                const fallbackUrl = `${baseUrl}/rest/v1/trip_brand_assignments?select=*,trips(id,title,description,featured_image,price,duration_days,status,content,slug,created_at)&brand_id=eq.${brandId}`;
                 console.log('[TravelDataService] Query URL:', fallbackUrl);
                 
                 const response = await fetch(fallbackUrl, {
