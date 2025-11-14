@@ -221,11 +221,18 @@
               log('Loading existing trip from database...');
               const travel = await window.TravelDataService.getTravel(tripId);
               if (travel) {
-                log('Trip loaded, rendering in TravelView:', travel.title);
-                if (typeof window.TravelView.renderTravelContent === 'function') {
-                  window.TravelView.renderTravelContent(travel);
+                log('Trip loaded, switching to page mode and loading content:', travel.title);
+                
+                // Switch to page mode instead of travel mode
+                if (window.WB_setMode) {
+                  window.WB_setMode('page');
+                }
+                
+                // Load trip content as page content
+                if (window.websiteBuilder && typeof window.websiteBuilder.loadTravelIdea === 'function') {
+                  window.websiteBuilder.loadTravelIdea(travel);
                 } else {
-                  warn('TravelView.renderTravelContent not available');
+                  warn('websiteBuilder.loadTravelIdea not available');
                 }
               } else {
                 warn('Trip not found:', tripId);
@@ -236,8 +243,9 @@
                 try {
                   if (window.TravelDataService && window.TravelView) {
                     const travel = await window.TravelDataService.getTravel(tripId);
-                    if (travel && typeof window.TravelView.renderTravelContent === 'function') {
-                      window.TravelView.renderTravelContent(travel);
+                    if (travel && typeof window.websiteBuilder.loadTravelIdea === 'function') {
+                      if (window.WB_setMode) window.WB_setMode('page');
+                      window.websiteBuilder.loadTravelIdea(travel);
                     }
                   }
                 } catch (e) {

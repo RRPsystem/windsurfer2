@@ -865,6 +865,12 @@
       const contentEl = document.getElementById('travelContent');
       if (!contentEl) return;
 
+      // Hide import method selection when loading existing travel
+      const importMethodEl = document.querySelector('.import-method-card')?.closest('div[style*="background: white"]');
+      if (importMethodEl) {
+        importMethodEl.style.display = 'none';
+      }
+
       // Extract key information
       const title = data.name || data.title || 'Reis';
       const description = data.description || data.intro || '';
