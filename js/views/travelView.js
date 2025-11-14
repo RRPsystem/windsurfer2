@@ -757,6 +757,9 @@
             data.transports?.forEach(t => totalPrice += t.priceBreakdown?.totalPrice?.microsite?.amount || 0);
             data.cars?.forEach(c => totalPrice += c.priceBreakdown?.totalPrice?.microsite?.amount || 0);
             
+            // Generate HTML content from Travel Compositor data
+            const htmlContent = this.generateTravelHTML(data, title, totalPrice, totalNights);
+            
             const travelData = {
               // Don't set id - let BOLT auto-generate UUID
               title: title,
@@ -764,6 +767,8 @@
               featured_image: firstDestination?.imageUrls?.[0] || firstHotel?.hotelData?.images?.[0]?.url || '',
               price: Math.round(totalPrice),
               duration_days: totalNights,
+              content: htmlContent,
+              html: htmlContent,
               // Don't set destination_id - BOLT expects UUID, not code
               status: 'draft',
               source: 'travel-compositor'
@@ -859,6 +864,51 @@
       statusEl.style.borderLeft = `3px solid ${color.border}`;
       statusEl.style.color = color.text;
       statusEl.innerHTML = message;
+    },
+
+    generateTravelHTML(data, title, totalPrice, totalNights) {
+      const destinations = data.destinations || [];
+      const hotels = data.hotels || [];
+      const transports = data.transports || [];
+      
+      let html = `
+        <div class="travel-content">
+          <h1>${title}</h1>
+          <div class="travel-summary">
+            <p><strong>Duur:</strong> ${totalNights} nachten</p>
+            <p><strong>Prijs:</strong> €${Math.round(totalPrice)}</p>
+          </div>
+      `;
+      
+      if (destinations.length > 0) {
+        html += '<h2>Bestemmingen</h2><ul>';
+        destinations.forEach(dest => {
+          html += `<li><strong>${dest.name}</strong>`;
+          if (dest.description) {
+            html += ` - ${dest.description}`;
+          }
+          html += '</li>';
+        });
+        html += '</ul>';
+      }
+      
+      if (hotels.length > 0) {
+        html += '<h2>Accommodaties</h2>';
+        hotels.forEach(hotel => {
+          const hotelData = hotel.hotelData || {};
+          html += `
+            <div class="hotel">
+              <h3>${hotelData.name || 'Hotel'}</h3>
+              ${hotelData.description ? `<p>${hotelData.description}</p>` : ''}
+              ${hotel.checkInDate ? `<p><strong>Check-in:</strong> ${hotel.checkInDate}</p>` : ''}
+              ${hotel.checkOutDate ? `<p><strong>Check-out:</strong> ${hotel.checkOutDate}</p>` : ''}
+            </div>
+          `;
+        });
+      }
+      
+      html += '</div>';
+      return html;
     },
 
     renderTravelContent(data) {
