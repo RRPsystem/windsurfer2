@@ -184,22 +184,16 @@
                 // Transform naar database format
                 const dbTravel = this.transformToDb(travelData);
 
-                // Get base URL (remove trailing slash and /functions/v1 if present)
-                const baseUrl = window.BOLT_DB.url.replace(/\/+$/, '').replace(/\/functions\/v1$/, '');
+                // Bepaal Edge Function URL voor veilige opslag via service role
+                const functionUrl = window.BOLT_DB.url.replace(/\/functions\/v1$/, '') + '/functions/v1/trips-import';
                 
-                // Direct insert/upsert to trips table
-                const saveUrl = `${baseUrl}/rest/v1/trips`;
-                
-                console.log('[TravelDataService] Saving to URL:', saveUrl);
+                console.log('[TravelDataService] Saving via Edge Function:', functionUrl);
                 console.log('[TravelDataService] Data to save:', dbTravel);
 
-                const response = await fetch(saveUrl, {
+                const response = await fetch(functionUrl, {
                     method: 'POST',
                     headers: {
-                        'apikey': window.BOLT_DB.anonKey,
-                        'Authorization': `Bearer ${window.BOLT_DB.anonKey}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=representation'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(dbTravel)
                 });
