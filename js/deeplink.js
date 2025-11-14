@@ -209,7 +209,7 @@
   // Handle travel/trip loading
   const kind = determineKind(ctx);
   if (kind === 'travel') {
-    const tripId = u && u.searchParams.get('trip_id');
+    const tripId = u && (u.searchParams.get('trip_id') || u.searchParams.get('id'));
     
     if (tripId) {
       // Load existing trip by ID
