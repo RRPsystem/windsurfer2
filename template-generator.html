@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Genereren - AI Website Studio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .generator-card {
+            background: white;
+            border-radius: 20px;
+            padding: 60px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        h1 {
+            font-size: 32px;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+        }
+
+        .status-text {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        .progress-container {
+            background: #f3f4f6;
+            border-radius: 12px;
+            height: 12px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 12px;
+        }
+
+        .progress-text {
+            font-size: 14px;
+            color: #9ca3af;
+            margin-bottom: 30px;
+        }
+
+        .steps-list {
+            text-align: left;
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .step-item.active {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .step-item.completed {
+            color: #10b981;
+        }
+
+        .step-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 12px;
+        }
+
+        .step-item.active .step-icon {
+            background: #667eea;
+            color: white;
+        }
+
+        .step-item.completed .step-icon {
+            background: #10b981;
+            color: white;
+        }
+
+        .success-message {
+            display: none;
+            background: #d1fae5;
+            border: 2px solid #10b981;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .success-message h2 {
+            color: #065f46;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .success-message p {
+            color: #047857;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #e5e7eb;
+        }
+
+        .error-message {
+            display: none;
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            color: #991b1b;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="generator-card">
+        <div class="icon" id="statusIcon">🚀</div>
+        <h1 id="statusTitle">Website wordt gegenereerd...</h1>
+        <p class="status-text" id="statusText">Even geduld, we maken je website klaar</p>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <p class="progress-text" id="progressText">0% voltooid</p>
+
+        <div class="steps-list" id="stepsList">
+            <div class="step-item" data-step="load">
+                <div class="step-icon">1</div>
+                <span>Template laden</span>
+            </div>
+            <div class="step-item" data-step="nav">
+                <div class="step-icon">2</div>
+                <span>Menu aanpassen</span>
+            </div>
+            <div class="step-item" data-step="footer">
+                <div class="step-icon">3</div>
+                <span>Footer configureren</span>
+            </div>
+            <div class="step-item" data-step="colors">
+                <div class="step-icon">4</div>
+                <span>Kleuren toepassen</span>
+            </div>
+            <div class="step-item" data-step="trips">
+                <div class="step-icon">5</div>
+                <span>Reizen toevoegen</span>
+            </div>
+            <div class="step-item" data-step="contact">
+                <div class="step-icon">6</div>
+                <span>Contact info invullen</span>
+            </div>
+            <div class="step-item" data-step="finalize">
+                <div class="step-icon">7</div>
+                <span>Website finaliseren</span>
+            </div>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            <h2>✅ Website succesvol gegenereerd!</h2>
+            <p>Je website is klaar. Je kunt nu een preview bekijken of verder aanpassen met de builder.</p>
+        </div>
+
+        <div class="error-message" id="errorMessage">
+            <h2>❌ Er is een fout opgetreden</h2>
+            <p id="errorText"></p>
+        </div>
+
+        <div class="actions" id="actions" style="display: none;">
+            <button class="btn btn-secondary" onclick="previewWebsite()">Preview</button>
+            <button class="btn btn-primary" onclick="openInBuilder()">Aanpassen in Builder</button>
+        </div>
+    </div>
+
+    <script src="js/template-generator.js"></script>
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const templateName = urlParams.get('template');
+        const brandId = urlParams.get('brand_id');
+        const token = urlParams.get('token');
+        const apiKey = urlParams.get('apikey');
+        const apiUrl = decodeURIComponent(urlParams.get('api') || '');
+        const returnUrl = urlParams.get('return_url');
+
+        let generatedFiles = null;
+        let currentStep = 0;
+
+        const steps = [
+            { key: 'load', name: 'Template laden' },
+            { key: 'nav', name: 'Menu aanpassen' },
+            { key: 'footer', name: 'Footer configureren' },
+            { key: 'colors', name: 'Kleuren toepassen' },
+            { key: 'trips', name: 'Reizen toevoegen' },
+            { key: 'contact', name: 'Contact info invullen' },
+            { key: 'finalize', name: 'Website finaliseren' }
+        ];
+
+        // Start generation
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Get config from localStorage
+            const configStr = localStorage.getItem('templateConfig');
+            if (!configStr) {
+                showError('Geen configuratie gevonden. Start opnieuw vanaf de template selector.');
+                return;
+            }
+
+            const config = JSON.parse(configStr);
+            
+            try {
+                await generateWebsite(config);
+            } catch (error) {
+                console.error('Generation error:', error);
+                showError(error.message);
+            }
+        });
+
+        async function generateWebsite(config) {
+            const generator = new TemplateGenerator(config);
+            
+            // Set progress callback
+            generator.onProgress = (message, percentage) => {
+                updateProgress(message, percentage);
+            };
+
+            try {
+                // Generate website
+                generatedFiles = await generator.generate();
+                
+                // Show success
+                showSuccess();
+                
+                // Store generated files
+                localStorage.setItem('generatedWebsite', JSON.stringify(generatedFiles));
+                
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        function updateProgress(message, percentage) {
+            // Update progress bar
+            document.getElementById('progressBar').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = Math.round(percentage) + '% voltooid';
+            
+            // Update step status
+            const stepIndex = Math.floor((percentage / 100) * steps.length);
+            
+            steps.forEach((step, index) => {
+                const stepEl = document.querySelector(`[data-step="${step.key}"]`);
+                if (!stepEl) return;
+                
+                stepEl.classList.remove('active', 'completed');
+                
+                if (index < stepIndex) {
+                    stepEl.classList.add('completed');
+                    stepEl.querySelector('.step-icon').textContent = '✓';
+                } else if (index === stepIndex) {
+                    stepEl.classList.add('active');
+                }
+            });
+        }
+
+        function showSuccess() {
+            document.getElementById('statusIcon').textContent = '🎉';
+            document.getElementById('statusTitle').textContent = 'Website is klaar!';
+            document.getElementById('statusText').textContent = 'Je website is succesvol gegenereerd';
+            document.getElementById('successMessage').classList.add('show');
+            document.getElementById('actions').style.display = 'flex';
+            
+            // Mark all steps as completed
+            document.querySelectorAll('.step-item').forEach(step => {
+                step.classList.remove('active');
+                step.classList.add('completed');
+                step.querySelector('.step-icon').textContent = '✓';
+            });
+        }
+
+        function showError(message) {
+            document.getElementById('statusIcon').textContent = '❌';
+            document.getElementById('statusTitle').textContent = 'Er ging iets mis';
+            document.getElementById('statusText').textContent = '';
+            document.getElementById('errorMessage').classList.add('show');
+            document.getElementById('errorText').textContent = message;
+            
+            // Show retry button
+            const actions = document.getElementById('actions');
+            actions.style.display = 'flex';
+            actions.innerHTML = `
+                <button class="btn btn-secondary" onclick="window.history.back()">Terug</button>
+                <button class="btn btn-primary" onclick="location.reload()">Opnieuw proberen</button>
+            `;
+        }
+
+        function previewWebsite() {
+            if (!generatedFiles) {
+                alert('Geen website gegenereerd');
+                return;
+            }
+
+            // Create blob URL for preview
+            const blob = new Blob([generatedFiles['index.html']], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        }
+
+        function openInBuilder() {
+            // Redirect to builder with generated content
+            const params = new URLSearchParams({
+                brand_id: brandId,
+                token: token,
+                apikey: apiKey,
+                api: apiUrl,
+                content_type: 'website',
+                template: templateName,
+                mode: 'edit'
+            });
+            
+            if (returnUrl) {
+                params.append('return_url', returnUrl);
+            }
+            
+            window.location.href = `builder.html?${params.toString()}`;
+        }
+    </script>
+</body>
+</html>
