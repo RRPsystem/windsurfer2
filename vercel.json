@@ -11,7 +11,7 @@
   },
   "rewrites": [
     { 
-      "source": "/:brandSlug((?!api$)[^/]+)/:pageSlug", 
+      "source": "/:brandSlug((?!api$|templates$|template-selector|template-configurator|template-generator|test-templates)[^/]+)/:pageSlug", 
       "destination": "/api/pages/:brandSlug/:pageSlug"
     }
   ],
