@@ -382,40 +382,38 @@
         const returnUrl = urlParams.get('return_url');
 
         function previewTemplate(templateName) {
-            // Open template preview in new window
+            // Open template preview in new window with full URL
             const previewUrls = {
-                'gotur': 'templates/gotur/gotur-html-main/index.html',
-                'tripix': 'templates/tripix-html/index.html'
+                'gotur': 'https://www.ai-websitestudio.nl/templates/gotur/gotur-html-main/index.html',
+                'tripix': 'https://www.ai-websitestudio.nl/templates/tripix-html/index.html'
             };
             
             if (previewUrls[templateName]) {
-                window.open(previewUrls[templateName], '_blank');
+                window.open(previewUrls[templateName], '_blank', 'width=1200,height=800');
             }
         }
 
         function selectTemplate(templateName) {
-            if (!brandId || !token || !apiKey) {
-                alert('Ontbrekende authenticatie parameters. Start vanuit BOLT.');
-                return;
-            }
-
             // Store selected template
             localStorage.setItem('selectedTemplate', templateName);
+            localStorage.setItem('templateTimestamp', Date.now());
             
-            // Redirect to template configurator
-            const params = new URLSearchParams({
-                template: templateName,
-                brand_id: brandId,
-                token: token,
-                apikey: apiKey,
-                api: apiUrl
-            });
+            // Show notification
+            alert(`✅ ${templateName.charAt(0).toUpperCase() + templateName.slice(1)} template geselecteerd!\n\nJe kunt nu:\n1. Componenten uit deze template gebruiken\n2. De template als inspiratie gebruiken\n3. Zelf verder bouwen in de builder`);
             
+            // Redirect back to builder or configurator
             if (returnUrl) {
-                params.append('return_url', returnUrl);
+                window.location.href = returnUrl;
+            } else {
+                // Build builder URL with current params
+                const params = new URLSearchParams();
+                if (brandId) params.set('brand_id', brandId);
+                if (token) params.set('token', token);
+                if (apiKey) params.set('apikey', apiKey);
+                if (apiUrl) params.set('api', apiUrl);
+                
+                window.location.href = `builder.html?${params.toString()}`;
             }
-            
-            window.location.href = `template-configurator.html?${params.toString()}`;
         }
 
         // Check if we have required parameters
