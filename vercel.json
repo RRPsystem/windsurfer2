@@ -9,16 +9,11 @@
       "memory": 1024
     }
   },
-  "routes": [
-    { "src": "/template-selector.html", "dest": "/template-selector.html" },
-    { "src": "/template-configurator.html", "dest": "/template-configurator.html" },
-    { "src": "/template-generator.html", "dest": "/template-generator.html" },
-    { "src": "/test-templates.html", "dest": "/test-templates.html" },
-    { "src": "/templates/(.*)", "dest": "/templates/$1" }
-  ],
+  "cleanUrls": false,
+  "trailingSlash": false,
   "rewrites": [
     { 
-      "source": "/:brandSlug((?!api|templates|js|styles|images|public)[^/]+)/:pageSlug", 
+      "source": "/:brandSlug((?!api|templates|template-selector|template-configurator|template-generator|test-templates|builder|index|preview|video-generator|test-bolt|test-media-selector|test-security|test-timeline|test-validation|js|styles|images|public|assets)[^/]+)/:pageSlug", 
       "destination": "/api/pages/:brandSlug/:pageSlug"
     }
   ],
