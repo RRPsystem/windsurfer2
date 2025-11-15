@@ -13,7 +13,7 @@
   "trailingSlash": false,
   "rewrites": [
     { 
-      "source": "/:brandSlug((?!api|templates|template-selector|template-configurator|template-generator|test-templates|builder|index|preview|video-generator|test-bolt|test-media-selector|test-security|test-timeline|test-validation|js|styles|images|public|assets)[^/]+)/:pageSlug", 
+      "source": "/:brandSlug([^.]+)/:pageSlug",
       "destination": "/api/pages/:brandSlug/:pageSlug"
     }
   ],
