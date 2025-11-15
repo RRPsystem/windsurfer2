@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Template Selector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .test-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 32px;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+        }
+
+        p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .info-box p {
+            color: #1e40af;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .quick-links {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .quick-links h3 {
+            font-size: 18px;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+        }
+
+        .link-btn {
+            display: block;
+            padding: 12px 16px;
+            background: #f3f4f6;
+            color: #374151;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: background 0.3s ease;
+        }
+
+        .link-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .warning p {
+            color: #92400e;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-card">
+        <h1>🧪 Template Selector Testen</h1>
+        <p>Test de template selector met jouw brand gegevens</p>
+
+        <div class="info-box">
+            <p><strong>💡 Tip:</strong> Vul hieronder je Supabase gegevens in om de template selector te testen met echte data.</p>
+        </div>
+
+        <div class="warning">
+            <p><strong>⚠️ Let op:</strong> Voor productie gebruik moet dit systeem gedeployed worden naar ai-websitestudio.nl</p>
+        </div>
+
+        <form id="testForm" onsubmit="openTemplateSelector(event)">
+            <div class="form-group">
+                <label>Brand ID</label>
+                <input type="text" id="brandId" placeholder="0766a61a-8f37-4a83-bf28-e15084d764fb" required>
+            </div>
+
+            <div class="form-group">
+                <label>JWT Token</label>
+                <input type="text" id="token" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." required>
+            </div>
+
+            <div class="form-group">
+                <label>Supabase API Key (anon)</label>
+                <input type="text" id="apikey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." required>
+            </div>
+
+            <button type="submit" class="btn">🚀 Open Template Selector</button>
+        </form>
+
+        <div class="quick-links">
+            <h3>🔗 Snelle Links (zonder auth)</h3>
+            <a href="template-selector.html" class="link-btn" target="_blank">
+                📋 Template Selector (zonder data)
+            </a>
+            <a href="templates/gotur/gotur-html-main/index.html" class="link-btn" target="_blank">
+                👁️ Gotur Template Preview
+            </a>
+            <a href="templates/tripix-html/index.html" class="link-btn" target="_blank">
+                👁️ Tripix Template Preview
+            </a>
+        </div>
+
+        <div class="quick-links">
+            <h3>📚 Documentatie</h3>
+            <a href="TEMPLATE_SYSTEM_README.md" class="link-btn" target="_blank">
+                📖 Template System README
+            </a>
+            <a href="BOLT_TEMPLATE_INTEGRATION.md" class="link-btn" target="_blank">
+                🔌 BOLT Integratie Guide
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Load saved values
+        document.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('testTemplateParams');
+            if (saved) {
+                const params = JSON.parse(saved);
+                document.getElementById('brandId').value = params.brandId || '';
+                document.getElementById('token').value = params.token || '';
+                document.getElementById('apikey').value = params.apikey || '';
+            }
+        });
+
+        function openTemplateSelector(event) {
+            event.preventDefault();
+
+            const brandId = document.getElementById('brandId').value;
+            const token = document.getElementById('token').value;
+            const apikey = document.getElementById('apikey').value;
+
+            // Save for next time
+            localStorage.setItem('testTemplateParams', JSON.stringify({
+                brandId, token, apikey
+            }));
+
+            // Build URL
+            const params = new URLSearchParams({
+                brand_id: brandId,
+                token: token,
+                apikey: apikey,
+                api: 'https://huaaogdxxdcakxryecnw.supabase.co/functions/v1',
+                return_url: window.location.href
+            });
+
+            const url = `template-selector.html?${params.toString()}`;
+            
+            // Open in new tab
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+</html>
