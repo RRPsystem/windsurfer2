@@ -50,6 +50,17 @@ class TemplateEditor {
             this.supabase = supabase.createClient(supabaseUrl, this.apiKey);
         }
         
+        // Extract user ID from JWT token
+        if (this.token) {
+            try {
+                const payload = JSON.parse(atob(this.token.split('.')[1]));
+                this.userId = payload.sub;
+                console.log('[TemplateEditor] User ID:', this.userId);
+            } catch (e) {
+                console.error('[TemplateEditor] Failed to parse token:', e);
+            }
+        }
+        
         // Set template name in header
         document.getElementById('templateName').textContent = 
             this.templateName.charAt(0).toUpperCase() + this.templateName.slice(1) + ' Template Editor';
@@ -1096,6 +1107,7 @@ class TemplateEditor {
                     pages: exportData.pages,
                     preview_url: exportData.previewUrl,
                     status: exportData.status,
+                    created_by: this.userId,
                     updated_at: new Date().toISOString()
                 }, {
                     onConflict: 'brand_id,template'
