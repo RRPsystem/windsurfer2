@@ -1007,6 +1007,11 @@ class TemplateEditor {
         } catch (error) {
             console.error('[TemplateEditor] Supabase draft save error:', error);
             console.error('[TemplateEditor] Error details:', error.message, error.details, error.hint);
+            console.error('[TemplateEditor] Error status code:', error.statusCode);
+            console.error('[TemplateEditor] Error status text:', error.statusText);
+            console.error('[TemplateEditor] Error headers:', error.headers);
+            console.error('[TemplateEditor] Error config:', error.config);
+            console.error('[TemplateEditor] Error response:', error.response);
             // Don't throw - localStorage save already succeeded
         }
     }
@@ -1028,13 +1033,27 @@ class TemplateEditor {
                     onConflict: 'brand_id,template'
                 });
             
-            if (error) throw error;
+            if (error) {
+                console.error('[TemplateEditor] Supabase website save error:', error);
+                console.error('[TemplateEditor] Error details:', error.message, error.details, error.hint);
+                console.error('[TemplateEditor] Error status code:', error.statusCode);
+                console.error('[TemplateEditor] Error status text:', error.statusText);
+                console.error('[TemplateEditor] Error headers:', error.headers);
+                console.error('[TemplateEditor] Error config:', error.config);
+                console.error('[TemplateEditor] Error response:', error.response);
+                throw error;
+            }
             
             console.log('[TemplateEditor] Website saved to Supabase successfully');
             this.showNotification('✅ Website opgeslagen in database!');
         } catch (error) {
             console.error('[TemplateEditor] Supabase website save error:', error);
             console.error('[TemplateEditor] Error details:', error.message, error.details, error.hint);
+            console.error('[TemplateEditor] Error status code:', error.statusCode);
+            console.error('[TemplateEditor] Error status text:', error.statusText);
+            console.error('[TemplateEditor] Error headers:', error.headers);
+            console.error('[TemplateEditor] Error config:', error.config);
+            console.error('[TemplateEditor] Error response:', error.response);
             this.showNotification('⚠️ Website niet opgeslagen in database', 'error');
             throw error;
         }
@@ -1119,10 +1138,19 @@ class TemplateEditor {
                 .eq('id', this.brandId)
                 .single();
             
-            if (error || !brand) {
+            if (error) {
                 console.error('[TemplateEditor] Error fetching brand:', error);
-                console.error('[TemplateEditor] Error details:', error?.message, error?.details, error?.hint);
-                console.error('[TemplateEditor] Brand ID:', this.brandId);
+                console.error('[TemplateEditor] Error details:', error.message, error.details, error.hint);
+                console.error('[TemplateEditor] Error status code:', error.statusCode);
+                console.error('[TemplateEditor] Error status text:', error.statusText);
+                console.error('[TemplateEditor] Error headers:', error.headers);
+                console.error('[TemplateEditor] Error config:', error.config);
+                console.error('[TemplateEditor] Error response:', error.response);
+                return `preview-${Date.now()}.ai-websitestudio.nl`;
+            }
+            
+            if (!brand) {
+                console.error('[TemplateEditor] Brand not found:', this.brandId);
                 return `preview-${Date.now()}.ai-websitestudio.nl`;
             }
             
@@ -1136,6 +1164,12 @@ class TemplateEditor {
             return previewUrl;
         } catch (error) {
             console.error('[TemplateEditor] Error generating preview URL:', error);
+            console.error('[TemplateEditor] Error details:', error.message, error.details, error.hint);
+            console.error('[TemplateEditor] Error status code:', error.statusCode);
+            console.error('[TemplateEditor] Error status text:', error.statusText);
+            console.error('[TemplateEditor] Error headers:', error.headers);
+            console.error('[TemplateEditor] Error config:', error.config);
+            console.error('[TemplateEditor] Error response:', error.response);
             return `preview-${Date.now()}.ai-websitestudio.nl`;
         }
     }
