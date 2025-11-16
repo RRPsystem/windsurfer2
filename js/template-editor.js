@@ -356,6 +356,7 @@ class TemplateEditor {
     }
     
     makeImagesEditable(doc) {
+        // Find all images
         const images = doc.querySelectorAll('img');
         
         images.forEach(img => {
@@ -363,6 +364,7 @@ class TemplateEditor {
             if (img.width < 50 && img.height < 50) return;
             
             img.classList.add('wb-editable', 'wb-image');
+            img.dataset.editType = 'img';
             
             // Wrap in container if not already
             let wrapper = img.parentElement;
@@ -399,6 +401,52 @@ class TemplateEditor {
                 e.stopPropagation();
                 this.selectElement(img, 'image');
             });
+        });
+        
+        // Find elements with background images (hero sections, sliders, etc.)
+        const elementsWithBg = doc.querySelectorAll('[style*="background-image"], .hero, .slider, .slide, .banner, section[class*="hero"], div[class*="hero"], div[class*="slider"]');
+        
+        elementsWithBg.forEach(el => {
+            const bgImage = window.getComputedStyle(el).backgroundImage;
+            
+            // Check if it has a background image
+            if (bgImage && bgImage !== 'none' && !bgImage.includes('gradient')) {
+                el.classList.add('wb-editable', 'wb-bg-image');
+                el.dataset.editType = 'background';
+                
+                // Make sure it's positioned
+                if (window.getComputedStyle(el).position === 'static') {
+                    el.style.position = 'relative';
+                }
+                
+                // Add quick action buttons
+                const quickActions = doc.createElement('div');
+                quickActions.className = 'wb-quick-actions';
+                quickActions.innerHTML = `
+                    <button class="wb-quick-btn" title="Wijzig achtergrond" data-action="change-background">
+                        🖼️
+                    </button>
+                `;
+                el.appendChild(quickActions);
+                
+                // Handle quick action clicks
+                quickActions.querySelector('[data-action="change-background"]').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.selectElement(el, 'background');
+                    // Automatically open media selector
+                    setTimeout(() => this.openMediaSelector(), 100);
+                });
+                
+                el.addEventListener('click', (e) => {
+                    // Only if clicking directly on the element, not children
+                    if (e.target === el) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.selectElement(el, 'background');
+                    }
+                });
+            }
         });
     }
     
@@ -451,7 +499,9 @@ class TemplateEditor {
         // Add edit label
         const label = iframeDoc.createElement('div');
         label.className = 'wb-edit-label';
-        label.textContent = type === 'text' ? '✏️ Tekst bewerken' : '🖼️ Afbeelding wijzigen';
+        label.textContent = type === 'text' ? '✏️ Tekst bewerken' : 
+                           type === 'background' ? '🖼️ Achtergrond wijzigen' : 
+                           '🖼️ Afbeelding wijzigen';
         element.style.position = 'relative';
         element.appendChild(label);
         
@@ -545,6 +595,57 @@ class TemplateEditor {
                     </button>
                 </div>
             `;
+        } else if (type === 'background') {
+            const bgImage = window.getComputedStyle(element).backgroundImage;
+            const currentBg = bgImage.replace(/^url\(['"]?/, '').replace(/['"]?\)$/, '');
+            
+            propertiesContent.innerHTML = `
+                <div class="selected-element-info">
+                    <i class="fas fa-check-circle"></i> Achtergrond afbeelding geselecteerd
+                </div>
+                
+                <div class="property-section">
+                    <div class="property-title">
+                        <i class="fas fa-image"></i> Achtergrond Afbeelding
+                    </div>
+                    <div class="property-field">
+                        <div style="width:100%; height:150px; background-image:${bgImage}; background-size:cover; background-position:center; border-radius:8px; margin-bottom:12px;"></div>
+                    </div>
+                    <button class="media-selector-btn" onclick="templateEditor.openMediaSelector()">
+                        <i class="fas fa-folder-open"></i> Kies Nieuwe Achtergrond
+                    </button>
+                </div>
+                
+                <div class="property-section">
+                    <div class="property-title">
+                        <i class="fas fa-sliders-h"></i> Achtergrond Opties
+                    </div>
+                    <div class="property-field">
+                        <label class="property-label">Background Size</label>
+                        <select class="property-input" id="bgSize">
+                            <option value="cover" ${element.style.backgroundSize === 'cover' ? 'selected' : ''}>Cover</option>
+                            <option value="contain" ${element.style.backgroundSize === 'contain' ? 'selected' : ''}>Contain</option>
+                            <option value="auto" ${element.style.backgroundSize === 'auto' ? 'selected' : ''}>Auto</option>
+                        </select>
+                    </div>
+                    <div class="property-field">
+                        <label class="property-label">Background Position</label>
+                        <select class="property-input" id="bgPosition">
+                            <option value="center" ${element.style.backgroundPosition === 'center' ? 'selected' : ''}>Center</option>
+                            <option value="top" ${element.style.backgroundPosition === 'top' ? 'selected' : ''}>Top</option>
+                            <option value="bottom" ${element.style.backgroundPosition === 'bottom' ? 'selected' : ''}>Bottom</option>
+                            <option value="left" ${element.style.backgroundPosition === 'left' ? 'selected' : ''}>Left</option>
+                            <option value="right" ${element.style.backgroundPosition === 'right' ? 'selected' : ''}>Right</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="property-section">
+                    <button class="btn btn-primary" style="width:100%;" onclick="templateEditor.applyBackgroundChanges()">
+                        <i class="fas fa-check"></i> Wijzigingen Toepassen
+                    </button>
+                </div>
+            `;
         }
     }
     
@@ -587,6 +688,19 @@ class TemplateEditor {
         if (newHeight) element.style.height = newHeight;
         
         this.showNotification('✅ Afbeelding bijgewerkt!');
+    }
+    
+    applyBackgroundChanges() {
+        if (!this.selectedElement || this.selectedElement.type !== 'background') return;
+        
+        const element = this.selectedElement.element;
+        const bgSize = document.getElementById('bgSize').value;
+        const bgPosition = document.getElementById('bgPosition').value;
+        
+        element.style.backgroundSize = bgSize;
+        element.style.backgroundPosition = bgPosition;
+        
+        this.showNotification('✅ Achtergrond bijgewerkt!');
     }
     
     async generateAIText() {
@@ -680,7 +794,7 @@ class TemplateEditor {
     }
     
     async openMediaSelector() {
-        if (!this.selectedElement || this.selectedElement.type !== 'image') return;
+        if (!this.selectedElement || (this.selectedElement.type !== 'image' && this.selectedElement.type !== 'background')) return;
         
         try {
             console.log('[TemplateEditor] Opening media selector...');
@@ -701,18 +815,28 @@ class TemplateEditor {
             console.log('[TemplateEditor] Media selected:', result);
             
             if (result && result.url) {
-                // Update image in iframe
-                this.selectedElement.element.src = result.url;
-                
-                // If there's alt text, update it
-                if (result.alt) {
-                    this.selectedElement.element.alt = result.alt;
+                if (this.selectedElement.type === 'image') {
+                    // Update image in iframe
+                    this.selectedElement.element.src = result.url;
+                    
+                    // If there's alt text, update it
+                    if (result.alt) {
+                        this.selectedElement.element.alt = result.alt;
+                    }
+                    
+                    // Refresh properties panel to show new image
+                    this.showPropertiesPanel(this.selectedElement.element, 'image');
+                    
+                    this.showNotification('✅ Afbeelding bijgewerkt!');
+                } else if (this.selectedElement.type === 'background') {
+                    // Update background image
+                    this.selectedElement.element.style.backgroundImage = `url('${result.url}')`;
+                    
+                    // Refresh properties panel to show new background
+                    this.showPropertiesPanel(this.selectedElement.element, 'background');
+                    
+                    this.showNotification('✅ Achtergrond bijgewerkt!');
                 }
-                
-                // Refresh properties panel to show new image
-                this.showPropertiesPanel(this.selectedElement.element, 'image');
-                
-                this.showNotification('✅ Afbeelding bijgewerkt!');
             }
         } catch (error) {
             console.error('[TemplateEditor] Media selector error:', error);
