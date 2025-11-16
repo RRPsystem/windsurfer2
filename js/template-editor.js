@@ -375,44 +375,87 @@ class TemplateEditor {
             // Skip small icons
             if (img.width < 50 && img.height < 50) return;
             
+            // Skip logo images
+            if (img.closest('.logo, .main-header__logo, header')) return;
+            
+            // Skip cloned carousel items
+            if (img.closest('.owl-item.cloned')) return;
+            
             img.classList.add('wb-editable', 'wb-image');
             img.dataset.editType = 'img';
             
-            // Wrap in container if not already
-            let wrapper = img.parentElement;
-            if (!wrapper.classList.contains('wb-image-wrapper')) {
-                wrapper = doc.createElement('div');
-                wrapper.className = 'wb-image-wrapper';
-                wrapper.style.position = 'relative';
-                wrapper.style.display = 'inline-block';
-                img.parentNode.insertBefore(wrapper, img);
-                wrapper.appendChild(img);
+            // Check if image is in a carousel item
+            const carouselItem = img.closest('.item, .owl-item:not(.cloned), .carousel-item, .swiper-slide');
+            
+            if (carouselItem) {
+                // For carousel items, add button to the carousel item itself
+                if (!carouselItem.querySelector('.wb-quick-actions')) {
+                    const quickActions = doc.createElement('div');
+                    quickActions.className = 'wb-quick-actions';
+                    quickActions.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10000;pointer-events:auto;';
+                    quickActions.innerHTML = `
+                        <button class="wb-quick-btn" title="Wijzig afbeelding" data-action="change-image" style="font-size:24px;width:60px;height:60px;">
+                            🖼️
+                        </button>
+                    `;
+                    
+                    // Make sure carousel item is positioned
+                    if (window.getComputedStyle(carouselItem).position === 'static') {
+                        carouselItem.style.position = 'relative';
+                    }
+                    
+                    carouselItem.appendChild(quickActions);
+                    
+                    // Handle quick action clicks
+                    quickActions.querySelector('[data-action="change-image"]').addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.selectElement(img, 'image');
+                        setTimeout(() => this.openMediaSelector(), 100);
+                    });
+                }
+                
+                img.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.selectElement(img, 'image');
+                });
+            } else {
+                // Regular images - wrap in container
+                let wrapper = img.parentElement;
+                if (!wrapper.classList.contains('wb-image-wrapper')) {
+                    wrapper = doc.createElement('div');
+                    wrapper.className = 'wb-image-wrapper';
+                    wrapper.style.position = 'relative';
+                    wrapper.style.display = 'inline-block';
+                    img.parentNode.insertBefore(wrapper, img);
+                    wrapper.appendChild(img);
+                }
+                
+                // Add quick action buttons
+                const quickActions = doc.createElement('div');
+                quickActions.className = 'wb-quick-actions';
+                quickActions.innerHTML = `
+                    <button class="wb-quick-btn" title="Wijzig afbeelding" data-action="change-image">
+                        🖼️
+                    </button>
+                `;
+                wrapper.appendChild(quickActions);
+                
+                // Handle quick action clicks
+                quickActions.querySelector('[data-action="change-image"]').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.selectElement(img, 'image');
+                    setTimeout(() => this.openMediaSelector(), 100);
+                });
+                
+                img.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.selectElement(img, 'image');
+                });
             }
-            
-            // Add quick action buttons
-            const quickActions = doc.createElement('div');
-            quickActions.className = 'wb-quick-actions';
-            quickActions.innerHTML = `
-                <button class="wb-quick-btn" title="Wijzig afbeelding" data-action="change-image">
-                    🖼️
-                </button>
-            `;
-            wrapper.appendChild(quickActions);
-            
-            // Handle quick action clicks
-            quickActions.querySelector('[data-action="change-image"]').addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.selectElement(img, 'image');
-                // Automatically open media selector
-                setTimeout(() => this.openMediaSelector(), 100);
-            });
-            
-            img.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.selectElement(img, 'image');
-            });
         });
         
         // Find elements with background images (hero sections, sliders, etc.)
