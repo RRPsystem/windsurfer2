@@ -24,6 +24,9 @@ class TemplateEditor {
     
     async init() {
         console.log('[TemplateEditor] Initializing...');
+        console.log('[TemplateEditor] Brand ID:', this.brandId);
+        console.log('[TemplateEditor] Token:', this.token ? 'Present' : 'Missing');
+        console.log('[TemplateEditor] API Key:', this.apiKey ? 'Present' : 'Missing');
         
         // Security check: Require brand_id and token for editor access
         if (!this.brandId || !this.token) {
