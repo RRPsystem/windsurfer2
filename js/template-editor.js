@@ -1163,7 +1163,7 @@ class TemplateEditor {
                 timestamp: Date.now(),
                 brandId: this.brandId,
                 previewUrl: previewUrl,
-                status: 'preview'
+                status: 'draft'
             };
             
             // Save to websites table in Supabase
