@@ -1460,9 +1460,14 @@ class TemplateEditor {
                         <div style="font-weight:600;color:#333;margin-bottom:4px;">${item.text}</div>
                         <div style="font-size:12px;color:${typeColor};">${typeLabel}</div>
                     </div>
-                    <button onclick="templateEditor.editMenuItem(${index})" style="padding:8px 16px;background:#667eea;color:white;border:none;border-radius:6px;cursor:pointer;">
-                        <i class="fas fa-edit"></i> Bewerken
-                    </button>
+                    <div style="display:flex;gap:8px;">
+                        <button onclick="templateEditor.editMenuItem(${index})" style="padding:8px 16px;background:#667eea;color:white;border:none;border-radius:6px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#5568d3'" onmouseout="this.style.background='#667eea'">
+                            <i class="fas fa-edit"></i> Bewerken
+                        </button>
+                        <button onclick="templateEditor.deleteMenuItem(${index})" style="padding:8px 16px;background:#dc3545;color:white;border:none;border-radius:6px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#c82333'" onmouseout="this.style.background='#dc3545'">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
                 <div style="font-size:12px;color:#999;">Link: ${item.href}</div>
             `;
@@ -1489,6 +1494,30 @@ class TemplateEditor {
                 // Re-render
                 this.renderMenuItems(this.currentMenuItems, this.currentMenuElement);
             }
+        }
+    }
+    
+    deleteMenuItem(index) {
+        const item = this.currentMenuItems[index];
+        
+        if (!confirm(`Weet je zeker dat je "${item.text}" wilt verwijderen uit het menu?`)) {
+            return;
+        }
+        
+        try {
+            // Remove from DOM
+            item.element.remove();
+            
+            // Remove from array
+            this.currentMenuItems.splice(index, 1);
+            
+            // Re-render
+            this.renderMenuItems(this.currentMenuItems, this.currentMenuElement);
+            
+            this.showNotification('✅ Menu item verwijderd!');
+        } catch (error) {
+            console.error('[TemplateEditor] Error deleting menu item:', error);
+            this.showNotification('❌ Fout bij verwijderen', 'error');
         }
     }
     
