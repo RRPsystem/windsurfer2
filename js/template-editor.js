@@ -466,26 +466,81 @@ class TemplateEditor {
         btn.disabled = true;
         
         try {
-            // TODO: Integrate with your AI service
-            // For now, simulate AI generation
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            console.log('[TemplateEditor] Generating AI text...');
             
-            const variations = [
-                `Ontdek de wereld met onze unieke reizen en beleef onvergetelijke avonturen.`,
-                `Maak je reis onvergetelijk met onze professionele begeleiding en service.`,
-                `Ervaar de mooiste bestemmingen ter wereld met onze zorgvuldig samengestelde reizen.`
-            ];
+            // Determine context from current text and page
+            const context = this.getTextContext(currentText);
             
-            const newText = variations[Math.floor(Math.random() * variations.length)];
+            // Call AI writer API
+            const response = await fetch('/api/ai-writer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    section: context.section,
+                    tone: 'inspiring',
+                    language: 'nl',
+                    count: 1,
+                    useResearch: false, // Quick generation without research
+                    currentText: currentText
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('AI generation failed');
+            }
+            
+            const data = await response.json();
+            console.log('[TemplateEditor] AI response:', data);
+            
+            // Use the generated text
+            let newText = currentText;
+            if (data.paragraphs && data.paragraphs.length > 0) {
+                newText = data.paragraphs[0];
+            } else if (data.text) {
+                newText = data.text;
+            }
+            
             document.getElementById('textContent').value = newText;
             
             this.showNotification('✨ AI tekst gegenereerd!');
         } catch (error) {
             console.error('[TemplateEditor] AI generation error:', error);
-            this.showNotification('❌ Fout bij genereren', 'error');
+            
+            // Fallback to simple variations
+            const variations = [
+                `Ontdek de wereld met onze unieke reizen en beleef onvergetelijke avonturen.`,
+                `Maak je reis onvergetelijk met onze professionele begeleiding en service.`,
+                `Ervaar de mooiste bestemmingen ter wereld met onze zorgvuldig samengestelde reizen.`,
+                `Laat je inspireren door onze selectie van bijzondere reisbestemmingen.`,
+                `Beleef de reis van je leven met onze expertise en passie voor reizen.`
+            ];
+            
+            const newText = variations[Math.floor(Math.random() * variations.length)];
+            document.getElementById('textContent').value = newText;
+            
+            this.showNotification('✨ Tekst gegenereerd (fallback)');
         } finally {
             btn.innerHTML = originalHTML;
             btn.disabled = false;
+        }
+    }
+    
+    getTextContext(text) {
+        // Analyze text to determine context
+        const lowerText = text.toLowerCase();
+        
+        if (lowerText.includes('welkom') || lowerText.includes('home') || lowerText.includes('ontdek')) {
+            return { section: 'intro' };
+        } else if (lowerText.includes('over ons') || lowerText.includes('about') || lowerText.includes('wie zijn')) {
+            return { section: 'about' };
+        } else if (lowerText.includes('contact') || lowerText.includes('bereik')) {
+            return { section: 'contact' };
+        } else if (lowerText.includes('reis') || lowerText.includes('tour') || lowerText.includes('bestemming')) {
+            return { section: 'destination' };
+        } else {
+            return { section: 'general' };
         }
     }
     
@@ -617,24 +672,161 @@ class TemplateEditor {
             setTimeout(() => notification.remove(), 300);
         }, 3000);
     }
+    
+    previewSite() {
+        // Open current page in new tab
+        const iframe = document.getElementById('templateFrame');
+        if (iframe && iframe.src) {
+            window.open(iframe.src, '_blank');
+            this.showNotification('👁️ Preview geopend in nieuw tabblad');
+        }
+    }
+    
+    async saveDraft() {
+        console.log('[TemplateEditor] Saving draft...');
+        
+        try {
+            // Get all modified pages
+            const modifiedPages = await this.getModifiedPages();
+            
+            // Save to localStorage
+            const draftData = {
+                template: this.templateName,
+                pages: modifiedPages,
+                timestamp: Date.now(),
+                brandId: this.brandId
+            };
+            
+            localStorage.setItem(`template_draft_${this.templateName}`, JSON.stringify(draftData));
+            
+            this.showNotification('💾 Draft opgeslagen!');
+            
+            // If we have Supabase credentials, also save to database
+            if (this.supabase && this.brandId) {
+                await this.saveToSupabase(draftData);
+            }
+        } catch (error) {
+            console.error('[TemplateEditor] Save error:', error);
+            this.showNotification('❌ Fout bij opslaan', 'error');
+        }
+    }
+    
+    async getModifiedPages() {
+        const iframe = document.getElementById('templateFrame');
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        
+        // Get current page HTML
+        const html = iframeDoc.documentElement.outerHTML;
+        
+        return [{
+            name: this.currentPage.name,
+            path: this.currentPage.path,
+            html: html,
+            modified: true
+        }];
+    }
+    
+    async saveToSupabase(draftData) {
+        try {
+            console.log('[TemplateEditor] Saving to Supabase...');
+            
+            const { data, error } = await this.supabase
+                .from('template_drafts')
+                .upsert({
+                    brand_id: this.brandId,
+                    template_name: this.templateName,
+                    draft_data: draftData,
+                    updated_at: new Date().toISOString()
+                });
+            
+            if (error) throw error;
+            
+            console.log('[TemplateEditor] Saved to Supabase successfully');
+        } catch (error) {
+            console.error('[TemplateEditor] Supabase save error:', error);
+            // Don't throw - localStorage save already succeeded
+        }
+    }
+    
+    async publishSite() {
+        if (!confirm('Weet je zeker dat je de website wilt publiceren?\n\nDe website wordt teruggezonden naar BOLT.')) {
+            return;
+        }
+        
+        console.log('[TemplateEditor] Publishing site...');
+        
+        try {
+            // Save first
+            await this.saveDraft();
+            
+            // Get all pages HTML
+            const allPagesHTML = await this.getAllPagesHTML();
+            
+            // Create export package
+            const exportData = {
+                template: this.templateName,
+                pages: allPagesHTML,
+                timestamp: Date.now(),
+                brandId: this.brandId
+            };
+            
+            // If we have a return URL (from BOLT), send data back
+            const urlParams = new URLSearchParams(window.location.search);
+            const returnUrl = urlParams.get('return_url');
+            
+            if (returnUrl) {
+                // Store export data in localStorage for BOLT to pick up
+                localStorage.setItem('template_export', JSON.stringify(exportData));
+                
+                this.showNotification('🚀 Website gepubliceerd! Terugkeren naar BOLT...');
+                
+                // Redirect back to BOLT after 1 second
+                setTimeout(() => {
+                    window.location.href = returnUrl;
+                }, 1000);
+            } else {
+                // No return URL - offer download
+                this.downloadSite(exportData);
+            }
+        } catch (error) {
+            console.error('[TemplateEditor] Publish error:', error);
+            this.showNotification('❌ Fout bij publiceren', 'error');
+        }
+    }
+    
+    async getAllPagesHTML() {
+        // For now, just return current page
+        // TODO: Loop through all pages and collect HTML
+        return await this.getModifiedPages();
+    }
+    
+    downloadSite(exportData) {
+        // Create a downloadable HTML file
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${this.templateName}-website-${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        this.showNotification('📥 Website gedownload!');
+    }
 }
 
 // Global functions
 function previewSite() {
-    templateEditor.showNotification('👁️ Preview openen...');
-    // TODO: Implement preview
+    templateEditor.previewSite();
 }
 
 function saveDraft() {
-    templateEditor.showNotification('💾 Opslaan...');
-    // TODO: Implement save
+    templateEditor.saveDraft();
 }
 
 function publishSite() {
-    if (confirm('Weet je zeker dat je de website wilt publiceren?')) {
-        templateEditor.showNotification('🚀 Publiceren...');
-        // TODO: Implement publish
-    }
+    templateEditor.publishSite();
 }
 
 // Initialize editor when page loads
