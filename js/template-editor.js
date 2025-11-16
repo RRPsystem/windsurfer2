@@ -25,6 +25,22 @@ class TemplateEditor {
     async init() {
         console.log('[TemplateEditor] Initializing...');
         
+        // Security check: Require brand_id and token for editor access
+        if (!this.brandId || !this.token) {
+            document.getElementById('loadingOverlay').innerHTML = `
+                <div style="text-align:center;">
+                    <div style="font-size:64px;margin-bottom:20px;">🔒</div>
+                    <h2 style="color:#333;margin-bottom:16px;">Toegang Geweigerd</h2>
+                    <p style="color:#666;margin-bottom:24px;">Deze editor is alleen toegankelijk via een geldige deeplink vanuit BOLT.</p>
+                    <p style="color:#999;font-size:14px;">Ontbrekende parameters: ${!this.brandId ? 'brand_id' : ''} ${!this.token ? 'token' : ''}</p>
+                    <button onclick="window.close()" style="margin-top:20px;padding:12px 24px;background:#667eea;color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px;">
+                        Sluiten
+                    </button>
+                </div>
+            `;
+            throw new Error('Unauthorized access - missing credentials');
+        }
+        
         // Initialize Supabase if we have credentials
         if (this.apiKey) {
             const supabaseUrl = this.apiUrl.replace('/functions/v1', '');
