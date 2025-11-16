@@ -334,16 +334,19 @@ class TemplateEditor {
     }
     
     makeTextEditable(doc) {
-        // Find all text elements
-        const textSelectors = 'h1, h2, h3, h4, h5, h6, p, span, a, li, td, th, div.text-content';
+        // Find all text elements - only headings and paragraphs
+        const textSelectors = 'h1, h2, h3, h4, h5, h6, p';
         const textElements = doc.querySelectorAll(textSelectors);
         
         textElements.forEach(element => {
             // Skip if element is empty or only contains images
             if (!element.textContent.trim() || element.querySelector('img')) return;
             
-            // Skip navigation and script elements
-            if (element.closest('nav, script, style, .skip-edit')) return;
+            // Skip navigation, script elements, and small text
+            if (element.closest('nav, script, style, .skip-edit, header, footer')) return;
+            
+            // Skip if text is too short (likely not main content)
+            if (element.textContent.trim().length < 3) return;
             
             element.classList.add('wb-editable', 'wb-text');
             
@@ -404,13 +407,21 @@ class TemplateEditor {
         });
         
         // Find elements with background images (hero sections, sliders, etc.)
-        const elementsWithBg = doc.querySelectorAll('[style*="background-image"], .hero, .slider, .slide, .banner, section[class*="hero"], div[class*="hero"], div[class*="slider"]');
+        // Focus on carousel slides and hero sections
+        const elementsWithBg = doc.querySelectorAll(
+            '.carousel-item, .swiper-slide, .slide, .hero-slide, ' +
+            '[style*="background-image"], ' +
+            'section.hero, .hero-section, .banner-section'
+        );
         
         elementsWithBg.forEach(el => {
             const bgImage = window.getComputedStyle(el).backgroundImage;
             
             // Check if it has a background image
             if (bgImage && bgImage !== 'none' && !bgImage.includes('gradient')) {
+                // Skip if too small (likely not a main background)
+                if (el.offsetHeight < 200) return;
+                
                 el.classList.add('wb-editable', 'wb-bg-image');
                 el.dataset.editType = 'background';
                 
@@ -422,8 +433,9 @@ class TemplateEditor {
                 // Add quick action buttons
                 const quickActions = doc.createElement('div');
                 quickActions.className = 'wb-quick-actions';
+                quickActions.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10000;';
                 quickActions.innerHTML = `
-                    <button class="wb-quick-btn" title="Wijzig achtergrond" data-action="change-background">
+                    <button class="wb-quick-btn" title="Wijzig achtergrond" data-action="change-background" style="font-size:24px;width:60px;height:60px;">
                         🖼️
                     </button>
                 `;
@@ -440,7 +452,7 @@ class TemplateEditor {
                 
                 el.addEventListener('click', (e) => {
                     // Only if clicking directly on the element, not children
-                    if (e.target === el) {
+                    if (e.target === el || e.target.classList.contains('wb-bg-image')) {
                         e.preventDefault();
                         e.stopPropagation();
                         this.selectElement(el, 'background');
