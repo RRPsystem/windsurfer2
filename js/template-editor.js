@@ -180,9 +180,22 @@ class TemplateEditor {
         // Inject editing styles
         const style = iframeDoc.createElement('style');
         style.textContent = `
+            /* Editor Overlay Mode */
+            body.wb-editing-mode::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 9998;
+                pointer-events: none;
+            }
+            
             .wb-editable {
                 outline: 2px dashed transparent;
-                transition: outline 0.2s;
+                transition: all 0.2s;
                 cursor: pointer;
                 position: relative;
             }
@@ -190,11 +203,14 @@ class TemplateEditor {
             .wb-editable:hover {
                 outline: 2px dashed #667eea;
                 background: rgba(102, 126, 234, 0.05);
+                z-index: 9999;
             }
             
             .wb-editable.wb-selected {
-                outline: 2px solid #667eea;
+                outline: 3px solid #667eea;
                 background: rgba(102, 126, 234, 0.1);
+                z-index: 9999;
+                box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
             }
             
             .wb-edit-label {
@@ -282,6 +298,14 @@ class TemplateEditor {
         
         // Add section insertion points
         this.addSectionInsertionPoints(iframeDoc);
+        
+        // Add click handler to deselect when clicking outside
+        iframeDoc.addEventListener('click', (e) => {
+            // If clicking on body or non-editable element, deselect
+            if (e.target === iframeDoc.body || (!e.target.classList.contains('wb-editable') && !e.target.closest('.wb-editable'))) {
+                this.deselectElement();
+            }
+        });
     }
     
     addSectionInsertionPoints(doc) {
@@ -378,6 +402,33 @@ class TemplateEditor {
         });
     }
     
+    deselectElement() {
+        const iframe = document.getElementById('templateFrame');
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        
+        // Remove all selections
+        iframeDoc.querySelectorAll('.wb-selected').forEach(el => {
+            el.classList.remove('wb-selected');
+            const label = el.querySelector('.wb-edit-label');
+            if (label) label.remove();
+        });
+        
+        // Disable overlay mode
+        iframeDoc.body.classList.remove('wb-editing-mode');
+        
+        // Clear selected element
+        this.selectedElement = null;
+        
+        // Clear properties panel
+        const propertiesContent = document.getElementById('propertiesContent');
+        propertiesContent.innerHTML = `
+            <div style="text-align:center;padding:40px 20px;color:#999;">
+                <i class="fas fa-mouse-pointer" style="font-size:48px;margin-bottom:16px;"></i>
+                <p>Klik op een element om te bewerken</p>
+            </div>
+        `;
+    }
+    
     selectElement(element, type) {
         console.log('[TemplateEditor] Selected element:', type, element);
         
@@ -393,6 +444,9 @@ class TemplateEditor {
         
         // Add selection to new element
         element.classList.add('wb-selected');
+        
+        // Enable overlay mode
+        iframeDoc.body.classList.add('wb-editing-mode');
         
         // Add edit label
         const label = iframeDoc.createElement('div');
