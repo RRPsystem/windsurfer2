@@ -380,6 +380,21 @@
         const apiKey = urlParams.get('apikey');
         const apiUrl = urlParams.get('api') || 'https://huaaogdxxdcakxryecnw.supabase.co/functions/v1';
         const returnUrl = urlParams.get('return_url');
+        
+        // Security check: Require brand_id and token
+        if (!brandId || !token) {
+            document.body.innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);font-family:system-ui;">
+                    <div style="background:white;padding:40px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.2);max-width:500px;text-align:center;">
+                        <div style="font-size:64px;margin-bottom:20px;">🔒</div>
+                        <h1 style="color:#333;margin-bottom:16px;">Toegang Geweigerd</h1>
+                        <p style="color:#666;margin-bottom:24px;">Deze pagina is alleen toegankelijk via een geldige deeplink vanuit BOLT.</p>
+                        <p style="color:#999;font-size:14px;">Ontbrekende parameters: ${!brandId ? 'brand_id' : ''} ${!token ? 'token' : ''}</p>
+                    </div>
+                </div>
+            `;
+            throw new Error('Unauthorized access - missing credentials');
+        }
 
         function previewTemplate(templateName) {
             // Open template preview in new tab
