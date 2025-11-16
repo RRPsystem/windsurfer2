@@ -379,16 +379,20 @@ class TemplateEditor {
     }
     
     addSectionInsertionPoints(doc) {
-        // Find only main content sections, skip header/footer/nav
-        const sections = doc.querySelectorAll('section:not(.top-one):not(.main-header), main > section');
+        // VERY selective - only add buttons to major content sections
+        // Skip hero, header, footer, nav, and small sections
+        const sections = doc.querySelectorAll('main section, .content-section, .tours-section, .blog-section');
         
         sections.forEach((section, index) => {
-            // Skip if too small or hidden
-            if (section.offsetHeight < 100) return;
+            // Skip if too small (less than 300px = not a major section)
+            if (section.offsetHeight < 300) return;
             
-            // Skip header, footer, navigation sections
-            if (section.closest('header, footer, nav')) return;
-            if (section.classList.contains('top-one') || section.classList.contains('main-header')) return;
+            // Skip header, footer, navigation, hero sections
+            if (section.closest('header, footer, nav, .hero, .main-slider')) return;
+            if (section.classList.contains('top-one') || 
+                section.classList.contains('main-header') ||
+                section.classList.contains('main-slider-one') ||
+                section.classList.contains('hero')) return;
             
             // Skip if already has a button after it
             if (section.nextElementSibling?.classList.contains('wb-add-section-btn')) return;
@@ -947,21 +951,33 @@ class TemplateEditor {
             });
             
             console.log('[TemplateEditor] Media selected:', result);
+            console.log('[TemplateEditor] Selected element:', this.selectedElement);
             
             if (result && result.url) {
                 if (this.selectedElement.type === 'image') {
+                    const img = this.selectedElement.element;
+                    console.log('[TemplateEditor] Updating image:', img, 'with URL:', result.url);
+                    
                     // Update image in iframe
-                    this.selectedElement.element.src = result.url;
+                    img.src = result.url;
                     
                     // If there's alt text, update it
                     if (result.alt) {
-                        this.selectedElement.element.alt = result.alt;
+                        img.alt = result.alt;
                     }
                     
+                    // Force reload if needed
+                    img.style.opacity = '0';
+                    setTimeout(() => {
+                        img.style.opacity = '1';
+                    }, 50);
+                    
                     // Refresh properties panel to show new image
-                    this.showPropertiesPanel(this.selectedElement.element, 'image');
+                    this.showPropertiesPanel(img, 'image');
                     
                     this.showNotification('✅ Afbeelding bijgewerkt!');
+                    
+                    console.log('[TemplateEditor] Image updated successfully');
                 } else if (this.selectedElement.type === 'background') {
                     // Update background image
                     this.selectedElement.element.style.backgroundImage = `url('${result.url}')`;
