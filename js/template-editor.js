@@ -184,6 +184,40 @@ class TemplateEditor {
                 z-index: 1000;
                 pointer-events: none;
             }
+            
+            .wb-quick-actions {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                display: none;
+                gap: 4px;
+                z-index: 1001;
+            }
+            
+            .wb-editable:hover .wb-quick-actions {
+                display: flex;
+            }
+            
+            .wb-quick-btn {
+                background: #667eea;
+                color: white;
+                border: none;
+                width: 28px;
+                height: 28px;
+                border-radius: 6px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                transition: all 0.2s;
+                pointer-events: auto;
+            }
+            
+            .wb-quick-btn:hover {
+                background: #5568d3;
+                transform: scale(1.1);
+            }
         `;
         iframeDoc.head.appendChild(style);
         
@@ -226,14 +260,34 @@ class TemplateEditor {
             img.classList.add('wb-editable', 'wb-image');
             
             // Wrap in container if not already
-            if (!img.parentElement.classList.contains('wb-image-wrapper')) {
-                const wrapper = doc.createElement('div');
+            let wrapper = img.parentElement;
+            if (!wrapper.classList.contains('wb-image-wrapper')) {
+                wrapper = doc.createElement('div');
                 wrapper.className = 'wb-image-wrapper';
                 wrapper.style.position = 'relative';
                 wrapper.style.display = 'inline-block';
                 img.parentNode.insertBefore(wrapper, img);
                 wrapper.appendChild(img);
             }
+            
+            // Add quick action buttons
+            const quickActions = doc.createElement('div');
+            quickActions.className = 'wb-quick-actions';
+            quickActions.innerHTML = `
+                <button class="wb-quick-btn" title="Wijzig afbeelding" data-action="change-image">
+                    🖼️
+                </button>
+            `;
+            wrapper.appendChild(quickActions);
+            
+            // Handle quick action clicks
+            quickActions.querySelector('[data-action="change-image"]').addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.selectElement(img, 'image');
+                // Automatically open media selector
+                setTimeout(() => this.openMediaSelector(), 100);
+            });
             
             img.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -435,17 +489,48 @@ class TemplateEditor {
         }
     }
     
-    openMediaSelector() {
-        // TODO: Integrate with existing media selector
-        this.showNotification('📸 Media selector openen... (in ontwikkeling)');
+    async openMediaSelector() {
+        if (!this.selectedElement || this.selectedElement.type !== 'image') return;
         
-        // For now, allow URL input
-        const newUrl = prompt('Voer afbeelding URL in:');
-        if (newUrl && this.selectedElement && this.selectedElement.type === 'image') {
-            this.selectedElement.element.src = newUrl;
-            this.showNotification('✅ Afbeelding bijgewerkt!');
-            // Refresh properties panel
-            this.showPropertiesPanel(this.selectedElement.element, 'image');
+        try {
+            console.log('[TemplateEditor] Opening media selector...');
+            
+            // Check if MediaPicker is available
+            if (typeof window.MediaPicker === 'undefined') {
+                console.error('[TemplateEditor] MediaPicker not loaded');
+                this.showNotification('❌ Media selector niet beschikbaar', 'error');
+                return;
+            }
+            
+            // Open media picker
+            const result = await window.MediaPicker.openImage({
+                defaultTab: 'unsplash', // Start with Unsplash for nice travel images
+                allowUpload: true
+            });
+            
+            console.log('[TemplateEditor] Media selected:', result);
+            
+            if (result && result.url) {
+                // Update image in iframe
+                this.selectedElement.element.src = result.url;
+                
+                // If there's alt text, update it
+                if (result.alt) {
+                    this.selectedElement.element.alt = result.alt;
+                }
+                
+                // Refresh properties panel to show new image
+                this.showPropertiesPanel(this.selectedElement.element, 'image');
+                
+                this.showNotification('✅ Afbeelding bijgewerkt!');
+            }
+        } catch (error) {
+            console.error('[TemplateEditor] Media selector error:', error);
+            
+            // If user cancelled, don't show error
+            if (error.message !== 'User cancelled') {
+                this.showNotification('❌ Fout bij selecteren afbeelding', 'error');
+            }
         }
     }
     
