@@ -70,13 +70,13 @@ class TemplateEditor {
         // Define pages for each template
         const templatePages = {
             'gotur': [
-                { name: 'Home', path: 'index.html', icon: 'home' },
-                { name: 'About', path: 'about.html', icon: 'info-circle' },
-                { name: 'Tours', path: 'tour-listing-1.html', icon: 'map-marked-alt' },
-                { name: 'Tour Detail', path: 'tour-details-1.html', icon: 'map-marker-alt' },
-                { name: 'Destinations', path: 'destination.html', icon: 'globe' },
-                { name: 'Blog', path: 'blog.html', icon: 'newspaper' },
-                { name: 'Contact', path: 'contact.html', icon: 'envelope' }
+                { name: 'Home', path: 'index.html', icon: 'home', category: 'basis' },
+                { name: 'About', path: 'about.html', icon: 'info-circle', category: 'basis' },
+                { name: 'Tours', path: 'tour-listing-1.html', icon: 'map-marked-alt', category: 'tours' },
+                { name: 'Tour Detail', path: 'tour-listing-details-1.html', icon: 'map-marker-alt', category: 'tours' },
+                { name: 'Destinations', path: 'destination-one.html', icon: 'globe', category: 'tours' },
+                { name: 'Blog', path: 'blog-grid.html', icon: 'newspaper', category: 'blog' },
+                { name: 'Contact', path: 'contact.html', icon: 'envelope', category: 'basis' }
             ],
             'tripix': [
                 { name: 'Home', path: 'index.html', icon: 'home' },
@@ -102,6 +102,16 @@ class TemplateEditor {
     renderPagesList() {
         const pagesList = document.getElementById('pagesList');
         pagesList.innerHTML = '';
+        
+        // Add "New Page" button
+        const addPageBtn = document.createElement('button');
+        addPageBtn.className = 'add-page-btn';
+        addPageBtn.style.cssText = 'width:100%;padding:12px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;';
+        addPageBtn.innerHTML = '<i class="fas fa-plus"></i> Nieuwe Pagina';
+        addPageBtn.onmouseover = () => addPageBtn.style.transform = 'translateY(-2px)';
+        addPageBtn.onmouseout = () => addPageBtn.style.transform = 'translateY(0)';
+        addPageBtn.onclick = () => this.openComponentLibrary();
+        pagesList.appendChild(addPageBtn);
         
         this.pages.forEach((page, index) => {
             const pageItem = document.createElement('div');
@@ -829,6 +839,166 @@ class TemplateEditor {
         URL.revokeObjectURL(url);
         
         this.showNotification('📥 Website gedownload!');
+    }
+    
+    openComponentLibrary() {
+        console.log('[TemplateEditor] Opening component library...');
+        
+        // Component library for Gotur
+        const goturComponents = {
+            'Basis': [
+                { name: 'Home', path: 'index.html', icon: 'home', desc: 'Hoofdpagina met hero en features' },
+                { name: 'Home 2', path: 'index-2.html', icon: 'home', desc: 'Alternatieve homepage' },
+                { name: 'Home 3', path: 'index-3.html', icon: 'home', desc: 'Moderne homepage' },
+                { name: 'Home 4', path: 'index-4.html', icon: 'home', desc: 'Minimale homepage' },
+                { name: 'About', path: 'about.html', icon: 'info-circle', desc: 'Over ons pagina' },
+                { name: 'Contact', path: 'contact.html', icon: 'envelope', desc: 'Contact formulier' },
+                { name: 'FAQ', path: 'faq.html', icon: 'question-circle', desc: 'Veelgestelde vragen' },
+                { name: '404', path: '404.html', icon: 'exclamation-triangle', desc: 'Error pagina' }
+            ],
+            'Tours & Reizen': [
+                { name: 'Tour Grid', path: 'tour-listing-1.html', icon: 'th', desc: 'Tours in grid layout' },
+                { name: 'Tour Grid 2', path: 'tour-listing-2.html', icon: 'th-large', desc: 'Alternatieve grid' },
+                { name: 'Tour List', path: 'tour-listing-list.html', icon: 'list', desc: 'Tours in lijst' },
+                { name: 'Tour Carousel', path: 'tour-listing-1-carousel.html', icon: 'images', desc: 'Tours carousel' },
+                { name: 'Tour Details', path: 'tour-listing-details-1.html', icon: 'map-marker-alt', desc: 'Tour detail pagina' },
+                { name: 'Tour Details 2', path: 'tour-listing-details-2.html', icon: 'map-marked-alt', desc: 'Alternatieve details' }
+            ],
+            'Bestemmingen': [
+                { name: 'Destinations Grid', path: 'destination-one.html', icon: 'globe', desc: 'Bestemmingen grid' },
+                { name: 'Destinations Grid 2', path: 'destination-two.html', icon: 'globe-americas', desc: 'Alternatieve grid' },
+                { name: 'Destinations Carousel', path: 'destination-one-carousel.html', icon: 'images', desc: 'Bestemmingen carousel' },
+                { name: 'Destination Details', path: 'destination-details.html', icon: 'map-pin', desc: 'Bestemming details' }
+            ],
+            'Blog': [
+                { name: 'Blog Grid', path: 'blog-grid.html', icon: 'th', desc: 'Blog in grid' },
+                { name: 'Blog List', path: 'blog-list.html', icon: 'list', desc: 'Blog in lijst' },
+                { name: 'Blog Carousel', path: 'blog-carousel.html', icon: 'images', desc: 'Blog carousel' },
+                { name: 'Blog Details', path: 'blog-details.html', icon: 'newspaper', desc: 'Blog artikel' }
+            ],
+            'Galerij': [
+                { name: 'Gallery Grid', path: 'gallery-grid.html', icon: 'images', desc: 'Foto galerij grid' },
+                { name: 'Gallery Filter', path: 'gallery-filter.html', icon: 'filter', desc: 'Filterbare galerij' }
+            ],
+            'Team': [
+                { name: 'Team Grid', path: 'team.html', icon: 'users', desc: 'Team leden grid' },
+                { name: 'Team Carousel', path: 'team-carousel.html', icon: 'users', desc: 'Team carousel' },
+                { name: 'Team Details', path: 'team-details.html', icon: 'user', desc: 'Team lid details' }
+            ],
+            'Extra': [
+                { name: 'Testimonials', path: 'testimonials.html', icon: 'quote-right', desc: 'Klant reviews' },
+                { name: 'Testimonials Carousel', path: 'testimonials-carousel.html', icon: 'quote-left', desc: 'Reviews carousel' },
+                { name: 'Pricing', path: 'pricing.html', icon: 'dollar-sign', desc: 'Prijzen overzicht' }
+            ]
+        };
+        
+        // Create modal
+        const modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+        
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = 'background:white;border-radius:16px;max-width:900px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;';
+        
+        modalContent.innerHTML = `
+            <div style="padding:24px;border-bottom:1px solid #e0e0e0;display:flex;justify-content:space-between;align-items:center;">
+                <h2 style="margin:0;font-size:24px;color:#333;">
+                    <i class="fas fa-plus-circle" style="color:#667eea;"></i> Nieuwe Pagina Toevoegen
+                </h2>
+                <button onclick="this.closest('[style*=fixed]').remove()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#999;">×</button>
+            </div>
+            <div style="flex:1;overflow-y:auto;padding:24px;" id="componentLibraryContent"></div>
+        `;
+        
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+        
+        // Render components
+        const content = document.getElementById('componentLibraryContent');
+        
+        Object.keys(goturComponents).forEach(category => {
+            const categorySection = document.createElement('div');
+            categorySection.style.marginBottom = '32px';
+            
+            const categoryTitle = document.createElement('h3');
+            categoryTitle.style.cssText = 'font-size:18px;color:#667eea;margin-bottom:16px;display:flex;align-items:center;gap:8px;';
+            categoryTitle.innerHTML = `<i class="fas fa-folder"></i> ${category}`;
+            categorySection.appendChild(categoryTitle);
+            
+            const componentsGrid = document.createElement('div');
+            componentsGrid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;';
+            
+            goturComponents[category].forEach(component => {
+                const card = document.createElement('div');
+                card.style.cssText = 'border:2px solid #e0e0e0;border-radius:12px;padding:16px;cursor:pointer;transition:all 0.2s;';
+                card.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+                        <div style="width:40px;height:40px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;">
+                            <i class="fas fa-${component.icon}"></i>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-weight:600;color:#333;">${component.name}</div>
+                            <div style="font-size:12px;color:#999;">${component.desc}</div>
+                        </div>
+                    </div>
+                `;
+                
+                card.onmouseover = () => {
+                    card.style.borderColor = '#667eea';
+                    card.style.transform = 'translateY(-4px)';
+                    card.style.boxShadow = '0 8px 20px rgba(102,126,234,0.2)';
+                };
+                card.onmouseout = () => {
+                    card.style.borderColor = '#e0e0e0';
+                    card.style.transform = 'translateY(0)';
+                    card.style.boxShadow = 'none';
+                };
+                
+                card.onclick = () => {
+                    modal.remove();
+                    this.addNewPage(component);
+                };
+                
+                componentsGrid.appendChild(card);
+            });
+            
+            categorySection.appendChild(componentsGrid);
+            content.appendChild(categorySection);
+        });
+        
+        // Close on background click
+        modal.onclick = (e) => {
+            if (e.target === modal) modal.remove();
+        };
+    }
+    
+    async addNewPage(component) {
+        console.log('[TemplateEditor] Adding new page:', component.name);
+        
+        try {
+            // Show loading
+            this.showNotification('📄 Pagina laden...');
+            
+            // Add to pages array
+            const newPage = {
+                name: component.name,
+                path: component.path,
+                icon: component.icon,
+                category: 'custom'
+            };
+            
+            this.pages.push(newPage);
+            
+            // Refresh pages list
+            this.renderPagesList();
+            
+            // Load the new page
+            await this.loadPage(newPage);
+            
+            this.showNotification(`✅ ${component.name} toegevoegd!`);
+        } catch (error) {
+            console.error('[TemplateEditor] Error adding page:', error);
+            this.showNotification('❌ Fout bij toevoegen pagina', 'error');
+        }
     }
 }
 
