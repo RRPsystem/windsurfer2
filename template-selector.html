@@ -382,38 +382,29 @@
         const returnUrl = urlParams.get('return_url');
 
         function previewTemplate(templateName) {
-            // Open template preview in new window with full URL
+            // Open template preview in new tab
             const previewUrls = {
                 'gotur': 'https://www.ai-websitestudio.nl/templates/gotur/gotur-html-main/index.html',
                 'tripix': 'https://www.ai-websitestudio.nl/templates/tripix-html/index.html'
             };
             
             if (previewUrls[templateName]) {
-                window.open(previewUrls[templateName], '_blank', 'width=1200,height=800');
+                window.open(previewUrls[templateName], '_blank');
             }
         }
 
         function selectTemplate(templateName) {
-            // Store selected template
-            localStorage.setItem('selectedTemplate', templateName);
-            localStorage.setItem('templateTimestamp', Date.now());
+            // Redirect to template editor
+            const params = new URLSearchParams();
+            params.set('template', templateName);
             
-            // Show notification
-            alert(`✅ ${templateName.charAt(0).toUpperCase() + templateName.slice(1)} template geselecteerd!\n\nJe kunt nu:\n1. Componenten uit deze template gebruiken\n2. De template als inspiratie gebruiken\n3. Zelf verder bouwen in de builder`);
+            if (brandId) params.set('brand_id', brandId);
+            if (token) params.set('token', token);
+            if (apiKey) params.set('apikey', apiKey);
+            if (apiUrl) params.set('api', apiUrl);
+            if (returnUrl) params.set('return_url', returnUrl);
             
-            // Redirect back to builder or configurator
-            if (returnUrl) {
-                window.location.href = returnUrl;
-            } else {
-                // Build builder URL with current params
-                const params = new URLSearchParams();
-                if (brandId) params.set('brand_id', brandId);
-                if (token) params.set('token', token);
-                if (apiKey) params.set('apikey', apiKey);
-                if (apiUrl) params.set('api', apiUrl);
-                
-                window.location.href = `builder.html?${params.toString()}`;
-            }
+            window.location.href = `template-editor.html?${params.toString()}`;
         }
 
         // Check if we have required parameters
