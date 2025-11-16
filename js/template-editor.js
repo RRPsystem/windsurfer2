@@ -920,12 +920,14 @@ class TemplateEditor {
                 { name: 'Tour Details 2', path: 'tour-listing-details-2.html', icon: 'map-marked-alt', desc: 'Alternatieve details' }
             ],
             'Bestemmingen': [
+                { name: '⭐ Mijn Bestemmingen', path: 'destinations-dynamic.html', icon: 'star', desc: 'Laadt automatisch je bestemmingen uit BOLT', isDynamic: true },
                 { name: 'Destinations Grid', path: 'destination-one.html', icon: 'globe', desc: 'Bestemmingen grid' },
                 { name: 'Destinations Grid 2', path: 'destination-two.html', icon: 'globe-americas', desc: 'Alternatieve grid' },
                 { name: 'Destinations Carousel', path: 'destination-one-carousel.html', icon: 'images', desc: 'Bestemmingen carousel' },
                 { name: 'Destination Details', path: 'destination-details.html', icon: 'map-pin', desc: 'Bestemming details' }
             ],
             'Blog': [
+                { name: '⭐ Mijn Nieuws', path: 'blog-dynamic.html', icon: 'star', desc: 'Laadt automatisch je nieuws uit BOLT', isDynamic: true },
                 { name: 'Blog Grid', path: 'blog-grid.html', icon: 'th', desc: 'Blog in grid' },
                 { name: 'Blog List', path: 'blog-list.html', icon: 'list', desc: 'Blog in lijst' },
                 { name: 'Blog Carousel', path: 'blog-carousel.html', icon: 'images', desc: 'Blog carousel' },
@@ -984,26 +986,30 @@ class TemplateEditor {
             
             goturComponents[category].forEach(component => {
                 const card = document.createElement('div');
-                card.style.cssText = 'border:2px solid #e0e0e0;border-radius:12px;padding:16px;cursor:pointer;transition:all 0.2s;';
+                const isDynamic = component.isDynamic;
+                const borderColor = isDynamic ? '#FFD700' : '#e0e0e0';
+                const bgGradient = isDynamic ? 'linear-gradient(135deg,#FFD700 0%,#FFA500 100%)' : 'linear-gradient(135deg,#667eea 0%,#764ba2 100%)';
+                
+                card.style.cssText = `border:2px solid ${borderColor};border-radius:12px;padding:16px;cursor:pointer;transition:all 0.2s;${isDynamic ? 'background:linear-gradient(135deg,rgba(255,215,0,0.05) 0%,rgba(255,165,0,0.05) 100%);' : ''}`;
                 card.innerHTML = `
                     <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
-                        <div style="width:40px;height:40px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;">
+                        <div style="width:40px;height:40px;background:${bgGradient};border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;">
                             <i class="fas fa-${component.icon}"></i>
                         </div>
                         <div style="flex:1;">
                             <div style="font-weight:600;color:#333;">${component.name}</div>
-                            <div style="font-size:12px;color:#999;">${component.desc}</div>
+                            <div style="font-size:12px;color:${isDynamic ? '#FF8C00' : '#999'};">${component.desc}</div>
                         </div>
                     </div>
                 `;
                 
                 card.onmouseover = () => {
-                    card.style.borderColor = '#667eea';
+                    card.style.borderColor = isDynamic ? '#FFA500' : '#667eea';
                     card.style.transform = 'translateY(-4px)';
-                    card.style.boxShadow = '0 8px 20px rgba(102,126,234,0.2)';
+                    card.style.boxShadow = isDynamic ? '0 8px 20px rgba(255,165,0,0.3)' : '0 8px 20px rgba(102,126,234,0.2)';
                 };
                 card.onmouseout = () => {
-                    card.style.borderColor = '#e0e0e0';
+                    card.style.borderColor = borderColor;
                     card.style.transform = 'translateY(0)';
                     card.style.boxShadow = 'none';
                 };
@@ -1033,12 +1039,19 @@ class TemplateEditor {
             // Show loading
             this.showNotification('📄 Pagina laden...');
             
+            // For dynamic pages, add brand_id parameter
+            let pagePath = component.path;
+            if (component.isDynamic && this.brandId) {
+                pagePath = `${component.path}?brand_id=${this.brandId}`;
+            }
+            
             // Add to pages array
             const newPage = {
                 name: component.name,
-                path: component.path,
+                path: pagePath,
                 icon: component.icon,
-                category: 'custom'
+                category: 'custom',
+                isDynamic: component.isDynamic || false
             };
             
             this.pages.push(newPage);
