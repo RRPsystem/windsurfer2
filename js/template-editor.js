@@ -1596,8 +1596,11 @@ class TemplateEditor {
             
             this.showNotification('✅ Menu gekopieerd! Wordt toegepast op alle pagina\'s bij opslaan.');
             
-            // Close modal
-            document.querySelector('[style*="position:fixed"]').remove();
+            // Close modal safely
+            const modal = document.querySelector('[style*="position:fixed"]');
+            if (modal) {
+                modal.remove();
+            }
             
         } catch (error) {
             console.error('[TemplateEditor] Error copying menu:', error);
