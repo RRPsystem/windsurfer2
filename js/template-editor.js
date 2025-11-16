@@ -1323,6 +1323,195 @@ class TemplateEditor {
             this.showNotification('❌ Fout bij toevoegen sectie', 'error');
         }
     }
+    
+    openMenuEditor() {
+        console.log('[TemplateEditor] Opening menu editor...');
+        
+        const iframe = document.getElementById('templateFrame');
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        
+        // Find menu in current page
+        const menu = iframeDoc.querySelector('.main-menu__list, nav ul, .navbar-nav');
+        
+        if (!menu) {
+            this.showNotification('❌ Geen menu gevonden op deze pagina', 'error');
+            return;
+        }
+        
+        // Extract menu structure
+        const menuItems = this.extractMenuStructure(menu);
+        
+        // Create modal
+        const modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+        
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = 'background:white;border-radius:16px;max-width:1000px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;';
+        
+        modalContent.innerHTML = `
+            <div style="padding:24px;border-bottom:1px solid #e0e0e0;display:flex;justify-content:space-between;align-items:center;">
+                <h2 style="margin:0;font-size:24px;color:#333;">
+                    <i class="fas fa-bars" style="color:#667eea;"></i> Menu Bewerken
+                </h2>
+                <button onclick="this.closest('[style*=fixed]').remove()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#999;">×</button>
+            </div>
+            <div style="flex:1;overflow-y:auto;padding:24px;" id="menuEditorContent">
+                <div style="margin-bottom:24px;">
+                    <h3 style="font-size:18px;color:#667eea;margin-bottom:16px;">
+                        <i class="fas fa-info-circle"></i> Menu Structuur
+                    </h3>
+                    <p style="color:#666;margin-bottom:16px;">
+                        Hier zie je de huidige menu structuur. Je kunt:
+                    </p>
+                    <ul style="color:#666;margin-bottom:24px;">
+                        <li>✏️ Menu items bewerken (tekst en links)</li>
+                        <li>📋 Mega menu kopiëren naar andere pagina's</li>
+                        <li>🗑️ Items verwijderen</li>
+                        <li>➕ Nieuwe items toevoegen</li>
+                    </ul>
+                </div>
+                <div id="menuItemsList"></div>
+                <div style="margin-top:24px;padding-top:24px;border-top:1px solid #e0e0e0;">
+                    <button onclick="templateEditor.copyMenuToAllPages()" style="width:100%;padding:12px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">
+                        <i class="fas fa-copy"></i> Kopieer Menu naar Alle Pagina's
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+        
+        // Render menu items
+        this.renderMenuItems(menuItems, menu);
+        
+        // Close on background click
+        modal.onclick = (e) => {
+            if (e.target === modal) modal.remove();
+        };
+    }
+    
+    extractMenuStructure(menu) {
+        const items = [];
+        const topLevelItems = menu.querySelectorAll(':scope > li');
+        
+        topLevelItems.forEach((li, index) => {
+            const link = li.querySelector(':scope > a');
+            const isMegaMenu = li.classList.contains('megamenu');
+            const hasDropdown = li.classList.contains('dropdown');
+            
+            const item = {
+                index: index,
+                text: link ? link.textContent.trim() : '',
+                href: link ? link.getAttribute('href') : '#',
+                isMegaMenu: isMegaMenu,
+                hasDropdown: hasDropdown,
+                element: li
+            };
+            
+            // Extract submenu if exists
+            if (hasDropdown || isMegaMenu) {
+                const submenu = li.querySelector(':scope > ul');
+                if (submenu) {
+                    item.submenuHTML = submenu.outerHTML;
+                }
+            }
+            
+            items.push(item);
+        });
+        
+        return items;
+    }
+    
+    renderMenuItems(items, menuElement) {
+        const container = document.getElementById('menuItemsList');
+        container.innerHTML = '';
+        
+        items.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.style.cssText = 'background:#f8f9fa;padding:16px;border-radius:8px;margin-bottom:12px;';
+            
+            let typeLabel = '📄 Normaal';
+            let typeColor = '#666';
+            if (item.isMegaMenu) {
+                typeLabel = '🎨 Mega Menu';
+                typeColor = '#667eea';
+            } else if (item.hasDropdown) {
+                typeLabel = '📂 Dropdown';
+                typeColor = '#4CAF50';
+            }
+            
+            card.innerHTML = `
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                    <div style="flex:1;">
+                        <div style="font-weight:600;color:#333;margin-bottom:4px;">${item.text}</div>
+                        <div style="font-size:12px;color:${typeColor};">${typeLabel}</div>
+                    </div>
+                    <button onclick="templateEditor.editMenuItem(${index})" style="padding:8px 16px;background:#667eea;color:white;border:none;border-radius:6px;cursor:pointer;">
+                        <i class="fas fa-edit"></i> Bewerken
+                    </button>
+                </div>
+                <div style="font-size:12px;color:#999;">Link: ${item.href}</div>
+            `;
+            
+            container.appendChild(card);
+        });
+        
+        // Store for later use
+        this.currentMenuItems = items;
+        this.currentMenuElement = menuElement;
+    }
+    
+    editMenuItem(index) {
+        const item = this.currentMenuItems[index];
+        
+        const newText = prompt('Nieuwe tekst voor menu item:', item.text);
+        if (newText && newText !== item.text) {
+            const link = item.element.querySelector(':scope > a');
+            if (link) {
+                link.textContent = newText;
+                item.text = newText;
+                this.showNotification('✅ Menu item bijgewerkt!');
+                
+                // Re-render
+                this.renderMenuItems(this.currentMenuItems, this.currentMenuElement);
+            }
+        }
+    }
+    
+    async copyMenuToAllPages() {
+        console.log('[TemplateEditor] Copying menu to all pages...');
+        
+        if (!confirm('Weet je zeker dat je het huidige menu naar alle pagina\'s wilt kopiëren?')) {
+            return;
+        }
+        
+        try {
+            const iframe = document.getElementById('templateFrame');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            const currentMenu = iframeDoc.querySelector('.main-menu__list, nav ul, .navbar-nav');
+            
+            if (!currentMenu) {
+                this.showNotification('❌ Geen menu gevonden', 'error');
+                return;
+            }
+            
+            // Get menu HTML
+            const menuHTML = currentMenu.outerHTML;
+            
+            // Store menu for applying to other pages
+            localStorage.setItem('template_menu_copy', menuHTML);
+            
+            this.showNotification('✅ Menu gekopieerd! Wordt toegepast op alle pagina\'s bij opslaan.');
+            
+            // Close modal
+            document.querySelector('[style*="position:fixed"]').remove();
+            
+        } catch (error) {
+            console.error('[TemplateEditor] Error copying menu:', error);
+            this.showNotification('❌ Fout bij kopiëren menu', 'error');
+        }
+    }
 }
 
 // Global functions
