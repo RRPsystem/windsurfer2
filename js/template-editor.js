@@ -498,13 +498,15 @@ class TemplateEditor {
                     });
                 }
                 
-                // Add "Add Slide" button to the carousel container (only once)
+                // Add "Add Slide" button to the carousel section (only once)
                 const carousel = carouselItem.closest('.destinations-two__carousel, .owl-carousel');
-                if (carousel && !carousel.querySelector('.wb-add-slide-btn')) {
+                const carouselSection = carouselItem.closest('.main-slider-one__destinations');
+                
+                if (carousel && carouselSection && !carouselSection.querySelector('.wb-add-slide-btn')) {
                     const addSlideBtn = doc.createElement('button');
                     addSlideBtn.className = 'wb-add-slide-btn';
                     addSlideBtn.innerHTML = '<i class="fas fa-plus"></i> Slide Toevoegen';
-                    addSlideBtn.style.cssText = 'position:absolute;bottom:20px;right:20px;z-index:10001;background:#4CAF50;color:white;border:none;padding:12px 20px;border-radius:8px;cursor:pointer;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+                    addSlideBtn.style.cssText = 'position:absolute;top:20px;right:20px;z-index:10001;background:#4CAF50;color:white;border:none;padding:12px 20px;border-radius:8px;cursor:pointer;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
                     
                     addSlideBtn.addEventListener('click', (e) => {
                         e.preventDefault();
@@ -512,11 +514,10 @@ class TemplateEditor {
                         this.addCarouselSlide(carousel);
                     });
                     
-                    const carouselParent = carousel.parentElement;
-                    if (carouselParent) {
-                        carouselParent.style.position = 'relative';
-                        carouselParent.appendChild(addSlideBtn);
-                    }
+                    carouselSection.style.position = 'relative';
+                    carouselSection.appendChild(addSlideBtn);
+                    
+                    console.log('[TemplateEditor] Added slide button to carousel section');
                 }
                 
                 img.addEventListener('click', (e) => {
