@@ -202,33 +202,37 @@ class TemplateEditor {
             item.classList.toggle('active', this.pages[index] === page);
         });
         
-        // Check if we have a saved draft for this page
-        const savedPageData = this.savedDraft?.pages?.find(p => p.path === page.path);
+        // Load fresh page from template first
+        const baseUrl = `templates/${this.templateName}/${this.templateName === 'gotur' ? 'gotur-html-main' : ''}`;
+        const pageUrl = `${baseUrl}/${page.path}`;
         
-        if (savedPageData && savedPageData.html) {
-            console.log('[TemplateEditor] Loading saved draft HTML for page:', page.name);
+        const iframe = document.getElementById('templateFrame');
+        iframe.src = pageUrl;
+        
+        // Wait for iframe to load
+        iframe.onload = () => {
+            // Check if we have a saved draft for this page
+            const savedPageData = this.savedDraft?.pages?.find(p => p.path === page.path);
             
-            // Load the saved HTML directly into iframe
-            const iframe = document.getElementById('templateFrame');
-            iframe.srcdoc = savedPageData.html;
+            if (savedPageData && savedPageData.html) {
+                console.log('[TemplateEditor] Applying saved draft HTML for page:', page.name);
+                
+                // Replace the body content with saved HTML
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                const parser = new DOMParser();
+                const savedDoc = parser.parseFromString(savedPageData.html, 'text/html');
+                
+                // Replace body content
+                iframeDoc.body.innerHTML = savedDoc.body.innerHTML;
+                
+                // Copy body attributes
+                Array.from(savedDoc.body.attributes).forEach(attr => {
+                    iframeDoc.body.setAttribute(attr.name, attr.value);
+                });
+            }
             
-            // Wait for iframe to load
-            iframe.onload = () => {
-                this.setupIframeEditing();
-            };
-        } else {
-            // Load fresh page from template
-            const baseUrl = `templates/${this.templateName}/${this.templateName === 'gotur' ? 'gotur-html-main' : ''}`;
-            const pageUrl = `${baseUrl}/${page.path}`;
-            
-            const iframe = document.getElementById('templateFrame');
-            iframe.src = pageUrl;
-            
-            // Wait for iframe to load
-            iframe.onload = () => {
-                this.setupIframeEditing();
-            };
-        }
+            this.setupIframeEditing();
+        };
     }
     
     setupIframeEditing() {
