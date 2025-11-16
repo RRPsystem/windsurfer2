@@ -1091,6 +1091,7 @@ class TemplateEditor {
                 .upsert({
                     brand_id: this.brandId,
                     name: `${this.templateName} Website`,
+                    slug: this.sanitizeSlug(this.templateName),
                     template: exportData.template,
                     pages: exportData.pages,
                     preview_url: exportData.previewUrl,
