@@ -488,6 +488,24 @@ class TemplateEditor {
                         this.selectElement(img, 'image');
                         setTimeout(() => this.openMediaSelector(), 100);
                     });
+                    
+                    // Add "Add Slide" button for carousel
+                    const carousel = carouselItem.closest('.owl-carousel, .destinations-two__carousel');
+                    if (carousel && !carousel.querySelector('.wb-add-slide-btn')) {
+                        const addSlideBtn = doc.createElement('button');
+                        addSlideBtn.className = 'wb-add-slide-btn';
+                        addSlideBtn.innerHTML = '<i class="fas fa-plus"></i> Slide Toevoegen';
+                        addSlideBtn.style.cssText = 'position:absolute;bottom:20px;right:20px;z-index:10001;background:#4CAF50;color:white;border:none;padding:12px 20px;border-radius:8px;cursor:pointer;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+                        
+                        addSlideBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            this.addCarouselSlide(carousel);
+                        });
+                        
+                        carousel.style.position = 'relative';
+                        carousel.appendChild(addSlideBtn);
+                    }
                 }
                 
                 img.addEventListener('click', (e) => {
@@ -1001,6 +1019,69 @@ class TemplateEditor {
         }
     }
     
+    async addCarouselSlide(carousel) {
+        console.log('[TemplateEditor] Adding carousel slide...');
+        
+        try {
+            // Open media picker to select image for new slide
+            const result = await window.MediaPicker.openImage({
+                defaultTab: 'unsplash',
+                allowUpload: true
+            });
+            
+            if (!result || !result.url) return;
+            
+            // Find an existing item to clone
+            const existingItem = carousel.querySelector('.item');
+            if (!existingItem) {
+                this.showNotification('❌ Kan geen slide toevoegen', 'error');
+                return;
+            }
+            
+            // Clone the item
+            const newItem = existingItem.cloneNode(true);
+            
+            // Update the image in the cloned item
+            const img = newItem.querySelector('img');
+            if (img) {
+                img.src = result.url;
+                if (result.alt) img.alt = result.alt;
+            }
+            
+            // Add the new item to the carousel (before owl-cloned items)
+            const owlStage = carousel.querySelector('.owl-stage');
+            if (owlStage) {
+                // Owl Carousel is initialized - need to destroy and reinit
+                const $carousel = $(carousel);
+                const owlData = $carousel.data('owl.carousel');
+                
+                if (owlData) {
+                    // Destroy owl carousel
+                    owlData.destroy();
+                    
+                    // Add new item
+                    carousel.appendChild(newItem);
+                    
+                    // Reinitialize owl carousel
+                    const options = JSON.parse(carousel.getAttribute('data-owl-options') || '{}');
+                    $carousel.owlCarousel(options);
+                }
+            } else {
+                // Carousel not initialized yet - just add the item
+                carousel.appendChild(newItem);
+            }
+            
+            this.showNotification('✅ Slide toegevoegd!');
+            
+            // Re-setup editing for the new slide
+            this.setupIframeEditing();
+            
+        } catch (error) {
+            console.error('[TemplateEditor] Error adding slide:', error);
+            this.showNotification('❌ Fout bij toevoegen slide', 'error');
+        }
+    }
+    
     deletePage(index) {
         if (!confirm(`Weet je zeker dat je "${this.pages[index].name}" wilt verwijderen?`)) return;
         
@@ -1132,6 +1213,7 @@ class TemplateEditor {
         
         // Remove all editor UI elements before saving
         clonedDoc.querySelectorAll('.wb-add-section-btn').forEach(btn => btn.remove());
+        clonedDoc.querySelectorAll('.wb-add-slide-btn').forEach(btn => btn.remove());
         clonedDoc.querySelectorAll('.wb-quick-actions').forEach(actions => actions.remove());
         clonedDoc.querySelectorAll('.wb-edit-label').forEach(label => label.remove());
         clonedDoc.querySelectorAll('.wb-selected').forEach(el => el.classList.remove('wb-selected'));
