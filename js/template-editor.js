@@ -244,6 +244,33 @@ class TemplateEditor {
                 background: #5568d3;
                 transform: scale(1.1);
             }
+            
+            .wb-add-section-btn {
+                position: relative;
+                width: 100%;
+                padding: 20px;
+                margin: 20px 0;
+                border: 2px dashed #667eea;
+                background: rgba(102, 126, 234, 0.05);
+                border-radius: 12px;
+                cursor: pointer;
+                transition: all 0.3s;
+                text-align: center;
+                color: #667eea;
+                font-weight: 600;
+                font-size: 16px;
+            }
+            
+            .wb-add-section-btn:hover {
+                background: rgba(102, 126, 234, 0.1);
+                border-color: #5568d3;
+                transform: translateY(-2px);
+            }
+            
+            .wb-add-section-btn i {
+                margin-right: 8px;
+                font-size: 20px;
+            }
         `;
         iframeDoc.head.appendChild(style);
         
@@ -252,6 +279,34 @@ class TemplateEditor {
         
         // Make images editable
         this.makeImagesEditable(iframeDoc);
+        
+        // Add section insertion points
+        this.addSectionInsertionPoints(iframeDoc);
+    }
+    
+    addSectionInsertionPoints(doc) {
+        // Find all major sections (sections, divs with specific classes)
+        const sections = doc.querySelectorAll('section, .section, main > div, .container > div');
+        
+        sections.forEach((section, index) => {
+            // Skip if too small or hidden
+            if (section.offsetHeight < 100) return;
+            
+            // Add insertion button after each section
+            const insertBtn = doc.createElement('div');
+            insertBtn.className = 'wb-add-section-btn';
+            insertBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Sectie Toevoegen';
+            insertBtn.dataset.insertAfter = index;
+            
+            insertBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.openSectionLibrary(section);
+            });
+            
+            // Insert after section
+            section.parentNode.insertBefore(insertBtn, section.nextSibling);
+        });
     }
     
     makeTextEditable(doc) {
@@ -998,6 +1053,274 @@ class TemplateEditor {
         } catch (error) {
             console.error('[TemplateEditor] Error adding page:', error);
             this.showNotification('❌ Fout bij toevoegen pagina', 'error');
+        }
+    }
+    
+    openSectionLibrary(afterSection) {
+        console.log('[TemplateEditor] Opening section library...');
+        
+        // Section components library
+        const sectionComponents = {
+            'Tekst & Content': [
+                { 
+                    name: 'Tekst Blok', 
+                    icon: 'align-left',
+                    desc: 'Simpel tekst blok met titel',
+                    html: `
+                        <section class="py-5">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-lg-8 mx-auto">
+                                        <h2 class="mb-4">Nieuwe Sectie</h2>
+                                        <p class="lead">Dit is een nieuwe tekst sectie. Klik om te bewerken.</p>
+                                        <p>Voeg hier je content toe. Je kunt teksten bewerken, afbeeldingen toevoegen en AI gebruiken voor tekst generatie.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    `
+                },
+                { 
+                    name: 'Twee Kolommen', 
+                    icon: 'columns',
+                    desc: 'Tekst in twee kolommen',
+                    html: `
+                        <section class="py-5 bg-light">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h3 class="mb-3">Linker Kolom</h3>
+                                        <p>Content voor de linker kolom. Klik om te bewerken.</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h3 class="mb-3">Rechter Kolom</h3>
+                                        <p>Content voor de rechter kolom. Klik om te bewerken.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    `
+                },
+                {
+                    name: 'Quote/Citaat',
+                    icon: 'quote-right',
+                    desc: 'Opvallend citaat blok',
+                    html: `
+                        <section class="py-5">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-lg-8 mx-auto text-center">
+                                        <blockquote class="blockquote">
+                                            <p class="mb-4 fs-4 fst-italic">"Dit is een inspirerend citaat dat de aandacht trekt."</p>
+                                            <footer class="blockquote-footer">Auteur Naam</footer>
+                                        </blockquote>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    `
+                }
+            ],
+            'Afbeeldingen': [
+                {
+                    name: 'Afbeelding + Tekst',
+                    icon: 'image',
+                    desc: 'Afbeelding naast tekst',
+                    html: `
+                        <section class="py-5">
+                            <div class="container">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600" class="img-fluid rounded" alt="Placeholder">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h3 class="mb-3">Titel Hier</h3>
+                                        <p>Beschrijving bij de afbeelding. Klik op de afbeelding om een andere te kiezen via de media selector.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    `
+                },
+                {
+                    name: 'Galerij Grid',
+                    icon: 'th',
+                    desc: '3 afbeeldingen in grid',
+                    html: `
+                        <section class="py-5 bg-light">
+                            <div class="container">
+                                <div class="row g-4">
+                                    <div class="col-md-4">
+                                        <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400" class="img-fluid rounded" alt="Gallery 1">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <img src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400" class="img-fluid rounded" alt="Gallery 2">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400" class="img-fluid rounded" alt="Gallery 3">
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    `
+                }
+            ],
+            'Call-to-Action': [
+                {
+                    name: 'CTA Blok',
+                    icon: 'bullhorn',
+                    desc: 'Call-to-action met knop',
+                    html: `
+                        <section class="py-5 bg-primary text-white text-center">
+                            <div class="container">
+                                <h2 class="mb-3">Klaar om te Beginnen?</h2>
+                                <p class="lead mb-4">Neem contact op voor meer informatie</p>
+                                <a href="#contact" class="btn btn-light btn-lg">Contact Opnemen</a>
+                            </div>
+                        </section>
+                    `
+                },
+                {
+                    name: 'Feature Boxes',
+                    icon: 'th-large',
+                    desc: '3 feature boxen',
+                    html: `
+                        <section class="py-5">
+                            <div class="container">
+                                <div class="row g-4">
+                                    <div class="col-md-4 text-center">
+                                        <div class="p-4">
+                                            <i class="fas fa-star fa-3x text-primary mb-3"></i>
+                                            <h4>Feature 1</h4>
+                                            <p>Beschrijving van feature 1</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-center">
+                                        <div class="p-4">
+                                            <i class="fas fa-heart fa-3x text-primary mb-3"></i>
+                                            <h4>Feature 2</h4>
+                                            <p>Beschrijving van feature 2</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-center">
+                                        <div class="p-4">
+                                            <i class="fas fa-rocket fa-3x text-primary mb-3"></i>
+                                            <h4>Feature 3</h4>
+                                            <p>Beschrijving van feature 3</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    `
+                }
+            ]
+        };
+        
+        // Create modal (same as component library)
+        const modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+        
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = 'background:white;border-radius:16px;max-width:900px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;';
+        
+        modalContent.innerHTML = `
+            <div style="padding:24px;border-bottom:1px solid #e0e0e0;display:flex;justify-content:space-between;align-items:center;">
+                <h2 style="margin:0;font-size:24px;color:#333;">
+                    <i class="fas fa-puzzle-piece" style="color:#667eea;"></i> Sectie Toevoegen
+                </h2>
+                <button onclick="this.closest('[style*=fixed]').remove()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#999;">×</button>
+            </div>
+            <div style="flex:1;overflow-y:auto;padding:24px;" id="sectionLibraryContent"></div>
+        `;
+        
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+        
+        // Render sections
+        const content = document.getElementById('sectionLibraryContent');
+        
+        Object.keys(sectionComponents).forEach(category => {
+            const categorySection = document.createElement('div');
+            categorySection.style.marginBottom = '32px';
+            
+            const categoryTitle = document.createElement('h3');
+            categoryTitle.style.cssText = 'font-size:18px;color:#667eea;margin-bottom:16px;display:flex;align-items:center;gap:8px;';
+            categoryTitle.innerHTML = `<i class="fas fa-folder"></i> ${category}`;
+            categorySection.appendChild(categoryTitle);
+            
+            const componentsGrid = document.createElement('div');
+            componentsGrid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;';
+            
+            sectionComponents[category].forEach(component => {
+                const card = document.createElement('div');
+                card.style.cssText = 'border:2px solid #e0e0e0;border-radius:12px;padding:16px;cursor:pointer;transition:all 0.2s;';
+                card.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+                        <div style="width:40px;height:40px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;">
+                            <i class="fas fa-${component.icon}"></i>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-weight:600;color:#333;">${component.name}</div>
+                            <div style="font-size:12px;color:#999;">${component.desc}</div>
+                        </div>
+                    </div>
+                `;
+                
+                card.onmouseover = () => {
+                    card.style.borderColor = '#667eea';
+                    card.style.transform = 'translateY(-4px)';
+                    card.style.boxShadow = '0 8px 20px rgba(102,126,234,0.2)';
+                };
+                card.onmouseout = () => {
+                    card.style.borderColor = '#e0e0e0';
+                    card.style.transform = 'translateY(0)';
+                    card.style.boxShadow = 'none';
+                };
+                
+                card.onclick = () => {
+                    modal.remove();
+                    this.insertSection(afterSection, component.html);
+                };
+                
+                componentsGrid.appendChild(card);
+            });
+            
+            categorySection.appendChild(componentsGrid);
+            content.appendChild(categorySection);
+        });
+        
+        // Close on background click
+        modal.onclick = (e) => {
+            if (e.target === modal) modal.remove();
+        };
+    }
+    
+    insertSection(afterSection, html) {
+        console.log('[TemplateEditor] Inserting section...');
+        
+        try {
+            const iframe = document.getElementById('templateFrame');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            
+            // Create temp container to parse HTML
+            const temp = iframeDoc.createElement('div');
+            temp.innerHTML = html;
+            const newSection = temp.firstElementChild;
+            
+            // Insert after the specified section
+            afterSection.parentNode.insertBefore(newSection, afterSection.nextSibling);
+            
+            // Re-setup editing for new section
+            this.setupIframeEditing();
+            
+            // Scroll to new section
+            newSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            this.showNotification('✅ Sectie toegevoegd!');
+        } catch (error) {
+            console.error('[TemplateEditor] Error inserting section:', error);
+            this.showNotification('❌ Fout bij toevoegen sectie', 'error');
         }
     }
 }
