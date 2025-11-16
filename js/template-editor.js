@@ -81,6 +81,27 @@ class TemplateEditor {
     async loadTemplatePages() {
         console.log('[TemplateEditor] Loading template pages...');
         
+        // Try to load saved draft from Supabase first
+        let loadedDraft = null;
+        if (this.supabase && this.brandId) {
+            try {
+                console.log('[TemplateEditor] Checking for saved draft...');
+                const { data, error } = await this.supabase
+                    .from('template_drafts')
+                    .select('*')
+                    .eq('brand_id', this.brandId)
+                    .eq('template', this.templateName)
+                    .single();
+                
+                if (data && !error) {
+                    console.log('[TemplateEditor] Found saved draft!');
+                    loadedDraft = data;
+                }
+            } catch (error) {
+                console.log('[TemplateEditor] No draft found, loading fresh template');
+            }
+        }
+        
         // Define pages for each template
         const templatePages = {
             'gotur': [
@@ -104,12 +125,21 @@ class TemplateEditor {
         
         this.pages = templatePages[this.templateName] || templatePages['gotur'];
         
+        // If we have a draft, merge it with the pages
+        if (loadedDraft && loadedDraft.pages) {
+            console.log('[TemplateEditor] Applying saved draft to pages...');
+            this.savedDraft = loadedDraft;
+        }
+        
         // Render pages list
         this.renderPagesList();
         
-        // Load first page
+        // Load first page (or the page from draft)
         if (this.pages.length > 0) {
-            await this.loadPage(this.pages[0]);
+            const pageToLoad = loadedDraft?.current_page 
+                ? this.pages.find(p => p.path === loadedDraft.current_page) || this.pages[0]
+                : this.pages[0];
+            await this.loadPage(pageToLoad);
         }
     }
     
@@ -172,17 +202,33 @@ class TemplateEditor {
             item.classList.toggle('active', this.pages[index] === page);
         });
         
-        // Load page in iframe
-        const baseUrl = `templates/${this.templateName}/${this.templateName === 'gotur' ? 'gotur-html-main' : ''}`;
-        const pageUrl = `${baseUrl}/${page.path}`;
+        // Check if we have a saved draft for this page
+        const savedPageData = this.savedDraft?.pages?.find(p => p.path === page.path);
         
-        const iframe = document.getElementById('templateFrame');
-        iframe.src = pageUrl;
-        
-        // Wait for iframe to load
-        iframe.onload = () => {
-            this.setupIframeEditing();
-        };
+        if (savedPageData && savedPageData.html) {
+            console.log('[TemplateEditor] Loading saved draft HTML for page:', page.name);
+            
+            // Load the saved HTML directly into iframe
+            const iframe = document.getElementById('templateFrame');
+            iframe.srcdoc = savedPageData.html;
+            
+            // Wait for iframe to load
+            iframe.onload = () => {
+                this.setupIframeEditing();
+            };
+        } else {
+            // Load fresh page from template
+            const baseUrl = `templates/${this.templateName}/${this.templateName === 'gotur' ? 'gotur-html-main' : ''}`;
+            const pageUrl = `${baseUrl}/${page.path}`;
+            
+            const iframe = document.getElementById('templateFrame');
+            iframe.src = pageUrl;
+            
+            // Wait for iframe to load
+            iframe.onload = () => {
+                this.setupIframeEditing();
+            };
+        }
     }
     
     setupIframeEditing() {
