@@ -244,7 +244,7 @@ class TemplateEditor {
         // Inject editing styles
         const style = iframeDoc.createElement('style');
         style.textContent = `
-            /* Editor Overlay Mode */
+            /* Editor Overlay Mode - REMOVED dark overlay */
             body.wb-editing-mode::before {
                 content: '';
                 position: fixed;
@@ -252,7 +252,7 @@ class TemplateEditor {
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background: rgba(0, 0, 0, 0.5);
+                background: transparent;
                 z-index: 9998;
                 pointer-events: none;
             }
