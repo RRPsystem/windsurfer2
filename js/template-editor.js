@@ -443,8 +443,11 @@ class TemplateEditor {
     }
     
     makeImagesEditable(doc) {
-        // Find all images
+        console.log('[TemplateEditor] Making images editable...');
+        
+        // Find all img elements
         const images = doc.querySelectorAll('img');
+        console.log('[TemplateEditor] Found', images.length, 'images');
         
         images.forEach(img => {
             // Skip small icons
