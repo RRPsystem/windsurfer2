@@ -1006,6 +1006,7 @@ class TemplateEditor {
             console.log('[TemplateEditor] Draft saved to Supabase successfully');
         } catch (error) {
             console.error('[TemplateEditor] Supabase draft save error:', error);
+            console.error('[TemplateEditor] Error details:', error.message, error.details, error.hint);
             // Don't throw - localStorage save already succeeded
         }
     }
@@ -1033,6 +1034,7 @@ class TemplateEditor {
             this.showNotification('✅ Website opgeslagen in database!');
         } catch (error) {
             console.error('[TemplateEditor] Supabase website save error:', error);
+            console.error('[TemplateEditor] Error details:', error.message, error.details, error.hint);
             this.showNotification('⚠️ Website niet opgeslagen in database', 'error');
             throw error;
         }
@@ -1119,6 +1121,8 @@ class TemplateEditor {
             
             if (error || !brand) {
                 console.error('[TemplateEditor] Error fetching brand:', error);
+                console.error('[TemplateEditor] Error details:', error?.message, error?.details, error?.hint);
+                console.error('[TemplateEditor] Brand ID:', this.brandId);
                 return `preview-${Date.now()}.ai-websitestudio.nl`;
             }
             
