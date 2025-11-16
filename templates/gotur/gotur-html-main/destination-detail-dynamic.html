@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Bestemming || Gotur</title>
+
+    <!-- favicons Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/images/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicons/favicon-16x16.png">
+
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Just+Another+Hand&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="assets/vendors/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/vendors/animate/animate.min.css">
+    <link rel="stylesheet" href="assets/vendors/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="assets/vendors/gotur-icons/style.css">
+    <link rel="stylesheet" href="assets/vendors/jquery-magnific-popup/jquery.magnific-popup.css">
+
+    <!-- template styles -->
+    <link rel="stylesheet" href="assets/css/gotur.css">
+    
+    <style>
+        .loading-state {
+            text-align: center;
+            padding: 100px 20px;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .destination-content {
+            line-height: 1.8;
+        }
+        .destination-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .destination-content h2,
+        .destination-content h3 {
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: #1a1a1a;
+        }
+        .destination-content p {
+            margin-bottom: 15px;
+        }
+        .destination-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        .destination-gallery img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .destination-gallery img:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body class="custom-cursor">
+    <div class="custom-cursor__cursor"></div>
+    <div class="custom-cursor__cursor-two"></div>
+
+    <div class="preloader">
+        <div class="preloader__image" style="background-image: url(assets/images/loader.png);"></div>
+    </div>
+
+    <div class="page-wrapper">
+        <!-- Page Header -->
+        <section class="page-header">
+            <div class="page-header__bg" style="background-image: url('assets/images/backgrounds/page-header-bg-1-1.jpg');"></div>
+            <div class="container">
+                <h2 class="page-header__title" id="headerTitle">Bestemming</h2>
+                <ul class="gotur-breadcrumb list-unstyled">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="destinations-dynamic.html">Bestemmingen</a></li>
+                    <li><span id="breadcrumbTitle">...</span></li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Destination Content -->
+        <section class="section-space">
+            <div class="container">
+                <div id="loadingState" class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>Bestemming laden...</p>
+                </div>
+                
+                <div id="destinationContent" style="display: none;">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <div class="destination-content">
+                                <h1 id="destinationTitle"></h1>
+                                <div id="destinationBody"></div>
+                            </div>
+                            
+                            <div id="destinationGallery" class="destination-gallery"></div>
+                        </div>
+                        
+                        <div class="col-lg-4">
+                            <div class="sidebar">
+                                <div class="sidebar__single sidebar__single--info">
+                                    <h3 class="sidebar__title">Informatie</h3>
+                                    <ul class="sidebar__info">
+                                        <li>
+                                            <i class="icon-calendar"></i>
+                                            <span>Toegevoegd:</span>
+                                            <span id="destinationDate"></span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="sidebar__single">
+                                    <a href="destinations-dynamic.html" class="gotur-btn gotur-btn--base">
+                                        <span>Alle Bestemmingen</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script>
+        // Get parameters from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const slug = urlParams.get('slug');
+        const brandId = urlParams.get('brand_id') || localStorage.getItem('current_brand_id');
+        
+        async function loadDestination() {
+            if (!slug) {
+                showError('Geen bestemming opgegeven');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/content/destinations?brandId=${brandId}&slug=${slug}`);
+                
+                if (!response.ok) {
+                    throw new Error('Bestemming niet gevonden');
+                }
+                
+                const destination = await response.json();
+                
+                // Hide loading, show content
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('destinationContent').style.display = 'block';
+                
+                // Update page title
+                document.getElementById('pageTitle').textContent = `${destination.title} || Gotur`;
+                document.getElementById('headerTitle').textContent = destination.title;
+                document.getElementById('breadcrumbTitle').textContent = destination.title;
+                document.getElementById('destinationTitle').textContent = destination.title;
+                
+                // Transform and inject content
+                const transformedContent = transformContent(destination.content || destination.html);
+                document.getElementById('destinationBody').innerHTML = transformedContent;
+                
+                // Render gallery if images exist
+                if (destination.images && destination.images.length > 1) {
+                    renderGallery(destination.images);
+                }
+                
+                // Set date
+                if (destination.createdAt) {
+                    const date = new Date(destination.createdAt);
+                    document.getElementById('destinationDate').textContent = date.toLocaleDateString('nl-NL', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error loading destination:', error);
+                showError('Fout bij laden van bestemming');
+            }
+        }
+        
+        function transformContent(html) {
+            // Transform custom HTML to Gotur styling
+            let content = html;
+            
+            // Remove any existing wrapper divs
+            content = content.replace(/<div[^>]*class="[^"]*container[^"]*"[^>]*>/gi, '');
+            content = content.replace(/<\/div>/gi, '');
+            
+            // Ensure images are responsive
+            content = content.replace(/<img/gi, '<img class="img-fluid"');
+            
+            return content;
+        }
+        
+        function renderGallery(images) {
+            const gallery = document.getElementById('destinationGallery');
+            
+            images.forEach(imageUrl => {
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.alt = 'Bestemming foto';
+                img.onclick = () => openLightbox(imageUrl);
+                gallery.appendChild(img);
+            });
+        }
+        
+        function openLightbox(imageUrl) {
+            // Simple lightbox - you can enhance this
+            const lightbox = document.createElement('div');
+            lightbox.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+            lightbox.innerHTML = `<img src="${imageUrl}" style="max-width:90%;max-height:90%;border-radius:8px;">`;
+            lightbox.onclick = () => lightbox.remove();
+            document.body.appendChild(lightbox);
+        }
+        
+        function showError(message) {
+            document.getElementById('loadingState').innerHTML = `
+                <p class="text-danger">${message}</p>
+                <a href="destinations-dynamic.html" class="gotur-btn gotur-btn--base mt-3">
+                    <span>Terug naar Bestemmingen</span>
+                </a>
+            `;
+        }
+        
+        // Load destination on page load
+        document.addEventListener('DOMContentLoaded', loadDestination);
+    </script>
+
+    <!-- Scripts -->
+    <script src="assets/vendors/jquery/jquery-3.7.0.min.js"></script>
+    <script src="assets/vendors/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendors/jquery-magnific-popup/jquery.magnific-popup.min.js"></script>
+    <script src="assets/vendors/wow/wow.js"></script>
+    <!-- template js -->
+    <script src="assets/js/gotur.js"></script>
+</body>
+</html>
