@@ -863,23 +863,54 @@ class TemplateEditor {
     
     async saveToSupabase(draftData) {
         try {
-            console.log('[TemplateEditor] Saving to Supabase...');
+            console.log('[TemplateEditor] Saving draft to Supabase...');
             
             const { data, error } = await this.supabase
                 .from('template_drafts')
                 .upsert({
                     brand_id: this.brandId,
-                    template_name: this.templateName,
-                    draft_data: draftData,
+                    template: this.templateName,
+                    pages: draftData.pages,
+                    current_page: this.currentPage?.path || null,
                     updated_at: new Date().toISOString()
+                }, {
+                    onConflict: 'brand_id,template'
                 });
             
             if (error) throw error;
             
-            console.log('[TemplateEditor] Saved to Supabase successfully');
+            console.log('[TemplateEditor] Draft saved to Supabase successfully');
         } catch (error) {
-            console.error('[TemplateEditor] Supabase save error:', error);
+            console.error('[TemplateEditor] Supabase draft save error:', error);
             // Don't throw - localStorage save already succeeded
+        }
+    }
+    
+    async saveWebsiteToSupabase(exportData) {
+        try {
+            console.log('[TemplateEditor] Saving website to Supabase...');
+            
+            const { data, error } = await this.supabase
+                .from('websites')
+                .upsert({
+                    brand_id: this.brandId,
+                    template: exportData.template,
+                    pages: exportData.pages,
+                    preview_url: exportData.previewUrl,
+                    status: exportData.status,
+                    updated_at: new Date().toISOString()
+                }, {
+                    onConflict: 'brand_id,template'
+                });
+            
+            if (error) throw error;
+            
+            console.log('[TemplateEditor] Website saved to Supabase successfully');
+            this.showNotification('✅ Website opgeslagen in database!');
+        } catch (error) {
+            console.error('[TemplateEditor] Supabase website save error:', error);
+            this.showNotification('⚠️ Website niet opgeslagen in database', 'error');
+            throw error;
         }
     }
     
@@ -909,6 +940,11 @@ class TemplateEditor {
                 previewUrl: previewUrl,
                 status: 'preview'
             };
+            
+            // Save to websites table in Supabase
+            if (this.supabase && this.brandId) {
+                await this.saveWebsiteToSupabase(exportData);
+            }
             
             // If we have a return URL (from BOLT), send data back
             const urlParams = new URLSearchParams(window.location.search);
