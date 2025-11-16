@@ -1086,10 +1086,11 @@ class TemplateEditor {
         try {
             console.log('[TemplateEditor] Saving website to Supabase...');
             
-            const { data, error } = await this.supabase
+            const { data, error} = await this.supabase
                 .from('websites')
                 .upsert({
                     brand_id: this.brandId,
+                    name: `${this.templateName} Website`,
                     template: exportData.template,
                     pages: exportData.pages,
                     preview_url: exportData.previewUrl,
