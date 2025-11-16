@@ -379,12 +379,19 @@ class TemplateEditor {
     }
     
     addSectionInsertionPoints(doc) {
-        // Find all major sections (sections, divs with specific classes)
-        const sections = doc.querySelectorAll('section, .section, main > div, .container > div');
+        // Find only main content sections, skip header/footer/nav
+        const sections = doc.querySelectorAll('section:not(.top-one):not(.main-header), main > section');
         
         sections.forEach((section, index) => {
             // Skip if too small or hidden
             if (section.offsetHeight < 100) return;
+            
+            // Skip header, footer, navigation sections
+            if (section.closest('header, footer, nav')) return;
+            if (section.classList.contains('top-one') || section.classList.contains('main-header')) return;
+            
+            // Skip if already has a button after it
+            if (section.nextElementSibling?.classList.contains('wb-add-section-btn')) return;
             
             // Add insertion button after each section
             const insertBtn = doc.createElement('div');
