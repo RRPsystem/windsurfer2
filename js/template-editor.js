@@ -301,13 +301,15 @@ class TemplateEditor {
                 position: absolute;
                 top: 8px;
                 right: 8px;
-                display: none;
+                display: flex;
                 gap: 4px;
                 z-index: 1001;
+                opacity: 0.7;
+                transition: opacity 0.2s;
             }
             
             .wb-editable:hover .wb-quick-actions {
-                display: flex;
+                opacity: 1;
             }
             
             .wb-quick-btn {
