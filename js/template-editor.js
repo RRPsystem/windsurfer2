@@ -379,6 +379,9 @@ class TemplateEditor {
     }
     
     addSectionInsertionPoints(doc) {
+        // First, remove ALL existing section buttons to prevent duplicates
+        doc.querySelectorAll('.wb-add-section-btn').forEach(btn => btn.remove());
+        
         // VERY selective - only add buttons to major content sections
         // Skip hero, header, footer, nav, and small sections
         const sections = doc.querySelectorAll('main section, .content-section, .tours-section, .blog-section');
@@ -394,7 +397,7 @@ class TemplateEditor {
                 section.classList.contains('main-slider-one') ||
                 section.classList.contains('hero')) return;
             
-            // Skip if already has a button after it
+            // Skip if already has a button after it (double check)
             if (section.nextElementSibling?.classList.contains('wb-add-section-btn')) return;
             
             // Add insertion button after each section
@@ -1124,8 +1127,17 @@ class TemplateEditor {
         const iframe = document.getElementById('templateFrame');
         const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
         
-        // Get current page HTML
-        const html = iframeDoc.documentElement.outerHTML;
+        // Clone the document to avoid modifying the live page
+        const clonedDoc = iframeDoc.cloneNode(true);
+        
+        // Remove all editor UI elements before saving
+        clonedDoc.querySelectorAll('.wb-add-section-btn').forEach(btn => btn.remove());
+        clonedDoc.querySelectorAll('.wb-quick-actions').forEach(actions => actions.remove());
+        clonedDoc.querySelectorAll('.wb-edit-label').forEach(label => label.remove());
+        clonedDoc.querySelectorAll('.wb-selected').forEach(el => el.classList.remove('wb-selected'));
+        
+        // Get cleaned HTML
+        const html = clonedDoc.documentElement.outerHTML;
         
         return [{
             name: this.currentPage.name,
