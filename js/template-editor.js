@@ -843,12 +843,17 @@ class TemplateEditor {
             // Get all pages HTML
             const allPagesHTML = await this.getAllPagesHTML();
             
+            // Generate preview URL
+            const previewUrl = await this.generatePreviewUrl();
+            
             // Create export package
             const exportData = {
                 template: this.templateName,
                 pages: allPagesHTML,
                 timestamp: Date.now(),
-                brandId: this.brandId
+                brandId: this.brandId,
+                previewUrl: previewUrl,
+                status: 'preview'
             };
             
             // If we have a return URL (from BOLT), send data back
@@ -879,6 +884,51 @@ class TemplateEditor {
         // For now, just return current page
         // TODO: Loop through all pages and collect HTML
         return await this.getModifiedPages();
+    }
+    
+    async generatePreviewUrl() {
+        console.log('[TemplateEditor] Generating preview URL...');
+        
+        try {
+            // Get brand info to generate subdomain
+            if (!this.supabase || !this.brandId) {
+                console.warn('[TemplateEditor] No Supabase or brandId, using fallback');
+                return `preview-${Date.now()}.ai-websitestudio.nl`;
+            }
+            
+            // Fetch brand data
+            const { data: brand, error } = await this.supabase
+                .from('brands')
+                .select('slug, name')
+                .eq('id', this.brandId)
+                .single();
+            
+            if (error || !brand) {
+                console.error('[TemplateEditor] Error fetching brand:', error);
+                return `preview-${Date.now()}.ai-websitestudio.nl`;
+            }
+            
+            // Generate subdomain from brand slug or name
+            const brandSlug = brand.slug || this.sanitizeSlug(brand.name);
+            const subdomain = this.sanitizeSlug(brandSlug);
+            const previewUrl = `${subdomain}.ai-websitestudio.nl`;
+            
+            console.log('[TemplateEditor] Generated preview URL:', previewUrl);
+            
+            return previewUrl;
+        } catch (error) {
+            console.error('[TemplateEditor] Error generating preview URL:', error);
+            return `preview-${Date.now()}.ai-websitestudio.nl`;
+        }
+    }
+    
+    sanitizeSlug(text) {
+        return text
+            .toLowerCase()
+            .replace(/[^a-z0-9-]/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '')
+            .substring(0, 63);
     }
     
     downloadSite(exportData) {
