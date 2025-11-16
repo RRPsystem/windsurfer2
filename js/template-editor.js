@@ -463,23 +463,28 @@ class TemplateEditor {
             const carouselItem = img.closest('.item, .owl-item:not(.cloned), .carousel-item, .swiper-slide');
             
             if (carouselItem) {
-                // For carousel items, add button to the carousel item itself
-                if (!carouselItem.querySelector('.wb-quick-actions')) {
+                // Skip if this is an owl-cloned item
+                if (carouselItem.classList.contains('cloned')) return;
+                
+                // For carousel items, add button directly on the image wrapper
+                const imageWrapper = img.closest('.destinations-card-two__thumb') || img.parentElement;
+                
+                if (imageWrapper && !imageWrapper.querySelector('.wb-quick-actions')) {
                     const quickActions = doc.createElement('div');
                     quickActions.className = 'wb-quick-actions';
                     quickActions.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10000;pointer-events:auto;';
                     quickActions.innerHTML = `
-                        <button class="wb-quick-btn" title="Wijzig afbeelding" data-action="change-image" style="font-size:24px;width:60px;height:60px;">
+                        <button class="wb-quick-btn" title="Wijzig afbeelding" data-action="change-image" style="font-size:24px;width:60px;height:60px;background:rgba(76,175,80,0.9);color:white;border:none;border-radius:50%;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
                             🖼️
                         </button>
                     `;
                     
-                    // Make sure carousel item is positioned
-                    if (window.getComputedStyle(carouselItem).position === 'static') {
-                        carouselItem.style.position = 'relative';
+                    // Make sure wrapper is positioned
+                    if (window.getComputedStyle(imageWrapper).position === 'static') {
+                        imageWrapper.style.position = 'relative';
                     }
                     
-                    carouselItem.appendChild(quickActions);
+                    imageWrapper.appendChild(quickActions);
                     
                     // Handle quick action clicks
                     quickActions.querySelector('[data-action="change-image"]').addEventListener('click', (e) => {
@@ -488,23 +493,26 @@ class TemplateEditor {
                         this.selectElement(img, 'image');
                         setTimeout(() => this.openMediaSelector(), 100);
                     });
+                }
+                
+                // Add "Add Slide" button to the carousel container (only once)
+                const carousel = carouselItem.closest('.destinations-two__carousel, .owl-carousel');
+                if (carousel && !carousel.querySelector('.wb-add-slide-btn')) {
+                    const addSlideBtn = doc.createElement('button');
+                    addSlideBtn.className = 'wb-add-slide-btn';
+                    addSlideBtn.innerHTML = '<i class="fas fa-plus"></i> Slide Toevoegen';
+                    addSlideBtn.style.cssText = 'position:absolute;bottom:20px;right:20px;z-index:10001;background:#4CAF50;color:white;border:none;padding:12px 20px;border-radius:8px;cursor:pointer;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
                     
-                    // Add "Add Slide" button for carousel
-                    const carousel = carouselItem.closest('.owl-carousel, .destinations-two__carousel');
-                    if (carousel && !carousel.querySelector('.wb-add-slide-btn')) {
-                        const addSlideBtn = doc.createElement('button');
-                        addSlideBtn.className = 'wb-add-slide-btn';
-                        addSlideBtn.innerHTML = '<i class="fas fa-plus"></i> Slide Toevoegen';
-                        addSlideBtn.style.cssText = 'position:absolute;bottom:20px;right:20px;z-index:10001;background:#4CAF50;color:white;border:none;padding:12px 20px;border-radius:8px;cursor:pointer;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
-                        
-                        addSlideBtn.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            this.addCarouselSlide(carousel);
-                        });
-                        
-                        carousel.style.position = 'relative';
-                        carousel.appendChild(addSlideBtn);
+                    addSlideBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.addCarouselSlide(carousel);
+                    });
+                    
+                    const carouselParent = carousel.parentElement;
+                    if (carouselParent) {
+                        carouselParent.style.position = 'relative';
+                        carouselParent.appendChild(addSlideBtn);
                     }
                 }
                 
@@ -1031,8 +1039,12 @@ class TemplateEditor {
             
             if (!result || !result.url) return;
             
-            // Find an existing item to clone
-            const existingItem = carousel.querySelector('.item');
+            // Find an existing item to clone (not a cloned owl item)
+            const existingItems = carousel.querySelectorAll('.item');
+            const existingItem = Array.from(existingItems).find(item => 
+                !item.closest('.owl-item.cloned')
+            );
+            
             if (!existingItem) {
                 this.showNotification('❌ Kan geen slide toevoegen', 'error');
                 return;
@@ -1041,6 +1053,10 @@ class TemplateEditor {
             // Clone the item
             const newItem = existingItem.cloneNode(true);
             
+            // Remove any existing quick actions from clone
+            const oldActions = newItem.querySelectorAll('.wb-quick-actions');
+            oldActions.forEach(action => action.remove());
+            
             // Update the image in the cloned item
             const img = newItem.querySelector('img');
             if (img) {
@@ -1048,33 +1064,16 @@ class TemplateEditor {
                 if (result.alt) img.alt = result.alt;
             }
             
-            // Add the new item to the carousel (before owl-cloned items)
-            const owlStage = carousel.querySelector('.owl-stage');
-            if (owlStage) {
-                // Owl Carousel is initialized - need to destroy and reinit
-                const $carousel = $(carousel);
-                const owlData = $carousel.data('owl.carousel');
-                
-                if (owlData) {
-                    // Destroy owl carousel
-                    owlData.destroy();
-                    
-                    // Add new item
-                    carousel.appendChild(newItem);
-                    
-                    // Reinitialize owl carousel
-                    const options = JSON.parse(carousel.getAttribute('data-owl-options') || '{}');
-                    $carousel.owlCarousel(options);
-                }
-            } else {
-                // Carousel not initialized yet - just add the item
-                carousel.appendChild(newItem);
-            }
+            // Simply append the new item to the carousel
+            // Don't try to destroy/reinit Owl Carousel - just add the HTML
+            carousel.appendChild(newItem);
             
-            this.showNotification('✅ Slide toegevoegd!');
+            this.showNotification('✅ Slide toegevoegd! Herlaad de pagina om de carousel te zien.');
             
             // Re-setup editing for the new slide
-            this.setupIframeEditing();
+            setTimeout(() => {
+                this.makeImagesEditable(carousel.ownerDocument);
+            }, 100);
             
         } catch (error) {
             console.error('[TemplateEditor] Error adding slide:', error);
