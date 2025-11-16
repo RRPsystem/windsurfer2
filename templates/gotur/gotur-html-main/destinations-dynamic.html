@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bestemmingen || Gotur</title>
+
+    <!-- favicons Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/images/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicons/favicon-16x16.png">
+
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Just+Another+Hand&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="assets/vendors/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/vendors/bootstrap-select/bootstrap-select.min.css">
+    <link rel="stylesheet" href="assets/vendors/animate/animate.min.css">
+    <link rel="stylesheet" href="assets/vendors/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="assets/vendors/gotur-icons/style.css">
+    <link rel="stylesheet" href="assets/vendors/owl-carousel/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="assets/vendors/owl-carousel/css/owl.theme.default.min.css">
+
+    <!-- template styles -->
+    <link rel="stylesheet" href="assets/css/gotur.css">
+    
+    <style>
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body class="custom-cursor">
+    <div class="custom-cursor__cursor"></div>
+    <div class="custom-cursor__cursor-two"></div>
+
+    <div class="preloader">
+        <div class="preloader__image" style="background-image: url(assets/images/loader.png);"></div>
+    </div>
+
+    <div class="page-wrapper">
+        <!-- Page Header -->
+        <section class="page-header">
+            <div class="page-header__bg" style="background-image: url('assets/images/backgrounds/page-header-bg-1-1.jpg');"></div>
+            <div class="container">
+                <h2 class="page-header__title">Onze Bestemmingen</h2>
+                <ul class="gotur-breadcrumb list-unstyled">
+                    <li><a href="index.html">Home</a></li>
+                    <li><span>Bestemmingen</span></li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Destinations Grid -->
+        <section class="destination-one section-space">
+            <div class="container">
+                <div class="row gutter-y-30" id="destinationsGrid">
+                    <!-- Loading state -->
+                    <div class="col-12 loading-state" id="loadingState">
+                        <div class="loading-spinner"></div>
+                        <p>Bestemmingen laden...</p>
+                    </div>
+                    <!-- Destinations will be loaded here -->
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script>
+        // Get brand ID from URL or localStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        const brandId = urlParams.get('brand_id') || localStorage.getItem('current_brand_id');
+        
+        async function loadDestinations() {
+            try {
+                const response = await fetch(`/api/content/destinations?brandId=${brandId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load destinations');
+                }
+                
+                const destinations = await response.json();
+                
+                // Hide loading state
+                document.getElementById('loadingState').style.display = 'none';
+                
+                // Render destinations
+                const grid = document.getElementById('destinationsGrid');
+                
+                if (destinations.length === 0) {
+                    grid.innerHTML = `
+                        <div class="col-12 text-center py-5">
+                            <p class="text-muted">Nog geen bestemmingen beschikbaar.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                destinations.forEach(destination => {
+                    const card = createDestinationCard(destination);
+                    grid.appendChild(card);
+                });
+                
+            } catch (error) {
+                console.error('Error loading destinations:', error);
+                document.getElementById('loadingState').innerHTML = `
+                    <p class="text-danger">Fout bij laden van bestemmingen. Probeer het later opnieuw.</p>
+                `;
+            }
+        }
+        
+        function createDestinationCard(destination) {
+            const col = document.createElement('div');
+            col.className = 'col-md-6 col-lg-4';
+            
+            col.innerHTML = `
+                <div class="destination-one__item">
+                    <div class="destination-one__image">
+                        <img src="${destination.image}" alt="${destination.title}">
+                    </div>
+                    <div class="destination-one__content">
+                        <h3 class="destination-one__title">
+                            <a href="destination-detail-dynamic.html?slug=${destination.slug}&brand_id=${brandId}">
+                                ${destination.title}
+                            </a>
+                        </h3>
+                        <p class="destination-one__text">${destination.excerpt}</p>
+                        <a href="destination-detail-dynamic.html?slug=${destination.slug}&brand_id=${brandId}" class="destination-one__btn">
+                            <i class="icon-right-arrow"></i>
+                            <span class="sr-only">Meer info</span>
+                        </a>
+                    </div>
+                </div>
+            `;
+            
+            return col;
+        }
+        
+        // Load destinations on page load
+        document.addEventListener('DOMContentLoaded', loadDestinations);
+    </script>
+
+    <!-- Scripts -->
+    <script src="assets/vendors/jquery/jquery-3.7.0.min.js"></script>
+    <script src="assets/vendors/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendors/bootstrap-select/bootstrap-select.min.js"></script>
+    <script src="assets/vendors/jquery-ui/jquery-ui.js"></script>
+    <script src="assets/vendors/jarallax/jarallax.min.js"></script>
+    <script src="assets/vendors/jquery-magnific-popup/jquery.magnific-popup.min.js"></script>
+    <script src="assets/vendors/nouislider/nouislider.min.js"></script>
+    <script src="assets/vendors/nouislider/nouislider-pips.min.js"></script>
+    <script src="assets/vendors/tiny-slider/tiny-slider.js"></script>
+    <script src="assets/vendors/owl-carousel/js/owl.carousel.min.js"></script>
+    <script src="assets/vendors/wnumb/wNumb.min.js"></script>
+    <script src="assets/vendors/wow/wow.js"></script>
+    <script src="assets/vendors/tilt/tilt.jquery.js"></script>
+    <script src="assets/vendors/simpleParallax/simpleParallax.min.js"></script>
+    <script src="assets/vendors/imagesloaded/imagesloaded.min.js"></script>
+    <script src="assets/vendors/isotope/isotope.js"></script>
+    <script src="assets/vendors/countdown/countdown.min.js"></script>
+    <script src="assets/vendors/jquery-circleType/jquery.circleType.js"></script>
+    <script src="assets/vendors/jquery-lettering/jquery.lettering.min.js"></script>
+    <!-- template js -->
+    <script src="assets/js/gotur.js"></script>
+</body>
+</html>
