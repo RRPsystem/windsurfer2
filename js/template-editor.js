@@ -309,6 +309,22 @@ class TemplateEditor {
                 z-index: 11;
             }
             
+            /* Fix tour package card image heights - make them all equal */
+            .tour-package-card .tour-package-thumb,
+            .package-style1 .package-thumb,
+            .vs-tour-package .package-thumb {
+                height: 280px;
+                overflow: hidden;
+            }
+            
+            .tour-package-card .tour-package-thumb img,
+            .package-style1 .package-thumb img,
+            .vs-tour-package .package-thumb img {
+                width: 100%;
+                height: 280px;
+                object-fit: cover;
+            }
+            
             .wb-editable {
                 outline: 2px dashed transparent;
                 transition: all 0.2s;
