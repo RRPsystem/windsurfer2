@@ -1328,26 +1328,39 @@ class TemplateEditor {
             
             // Store preview in Supabase instead of sessionStorage (too large)
             if (this.supabase && this.brandId) {
-                const { error } = await this.supabase
-                    .from('template_previews')
-                    .upsert({
-                        preview_id: previewId,
-                        brand_id: this.brandId,
-                        template: this.templateName,
-                        html: previewHTML,
-                        created_at: new Date().toISOString(),
-                        expires_at: new Date(Date.now() + 3600000).toISOString() // 1 hour
-                    }, {
-                        onConflict: 'preview_id'
-                    });
-                
-                if (error) {
-                    console.error('[TemplateEditor] Preview save error:', error);
-                    this.showNotification('❌ Fout bij opslaan preview', 'error');
+                try {
+                    const { error } = await this.supabase
+                        .from('template_previews')
+                        .upsert({
+                            preview_id: previewId,
+                            brand_id: this.brandId,
+                            template: this.templateName,
+                            html: previewHTML,
+                            created_at: new Date().toISOString(),
+                            expires_at: new Date(Date.now() + 3600000).toISOString() // 1 hour
+                        }, {
+                            onConflict: 'preview_id'
+                        });
+                    
+                    if (error) {
+                        console.error('[TemplateEditor] Preview save error:', error);
+                        console.error('[TemplateEditor] Error details:', error.message, error.details, error.hint);
+                        
+                        // Show helpful error message
+                        if (error.message.includes('relation') || error.message.includes('does not exist')) {
+                            this.showNotification('❌ Database tabel ontbreekt. Voer eerst de SQL uit in Supabase!', 'error');
+                        } else {
+                            this.showNotification(`❌ Fout bij opslaan preview: ${error.message}`, 'error');
+                        }
+                        return;
+                    }
+                    
+                    console.log('[TemplateEditor] Preview saved to Supabase:', previewId);
+                } catch (err) {
+                    console.error('[TemplateEditor] Preview save exception:', err);
+                    this.showNotification('❌ Fout bij opslaan preview. Check console voor details.', 'error');
                     return;
                 }
-                
-                console.log('[TemplateEditor] Preview saved to Supabase:', previewId);
             }
             
             // Open preview with unique URL
