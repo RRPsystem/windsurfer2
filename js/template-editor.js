@@ -497,6 +497,10 @@ class TemplateEditor {
             // Add class to prevent hover effects
             bgEl.classList.add('wb-bg-edit-target');
             
+            // Force no hover effects with inline styles
+            bgEl.style.setProperty('cursor', 'default', 'important');
+            bgEl.style.setProperty('outline', 'none', 'important');
+            
             // Add edit button
             const quickActions = doc.createElement('div');
             quickActions.className = 'wb-quick-actions wb-bg-edit';
@@ -551,6 +555,10 @@ class TemplateEditor {
             if (!bgDiv.querySelector('.wb-quick-actions')) {
                 // Add class to prevent hover effects
                 bgDiv.classList.add('wb-bg-edit-target');
+                
+                // Force no hover effects with inline styles
+                bgDiv.style.setProperty('cursor', 'default', 'important');
+                bgDiv.style.setProperty('outline', 'none', 'important');
                 
                 const quickActions = doc.createElement('div');
                 quickActions.className = 'wb-quick-actions wb-bg-edit';
