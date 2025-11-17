@@ -303,8 +303,14 @@ class TemplateEditor {
             .wb-bg-edit-target:hover,
             .wb-bg-edit-target {
                 outline: none !important;
-                background: none !important;
                 cursor: default !important;
+            }
+            
+            /* Prevent hover background overlay only - not the actual background */
+            .wb-editable.wb-image:hover::before,
+            .wb-editable.wb-bg-image:hover::before,
+            .wb-bg-edit-target:hover::before {
+                display: none !important;
             }
             
             .wb-editable.wb-selected {
@@ -522,8 +528,8 @@ class TemplateEditor {
                 try {
                     const result = await window.MediaPicker.openImage();
                     if (result && result.url) {
-                        // Update background image
-                        bgEl.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${result.url})`;
+                        // Update background image with light overlay for text readability
+                        bgEl.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${result.url})`;
                         bgEl.style.backgroundSize = 'cover';
                         bgEl.style.backgroundPosition = 'center';
                         bgEl.style.backgroundRepeat = 'no-repeat';
@@ -576,8 +582,8 @@ class TemplateEditor {
                     try {
                         const result = await window.MediaPicker.openImage();
                         if (result && result.url) {
-                            // Update background image with dark overlay for text readability
-                            bgDiv.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${result.url})`;
+                            // Update background image with light overlay for text readability
+                            bgDiv.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${result.url})`;
                             bgDiv.style.backgroundSize = 'cover';
                             bgDiv.style.backgroundPosition = 'center';
                             bgDiv.style.backgroundRepeat = 'no-repeat';
