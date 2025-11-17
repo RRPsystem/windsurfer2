@@ -518,6 +518,9 @@ class TemplateEditor {
                 bgEl.style.position = 'relative';
             }
             
+            // Ensure background doesn't cover text content
+            bgEl.style.zIndex = '0';
+            
             bgEl.appendChild(quickActions);
             
             // Handle click
@@ -528,8 +531,8 @@ class TemplateEditor {
                 try {
                     const result = await window.MediaPicker.openImage();
                     if (result && result.url) {
-                        // Update background image with light overlay for text readability
-                        bgEl.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${result.url})`;
+                        // Update background image with overlay for text readability
+                        bgEl.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url(${result.url})`;
                         bgEl.style.backgroundSize = 'cover';
                         bgEl.style.backgroundPosition = 'center';
                         bgEl.style.backgroundRepeat = 'no-repeat';
@@ -582,8 +585,8 @@ class TemplateEditor {
                     try {
                         const result = await window.MediaPicker.openImage();
                         if (result && result.url) {
-                            // Update background image with light overlay for text readability
-                            bgDiv.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${result.url})`;
+                            // Update background image with overlay for text readability
+                            bgDiv.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url(${result.url})`;
                             bgDiv.style.backgroundSize = 'cover';
                             bgDiv.style.backgroundPosition = 'center';
                             bgDiv.style.backgroundRepeat = 'no-repeat';
