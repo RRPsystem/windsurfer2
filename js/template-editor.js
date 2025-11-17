@@ -1295,8 +1295,23 @@ class TemplateEditor {
             // First, save the draft
             await this.saveDraft();
             
-            // Open preview page that loads from Supabase
-            const previewUrl = `preview.php?brand_id=${this.brandId}&template=${this.templateName}`;
+            // Get the modified HTML with base tag
+            const modifiedPages = await this.getModifiedPages();
+            if (!modifiedPages || modifiedPages.length === 0) {
+                this.showNotification('❌ Geen pagina om te previewen', 'error');
+                return;
+            }
+            
+            const previewHTML = modifiedPages[0].html;
+            
+            // Generate unique preview ID
+            const previewId = `${this.templateName}_${this.brandId}_${Date.now()}`;
+            
+            // Store preview HTML in sessionStorage
+            sessionStorage.setItem(`preview_${previewId}`, previewHTML);
+            
+            // Open preview with unique URL
+            const previewUrl = `template-preview.html?id=${previewId}`;
             const previewWindow = window.open(previewUrl, '_blank');
             
             if (previewWindow) {

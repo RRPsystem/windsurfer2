@@ -58,6 +58,8 @@
             
             if (previewHTML) {
                 try {
+                    console.log('[Preview] Creating iframe and injecting HTML...');
+                    
                     // Create iframe and inject HTML
                     const iframe = document.getElementById('preview-frame');
                     
@@ -65,24 +67,42 @@
                     iframe.onload = function() {
                         console.log('[Preview] Iframe loaded, injecting HTML...');
                         
-                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                        
-                        // Write HTML to iframe
-                        iframeDoc.open();
-                        iframeDoc.write(previewHTML);
-                        iframeDoc.close();
-                        
-                        console.log('[Preview] HTML injected successfully');
-                        
-                        // Hide loading, show iframe
-                        setTimeout(() => {
-                            document.getElementById('loading').style.display = 'none';
-                            iframe.style.display = 'block';
-                            console.log('[Preview] Preview ready!');
-                        }, 500);
-                        
-                        // Clean up sessionStorage
-                        sessionStorage.removeItem(`preview_${previewId}`);
+                        try {
+                            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                            
+                            // Write HTML to iframe
+                            iframeDoc.open();
+                            iframeDoc.write(previewHTML);
+                            iframeDoc.close();
+                            
+                            console.log('[Preview] HTML injected successfully');
+                            console.log('[Preview] Checking for base tag...');
+                            
+                            const baseTag = iframeDoc.querySelector('base');
+                            if (baseTag) {
+                                console.log('[Preview] Base tag found:', baseTag.href);
+                            } else {
+                                console.warn('[Preview] No base tag found - CSS/JS may not load correctly');
+                            }
+                            
+                            // Hide loading, show iframe after a short delay to allow resources to load
+                            setTimeout(() => {
+                                document.getElementById('loading').style.display = 'none';
+                                iframe.style.display = 'block';
+                                console.log('[Preview] Preview ready!');
+                            }, 1000);
+                            
+                            // Clean up sessionStorage
+                            sessionStorage.removeItem(`preview_${previewId}`);
+                        } catch (err) {
+                            console.error('[Preview] Error injecting HTML:', err);
+                            document.getElementById('loading').innerHTML = `
+                                <div style="text-align:center;">
+                                    <p>❌ Fout bij injecteren HTML</p>
+                                    <p style="font-size:14px;color:#999;">${err.message}</p>
+                                </div>
+                            `;
+                        }
                     };
                     
                     // Set iframe src to trigger onload
