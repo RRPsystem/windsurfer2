@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template Preview</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        
+        #preview-container {
+            width: 100%;
+            height: 100vh;
+            overflow: auto;
+        }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-size: 18px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="preview-container">
+        <div class="loading">
+            <div>
+                <i class="fas fa-spinner fa-spin"></i> Preview laden...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get preview HTML from sessionStorage
+        const previewHTML = sessionStorage.getItem('template_preview_html');
+        
+        if (previewHTML) {
+            // Inject the HTML
+            document.getElementById('preview-container').innerHTML = previewHTML;
+            
+            // Clear sessionStorage
+            sessionStorage.removeItem('template_preview_html');
+        } else {
+            document.getElementById('preview-container').innerHTML = `
+                <div class="loading">
+                    <div style="text-align:center;">
+                        <p>❌ Geen preview beschikbaar</p>
+                        <p style="font-size:14px;color:#999;">Klik op "Preview" in de editor om een preview te genereren.</p>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

@@ -1303,20 +1303,14 @@ class TemplateEditor {
             // Get the HTML of the current page
             const currentPageHTML = modifiedPages[0].html;
             
-            // Create a blob URL with the HTML
-            const blob = new Blob([currentPageHTML], { type: 'text/html' });
-            const blobUrl = URL.createObjectURL(blob);
+            // Store in sessionStorage for preview page to pick up
+            sessionStorage.setItem('template_preview_html', currentPageHTML);
             
-            // Open in new tab
-            const previewWindow = window.open(blobUrl, '_blank');
+            // Open preview page
+            const previewWindow = window.open('template-preview.html', '_blank');
             
             if (previewWindow) {
                 this.showNotification('👁️ Preview geopend in nieuw tabblad');
-                
-                // Clean up blob URL after a delay
-                setTimeout(() => {
-                    URL.revokeObjectURL(blobUrl);
-                }, 5000);
             } else {
                 this.showNotification('❌ Kon preview niet openen. Sta pop-ups toe.', 'error');
             }
