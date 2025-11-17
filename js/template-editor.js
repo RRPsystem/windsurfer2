@@ -466,6 +466,45 @@ class TemplateEditor {
     makeImagesEditable(doc) {
         console.log('[TemplateEditor] Making images editable...');
         
+        // Find background images in slider (index-2.html style)
+        const bgSlides = doc.querySelectorAll('.main-slider-two__bg');
+        console.log('[TemplateEditor] Found', bgSlides.length, 'background image slides');
+        
+        bgSlides.forEach(bgDiv => {
+            // Add edit button overlay
+            if (!bgDiv.querySelector('.wb-quick-actions')) {
+                const quickActions = doc.createElement('div');
+                quickActions.className = 'wb-quick-actions';
+                quickActions.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10000;pointer-events:auto;';
+                quickActions.innerHTML = `
+                    <button class="wb-quick-btn" title="Wijzig achtergrond" data-action="change-bg" style="font-size:32px;width:80px;height:80px;background:rgba(76,175,80,0.95);color:white;border:none;border-radius:50%;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,0.4);">
+                        🖼️
+                    </button>
+                `;
+                
+                bgDiv.style.position = 'relative';
+                bgDiv.appendChild(quickActions);
+                
+                // Handle click
+                quickActions.querySelector('[data-action="change-bg"]').addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Open media selector
+                    try {
+                        const result = await window.MediaPicker.openImage();
+                        if (result && result.url) {
+                            // Update background image
+                            bgDiv.style.backgroundImage = `url(${result.url})`;
+                            this.showNotification('✅ Achtergrond bijgewerkt!');
+                        }
+                    } catch (err) {
+                        console.log('[TemplateEditor] Media selection cancelled');
+                    }
+                });
+            }
+        });
+        
         // Find all img elements
         const images = doc.querySelectorAll('img');
         console.log('[TemplateEditor] Found', images.length, 'images');
