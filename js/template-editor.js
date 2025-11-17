@@ -283,6 +283,18 @@ class TemplateEditor {
                 pointer-events: none;
             }
             
+            /* Fix destination card image heights */
+            .destination-box .destination-thumb {
+                max-height: 350px;
+                overflow: hidden;
+            }
+            
+            .destination-box .destination-thumb img {
+                width: 100%;
+                height: 350px;
+                object-fit: cover;
+            }
+            
             .wb-editable {
                 outline: 2px dashed transparent;
                 transition: all 0.2s;
@@ -458,7 +470,7 @@ class TemplateEditor {
     
     makeTextEditable(doc) {
         // Find all text elements - only headings and paragraphs
-        const textSelectors = 'h1, h2, h3, h4, h5, h6, p';
+        const textSelectors = 'h1, h2, h3, h4, h5, h6, p, span.text-theme-color';
         const textElements = doc.querySelectorAll(textSelectors);
         
         textElements.forEach(element => {
@@ -469,7 +481,10 @@ class TemplateEditor {
             if (element.closest('nav, script, style, .skip-edit, header, footer')) return;
             
             // Skip if text is too short (likely not main content)
-            if (element.textContent.trim().length < 3) return;
+            if (element.textContent.trim().length < 2) return;
+            
+            // Skip icon elements
+            if (element.querySelector('i.fa-solid, i.fa-regular')) return;
             
             element.classList.add('wb-editable', 'wb-text');
             
