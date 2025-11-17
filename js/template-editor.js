@@ -487,9 +487,9 @@ class TemplateEditor {
             // Add edit button
             const quickActions = doc.createElement('div');
             quickActions.className = 'wb-quick-actions wb-bg-edit';
-            quickActions.style.cssText = 'position:absolute;top:120px;right:30px;z-index:99999;pointer-events:auto;';
+            quickActions.style.cssText = 'position:absolute;top:120px;right:30px;z-index:99999;pointer-events:none;';
             quickActions.innerHTML = `
-                <button class="wb-quick-btn" title="Wijzig achtergrond" data-action="change-bg" style="font-size:28px;width:70px;height:70px;background:rgba(255,152,0,0.95);color:white;border:3px solid white;border-radius:50%;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,0.6);font-weight:bold;display:flex;align-items:center;justify-content:center;">
+                <button class="wb-quick-btn" title="Wijzig achtergrond" data-action="change-bg" style="font-size:28px;width:70px;height:70px;background:rgba(255,152,0,0.95);color:white;border:3px solid white;border-radius:50%;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,0.6);font-weight:bold;display:flex;align-items:center;justify-content:center;pointer-events:auto;">
                     🖼️
                 </button>
             `;
@@ -511,7 +511,7 @@ class TemplateEditor {
                     const result = await window.MediaPicker.openImage();
                     if (result && result.url) {
                         // Update background image
-                        bgEl.style.backgroundImage = `url(${result.url})`;
+                        bgEl.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${result.url})`;
                         bgEl.style.backgroundSize = 'cover';
                         bgEl.style.backgroundPosition = 'center';
                         bgEl.style.backgroundRepeat = 'no-repeat';
@@ -538,9 +538,9 @@ class TemplateEditor {
             if (!bgDiv.querySelector('.wb-quick-actions')) {
                 const quickActions = doc.createElement('div');
                 quickActions.className = 'wb-quick-actions wb-bg-edit';
-                quickActions.style.cssText = 'position:absolute;top:120px;right:30px;z-index:99999;pointer-events:auto;';
+                quickActions.style.cssText = 'position:absolute;top:120px;right:30px;z-index:99999;pointer-events:none;';
                 quickActions.innerHTML = `
-                    <button class="wb-quick-btn" title="Wijzig achtergrond" data-action="change-bg" style="font-size:28px;width:70px;height:70px;background:rgba(255,152,0,0.95);color:white;border:3px solid white;border-radius:50%;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,0.6);font-weight:bold;display:flex;align-items:center;justify-content:center;">
+                    <button class="wb-quick-btn" title="Wijzig achtergrond" data-action="change-bg" style="font-size:28px;width:70px;height:70px;background:rgba(255,152,0,0.95);color:white;border:3px solid white;border-radius:50%;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,0.6);font-weight:bold;display:flex;align-items:center;justify-content:center;pointer-events:auto;">
                         🖼️
                     </button>
                 `;
@@ -557,8 +557,11 @@ class TemplateEditor {
                     try {
                         const result = await window.MediaPicker.openImage();
                         if (result && result.url) {
-                            // Update background image
-                            bgDiv.style.backgroundImage = `url(${result.url})`;
+                            // Update background image with dark overlay for text readability
+                            bgDiv.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${result.url})`;
+                            bgDiv.style.backgroundSize = 'cover';
+                            bgDiv.style.backgroundPosition = 'center';
+                            bgDiv.style.backgroundRepeat = 'no-repeat';
                             this.showNotification('✅ Achtergrond bijgewerkt!');
                         }
                     } catch (err) {
