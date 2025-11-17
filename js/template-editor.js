@@ -733,52 +733,90 @@ class TemplateEditor {
             `;
         } else if (type === 'image') {
             const currentSrc = element.src;
-            const isInCarousel = element.closest('.item, .owl-item, .carousel-item, .swiper-slide');
+            const carouselItem = element.closest('.item, .owl-item, .carousel-item, .swiper-slide');
             
-            propertiesContent.innerHTML = `
-                <div class="selected-element-info">
-                    <i class="fas fa-check-circle"></i> ${isInCarousel ? 'Carousel afbeelding geselecteerd' : 'Afbeelding geselecteerd'}
-                </div>
+            // If in carousel, show ALL carousel images
+            if (carouselItem) {
+                const carousel = carouselItem.closest('.destinations-two__carousel, .owl-carousel');
+                const allItems = carousel ? Array.from(carousel.querySelectorAll('.item')).filter(item => 
+                    !item.closest('.owl-item.cloned')
+                ) : [];
                 
-                <div class="property-section">
-                    <div class="property-title">
-                        <i class="fas fa-image"></i> Afbeelding
-                    </div>
-                    <div class="property-field">
-                        <img src="${currentSrc}" style="width:100%; border-radius:8px; margin-bottom:12px;">
-                    </div>
-                    <button class="media-selector-btn" onclick="templateEditor.openMediaSelector()">
-                        <i class="fas fa-folder-open"></i> Kies Nieuwe Afbeelding
-                    </button>
-                </div>
+                let carouselImagesHTML = '';
+                allItems.forEach((item, index) => {
+                    const img = item.querySelector('img');
+                    if (img) {
+                        const isSelected = img === element;
+                        carouselImagesHTML += `
+                            <div class="carousel-image-item ${isSelected ? 'selected' : ''}" style="margin-bottom:16px;padding:12px;border:2px solid ${isSelected ? '#667eea' : '#e0e0e0'};border-radius:8px;cursor:pointer;" onclick="templateEditor.selectCarouselImage(${index})">
+                                <div style="display:flex;align-items:center;gap:12px;">
+                                    <img src="${img.src}" style="width:80px;height:60px;object-fit:cover;border-radius:4px;">
+                                    <div style="flex:1;">
+                                        <div style="font-weight:600;margin-bottom:4px;">Slide ${index + 1}</div>
+                                        <button class="btn btn-sm btn-primary" onclick="event.stopPropagation();templateEditor.changeCarouselImage(${index})" style="padding:4px 12px;font-size:12px;">
+                                            <i class="fas fa-image"></i> Wijzig
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
                 
-                ${!isInCarousel ? `
-                <div class="property-section">
-                    <div class="property-title">
-                        <i class="fas fa-sliders-h"></i> Afmetingen
+                propertiesContent.innerHTML = `
+                    <div class="selected-element-info">
+                        <i class="fas fa-check-circle"></i> Carousel Slider
                     </div>
-                    <div class="property-field">
-                        <label class="property-label">Breedte</label>
-                        <input type="text" class="property-input" id="imageWidth" value="${element.style.width || 'auto'}">
+                    
+                    <div class="property-section">
+                        <div class="property-title">
+                            <i class="fas fa-images"></i> Alle Slides (${allItems.length})
+                        </div>
+                        <div style="max-height:500px;overflow-y:auto;">
+                            ${carouselImagesHTML}
+                        </div>
                     </div>
-                    <div class="property-field">
-                        <label class="property-label">Hoogte</label>
-                        <input type="text" class="property-input" id="imageHeight" value="${element.style.height || 'auto'}">
+                `;
+            } else {
+                // Regular image
+                propertiesContent.innerHTML = `
+                    <div class="selected-element-info">
+                        <i class="fas fa-check-circle"></i> Afbeelding geselecteerd
                     </div>
-                </div>
-                
-                <div class="property-section">
-                    <button class="btn btn-primary" style="width:100%;" onclick="templateEditor.applyImageChanges()">
-                        <i class="fas fa-check"></i> Wijzigingen Toepassen
-                    </button>
-                </div>
-                ` : `
-                <div class="property-section" style="text-align:center;padding:20px;color:#666;">
-                    <i class="fas fa-info-circle" style="font-size:24px;margin-bottom:8px;"></i>
-                    <p>Carousel afbeeldingen worden automatisch geschaald.<br>Klik op "Kies Nieuwe Afbeelding" om de foto te vervangen.</p>
-                </div>
-                `}
-            `;
+                    
+                    <div class="property-section">
+                        <div class="property-title">
+                            <i class="fas fa-image"></i> Afbeelding
+                        </div>
+                        <div class="property-field">
+                            <img src="${currentSrc}" style="width:100%; border-radius:8px; margin-bottom:12px;">
+                        </div>
+                        <button class="media-selector-btn" onclick="templateEditor.openMediaSelector()">
+                            <i class="fas fa-folder-open"></i> Kies Nieuwe Afbeelding
+                        </button>
+                    </div>
+                    
+                    <div class="property-section">
+                        <div class="property-title">
+                            <i class="fas fa-sliders-h"></i> Afmetingen
+                        </div>
+                        <div class="property-field">
+                            <label class="property-label">Breedte</label>
+                            <input type="text" class="property-input" id="imageWidth" value="${element.style.width || 'auto'}">
+                        </div>
+                        <div class="property-field">
+                            <label class="property-label">Hoogte</label>
+                            <input type="text" class="property-input" id="imageHeight" value="${element.style.height || 'auto'}">
+                        </div>
+                    </div>
+                    
+                    <div class="property-section">
+                        <button class="btn btn-primary" style="width:100%;" onclick="templateEditor.applyImageChanges()">
+                            <i class="fas fa-check"></i> Wijzigingen Toepassen
+                        </button>
+                    </div>
+                `;
+            }
         } else if (type === 'background') {
             const bgImage = window.getComputedStyle(element).backgroundImage;
             const currentBg = bgImage.replace(/^url\(['"]?/, '').replace(/['"]?\)$/, '');
@@ -1049,6 +1087,65 @@ class TemplateEditor {
             // If user cancelled, don't show error
             if (error.message !== 'User cancelled') {
                 this.showNotification('❌ Fout bij selecteren afbeelding', 'error');
+            }
+        }
+    }
+    
+    selectCarouselImage(index) {
+        const iframe = document.getElementById('templateFrame');
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        
+        const carousel = iframeDoc.querySelector('.destinations-two__carousel, .owl-carousel');
+        if (!carousel) return;
+        
+        const allItems = Array.from(carousel.querySelectorAll('.item')).filter(item => 
+            !item.closest('.owl-item.cloned')
+        );
+        
+        if (allItems[index]) {
+            const img = allItems[index].querySelector('img');
+            if (img) {
+                this.selectElement(img, 'image');
+            }
+        }
+    }
+    
+    async changeCarouselImage(index) {
+        const iframe = document.getElementById('templateFrame');
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        
+        const carousel = iframeDoc.querySelector('.destinations-two__carousel, .owl-carousel');
+        if (!carousel) return;
+        
+        const allItems = Array.from(carousel.querySelectorAll('.item')).filter(item => 
+            !item.closest('.owl-item.cloned')
+        );
+        
+        if (!allItems[index]) return;
+        
+        const img = allItems[index].querySelector('img');
+        if (!img) return;
+        
+        try {
+            // Open media picker
+            const result = await window.MediaPicker.openImage({
+                defaultTab: 'unsplash',
+                allowUpload: true
+            });
+            
+            if (result && result.url) {
+                img.src = result.url;
+                if (result.alt) img.alt = result.alt;
+                
+                this.showNotification('✅ Slide bijgewerkt!');
+                
+                // Refresh properties panel
+                this.selectElement(img, 'image');
+            }
+        } catch (error) {
+            console.error('[TemplateEditor] Error changing carousel image:', error);
+            if (error.message !== 'User cancelled') {
+                this.showNotification('❌ Fout bij wijzigen afbeelding', 'error');
             }
         }
     }
