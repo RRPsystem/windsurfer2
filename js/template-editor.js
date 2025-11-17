@@ -995,11 +995,26 @@ class TemplateEditor {
                         <i class="fas fa-sliders-h"></i> Achtergrond Opties
                     </div>
                     <div class="property-field">
+                        <label class="property-label">Hoogte (px)</label>
+                        <input type="number" class="property-input" id="bgHeight" value="${parseInt(element.offsetHeight)}" min="200" max="1200" step="50">
+                        <small style="color:#666;font-size:12px;">Standaard: ${parseInt(element.offsetHeight)}px</small>
+                    </div>
+                    <div class="property-field">
+                        <label class="property-label">Donkere Overlay (0-100%)</label>
+                        <input type="range" class="property-input" id="bgOverlay" min="0" max="100" value="35" step="5" style="width:100%;">
+                        <div style="display:flex;justify-content:space-between;font-size:12px;color:#666;margin-top:4px;">
+                            <span>Licht (0%)</span>
+                            <span id="overlayValue">35%</span>
+                            <span>Donker (100%)</span>
+                        </div>
+                        <small style="color:#666;font-size:12px;">Voor betere tekst leesbaarheid</small>
+                    </div>
+                    <div class="property-field">
                         <label class="property-label">Background Size</label>
                         <select class="property-input" id="bgSize">
-                            <option value="cover" ${element.style.backgroundSize === 'cover' ? 'selected' : ''}>Cover</option>
-                            <option value="contain" ${element.style.backgroundSize === 'contain' ? 'selected' : ''}>Contain</option>
-                            <option value="auto" ${element.style.backgroundSize === 'auto' ? 'selected' : ''}>Auto</option>
+                            <option value="cover" ${element.style.backgroundSize === 'cover' ? 'selected' : ''}>Cover (vult hele ruimte)</option>
+                            <option value="contain" ${element.style.backgroundSize === 'contain' ? 'selected' : ''}>Contain (hele foto zichtbaar)</option>
+                            <option value="auto" ${element.style.backgroundSize === 'auto' ? 'selected' : ''}>Auto (originele grootte)</option>
                         </select>
                     </div>
                     <div class="property-field">
@@ -1020,6 +1035,17 @@ class TemplateEditor {
                     </button>
                 </div>
             `;
+            
+            // Add live overlay slider update
+            setTimeout(() => {
+                const overlaySlider = document.getElementById('bgOverlay');
+                const overlayValue = document.getElementById('overlayValue');
+                if (overlaySlider && overlayValue) {
+                    overlaySlider.addEventListener('input', (e) => {
+                        overlayValue.textContent = e.target.value + '%';
+                    });
+                }
+            }, 100);
         }
     }
     
@@ -1077,11 +1103,32 @@ class TemplateEditor {
         if (!this.selectedElement || this.selectedElement.type !== 'background') return;
         
         const element = this.selectedElement.element;
-        const bgSize = document.getElementById('bgSize').value;
-        const bgPosition = document.getElementById('bgPosition').value;
+        const bgHeight = document.getElementById('bgHeight')?.value;
+        const bgOverlay = document.getElementById('bgOverlay')?.value;
+        const bgSize = document.getElementById('bgSize')?.value;
+        const bgPosition = document.getElementById('bgPosition')?.value;
         
-        element.style.backgroundSize = bgSize;
-        element.style.backgroundPosition = bgPosition;
+        // Apply height
+        if (bgHeight) {
+            element.style.height = bgHeight + 'px';
+            element.style.minHeight = bgHeight + 'px';
+        }
+        
+        // Apply overlay by updating background-image with gradient
+        if (bgOverlay !== undefined) {
+            const currentBg = window.getComputedStyle(element).backgroundImage;
+            // Extract the image URL (remove existing gradient if present)
+            const urlMatch = currentBg.match(/url\([^)]+\)/);
+            if (urlMatch) {
+                const imageUrl = urlMatch[0];
+                const overlayOpacity = parseInt(bgOverlay) / 100;
+                element.style.backgroundImage = `linear-gradient(rgba(0,0,0,${overlayOpacity}), rgba(0,0,0,${overlayOpacity})), ${imageUrl}`;
+            }
+        }
+        
+        // Apply size and position
+        if (bgSize) element.style.backgroundSize = bgSize;
+        if (bgPosition) element.style.backgroundPosition = bgPosition;
         
         this.showNotification('✅ Achtergrond bijgewerkt!');
     }
