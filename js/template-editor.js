@@ -1412,35 +1412,34 @@ class TemplateEditor {
         clonedDoc.querySelectorAll('.wb-edit-label').forEach(label => label.remove());
         clonedDoc.querySelectorAll('.wb-selected').forEach(el => el.classList.remove('wb-selected'));
         
-        // Remove Owl Carousel cloned items (they get regenerated on page load)
-        clonedDoc.querySelectorAll('.owl-item.cloned').forEach(item => item.remove());
-        
-        // Remove Owl Carousel added classes and structure
-        clonedDoc.querySelectorAll('.owl-stage-outer').forEach(outer => {
-            const carousel = outer.closest('.owl-carousel');
-            if (carousel) {
-                // Get original items from owl-stage
-                const stage = outer.querySelector('.owl-stage');
+        // Clean up Owl Carousel structure
+        clonedDoc.querySelectorAll('.owl-carousel').forEach(carousel => {
+            // Check if this carousel has been initialized by Owl
+            const stageOuter = carousel.querySelector('.owl-stage-outer');
+            if (stageOuter) {
+                // Get the stage
+                const stage = stageOuter.querySelector('.owl-stage');
                 if (stage) {
+                    // Get all non-cloned items
                     const items = Array.from(stage.querySelectorAll('.owl-item:not(.cloned)'));
                     
-                    // Move items back to carousel
-                    items.forEach(item => {
-                        const innerItem = item.querySelector('.item');
+                    // Extract the inner .item divs and add them back to carousel
+                    const fragment = clonedDoc.createDocumentFragment();
+                    items.forEach(owlItem => {
+                        const innerItem = owlItem.querySelector('.item');
                         if (innerItem) {
-                            carousel.appendChild(innerItem);
+                            fragment.appendChild(innerItem);
                         }
                     });
+                    
+                    // Clear carousel and add back the original items
+                    carousel.innerHTML = '';
+                    carousel.appendChild(fragment);
                 }
                 
-                // Remove owl structure
-                outer.remove();
+                // Remove owl-loaded class
+                carousel.classList.remove('owl-loaded');
             }
-        });
-        
-        // Remove owl-loaded class
-        clonedDoc.querySelectorAll('.owl-loaded').forEach(el => {
-            el.classList.remove('owl-loaded');
         });
         
         // Add base tag to fix relative paths in preview
