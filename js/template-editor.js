@@ -1314,6 +1314,9 @@ class TemplateEditor {
             // First, save the draft
             await this.saveDraft();
             
+            // Generate unique preview ID
+            const previewId = `${this.templateName}_${this.brandId}_${Date.now()}`;
+            
             // Get the modified HTML with base tag
             const modifiedPages = await this.getModifiedPages();
             if (!modifiedPages || modifiedPages.length === 0) {
@@ -1323,11 +1326,29 @@ class TemplateEditor {
             
             const previewHTML = modifiedPages[0].html;
             
-            // Generate unique preview ID
-            const previewId = `${this.templateName}_${this.brandId}_${Date.now()}`;
-            
-            // Store preview HTML in sessionStorage
-            sessionStorage.setItem(`preview_${previewId}`, previewHTML);
+            // Store preview in Supabase instead of sessionStorage (too large)
+            if (this.supabase && this.brandId) {
+                const { error } = await this.supabase
+                    .from('template_previews')
+                    .upsert({
+                        preview_id: previewId,
+                        brand_id: this.brandId,
+                        template: this.templateName,
+                        html: previewHTML,
+                        created_at: new Date().toISOString(),
+                        expires_at: new Date(Date.now() + 3600000).toISOString() // 1 hour
+                    }, {
+                        onConflict: 'preview_id'
+                    });
+                
+                if (error) {
+                    console.error('[TemplateEditor] Preview save error:', error);
+                    this.showNotification('❌ Fout bij opslaan preview', 'error');
+                    return;
+                }
+                
+                console.log('[TemplateEditor] Preview saved to Supabase:', previewId);
+            }
             
             // Open preview with unique URL
             const previewUrl = `template-preview.html?id=${previewId}`;

@@ -35,6 +35,7 @@
     </div>
     <iframe id="preview-frame"></iframe>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script>
         // Get preview ID from URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -50,66 +51,97 @@
                 </div>
             `;
         } else {
-            // Get HTML from sessionStorage
-            const previewHTML = sessionStorage.getItem(`preview_${previewId}`);
-            
-            console.log('[Preview] HTML found:', !!previewHTML);
-            console.log('[Preview] HTML length:', previewHTML ? previewHTML.length : 0);
-            
-            if (previewHTML) {
+            // Load preview from Supabase
+            (async function() {
                 try {
-                    console.log('[Preview] Creating iframe and injecting HTML...');
+                    // Initialize Supabase
+                    const supabaseUrl = 'https://huaaogdxxdcakxryecnw.supabase.co';
+                    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1YWFvZ2R4eGRjYWt4cnllY253Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzA4MjA5NzIsImV4cCI6MjA0NjM5Njk3Mn0.FMH7VZBvPQFMX8lGPDHLYkPTdKs6_Rw-RMQqXgfFPQs';
+                    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
                     
-                    // Create iframe and inject HTML
-                    const iframe = document.getElementById('preview-frame');
+                    console.log('[Preview] Loading from Supabase...');
                     
-                    // Wait for iframe to be ready
-                    iframe.onload = function() {
-                        console.log('[Preview] Iframe loaded, injecting HTML...');
+                    // Fetch preview HTML
+                    const { data, error } = await supabase
+                        .from('template_previews')
+                        .select('html')
+                        .eq('preview_id', previewId)
+                        .single();
+                    
+                    if (error) {
+                        console.error('[Preview] Supabase error:', error);
+                        document.getElementById('loading').innerHTML = `
+                            <div style="text-align:center;">
+                                <p>❌ Preview niet gevonden</p>
+                                <p style="font-size:14px;color:#999;">De preview is verlopen of niet beschikbaar.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    const previewHTML = data?.html;
+                    
+                    console.log('[Preview] HTML found:', !!previewHTML);
+                    console.log('[Preview] HTML length:', previewHTML ? previewHTML.length : 0);
+                    
+                    if (previewHTML) {
+                        console.log('[Preview] Creating iframe and injecting HTML...');
                         
-                        try {
-                            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        // Create iframe and inject HTML
+                        const iframe = document.getElementById('preview-frame');
+                        
+                        // Wait for iframe to be ready
+                        iframe.onload = function() {
+                            console.log('[Preview] Iframe loaded, injecting HTML...');
                             
-                            // Write HTML to iframe
-                            iframeDoc.open();
-                            iframeDoc.write(previewHTML);
-                            iframeDoc.close();
-                            
-                            console.log('[Preview] HTML injected successfully');
-                            console.log('[Preview] Checking for base tag...');
-                            
-                            const baseTag = iframeDoc.querySelector('base');
-                            if (baseTag) {
-                                console.log('[Preview] Base tag found:', baseTag.href);
-                            } else {
-                                console.warn('[Preview] No base tag found - CSS/JS may not load correctly');
+                            try {
+                                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                                
+                                // Write HTML to iframe
+                                iframeDoc.open();
+                                iframeDoc.write(previewHTML);
+                                iframeDoc.close();
+                                
+                                console.log('[Preview] HTML injected successfully');
+                                console.log('[Preview] Checking for base tag...');
+                                
+                                const baseTag = iframeDoc.querySelector('base');
+                                if (baseTag) {
+                                    console.log('[Preview] Base tag found:', baseTag.href);
+                                } else {
+                                    console.warn('[Preview] No base tag found - CSS/JS may not load correctly');
+                                }
+                                
+                                // Hide loading, show iframe after a short delay to allow resources to load
+                                setTimeout(() => {
+                                    document.getElementById('loading').style.display = 'none';
+                                    iframe.style.display = 'block';
+                                    console.log('[Preview] Preview ready!');
+                                }, 1000);
+                            } catch (err) {
+                                console.error('[Preview] Error injecting HTML:', err);
+                                document.getElementById('loading').innerHTML = `
+                                    <div style="text-align:center;">
+                                        <p>❌ Fout bij injecteren HTML</p>
+                                        <p style="font-size:14px;color:#999;">${err.message}</p>
+                                    </div>
+                                `;
                             }
-                            
-                            // Hide loading, show iframe after a short delay to allow resources to load
-                            setTimeout(() => {
-                                document.getElementById('loading').style.display = 'none';
-                                iframe.style.display = 'block';
-                                console.log('[Preview] Preview ready!');
-                            }, 1000);
-                            
-                            // Clean up sessionStorage
-                            sessionStorage.removeItem(`preview_${previewId}`);
-                        } catch (err) {
-                            console.error('[Preview] Error injecting HTML:', err);
-                            document.getElementById('loading').innerHTML = `
-                                <div style="text-align:center;">
-                                    <p>❌ Fout bij injecteren HTML</p>
-                                    <p style="font-size:14px;color:#999;">${err.message}</p>
-                                </div>
-                            `;
-                        }
-                    };
-                    
-                    // Set iframe src to trigger onload
-                    iframe.src = 'about:blank';
-                    
+                        };
+                        
+                        // Set iframe src to trigger onload
+                        iframe.src = 'about:blank';
+                    } else {
+                        document.getElementById('loading').innerHTML = `
+                            <div style="text-align:center;">
+                                <p>❌ Preview niet gevonden</p>
+                                <p style="font-size:14px;color:#999;">De preview is verlopen of niet beschikbaar.</p>
+                                <p style="font-size:14px;color:#999;">Ga terug naar de editor en klik opnieuw op "Preview".</p>
+                            </div>
+                        `;
+                    }
                 } catch (error) {
-                    console.error('[Preview] Error:', error);
+                    console.error('[Preview] Load error:', error);
                     document.getElementById('loading').innerHTML = `
                         <div style="text-align:center;">
                             <p>❌ Fout bij laden preview</p>
@@ -117,15 +149,7 @@
                         </div>
                     `;
                 }
-            } else {
-                document.getElementById('loading').innerHTML = `
-                    <div style="text-align:center;">
-                        <p>❌ Preview niet gevonden</p>
-                        <p style="font-size:14px;color:#999;">De preview is verlopen of niet beschikbaar.</p>
-                        <p style="font-size:14px;color:#999;">Ga terug naar de editor en klik opnieuw op "Preview".</p>
-                    </div>
-                `;
-            }
+            })();
         }
     </script>
 </body>
