@@ -1295,23 +1295,8 @@ class TemplateEditor {
             // First, save the draft
             await this.saveDraft();
             
-            // Generate unique preview ID
-            const previewId = `${this.templateName}_${this.brandId}_${Date.now()}`;
-            
-            // Get the modified HTML
-            const modifiedPages = await this.getModifiedPages();
-            if (!modifiedPages || modifiedPages.length === 0) {
-                this.showNotification('❌ Geen pagina om te previewen', 'error');
-                return;
-            }
-            
-            const previewHTML = modifiedPages[0].html;
-            
-            // Store preview HTML in sessionStorage with unique ID
-            sessionStorage.setItem(`preview_${previewId}`, previewHTML);
-            
-            // Open preview with unique URL
-            const previewUrl = `template-preview.html?id=${previewId}`;
+            // Open preview page that loads from Supabase
+            const previewUrl = `preview.php?brand_id=${this.brandId}&template=${this.templateName}`;
             const previewWindow = window.open(previewUrl, '_blank');
             
             if (previewWindow) {
@@ -1411,6 +1396,26 @@ class TemplateEditor {
         clonedDoc.querySelectorAll('.wb-quick-actions').forEach(actions => actions.remove());
         clonedDoc.querySelectorAll('.wb-edit-label').forEach(label => label.remove());
         clonedDoc.querySelectorAll('.wb-selected').forEach(el => el.classList.remove('wb-selected'));
+        
+        // Add base tag to fix relative paths in preview
+        const head = clonedDoc.querySelector('head');
+        if (head && iframe.src) {
+            // Get base URL from iframe src
+            const baseUrl = iframe.src.substring(0, iframe.src.lastIndexOf('/') + 1);
+            
+            // Remove existing base tag if any
+            const existingBase = head.querySelector('base');
+            if (existingBase) {
+                existingBase.remove();
+            }
+            
+            // Create and add new base tag at the beginning of head
+            const baseTag = clonedDoc.createElement('base');
+            baseTag.href = baseUrl;
+            head.insertBefore(baseTag, head.firstChild);
+            
+            console.log('[TemplateEditor] Added base tag:', baseUrl);
+        }
         
         // Get cleaned HTML
         const html = clonedDoc.documentElement.outerHTML;
