@@ -8,7 +8,14 @@
         body {
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+        }
+        
+        #preview-frame {
+            width: 100%;
+            height: 100vh;
+            border: none;
+            display: none;
         }
         
         .loading {
@@ -18,6 +25,7 @@
             height: 100vh;
             font-size: 18px;
             color: #666;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
     </style>
 </head>
@@ -25,6 +33,7 @@
     <div id="loading" class="loading">
         <div>⏳ Preview laden...</div>
     </div>
+    <iframe id="preview-frame"></iframe>
 
     <script>
         // Get preview ID from URL
@@ -45,15 +54,49 @@
             const previewHTML = sessionStorage.getItem(`preview_${previewId}`);
             
             console.log('[Preview] HTML found:', !!previewHTML);
+            console.log('[Preview] HTML length:', previewHTML ? previewHTML.length : 0);
             
             if (previewHTML) {
-                // Replace current document with preview HTML
-                document.open();
-                document.write(previewHTML);
-                document.close();
-                
-                // Clean up sessionStorage
-                sessionStorage.removeItem(`preview_${previewId}`);
+                try {
+                    // Create iframe and inject HTML
+                    const iframe = document.getElementById('preview-frame');
+                    
+                    // Wait for iframe to be ready
+                    iframe.onload = function() {
+                        console.log('[Preview] Iframe loaded, injecting HTML...');
+                        
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        
+                        // Write HTML to iframe
+                        iframeDoc.open();
+                        iframeDoc.write(previewHTML);
+                        iframeDoc.close();
+                        
+                        console.log('[Preview] HTML injected successfully');
+                        
+                        // Hide loading, show iframe
+                        setTimeout(() => {
+                            document.getElementById('loading').style.display = 'none';
+                            iframe.style.display = 'block';
+                            console.log('[Preview] Preview ready!');
+                        }, 500);
+                        
+                        // Clean up sessionStorage
+                        sessionStorage.removeItem(`preview_${previewId}`);
+                    };
+                    
+                    // Set iframe src to trigger onload
+                    iframe.src = 'about:blank';
+                    
+                } catch (error) {
+                    console.error('[Preview] Error:', error);
+                    document.getElementById('loading').innerHTML = `
+                        <div style="text-align:center;">
+                            <p>❌ Fout bij laden preview</p>
+                            <p style="font-size:14px;color:#999;">${error.message}</p>
+                        </div>
+                    `;
+                }
             } else {
                 document.getElementById('loading').innerHTML = `
                     <div style="text-align:center;">
