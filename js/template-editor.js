@@ -1288,43 +1288,43 @@ class TemplateEditor {
         }, 3000);
     }
     
-    async previewSite() {
+    previewSite() {
         console.log('[TemplateEditor] Opening preview...');
         
         try {
-            // Get the current edited HTML (with UI elements removed)
-            const modifiedPages = await this.getModifiedPages();
-            
-            if (!modifiedPages || modifiedPages.length === 0) {
+            const iframe = document.getElementById('templateFrame');
+            if (!iframe || !iframe.contentDocument) {
                 this.showNotification('❌ Geen pagina om te previewen', 'error');
                 return;
             }
             
-            // Get the HTML of the current page
-            let currentPageHTML = modifiedPages[0].html;
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
             
-            // Fix relative paths to absolute paths based on current template
-            const iframe = document.getElementById('templateFrame');
-            if (iframe && iframe.src) {
-                const iframeSrc = iframe.src;
-                const baseUrl = iframeSrc.substring(0, iframeSrc.lastIndexOf('/') + 1);
-                
-                console.log('[TemplateEditor] Base URL:', baseUrl);
-                
-                // Replace relative paths with absolute paths
-                currentPageHTML = currentPageHTML.replace(/href="(?!http|\/\/|#)([^"]+)"/g, `href="${baseUrl}$1"`);
-                currentPageHTML = currentPageHTML.replace(/src="(?!http|\/\/|data:)([^"]+)"/g, `src="${baseUrl}$1"`);
-                
-                console.log('[TemplateEditor] Fixed paths in HTML');
-            }
+            // Clone the entire document
+            const clonedDoc = iframeDoc.documentElement.cloneNode(true);
             
-            // Store in sessionStorage for preview page to pick up
-            sessionStorage.setItem('template_preview_html', currentPageHTML);
+            // Remove editor UI elements from clone
+            const elementsToRemove = clonedDoc.querySelectorAll('.wb-add-section-btn, .wb-quick-actions, .wb-edit-label, .wb-selected, .wb-add-slide-btn');
+            elementsToRemove.forEach(el => el.remove());
             
-            // Open preview page
-            const previewWindow = window.open('template-preview.html', '_blank');
+            // Remove editing classes
+            const editableElements = clonedDoc.querySelectorAll('.wb-editable, .wb-editing-mode');
+            editableElements.forEach(el => {
+                el.classList.remove('wb-editable', 'wb-editing-mode', 'wb-text', 'wb-image', 'wb-background');
+                delete el.dataset.editType;
+            });
+            
+            // Get the cleaned HTML
+            const cleanHTML = clonedDoc.outerHTML;
+            
+            // Open new window and write HTML directly
+            const previewWindow = window.open('', '_blank');
             
             if (previewWindow) {
+                previewWindow.document.open();
+                previewWindow.document.write(cleanHTML);
+                previewWindow.document.close();
+                
                 this.showNotification('👁️ Preview geopend in nieuw tabblad');
             } else {
                 this.showNotification('❌ Kon preview niet openen. Sta pop-ups toe.', 'error');
