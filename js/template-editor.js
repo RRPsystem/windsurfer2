@@ -290,16 +290,26 @@ class TemplateEditor {
                 position: relative;
             }
             
-            .wb-editable:hover:not(.wb-bg-image) {
+            .wb-editable:hover:not(.wb-bg-image):not(.wb-bg-edit-target) {
                 outline: 2px dashed #667eea;
                 background: rgba(102, 126, 234, 0.05);
                 z-index: 9999;
             }
             
             /* Hide outlines on background images - only show button */
-            .wb-editable.wb-bg-image:hover {
+            .wb-editable.wb-bg-image:hover,
+            .wb-bg-edit-target:hover {
                 outline: none !important;
                 background: none !important;
+            }
+            
+            /* Prevent hover effects on elements with background edit buttons */
+            .wb-bg-edit-target {
+                cursor: default !important;
+            }
+            
+            .wb-bg-edit-target * {
+                cursor: default !important;
             }
             
             .wb-editable.wb-selected {
@@ -484,6 +494,9 @@ class TemplateEditor {
             // Skip small elements
             if (bgEl.offsetHeight < 200) return;
             
+            // Add class to prevent hover effects
+            bgEl.classList.add('wb-bg-edit-target');
+            
             // Add edit button
             const quickActions = doc.createElement('div');
             quickActions.className = 'wb-quick-actions wb-bg-edit';
@@ -536,6 +549,9 @@ class TemplateEditor {
         bgSlides.forEach(bgDiv => {
             // Add edit button overlay - positioned below header, right side
             if (!bgDiv.querySelector('.wb-quick-actions')) {
+                // Add class to prevent hover effects
+                bgDiv.classList.add('wb-bg-edit-target');
+                
                 const quickActions = doc.createElement('div');
                 quickActions.className = 'wb-quick-actions wb-bg-edit';
                 quickActions.style.cssText = 'position:absolute;top:120px;right:30px;z-index:99999;pointer-events:none;';
