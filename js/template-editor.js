@@ -483,22 +483,22 @@ class TemplateEditor {
     }
     
     makeTextEditable(doc) {
-        // Find all text elements - only headings and paragraphs
-        const textSelectors = 'h1, h2, h3, h4, h5, h6, p, span.text-theme-color';
+        // Find all text elements - headings, paragraphs, buttons, links, and spans
+        const textSelectors = 'h1, h2, h3, h4, h5, h6, p, span.text-theme-color, span.sec-subtitle, a.vs-btn, button.vs-btn, .btn, label, input[type="text"], input[type="email"], textarea, select';
         const textElements = doc.querySelectorAll(textSelectors);
         
         textElements.forEach(element => {
             // Skip if element is empty or only contains images
             if (!element.textContent.trim() || element.querySelector('img')) return;
             
-            // Skip navigation, script elements, and small text
-            if (element.closest('nav, script, style, .skip-edit, header, footer')) return;
+            // Skip navigation menu items (but allow other nav elements)
+            if (element.closest('nav .menu, script, style, .skip-edit')) return;
             
             // Skip if text is too short (likely not main content)
             if (element.textContent.trim().length < 2) return;
             
-            // Skip icon elements
-            if (element.querySelector('i.fa-solid, i.fa-regular')) return;
+            // Skip icon-only elements
+            if (element.querySelector('i.fa-solid, i.fa-regular') && element.textContent.trim().length < 3) return;
             
             element.classList.add('wb-editable', 'wb-text');
             
@@ -1106,12 +1106,33 @@ class TemplateEditor {
         
         const element = this.selectedElement.element;
         const newText = document.getElementById('textContent').value;
-        const newColor = document.getElementById('textColor').value;
-        const newSize = document.getElementById('fontSize').value;
+        const newColor = document.getElementById('textColor')?.value;
+        const newSize = document.getElementById('fontSize')?.value;
         
-        element.textContent = newText;
-        element.style.color = newColor;
-        element.style.fontSize = newSize + 'px';
+        // Update text content - preserve inner HTML if it contains only text nodes and spans
+        if (element.children.length === 0 || element.tagName === 'BUTTON' || element.tagName === 'A') {
+            element.textContent = newText;
+        } else {
+            // For complex elements, try to preserve structure
+            const textNodes = Array.from(element.childNodes).filter(node => node.nodeType === Node.TEXT_NODE);
+            if (textNodes.length > 0) {
+                textNodes[0].textContent = newText;
+            } else {
+                element.textContent = newText;
+            }
+        }
+        
+        // Apply color and size if provided
+        if (newColor) {
+            element.style.color = newColor;
+            // Also apply to child spans to ensure visibility
+            element.querySelectorAll('span').forEach(span => {
+                span.style.color = newColor;
+            });
+        }
+        if (newSize) {
+            element.style.fontSize = newSize + 'px';
+        }
         
         this.showNotification('✅ Tekst bijgewerkt!');
     }
