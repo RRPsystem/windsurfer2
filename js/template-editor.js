@@ -518,8 +518,12 @@ class TemplateEditor {
                 bgEl.style.position = 'relative';
             }
             
-            // Ensure background doesn't cover text content
-            bgEl.style.zIndex = '0';
+            // Ensure content (text) appears above background by setting z-index on children
+            const contentElements = bgEl.querySelectorAll('.hero-content, .container, .container-fluid, .row, .col-xl-10, .col-xxl-7');
+            contentElements.forEach(el => {
+                el.style.position = 'relative';
+                el.style.zIndex = '10';
+            });
             
             bgEl.appendChild(quickActions);
             
