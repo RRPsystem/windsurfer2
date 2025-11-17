@@ -56,40 +56,73 @@
                 try {
                     const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                     
+                    console.log('[Preview] Template loaded');
+                    
                     if (modifications) {
                         const mods = JSON.parse(modifications);
+                        console.log('[Preview] Modifications:', mods);
                         
                         // Apply image changes
-                        if (mods.images) {
-                            mods.images.forEach(mod => {
-                                const img = iframeDoc.querySelector(mod.selector);
-                                if (img) {
-                                    img.src = mod.src;
-                                    if (mod.alt) img.alt = mod.alt;
+                        if (mods.images && mods.images.length > 0) {
+                            console.log('[Preview] Applying', mods.images.length, 'image changes');
+                            
+                            let appliedCount = 0;
+                            mods.images.forEach((mod, index) => {
+                                console.log(`[Preview] Image ${index}: selector="${mod.selector}"`);
+                                
+                                try {
+                                    const img = iframeDoc.querySelector(mod.selector);
+                                    if (img) {
+                                        console.log(`[Preview] ✓ Found image, changing src from "${img.src}" to "${mod.src}"`);
+                                        img.src = mod.src;
+                                        if (mod.alt) img.alt = mod.alt;
+                                        appliedCount++;
+                                    } else {
+                                        console.warn(`[Preview] ✗ Image not found for selector: ${mod.selector}`);
+                                    }
+                                } catch (err) {
+                                    console.error(`[Preview] Error applying image ${index}:`, err);
                                 }
                             });
+                            
+                            console.log(`[Preview] Applied ${appliedCount}/${mods.images.length} image changes`);
+                        } else {
+                            console.log('[Preview] No image modifications');
                         }
                         
                         // Apply text changes
-                        if (mods.texts) {
-                            mods.texts.forEach(mod => {
-                                const el = iframeDoc.querySelector(mod.selector);
-                                if (el) {
-                                    el.textContent = mod.text;
+                        if (mods.texts && mods.texts.length > 0) {
+                            console.log('[Preview] Applying', mods.texts.length, 'text changes');
+                            
+                            mods.texts.forEach((mod, index) => {
+                                try {
+                                    const el = iframeDoc.querySelector(mod.selector);
+                                    if (el) {
+                                        console.log(`[Preview] ✓ Found text element, changing text`);
+                                        el.textContent = mod.text;
+                                    } else {
+                                        console.warn(`[Preview] ✗ Text element not found for selector: ${mod.selector}`);
+                                    }
+                                } catch (err) {
+                                    console.error(`[Preview] Error applying text ${index}:`, err);
                                 }
                             });
                         }
+                    } else {
+                        console.log('[Preview] No modifications to apply');
                     }
                     
                     // Show iframe, hide loading
                     document.getElementById('loading').style.display = 'none';
                     iframe.style.display = 'block';
                     
+                    console.log('[Preview] Preview ready');
+                    
                     // Clear sessionStorage
                     sessionStorage.removeItem('template_preview_url');
                     sessionStorage.removeItem('template_preview_mods');
                 } catch (error) {
-                    console.error('Preview error:', error);
+                    console.error('[Preview] Error:', error);
                     document.getElementById('loading').innerHTML = `
                         <div style="text-align:center;">
                             <p>❌ Fout bij laden preview</p>
