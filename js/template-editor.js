@@ -733,10 +733,11 @@ class TemplateEditor {
             `;
         } else if (type === 'image') {
             const currentSrc = element.src;
+            const isInCarousel = element.closest('.item, .owl-item, .carousel-item, .swiper-slide');
             
             propertiesContent.innerHTML = `
                 <div class="selected-element-info">
-                    <i class="fas fa-check-circle"></i> Afbeelding geselecteerd
+                    <i class="fas fa-check-circle"></i> ${isInCarousel ? 'Carousel afbeelding geselecteerd' : 'Afbeelding geselecteerd'}
                 </div>
                 
                 <div class="property-section">
@@ -751,6 +752,7 @@ class TemplateEditor {
                     </button>
                 </div>
                 
+                ${!isInCarousel ? `
                 <div class="property-section">
                     <div class="property-title">
                         <i class="fas fa-sliders-h"></i> Afmetingen
@@ -770,6 +772,12 @@ class TemplateEditor {
                         <i class="fas fa-check"></i> Wijzigingen Toepassen
                     </button>
                 </div>
+                ` : `
+                <div class="property-section" style="text-align:center;padding:20px;color:#666;">
+                    <i class="fas fa-info-circle" style="font-size:24px;margin-bottom:8px;"></i>
+                    <p>Carousel afbeeldingen worden automatisch geschaald.<br>Klik op "Kies Nieuwe Afbeelding" om de foto te vervangen.</p>
+                </div>
+                `}
             `;
         } else if (type === 'background') {
             const bgImage = window.getComputedStyle(element).backgroundImage;
@@ -857,11 +865,20 @@ class TemplateEditor {
         if (!this.selectedElement || this.selectedElement.type !== 'image') return;
         
         const element = this.selectedElement.element;
+        
+        // Check if image is in a carousel - if so, don't allow dimension changes
+        const isInCarousel = element.closest('.item, .owl-item, .carousel-item, .swiper-slide');
+        
+        if (isInCarousel) {
+            this.showNotification('ℹ️ Carousel afbeeldingen behouden hun originele afmetingen');
+            return;
+        }
+        
         const newWidth = document.getElementById('imageWidth').value;
         const newHeight = document.getElementById('imageHeight').value;
         
-        if (newWidth) element.style.width = newWidth;
-        if (newHeight) element.style.height = newHeight;
+        if (newWidth && newWidth !== 'auto') element.style.width = newWidth;
+        if (newHeight && newHeight !== 'auto') element.style.height = newHeight;
         
         this.showNotification('✅ Afbeelding bijgewerkt!');
     }
