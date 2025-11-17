@@ -1288,12 +1288,41 @@ class TemplateEditor {
         }, 3000);
     }
     
-    previewSite() {
-        // Open current page in new tab
-        const iframe = document.getElementById('templateFrame');
-        if (iframe && iframe.src) {
-            window.open(iframe.src, '_blank');
-            this.showNotification('👁️ Preview geopend in nieuw tabblad');
+    async previewSite() {
+        console.log('[TemplateEditor] Opening preview...');
+        
+        try {
+            // Get the current edited HTML (with UI elements removed)
+            const modifiedPages = await this.getModifiedPages();
+            
+            if (!modifiedPages || modifiedPages.length === 0) {
+                this.showNotification('❌ Geen pagina om te previewen', 'error');
+                return;
+            }
+            
+            // Get the HTML of the current page
+            const currentPageHTML = modifiedPages[0].html;
+            
+            // Create a blob URL with the HTML
+            const blob = new Blob([currentPageHTML], { type: 'text/html' });
+            const blobUrl = URL.createObjectURL(blob);
+            
+            // Open in new tab
+            const previewWindow = window.open(blobUrl, '_blank');
+            
+            if (previewWindow) {
+                this.showNotification('👁️ Preview geopend in nieuw tabblad');
+                
+                // Clean up blob URL after a delay
+                setTimeout(() => {
+                    URL.revokeObjectURL(blobUrl);
+                }, 5000);
+            } else {
+                this.showNotification('❌ Kon preview niet openen. Sta pop-ups toe.', 'error');
+            }
+        } catch (error) {
+            console.error('[TemplateEditor] Preview error:', error);
+            this.showNotification('❌ Fout bij openen preview', 'error');
         }
     }
     
