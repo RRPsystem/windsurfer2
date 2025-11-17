@@ -471,13 +471,13 @@ class TemplateEditor {
         console.log('[TemplateEditor] Found', bgSlides.length, 'background image slides');
         
         bgSlides.forEach(bgDiv => {
-            // Add edit button overlay - positioned in top right corner to avoid text overlap
+            // Add edit button overlay - positioned below header, right side
             if (!bgDiv.querySelector('.wb-quick-actions')) {
                 const quickActions = doc.createElement('div');
                 quickActions.className = 'wb-quick-actions wb-bg-edit';
-                quickActions.style.cssText = 'position:absolute;top:20px;right:20px;z-index:99999;pointer-events:auto;';
+                quickActions.style.cssText = 'position:absolute;top:120px;right:30px;z-index:99999;pointer-events:auto;';
                 quickActions.innerHTML = `
-                    <button class="wb-quick-btn" title="Wijzig achtergrond" data-action="change-bg" style="font-size:24px;width:60px;height:60px;background:rgba(255,152,0,0.95);color:white;border:3px solid white;border-radius:50%;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.5);font-weight:bold;">
+                    <button class="wb-quick-btn" title="Wijzig achtergrond" data-action="change-bg" style="font-size:28px;width:70px;height:70px;background:rgba(255,152,0,0.95);color:white;border:3px solid white;border-radius:50%;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,0.6);font-weight:bold;display:flex;align-items:center;justify-content:center;">
                         🖼️
                     </button>
                 `;
