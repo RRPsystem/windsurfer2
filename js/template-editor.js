@@ -473,7 +473,63 @@ class TemplateEditor {
     makeImagesEditable(doc) {
         console.log('[TemplateEditor] Making images editable...');
         
-        // Find background images in slider (index-2.html style)
+        // Find elements with data-bg-src attribute (Tripix style)
+        const dataBgElements = doc.querySelectorAll('[data-bg-src], [style*="background-image"]');
+        console.log('[TemplateEditor] Found', dataBgElements.length, 'background image elements');
+        
+        dataBgElements.forEach(bgEl => {
+            // Skip if already has edit button
+            if (bgEl.querySelector('.wb-quick-actions')) return;
+            
+            // Skip small elements
+            if (bgEl.offsetHeight < 200) return;
+            
+            // Add edit button
+            const quickActions = doc.createElement('div');
+            quickActions.className = 'wb-quick-actions wb-bg-edit';
+            quickActions.style.cssText = 'position:absolute;top:120px;right:30px;z-index:99999;pointer-events:auto;';
+            quickActions.innerHTML = `
+                <button class="wb-quick-btn" title="Wijzig achtergrond" data-action="change-bg" style="font-size:28px;width:70px;height:70px;background:rgba(255,152,0,0.95);color:white;border:3px solid white;border-radius:50%;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,0.6);font-weight:bold;display:flex;align-items:center;justify-content:center;">
+                    🖼️
+                </button>
+            `;
+            
+            // Make sure element is positioned
+            const computedStyle = window.getComputedStyle(bgEl);
+            if (computedStyle.position === 'static') {
+                bgEl.style.position = 'relative';
+            }
+            
+            bgEl.appendChild(quickActions);
+            
+            // Handle click
+            quickActions.querySelector('[data-action="change-bg"]').addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                try {
+                    const result = await window.MediaPicker.openImage();
+                    if (result && result.url) {
+                        // Update background image
+                        bgEl.style.backgroundImage = `url(${result.url})`;
+                        bgEl.style.backgroundSize = 'cover';
+                        bgEl.style.backgroundPosition = 'center';
+                        bgEl.style.backgroundRepeat = 'no-repeat';
+                        
+                        // Also update data-bg-src if present
+                        if (bgEl.hasAttribute('data-bg-src')) {
+                            bgEl.setAttribute('data-bg-src', result.url);
+                        }
+                        
+                        this.showNotification('✅ Achtergrond bijgewerkt!');
+                    }
+                } catch (err) {
+                    console.log('[TemplateEditor] Media selection cancelled');
+                }
+            });
+        });
+        
+        // Find background images in slider (index-2.html style - Gotur)
         const bgSlides = doc.querySelectorAll('.main-slider-two__bg');
         console.log('[TemplateEditor] Found', bgSlides.length, 'background image slides');
         
