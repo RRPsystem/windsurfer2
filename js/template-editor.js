@@ -1412,6 +1412,37 @@ class TemplateEditor {
         clonedDoc.querySelectorAll('.wb-edit-label').forEach(label => label.remove());
         clonedDoc.querySelectorAll('.wb-selected').forEach(el => el.classList.remove('wb-selected'));
         
+        // Remove Owl Carousel cloned items (they get regenerated on page load)
+        clonedDoc.querySelectorAll('.owl-item.cloned').forEach(item => item.remove());
+        
+        // Remove Owl Carousel added classes and structure
+        clonedDoc.querySelectorAll('.owl-stage-outer').forEach(outer => {
+            const carousel = outer.closest('.owl-carousel');
+            if (carousel) {
+                // Get original items from owl-stage
+                const stage = outer.querySelector('.owl-stage');
+                if (stage) {
+                    const items = Array.from(stage.querySelectorAll('.owl-item:not(.cloned)'));
+                    
+                    // Move items back to carousel
+                    items.forEach(item => {
+                        const innerItem = item.querySelector('.item');
+                        if (innerItem) {
+                            carousel.appendChild(innerItem);
+                        }
+                    });
+                }
+                
+                // Remove owl structure
+                outer.remove();
+            }
+        });
+        
+        // Remove owl-loaded class
+        clonedDoc.querySelectorAll('.owl-loaded').forEach(el => {
+            el.classList.remove('owl-loaded');
+        });
+        
         // Add base tag to fix relative paths in preview
         const head = clonedDoc.querySelector('head');
         if (head && iframe.src) {
