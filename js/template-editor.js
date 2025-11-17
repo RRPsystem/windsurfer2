@@ -105,7 +105,7 @@ class TemplateEditor {
         // Define pages for each template
         const templatePages = {
             'gotur': [
-                { name: 'Home', path: 'index.html', icon: 'home', category: 'basis' },
+                { name: 'Home', path: 'index-2.html', icon: 'home', category: 'basis' },
                 { name: 'About', path: 'about.html', icon: 'info-circle', category: 'basis' },
                 { name: 'Tours', path: 'tour-listing-1.html', icon: 'map-marked-alt', category: 'tours' },
                 { name: 'Tour Detail', path: 'tour-listing-details-1.html', icon: 'map-marker-alt', category: 'tours' },
