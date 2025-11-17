@@ -70,10 +70,12 @@
                     
                     if (error) {
                         console.error('[Preview] Supabase error:', error);
+                        console.error('[Preview] Error details:', error.message, error.details, error.hint);
                         document.getElementById('loading').innerHTML = `
                             <div style="text-align:center;">
                                 <p>❌ Preview niet gevonden</p>
-                                <p style="font-size:14px;color:#999;">De preview is verlopen of niet beschikbaar.</p>
+                                <p style="font-size:14px;color:#999;">Error: ${error.message || 'Onbekende fout'}</p>
+                                <p style="font-size:12px;color:#999;">Preview ID: ${previewId}</p>
                             </div>
                         `;
                         return;
