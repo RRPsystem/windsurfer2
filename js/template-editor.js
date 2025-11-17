@@ -203,7 +203,14 @@ class TemplateEditor {
         });
         
         // Load fresh page from template first
-        const baseUrl = `templates/${this.templateName}/${this.templateName === 'gotur' ? 'gotur-html-main' : ''}`;
+        let baseUrl;
+        if (this.templateName === 'gotur') {
+            baseUrl = 'templates/gotur/gotur-html-main';
+        } else if (this.templateName === 'tripix') {
+            baseUrl = 'templates/tripix-html';
+        } else {
+            baseUrl = `templates/${this.templateName}`;
+        }
         const pageUrl = `${baseUrl}/${page.path}`;
         
         const iframe = document.getElementById('templateFrame');
