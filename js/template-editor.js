@@ -461,6 +461,9 @@ class TemplateEditor {
             // Skip cloned carousel items
             if (img.closest('.owl-item.cloned')) return;
             
+            // Skip decorative overlay images (like airplane frame)
+            if (img.closest('.main-slider-one__destinations__hover, .main-slider-one__element')) return;
+            
             img.classList.add('wb-editable', 'wb-image');
             img.dataset.editType = 'img';
             
