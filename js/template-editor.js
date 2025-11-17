@@ -104,6 +104,14 @@ class TemplateEditor {
         
         // Define pages for each template
         const templatePages = {
+            'tripix': [
+                { name: 'Home', path: 'index.html', icon: 'home', category: 'basis' },
+                { name: 'About', path: 'about.html', icon: 'info-circle', category: 'basis' },
+                { name: 'Trips', path: 'trips.html', icon: 'plane', category: 'tours' },
+                { name: 'Destinations', path: 'destinations.html', icon: 'map', category: 'tours' },
+                { name: 'Blog', path: 'blog.html', icon: 'newspaper', category: 'blog' },
+                { name: 'Contact', path: 'contact.html', icon: 'phone', category: 'basis' }
+            ],
             'gotur': [
                 { name: 'Home', path: 'index-2.html', icon: 'home', category: 'basis' },
                 { name: 'About', path: 'about.html', icon: 'info-circle', category: 'basis' },
@@ -112,18 +120,10 @@ class TemplateEditor {
                 { name: 'Destinations', path: 'destination-one.html', icon: 'globe', category: 'tours' },
                 { name: 'Blog', path: 'blog-grid.html', icon: 'newspaper', category: 'blog' },
                 { name: 'Contact', path: 'contact.html', icon: 'envelope', category: 'basis' }
-            ],
-            'tripix': [
-                { name: 'Home', path: 'index.html', icon: 'home' },
-                { name: 'About', path: 'about.html', icon: 'info-circle' },
-                { name: 'Trips', path: 'trips.html', icon: 'plane' },
-                { name: 'Destinations', path: 'destinations.html', icon: 'map' },
-                { name: 'Blog', path: 'blog.html', icon: 'newspaper' },
-                { name: 'Contact', path: 'contact.html', icon: 'phone' }
             ]
         };
         
-        this.pages = templatePages[this.templateName] || templatePages['gotur'];
+        this.pages = templatePages[this.templateName] || templatePages['tripix'];
         
         // If we have a draft, merge it with the pages
         if (loadedDraft && loadedDraft.pages) {
