@@ -290,25 +290,20 @@ class TemplateEditor {
                 position: relative;
             }
             
-            .wb-editable:hover:not(.wb-bg-image):not(.wb-bg-edit-target) {
+            /* Only show hover on TEXT elements - NOT on images or backgrounds */
+            .wb-editable.wb-text:hover {
                 outline: 2px dashed #667eea;
                 background: rgba(102, 126, 234, 0.05);
                 z-index: 9999;
             }
             
-            /* Hide outlines on background images - only show button */
+            /* NO hover effects on any image or background elements */
+            .wb-editable.wb-image:hover,
             .wb-editable.wb-bg-image:hover,
-            .wb-bg-edit-target:hover {
+            .wb-bg-edit-target:hover,
+            .wb-bg-edit-target {
                 outline: none !important;
                 background: none !important;
-            }
-            
-            /* Prevent hover effects on elements with background edit buttons */
-            .wb-bg-edit-target {
-                cursor: default !important;
-            }
-            
-            .wb-bg-edit-target * {
                 cursor: default !important;
             }
             
