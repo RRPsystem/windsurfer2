@@ -1301,7 +1301,22 @@ class TemplateEditor {
             }
             
             // Get the HTML of the current page
-            const currentPageHTML = modifiedPages[0].html;
+            let currentPageHTML = modifiedPages[0].html;
+            
+            // Fix relative paths to absolute paths based on current template
+            const iframe = document.getElementById('templateFrame');
+            if (iframe && iframe.src) {
+                const iframeSrc = iframe.src;
+                const baseUrl = iframeSrc.substring(0, iframeSrc.lastIndexOf('/') + 1);
+                
+                console.log('[TemplateEditor] Base URL:', baseUrl);
+                
+                // Replace relative paths with absolute paths
+                currentPageHTML = currentPageHTML.replace(/href="(?!http|\/\/|#)([^"]+)"/g, `href="${baseUrl}$1"`);
+                currentPageHTML = currentPageHTML.replace(/src="(?!http|\/\/|data:)([^"]+)"/g, `src="${baseUrl}$1"`);
+                
+                console.log('[TemplateEditor] Fixed paths in HTML');
+            }
             
             // Store in sessionStorage for preview page to pick up
             sessionStorage.setItem('template_preview_html', currentPageHTML);
