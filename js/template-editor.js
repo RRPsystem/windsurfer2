@@ -1293,38 +1293,46 @@ class TemplateEditor {
         
         try {
             const iframe = document.getElementById('templateFrame');
-            if (!iframe || !iframe.contentDocument) {
+            if (!iframe) {
                 this.showNotification('❌ Geen pagina om te previewen', 'error');
                 return;
             }
             
+            // Store template URL
+            sessionStorage.setItem('template_preview_url', iframe.src);
+            
+            // Collect all modifications
             const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            const modifications = {
+                images: [],
+                texts: []
+            };
             
-            // Clone the entire document
-            const clonedDoc = iframeDoc.documentElement.cloneNode(true);
-            
-            // Remove editor UI elements from clone
-            const elementsToRemove = clonedDoc.querySelectorAll('.wb-add-section-btn, .wb-quick-actions, .wb-edit-label, .wb-selected, .wb-add-slide-btn');
-            elementsToRemove.forEach(el => el.remove());
-            
-            // Remove editing classes
-            const editableElements = clonedDoc.querySelectorAll('.wb-editable, .wb-editing-mode');
-            editableElements.forEach(el => {
-                el.classList.remove('wb-editable', 'wb-editing-mode', 'wb-text', 'wb-image', 'wb-background');
-                delete el.dataset.editType;
+            // Collect changed images
+            const images = iframeDoc.querySelectorAll('img');
+            images.forEach((img, index) => {
+                // Skip editor UI images
+                if (img.closest('.wb-add-section-btn, .wb-quick-actions, .wb-add-slide-btn')) return;
+                if (img.closest('.wb-editing-mode')) return;
+                
+                // Create unique selector
+                const selector = this.getUniqueSelector(img);
+                if (selector) {
+                    modifications.images.push({
+                        selector: selector,
+                        src: img.src,
+                        alt: img.alt || ''
+                    });
+                }
             });
             
-            // Get the cleaned HTML
-            const cleanHTML = clonedDoc.outerHTML;
+            // Store modifications
+            sessionStorage.setItem('template_preview_mods', JSON.stringify(modifications));
             
-            // Open new window and write HTML directly
-            const previewWindow = window.open('', '_blank');
+            // Open preview page
+            const previewWindow = window.open('template-preview.html', '_blank');
             
             if (previewWindow) {
-                previewWindow.document.open();
-                previewWindow.document.write(cleanHTML);
-                previewWindow.document.close();
-                
                 this.showNotification('👁️ Preview geopend in nieuw tabblad');
             } else {
                 this.showNotification('❌ Kon preview niet openen. Sta pop-ups toe.', 'error');
@@ -1333,6 +1341,50 @@ class TemplateEditor {
             console.error('[TemplateEditor] Preview error:', error);
             this.showNotification('❌ Fout bij openen preview', 'error');
         }
+    }
+    
+    getUniqueSelector(element) {
+        // Try to create a unique CSS selector for the element
+        if (element.id) {
+            return `#${element.id}`;
+        }
+        
+        // Use nth-child approach
+        let path = [];
+        let current = element;
+        
+        while (current && current.nodeType === Node.ELEMENT_NODE) {
+            let selector = current.nodeName.toLowerCase();
+            
+            if (current.className && typeof current.className === 'string') {
+                const classes = current.className.split(' ').filter(c => 
+                    c && !c.startsWith('wb-')
+                );
+                if (classes.length > 0) {
+                    selector += '.' + classes.join('.');
+                }
+            }
+            
+            // Add nth-child if needed for uniqueness
+            if (current.parentNode) {
+                const siblings = Array.from(current.parentNode.children);
+                const sameTagSiblings = siblings.filter(s => s.nodeName === current.nodeName);
+                if (sameTagSiblings.length > 1) {
+                    const index = sameTagSiblings.indexOf(current) + 1;
+                    selector += `:nth-of-type(${index})`;
+                }
+            }
+            
+            path.unshift(selector);
+            current = current.parentElement;
+            
+            // Stop at body or after 5 levels
+            if (!current || current.nodeName === 'BODY' || path.length >= 5) {
+                break;
+            }
+        }
+        
+        return path.join(' > ');
     }
     
     async saveDraft() {
