@@ -235,11 +235,30 @@ class TemplateEditor {
         };
     }
     
+    storeOriginalCarouselHTML(iframeDoc) {
+        // Store original carousel HTML before Owl Carousel modifies it
+        if (!this.originalCarouselHTML) {
+            this.originalCarouselHTML = new Map();
+        }
+        
+        const carousels = iframeDoc.querySelectorAll('.owl-carousel');
+        carousels.forEach((carousel, index) => {
+            // Only store if not already initialized
+            if (!carousel.classList.contains('owl-loaded')) {
+                this.originalCarouselHTML.set(index, carousel.innerHTML);
+                console.log(`[TemplateEditor] Stored original HTML for carousel ${index}`);
+            }
+        });
+    }
+    
     setupIframeEditing() {
         console.log('[TemplateEditor] Setting up iframe editing...');
         
         const iframe = document.getElementById('templateFrame');
         const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        
+        // Store original carousel HTML before Owl Carousel initializes
+        this.storeOriginalCarouselHTML(iframeDoc);
         
         // Inject editing styles
         const style = iframeDoc.createElement('style');
@@ -1412,11 +1431,32 @@ class TemplateEditor {
         clonedDoc.querySelectorAll('.wb-edit-label').forEach(label => label.remove());
         clonedDoc.querySelectorAll('.wb-selected').forEach(el => el.classList.remove('wb-selected'));
         
-        // Clean up Owl Carousel - just remove clones and owl-loaded class
-        // Don't touch the structure, it will reinitialize on page load
-        clonedDoc.querySelectorAll('.owl-item.cloned').forEach(item => item.remove());
-        clonedDoc.querySelectorAll('.owl-carousel').forEach(el => {
-            el.classList.remove('owl-loaded', 'owl-drag', 'owl-grab');
+        // Restore original carousel HTML
+        const carousels = clonedDoc.querySelectorAll('.owl-carousel');
+        carousels.forEach((carousel, index) => {
+            if (this.originalCarouselHTML && this.originalCarouselHTML.has(index)) {
+                const originalHTML = this.originalCarouselHTML.get(index);
+                
+                // Get current images from the Owl structure
+                const currentImages = new Map();
+                const owlItems = carousel.querySelectorAll('.owl-item:not(.cloned) .item img');
+                owlItems.forEach((img, imgIndex) => {
+                    currentImages.set(imgIndex, img.src);
+                });
+                
+                // Restore original HTML
+                carousel.innerHTML = originalHTML;
+                
+                // Update images with current values
+                const restoredImages = carousel.querySelectorAll('.item img');
+                restoredImages.forEach((img, imgIndex) => {
+                    if (currentImages.has(imgIndex)) {
+                        img.src = currentImages.get(imgIndex);
+                    }
+                });
+                
+                console.log(`[TemplateEditor] Restored carousel ${index} with ${currentImages.size} images`);
+            }
         });
         
         // Add base tag to fix relative paths in preview
