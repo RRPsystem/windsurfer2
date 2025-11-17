@@ -295,6 +295,20 @@ class TemplateEditor {
                 object-fit: cover;
             }
             
+            /* Ensure destination content is visible */
+            .destination-box .destination-content {
+                position: relative;
+                z-index: 10;
+                background: rgba(0, 0, 0, 0.8);
+                padding: 20px;
+            }
+            
+            .destination-box .destination-content h4,
+            .destination-box .destination-content span {
+                position: relative;
+                z-index: 11;
+            }
+            
             .wb-editable {
                 outline: 2px dashed transparent;
                 transition: all 0.2s;
@@ -1663,12 +1677,16 @@ class TemplateEditor {
         // Clone the document to avoid modifying the live page
         const clonedDoc = iframeDoc.cloneNode(true);
         
-        // Remove all editor UI elements before saving
+        // Remove all editor UI elements and classes before saving
         clonedDoc.querySelectorAll('.wb-add-section-btn').forEach(btn => btn.remove());
         clonedDoc.querySelectorAll('.wb-add-slide-btn').forEach(btn => btn.remove());
         clonedDoc.querySelectorAll('.wb-quick-actions').forEach(actions => actions.remove());
         clonedDoc.querySelectorAll('.wb-edit-label').forEach(label => label.remove());
         clonedDoc.querySelectorAll('.wb-selected').forEach(el => el.classList.remove('wb-selected'));
+        clonedDoc.querySelectorAll('.wb-editable').forEach(el => {
+            el.classList.remove('wb-editable', 'wb-text', 'wb-image', 'wb-bg-image', 'wb-bg-edit-target');
+        });
+        clonedDoc.body.classList.remove('wb-editing-mode');
         
         // Restore original carousel HTML
         const carousels = clonedDoc.querySelectorAll('.owl-carousel');
