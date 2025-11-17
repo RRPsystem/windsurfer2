@@ -1412,34 +1412,11 @@ class TemplateEditor {
         clonedDoc.querySelectorAll('.wb-edit-label').forEach(label => label.remove());
         clonedDoc.querySelectorAll('.wb-selected').forEach(el => el.classList.remove('wb-selected'));
         
-        // Clean up Owl Carousel structure
-        clonedDoc.querySelectorAll('.owl-carousel').forEach(carousel => {
-            // Check if this carousel has been initialized by Owl
-            const stageOuter = carousel.querySelector('.owl-stage-outer');
-            if (stageOuter) {
-                // Get the stage
-                const stage = stageOuter.querySelector('.owl-stage');
-                if (stage) {
-                    // Get all non-cloned items
-                    const items = Array.from(stage.querySelectorAll('.owl-item:not(.cloned)'));
-                    
-                    // Extract the inner .item divs and add them back to carousel
-                    const fragment = clonedDoc.createDocumentFragment();
-                    items.forEach(owlItem => {
-                        const innerItem = owlItem.querySelector('.item');
-                        if (innerItem) {
-                            fragment.appendChild(innerItem);
-                        }
-                    });
-                    
-                    // Clear carousel and add back the original items
-                    carousel.innerHTML = '';
-                    carousel.appendChild(fragment);
-                }
-                
-                // Remove owl-loaded class
-                carousel.classList.remove('owl-loaded');
-            }
+        // Clean up Owl Carousel - just remove clones and owl-loaded class
+        // Don't touch the structure, it will reinitialize on page load
+        clonedDoc.querySelectorAll('.owl-item.cloned').forEach(item => item.remove());
+        clonedDoc.querySelectorAll('.owl-carousel').forEach(el => {
+            el.classList.remove('owl-loaded', 'owl-drag', 'owl-grab');
         });
         
         // Add base tag to fix relative paths in preview
@@ -2359,6 +2336,28 @@ function previewSite() {
 
 function saveDraft() {
     templateEditor.saveDraft();
+}
+
+function clearDraft() {
+    if (confirm('⚠️ Weet je zeker dat je alle wijzigingen wilt verwijderen en terug wilt naar het originele template?')) {
+        // Clear localStorage
+        localStorage.removeItem(`template_draft_${templateEditor.templateName}`);
+        
+        // Clear Supabase draft
+        if (templateEditor.supabase && templateEditor.brandId) {
+            templateEditor.supabase
+                .from('template_drafts')
+                .delete()
+                .eq('brand_id', templateEditor.brandId)
+                .eq('template', templateEditor.templateName)
+                .then(() => {
+                    console.log('[TemplateEditor] Draft cleared from Supabase');
+                });
+        }
+        
+        // Reload page to load original template
+        window.location.reload();
+    }
 }
 
 function publishSite() {
