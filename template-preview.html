@@ -8,12 +8,7 @@
         body {
             margin: 0;
             padding: 0;
-        }
-        
-        #preview-frame {
-            width: 100%;
-            height: 100vh;
-            border: none;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         
         .loading {
@@ -23,7 +18,6 @@
             height: 100vh;
             font-size: 18px;
             color: #666;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
     </style>
 </head>
@@ -31,106 +25,44 @@
     <div id="loading" class="loading">
         <div>⏳ Preview laden...</div>
     </div>
-    <iframe id="preview-frame" style="display:none;"></iframe>
 
     <script>
-        // Get preview data from sessionStorage
-        const templateUrl = sessionStorage.getItem('template_preview_url');
-        const modifications = sessionStorage.getItem('template_preview_mods');
+        // Get preview ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const previewId = urlParams.get('id');
         
-        if (!templateUrl) {
+        console.log('[Preview] Preview ID:', previewId);
+        
+        if (!previewId) {
             document.getElementById('loading').innerHTML = `
                 <div style="text-align:center;">
-                    <p>❌ Geen preview beschikbaar</p>
+                    <p>❌ Geen preview ID</p>
                     <p style="font-size:14px;color:#999;">Klik op "Preview" in de editor.</p>
                 </div>
             `;
         } else {
-            const iframe = document.getElementById('preview-frame');
+            // Get HTML from sessionStorage
+            const previewHTML = sessionStorage.getItem(`preview_${previewId}`);
             
-            // Load the template
-            iframe.src = templateUrl;
+            console.log('[Preview] HTML found:', !!previewHTML);
             
-            // Apply modifications when loaded
-            iframe.onload = function() {
-                try {
-                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                    
-                    console.log('[Preview] Template loaded');
-                    
-                    if (modifications) {
-                        const mods = JSON.parse(modifications);
-                        console.log('[Preview] Modifications:', mods);
-                        
-                        // Apply image changes
-                        if (mods.images && mods.images.length > 0) {
-                            console.log('[Preview] Applying', mods.images.length, 'image changes');
-                            
-                            let appliedCount = 0;
-                            mods.images.forEach((mod, index) => {
-                                console.log(`[Preview] Image ${index}: selector="${mod.selector}"`);
-                                
-                                try {
-                                    const img = iframeDoc.querySelector(mod.selector);
-                                    if (img) {
-                                        console.log(`[Preview] ✓ Found image, changing src from "${img.src}" to "${mod.src}"`);
-                                        img.src = mod.src;
-                                        if (mod.alt) img.alt = mod.alt;
-                                        appliedCount++;
-                                    } else {
-                                        console.warn(`[Preview] ✗ Image not found for selector: ${mod.selector}`);
-                                    }
-                                } catch (err) {
-                                    console.error(`[Preview] Error applying image ${index}:`, err);
-                                }
-                            });
-                            
-                            console.log(`[Preview] Applied ${appliedCount}/${mods.images.length} image changes`);
-                        } else {
-                            console.log('[Preview] No image modifications');
-                        }
-                        
-                        // Apply text changes
-                        if (mods.texts && mods.texts.length > 0) {
-                            console.log('[Preview] Applying', mods.texts.length, 'text changes');
-                            
-                            mods.texts.forEach((mod, index) => {
-                                try {
-                                    const el = iframeDoc.querySelector(mod.selector);
-                                    if (el) {
-                                        console.log(`[Preview] ✓ Found text element, changing text`);
-                                        el.textContent = mod.text;
-                                    } else {
-                                        console.warn(`[Preview] ✗ Text element not found for selector: ${mod.selector}`);
-                                    }
-                                } catch (err) {
-                                    console.error(`[Preview] Error applying text ${index}:`, err);
-                                }
-                            });
-                        }
-                    } else {
-                        console.log('[Preview] No modifications to apply');
-                    }
-                    
-                    // Show iframe, hide loading
-                    document.getElementById('loading').style.display = 'none';
-                    iframe.style.display = 'block';
-                    
-                    console.log('[Preview] Preview ready');
-                    
-                    // Clear sessionStorage
-                    sessionStorage.removeItem('template_preview_url');
-                    sessionStorage.removeItem('template_preview_mods');
-                } catch (error) {
-                    console.error('[Preview] Error:', error);
-                    document.getElementById('loading').innerHTML = `
-                        <div style="text-align:center;">
-                            <p>❌ Fout bij laden preview</p>
-                            <p style="font-size:14px;color:#999;">${error.message}</p>
-                        </div>
-                    `;
-                }
-            };
+            if (previewHTML) {
+                // Replace current document with preview HTML
+                document.open();
+                document.write(previewHTML);
+                document.close();
+                
+                // Clean up sessionStorage
+                sessionStorage.removeItem(`preview_${previewId}`);
+            } else {
+                document.getElementById('loading').innerHTML = `
+                    <div style="text-align:center;">
+                        <p>❌ Preview niet gevonden</p>
+                        <p style="font-size:14px;color:#999;">De preview is verlopen of niet beschikbaar.</p>
+                        <p style="font-size:14px;color:#999;">Ga terug naar de editor en klik opnieuw op "Preview".</p>
+                    </div>
+                `;
+            }
         }
     </script>
 </body>

@@ -1288,49 +1288,31 @@ class TemplateEditor {
         }, 3000);
     }
     
-    previewSite() {
+    async previewSite() {
         console.log('[TemplateEditor] Opening preview...');
         
         try {
-            const iframe = document.getElementById('templateFrame');
-            if (!iframe) {
+            // First, save the draft
+            await this.saveDraft();
+            
+            // Generate unique preview ID
+            const previewId = `${this.templateName}_${this.brandId}_${Date.now()}`;
+            
+            // Get the modified HTML
+            const modifiedPages = await this.getModifiedPages();
+            if (!modifiedPages || modifiedPages.length === 0) {
                 this.showNotification('❌ Geen pagina om te previewen', 'error');
                 return;
             }
             
-            // Store template URL
-            sessionStorage.setItem('template_preview_url', iframe.src);
+            const previewHTML = modifiedPages[0].html;
             
-            // Collect all modifications
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-            const modifications = {
-                images: [],
-                texts: []
-            };
+            // Store preview HTML in sessionStorage with unique ID
+            sessionStorage.setItem(`preview_${previewId}`, previewHTML);
             
-            // Collect changed images
-            const images = iframeDoc.querySelectorAll('img');
-            images.forEach((img, index) => {
-                // Skip editor UI images
-                if (img.closest('.wb-add-section-btn, .wb-quick-actions, .wb-add-slide-btn')) return;
-                if (img.closest('.wb-editing-mode')) return;
-                
-                // Create unique selector
-                const selector = this.getUniqueSelector(img);
-                if (selector) {
-                    modifications.images.push({
-                        selector: selector,
-                        src: img.src,
-                        alt: img.alt || ''
-                    });
-                }
-            });
-            
-            // Store modifications
-            sessionStorage.setItem('template_preview_mods', JSON.stringify(modifications));
-            
-            // Open preview page
-            const previewWindow = window.open('template-preview.html', '_blank');
+            // Open preview with unique URL
+            const previewUrl = `template-preview.html?id=${previewId}`;
+            const previewWindow = window.open(previewUrl, '_blank');
             
             if (previewWindow) {
                 this.showNotification('👁️ Preview geopend in nieuw tabblad');
