@@ -515,6 +515,20 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script>
+        // Load media API keys
+        (async function() {
+            try {
+                const response = await fetch('/api/config/media');
+                const config = await response.json();
+                window.MEDIA_CONFIG = config;
+                console.log('[MediaConfig] Loaded:', Object.keys(config));
+            } catch (error) {
+                console.error('[MediaConfig] Failed to load:', error);
+                window.MEDIA_CONFIG = {};
+            }
+        })();
+    </script>
     <script src="js/media.js"></script>
     <script src="js/template-editor.js"></script>
 </body>
