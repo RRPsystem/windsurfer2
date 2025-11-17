@@ -234,17 +234,20 @@ class MediaPicker {
             if (!append && grid) grid.innerHTML = '';
             (data.results || []).forEach(item => {
               const urls = item.urls || {};
+              // Use small for thumbnail display
               const small = urls.small || urls.thumb || urls.regular;
+              // Use full or raw for actual background image (high-res)
+              const full = urls.full || urls.raw || urls.regular || small;
               const regular = urls.regular || small;
-              const full = urls.full || urls.raw || regular;
-              const url = small;
+              
               const img = document.createElement('img');
-              img.src = url;
+              img.src = small; // Show small thumbnail in picker
               img.className = 'mp-thumb';
               img.title = item.alt_description || '';
               const user = item.user || {};
               const links = item.links || {};
-              img.onclick = () => { resolve({ source: 'unsplash', type: 'image', url, smallUrl: small, regularUrl: regular, fullUrl: full, credit: user.name || '', link: links.html || '' }); close(); };
+              // Return FULL URL for high-res background images
+              img.onclick = () => { resolve({ source: 'unsplash', type: 'image', url: full, smallUrl: small, regularUrl: regular, fullUrl: full, credit: user.name || '', link: links.html || '' }); close(); };
               if (grid) grid.appendChild(img);
             });
             const totalPages = data.total_pages || 0;
