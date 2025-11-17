@@ -519,11 +519,17 @@ class TemplateEditor {
             }
             
             // Ensure content (text) appears above background by setting z-index on children
-            const contentElements = bgEl.querySelectorAll('.hero-content, .container, .container-fluid, .row, .col-xl-10, .col-xxl-7');
+            const contentElements = bgEl.querySelectorAll('.hero-content, .container, .container-fluid, .row, .col-xl-10, .col-xxl-7, .title-area, .sec-title');
             contentElements.forEach(el => {
                 el.style.position = 'relative';
                 el.style.zIndex = '10';
             });
+            
+            // Apply default overlay to existing background if it doesn't have one
+            const currentBg = window.getComputedStyle(bgEl).backgroundImage;
+            if (currentBg && currentBg !== 'none' && !currentBg.includes('gradient')) {
+                bgEl.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), ${currentBg}`;
+            }
             
             bgEl.appendChild(quickActions);
             
