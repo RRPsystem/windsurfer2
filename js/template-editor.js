@@ -586,7 +586,10 @@ class TemplateEditor {
             if (!element.textContent.trim() || element.querySelector('img')) return;
             
             // Skip header, navigation menu items, and other non-editable areas
-            if (element.closest('header, nav .menu, script, style, .skip-edit, .top-one, .main-header')) return;
+            if (element.closest('header, nav, .menu, script, style, .skip-edit, .top-one, .main-header, .sticky-wrapper, .header-wrapper')) return;
+            
+            // Skip if element IS a header or nav
+            if (element.tagName === 'HEADER' || element.tagName === 'NAV') return;
             
             // Skip if text is too short (likely not main content)
             if (element.textContent.trim().length < 2) return;
