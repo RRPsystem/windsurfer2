@@ -3445,6 +3445,7 @@ class TemplateEditor {
     }
     
     applyWebsiteSettings() {
+        console.log('[TemplateEditor] Applying website settings...');
         const iframe = document.getElementById('templateFrame');
         const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
         
@@ -3456,6 +3457,15 @@ class TemplateEditor {
         const footerBgColor = document.getElementById('footerBgColor').value;
         const logoUrl = document.getElementById('logoUrl').value;
         const primaryFont = document.getElementById('primaryFont').value;
+        
+        console.log('[TemplateEditor] Colors:', {
+            primary: primaryColor,
+            secondary: secondaryColor,
+            accent: accentColor,
+            text: textColor,
+            title: titleColor,
+            footer: footerBgColor
+        });
         
         // Calculate hover color
         const primaryHover = this.adjustColor(primaryColor, -20);
@@ -3613,6 +3623,9 @@ class TemplateEditor {
         `;
         
         iframeDoc.head.appendChild(style);
+        console.log('[TemplateEditor] Brand styles added to HEAD ✓');
+        console.log('[TemplateEditor] Style element ID:', style.id);
+        console.log('[TemplateEditor] Style content length:', style.textContent.length);
         
         // Update logo if provided
         if (logoUrl) {
@@ -3635,6 +3648,7 @@ class TemplateEditor {
             }
         }
         
+        console.log('[TemplateEditor] Website settings applied successfully ✓');
         this.showNotification('✅ Instellingen toegepast!');
     }
     
