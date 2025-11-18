@@ -315,7 +315,8 @@ class TemplateEditor {
             .vs-tour-package .package-thumb,
             .package-card .package-thumb,
             .tour-card .tour-thumb,
-            .tour-package .tour-package-thumb {
+            .tour-package .tour-package-thumb,
+            .tour-package-box .tour-package-thumb {
                 height: 280px !important;
                 overflow: hidden;
             }
@@ -325,7 +326,8 @@ class TemplateEditor {
             .vs-tour-package .package-thumb img,
             .package-card .package-thumb img,
             .tour-card .tour-thumb img,
-            .tour-package .tour-package-thumb img {
+            .tour-package .tour-package-thumb img,
+            .tour-package-box .tour-package-thumb img {
                 width: 100%;
                 height: 280px !important;
                 object-fit: cover;
@@ -522,11 +524,16 @@ class TemplateEditor {
             // Skip if already has a button after it (double check)
             if (section.nextElementSibling?.classList.contains('wb-add-section-btn')) return;
             
-            // Add insertion button after each section
-            const insertBtn = doc.createElement('div');
+            // Add section controls container
+            const sectionControls = doc.createElement('div');
+            sectionControls.className = 'wb-section-controls';
+            sectionControls.style.cssText = 'display:flex;gap:12px;justify-content:center;margin:20px auto;';
+            
+            // Add "Add Section" button
+            const insertBtn = doc.createElement('button');
             insertBtn.className = 'wb-add-section-btn';
-            insertBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Sectie Toevoegen';
-            insertBtn.dataset.insertAfter = index;
+            insertBtn.innerHTML = '<i class="fas fa-plus"></i> Sectie Toevoegen';
+            insertBtn.style.cssText = 'padding:12px 24px;background:#4CAF50;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
             
             insertBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -534,8 +541,23 @@ class TemplateEditor {
                 this.openSectionLibrary(section);
             });
             
+            // Add "Delete Section" button
+            const deleteBtn = doc.createElement('button');
+            deleteBtn.className = 'wb-delete-section-btn';
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Sectie Verwijderen';
+            deleteBtn.style.cssText = 'padding:12px 24px;background:#f44336;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+            
+            deleteBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.deleteSection(section);
+            });
+            
+            sectionControls.appendChild(insertBtn);
+            sectionControls.appendChild(deleteBtn);
+            
             // Insert after section
-            section.parentNode.insertBefore(insertBtn, section.nextSibling);
+            section.parentNode.insertBefore(sectionControls, section.nextSibling);
         });
     }
     
@@ -548,8 +570,8 @@ class TemplateEditor {
             // Skip if element is empty or only contains images
             if (!element.textContent.trim() || element.querySelector('img')) return;
             
-            // Skip navigation menu items (but allow other nav elements)
-            if (element.closest('nav .menu, script, style, .skip-edit')) return;
+            // Skip header, navigation menu items, and other non-editable areas
+            if (element.closest('header, nav .menu, script, style, .skip-edit, .top-one, .main-header')) return;
             
             // Skip if text is too short (likely not main content)
             if (element.textContent.trim().length < 2) return;
@@ -1007,17 +1029,17 @@ class TemplateEditor {
                         <i class="fas fa-tools"></i> Element Acties
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                        <button class="btn btn-secondary" onclick="templateEditor.duplicateElement()" title="Dupliceer element">
-                            <i class="fas fa-copy"></i> Dupliceer
+                        <button class="btn btn-secondary" onclick="templateEditor.duplicateElement()" title="Dupliceer element" style="font-size:12px;padding:8px;">
+                            <i class="fas fa-copy"></i><br>Dupliceer
                         </button>
-                        <button class="btn btn-danger" onclick="templateEditor.deleteElement()" title="Verwijder element">
-                            <i class="fas fa-trash"></i> Verwijder
+                        <button class="btn btn-danger" onclick="templateEditor.deleteElement()" title="Verwijder element" style="font-size:12px;padding:8px;">
+                            <i class="fas fa-trash"></i><br>Verwijder
                         </button>
-                        <button class="btn btn-secondary" onclick="templateEditor.moveElementUp()" title="Verplaats omhoog">
-                            <i class="fas fa-arrow-up"></i> Omhoog
+                        <button class="btn btn-secondary" onclick="templateEditor.moveElementUp()" title="Verplaats omhoog" style="font-size:12px;padding:8px;">
+                            <i class="fas fa-arrow-up"></i><br>Omhoog
                         </button>
-                        <button class="btn btn-secondary" onclick="templateEditor.moveElementDown()" title="Verplaats omlaag">
-                            <i class="fas fa-arrow-down"></i> Omlaag
+                        <button class="btn btn-secondary" onclick="templateEditor.moveElementDown()" title="Verplaats omlaag" style="font-size:12px;padding:8px;">
+                            <i class="fas fa-arrow-down"></i><br>Omlaag
                         </button>
                     </div>
                 </div>
@@ -1897,7 +1919,9 @@ class TemplateEditor {
         const clonedDoc = iframeDoc.cloneNode(true);
         
         // Remove all editor UI elements and classes before saving
+        clonedDoc.querySelectorAll('.wb-section-controls').forEach(controls => controls.remove());
         clonedDoc.querySelectorAll('.wb-add-section-btn').forEach(btn => btn.remove());
+        clonedDoc.querySelectorAll('.wb-delete-section-btn').forEach(btn => btn.remove());
         clonedDoc.querySelectorAll('.wb-add-slide-btn').forEach(btn => btn.remove());
         clonedDoc.querySelectorAll('.wb-quick-actions').forEach(actions => actions.remove());
         clonedDoc.querySelectorAll('.wb-edit-label').forEach(label => label.remove());
@@ -2352,6 +2376,22 @@ class TemplateEditor {
         } catch (error) {
             console.error('[TemplateEditor] Error adding page:', error);
             this.showNotification('❌ Fout bij toevoegen pagina', 'error');
+        }
+    }
+    
+    deleteSection(section) {
+        if (confirm('Weet je zeker dat je deze sectie wilt verwijderen?')) {
+            // Also remove the section controls (buttons) after it
+            const nextEl = section.nextElementSibling;
+            if (nextEl && nextEl.classList.contains('wb-section-controls')) {
+                nextEl.remove();
+            }
+            
+            // Remove the section itself
+            section.remove();
+            
+            this.showNotification('✅ Sectie verwijderd!');
+            console.log('[TemplateEditor] Section deleted');
         }
     }
     
