@@ -366,21 +366,32 @@ class TemplateEditor {
             
             /* Fix gallery grid - remove white borders/gaps */
             .gallery-grid,
-            .gallery-layout1 {
+            .gallery-layout1,
+            .row.gallery-grid,
+            section .row.gallery-grid {
                 gap: 0 !important;
                 padding: 0 !important;
+                margin: 0 !important;
             }
             
             .gallery-grid .col-lg-6,
             .gallery-grid .col-sm-6,
+            .gallery-grid .col-md-6,
             .gallery-layout1 .col-lg-6,
-            .gallery-layout1 .col-sm-6 {
+            .gallery-layout1 .col-sm-6,
+            .gallery-layout1 .col-md-6,
+            .gallery-grid [class*="col-"],
+            .gallery-layout1 [class*="col-"] {
                 padding: 0 !important;
+                margin: 0 !important;
             }
             
             .gallery-grid .gallery-box,
-            .gallery-layout1 .gallery-box {
+            .gallery-layout1 .gallery-box,
+            .gallery-grid img,
+            .gallery-layout1 img {
                 margin: 0 !important;
+                display: block !important;
             }
             
             .wb-editable {
@@ -578,7 +589,7 @@ class TemplateEditor {
     
     makeTextEditable(doc) {
         // Find all text elements - headings, paragraphs, buttons, links, and spans
-        const textSelectors = 'h1, h2, h3, h4, h5, h6, p, span.text-theme-color, span.sec-subtitle, span.content, a.vs-btn, button.vs-btn, .btn, label, input[type="text"], input[type="email"], textarea, select';
+        const textSelectors = 'h1, h2, h3, h4, h5, h6, p, span.text-theme-color, span.sec-subtitle, span.content, a.vs-btn, button.vs-btn, button, .btn, a.btn, label, input[type="text"], input[type="email"], textarea, select';
         const textElements = doc.querySelectorAll(textSelectors);
         
         textElements.forEach(element => {
@@ -3055,10 +3066,23 @@ class TemplateEditor {
         
         // Update logo if provided
         if (logoUrl) {
-            const logos = iframeDoc.querySelectorAll('.logo img, .main-header__logo img, header img[src*="logo"]');
+            // Find all logo images in header
+            const logos = iframeDoc.querySelectorAll('header img, .logo img, .main-header__logo img, .header-logo img, [class*="logo"] img');
+            console.log('[TemplateEditor] Found', logos.length, 'logo images');
+            
             logos.forEach(logo => {
-                logo.src = logoUrl;
+                // Skip if it's not actually a logo (too small or wrong location)
+                if (logo.width > 30 || logo.height > 30) {
+                    logo.src = logoUrl;
+                    logo.style.maxHeight = '60px';
+                    logo.style.width = 'auto';
+                    console.log('[TemplateEditor] Updated logo:', logo);
+                }
             });
+            
+            if (logos.length === 0) {
+                console.warn('[TemplateEditor] No logo images found in header');
+            }
         }
         
         this.showNotification('✅ Website instellingen toegepast!');
