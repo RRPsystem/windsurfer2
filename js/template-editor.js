@@ -727,8 +727,11 @@ class TemplateEditor {
             // Skip if element is empty or only contains images
             if (!element.textContent.trim() || element.querySelector('img')) return;
             
-            // Skip header, navigation menu items, and other non-editable areas
-            if (element.closest('header, nav, .menu, script, style, .skip-edit, .top-one, .main-header, .sticky-wrapper, .header-wrapper')) return;
+            // Skip navigation menu items and other non-editable areas, but ALLOW topbar contact info
+            if (element.closest('nav, .menu, script, style, .skip-edit, .top-one, .main-header, .header-wrapper')) return;
+            
+            // Skip header EXCEPT if it's in the topbar contact info
+            if (element.closest('header') && !element.closest('.header-top-wrap, .contact-info')) return;
             
             // Skip if element IS a header or nav
             if (element.tagName === 'HEADER' || element.tagName === 'NAV') return;
