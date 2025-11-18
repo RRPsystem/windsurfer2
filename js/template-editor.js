@@ -2989,6 +2989,11 @@ class TemplateEditor {
                     <label class="property-label">Tekst Kleur</label>
                     <input type="color" class="property-input" id="textColor" value="#333333">
                 </div>
+                <div class="property-field">
+                    <label class="property-label">Footer Achtergrond</label>
+                    <input type="color" class="property-input" id="footerBgColor" value="#1a1a1a">
+                    <small style="color:#666;font-size:11px;">Achtergrondkleur voor footer</small>
+                </div>
             </div>
             
             <div class="property-section">
@@ -3074,6 +3079,7 @@ class TemplateEditor {
         const primaryColor = document.getElementById('primaryColor').value;
         const secondaryColor = document.getElementById('secondaryColor').value;
         const textColor = document.getElementById('textColor').value;
+        const footerBgColor = document.getElementById('footerBgColor').value;
         const logoUrl = document.getElementById('logoUrl').value;
         const primaryFont = document.getElementById('primaryFont').value;
         
@@ -3111,9 +3117,36 @@ class TemplateEditor {
                 color: ${primaryColor} !important;
             }
             
+            /* Footer links and accents */
+            footer a, .footer a, .footer-widget a,
+            .footer-one a, .footer-two a {
+                color: ${primaryColor} !important;
+            }
+            
+            footer a:hover, .footer a:hover {
+                color: ${primaryHover} !important;
+            }
+            
+            /* Footer buttons and subscribe */
+            footer button, .footer button, .footer .btn,
+            .footer-widget button, .subscribe-btn {
+                background-color: ${primaryColor} !important;
+                border-color: ${primaryColor} !important;
+            }
+            
+            footer button:hover, .footer button:hover {
+                background-color: ${primaryHover} !important;
+            }
+            
             /* Apply secondary color */
             .bg-theme-color, .price-off {
                 background-color: ${secondaryColor} !important;
+            }
+            
+            /* Footer background color */
+            footer, .footer, .footer-one, .footer-two,
+            .main-footer, .site-footer {
+                background-color: ${footerBgColor} !important;
             }
             
             /* Apply font */
