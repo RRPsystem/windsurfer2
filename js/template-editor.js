@@ -2933,8 +2933,11 @@ class TemplateEditor {
                     <i class="fas fa-image"></i> Brand Logo
                 </div>
                 <div class="property-field">
+                    <div id="logoPreview" style="width:100%;height:120px;background:#f5f5f5;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;border:2px dashed #ddd;">
+                        <span style="color:#999;font-size:14px;">Geen logo geselecteerd</span>
+                    </div>
                     <label class="property-label">Logo URL</label>
-                    <input type="text" class="property-input" id="logoUrl" placeholder="https://example.com/logo.png">
+                    <input type="text" class="property-input" id="logoUrl" placeholder="https://example.com/logo.png" onchange="templateEditor.updateLogoPreview()">
                     <small style="color:#666;font-size:11px;">Of kies een afbeelding</small>
                 </div>
                 <button class="media-selector-btn" onclick="templateEditor.selectLogo()">
@@ -2966,11 +2969,23 @@ class TemplateEditor {
         `;
     }
     
+    updateLogoPreview() {
+        const logoUrl = document.getElementById('logoUrl').value;
+        const preview = document.getElementById('logoPreview');
+        
+        if (logoUrl) {
+            preview.innerHTML = `<img src="${logoUrl}" style="max-width:100%;max-height:100%;object-fit:contain;" alt="Logo Preview">`;
+        } else {
+            preview.innerHTML = '<span style="color:#999;font-size:14px;">Geen logo geselecteerd</span>';
+        }
+    }
+    
     async selectLogo() {
         try {
             const result = await window.MediaPicker.openImage();
             if (result && result.url) {
                 document.getElementById('logoUrl').value = result.url;
+                this.updateLogoPreview();
                 this.showNotification('✅ Logo geselecteerd!');
             }
         } catch (err) {
@@ -3094,9 +3109,4 @@ function publishSite() {
 let templateEditor;
 document.addEventListener('DOMContentLoaded', () => {
     templateEditor = new TemplateEditor();
-    
-    // Setup settings button
-    document.getElementById('settingsBtn')?.addEventListener('click', () => {
-        templateEditor.openWebsiteSettings();
-    });
 });
