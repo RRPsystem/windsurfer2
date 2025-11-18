@@ -748,12 +748,13 @@ class TemplateEditor {
             // Skip if it contains ONLY images (no text)
             if (element.querySelector('img') && !element.textContent.trim()) return;
             
-            // ALLOW topbar, contact info, and buttons ALWAYS
+            // ALLOW topbar, contact info, buttons, and feature sections ALWAYS
             const isInTopbar = element.closest('.header-top-wrap, .contact-info, .social-share');
             const isButton = element.tagName === 'BUTTON' || element.classList.contains('btn') || element.classList.contains('vs-btn');
+            const isFeatureSection = element.classList.contains('feature-expert') || element.closest('.vs-feature-style1');
             
-            // Skip navigation menu items UNLESS it's in topbar or is a button
-            if (!isInTopbar && !isButton) {
+            // Skip navigation menu items UNLESS it's in topbar, is a button, or is in feature section
+            if (!isInTopbar && !isButton && !isFeatureSection) {
                 if (element.closest('nav, .menu, script, style, .skip-edit, .top-one, .main-header, .header-wrapper')) return;
                 if (element.closest('header')) return;
                 if (element.tagName === 'HEADER' || element.tagName === 'NAV') return;
