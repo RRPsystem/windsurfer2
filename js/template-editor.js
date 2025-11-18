@@ -3698,6 +3698,19 @@ class TemplateEditor {
         if (textMatch) document.getElementById('textPreview').style.background = textMatch[1];
         if (titleMatch) document.getElementById('titlePreview').style.background = titleMatch[1];
         
+        // Extract logo from iframe and update settings panel
+        const iframe = document.getElementById('templateFrame');
+        const iframeDoc = iframe?.contentDocument || iframe?.contentWindow?.document;
+        if (iframeDoc) {
+            const logoImg = iframeDoc.querySelector('header img.logo, .logo img, .main-header__logo img, .header-logo img, [class*="logo"] img');
+            if (logoImg && logoImg.src && logoImg.src.startsWith('data:image')) {
+                console.log('[TemplateEditor] Extracting logo from iframe...');
+                document.getElementById('logoUrl').value = logoImg.src;
+                this.updateLogoPreview();
+                console.log('[TemplateEditor] Logo extracted and set ✓');
+            }
+        }
+        
         console.log('[TemplateEditor] Colors extracted and applied to settings panel ✓');
     }
     
