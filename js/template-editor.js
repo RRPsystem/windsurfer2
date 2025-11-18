@@ -135,20 +135,34 @@ class TemplateEditor {
                 faviconUrl: 'assets/img/favicon.png'
             },
             'gotur': {
-                primaryColor: '#ff6b6b',
-                secondaryColor: '#4ecdc4',
-                textColor: '#2d3436',
-                titleColor: '#2d3436',
-                footerBgColor: '#2d3436',
-                primaryFont: 'Poppins',
-                titleFont: 'Montserrat',
+                // Colors from gotur.css
+                primaryColor: '#F7921E',      // Orange (--gotur-primary)
+                secondaryColor: '#63AB45',    // Green (--gotur-base)
+                accentColor: '#1D231F',       // Black (--gotur-black)
+                textColor: '#595959',         // Gray (--gotur-text)
+                titleColor: '#1D231F',        // Black (--gotur-black)
+                footerBgColor: '#1D231F',     // Black
+                
+                // Typography
+                primaryFont: 'Plus Jakarta Sans',  // --gotur-font
+                titleFont: 'Plus Jakarta Sans',    // --gotur-heading-font
+                secondaryFont: 'Just Another Hand', // --gotur-font2
                 h1Size: '80px',
                 h2Size: '48px',
                 h3Size: '36px',
                 h4Size: '28px',
                 h5Size: '22px',
                 h6Size: '18px',
-                bodySize: '16px'
+                bodySize: '16px',
+                
+                // Spacing
+                sectionSpace: '100px',
+                containerWidth: '1200px',
+                
+                // Logo & Branding
+                logoMaxWidth: '180px',
+                logoPosition: 'left',
+                faviconUrl: 'assets/images/favicons/favicon.ico'
             }
         };
         
