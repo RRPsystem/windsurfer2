@@ -367,6 +367,9 @@ class TemplateEditor {
                     // Add the saved brand styles to HEAD
                     iframeDoc.head.appendChild(savedBrandStyles.cloneNode(true));
                     console.log('[TemplateEditor] Brand styles applied successfully ✓');
+                    
+                    // Extract colors from saved brand styles and update settings panel
+                    this.extractColorsFromBrandStyles(savedBrandStyles.textContent);
                 } else {
                     console.warn('[TemplateEditor] No brand styles found in saved HTML HEAD!');
                 }
@@ -3650,6 +3653,48 @@ class TemplateEditor {
         
         console.log('[TemplateEditor] Website settings applied successfully ✓');
         this.showNotification('✅ Instellingen toegepast!');
+    }
+    
+    extractColorsFromBrandStyles(cssText) {
+        console.log('[TemplateEditor] Extracting colors from brand styles...');
+        
+        // Extract colors using regex
+        const primaryMatch = cssText.match(/--brand-primary:\s*(#[0-9a-fA-F]{6})/);
+        const secondaryMatch = cssText.match(/--brand-secondary:\s*(#[0-9a-fA-F]{6})/);
+        const accentMatch = cssText.match(/--brand-accent:\s*(#[0-9a-fA-F]{6})/);
+        const textMatch = cssText.match(/--brand-text:\s*(#[0-9a-fA-F]{6})/);
+        const titleMatch = cssText.match(/--brand-title:\s*(#[0-9a-fA-F]{6})/);
+        
+        // Update settings panel inputs
+        if (primaryMatch && document.getElementById('primaryColor')) {
+            document.getElementById('primaryColor').value = primaryMatch[1];
+            console.log('[TemplateEditor] Set primary color:', primaryMatch[1]);
+        }
+        if (secondaryMatch && document.getElementById('secondaryColor')) {
+            document.getElementById('secondaryColor').value = secondaryMatch[1];
+            console.log('[TemplateEditor] Set secondary color:', secondaryMatch[1]);
+        }
+        if (accentMatch && document.getElementById('accentColor')) {
+            document.getElementById('accentColor').value = accentMatch[1];
+            console.log('[TemplateEditor] Set accent color:', accentMatch[1]);
+        }
+        if (textMatch && document.getElementById('textColor')) {
+            document.getElementById('textColor').value = textMatch[1];
+            console.log('[TemplateEditor] Set text color:', textMatch[1]);
+        }
+        if (titleMatch && document.getElementById('titleColor')) {
+            document.getElementById('titleColor').value = titleMatch[1];
+            console.log('[TemplateEditor] Set title color:', titleMatch[1]);
+        }
+        
+        // Update color previews
+        if (primaryMatch) document.getElementById('primaryPreview').style.background = primaryMatch[1];
+        if (secondaryMatch) document.getElementById('secondaryPreview').style.background = secondaryMatch[1];
+        if (accentMatch) document.getElementById('accentPreview').style.background = accentMatch[1];
+        if (textMatch) document.getElementById('textPreview').style.background = textMatch[1];
+        if (titleMatch) document.getElementById('titlePreview').style.background = titleMatch[1];
+        
+        console.log('[TemplateEditor] Colors extracted and applied to settings panel ✓');
     }
     
     resetToDefaults() {
