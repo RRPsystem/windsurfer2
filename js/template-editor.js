@@ -3143,9 +3143,24 @@ class TemplateEditor {
                 background-color: ${secondaryColor} !important;
             }
             
-            /* Footer background color */
+            /* Footer background color - very specific to override template styles */
             footer, .footer, .footer-one, .footer-two,
-            .main-footer, .site-footer {
+            .main-footer, .site-footer,
+            footer.footer-one, footer.footer-two,
+            .footer-one__top, .footer-one__bottom,
+            .footer-two__top, .footer-two__bottom,
+            section.footer, section.footer-one, section.footer-two {
+                background-color: ${footerBgColor} !important;
+                background-image: none !important;
+            }
+            
+            /* Override any footer section backgrounds */
+            footer *, .footer *, .footer-one *, .footer-two * {
+                background-color: transparent !important;
+            }
+            
+            /* But keep the main footer background */
+            footer, .footer, .footer-one, .footer-two {
                 background-color: ${footerBgColor} !important;
             }
             
