@@ -352,6 +352,17 @@ class TemplateEditor {
                 Array.from(savedDoc.body.attributes).forEach(attr => {
                     iframeDoc.body.setAttribute(attr.name, attr.value);
                 });
+                
+                // IMPORTANT: Re-apply brand styles if they exist in the saved HTML
+                const savedBrandStyles = savedDoc.getElementById('wb-brand-styles');
+                if (savedBrandStyles) {
+                    console.log('[TemplateEditor] Re-applying saved brand styles...');
+                    // Remove any existing brand styles first
+                    const existingStyles = iframeDoc.getElementById('wb-brand-styles');
+                    if (existingStyles) existingStyles.remove();
+                    // Add the saved brand styles
+                    iframeDoc.head.appendChild(savedBrandStyles.cloneNode(true));
+                }
             }
             
             this.setupIframeEditing();
