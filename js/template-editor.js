@@ -341,6 +341,25 @@ class TemplateEditor {
                 object-fit: cover;
             }
             
+            /* Fix gallery grid - remove white borders/gaps */
+            .gallery-grid,
+            .gallery-layout1 {
+                gap: 0 !important;
+                padding: 0 !important;
+            }
+            
+            .gallery-grid .col-lg-6,
+            .gallery-grid .col-sm-6,
+            .gallery-layout1 .col-lg-6,
+            .gallery-layout1 .col-sm-6 {
+                padding: 0 !important;
+            }
+            
+            .gallery-grid .gallery-box,
+            .gallery-layout1 .gallery-box {
+                margin: 0 !important;
+            }
+            
             .wb-editable {
                 outline: 2px dashed transparent;
                 transition: all 0.2s;
@@ -516,7 +535,7 @@ class TemplateEditor {
     
     makeTextEditable(doc) {
         // Find all text elements - headings, paragraphs, buttons, links, and spans
-        const textSelectors = 'h1, h2, h3, h4, h5, h6, p, span.text-theme-color, span.sec-subtitle, a.vs-btn, button.vs-btn, .btn, label, input[type="text"], input[type="email"], textarea, select';
+        const textSelectors = 'h1, h2, h3, h4, h5, h6, p, span.text-theme-color, span.sec-subtitle, span.content, a.vs-btn, button.vs-btn, .btn, label, input[type="text"], input[type="email"], textarea, select';
         const textElements = doc.querySelectorAll(textSelectors);
         
         textElements.forEach(element => {
