@@ -2898,37 +2898,6 @@ class TemplateEditor {
             this.showNotification('❌ Fout bij kopiëren menu', 'error');
         }
     }
-}
-
-// Global functions
-function previewSite() {
-    templateEditor.previewSite();
-}
-
-function saveDraft() {
-    templateEditor.saveDraft();
-}
-
-function clearDraft() {
-    if (confirm('⚠️ Weet je zeker dat je alle wijzigingen wilt verwijderen en terug wilt naar het originele template?')) {
-        // Clear localStorage
-        localStorage.removeItem(`template_draft_${templateEditor.templateName}`);
-        
-        // Clear Supabase draft
-        if (templateEditor.supabase && templateEditor.brandId) {
-            templateEditor.supabase
-                .from('template_drafts')
-                .delete()
-                .eq('brand_id', templateEditor.brandId)
-                .eq('template', templateEditor.templateName)
-                .then(() => {
-                    console.log('[TemplateEditor] Draft cleared from Supabase');
-                });
-        }
-        
-        // Reload page to load original template
-        window.location.reload();
-    }
     
     openWebsiteSettings() {
         const propertiesPanel = document.getElementById('propertiesContent');
@@ -3083,6 +3052,37 @@ function clearDraft() {
         const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amount));
         const b = Math.max(0, Math.min(255, (num & 0x0000FF) + amount));
         return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+    }
+}
+
+// Global functions
+function previewSite() {
+    templateEditor.previewSite();
+}
+
+function saveDraft() {
+    templateEditor.saveDraft();
+}
+
+function clearDraft() {
+    if (confirm('⚠️ Weet je zeker dat je alle wijzigingen wilt verwijderen en terug wilt naar het originele template?')) {
+        // Clear localStorage
+        localStorage.removeItem(`template_draft_${templateEditor.templateName}`);
+        
+        // Clear Supabase draft
+        if (templateEditor.supabase && templateEditor.brandId) {
+            templateEditor.supabase
+                .from('template_drafts')
+                .delete()
+                .eq('brand_id', templateEditor.brandId)
+                .eq('template', templateEditor.templateName)
+                .then(() => {
+                    console.log('[TemplateEditor] Draft cleared from Supabase');
+                });
+        }
+        
+        // Reload page to load original template
+        window.location.reload();
     }
 }
 
