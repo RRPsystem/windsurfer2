@@ -719,8 +719,8 @@ class TemplateEditor {
     }
     
     makeTextEditable(doc) {
-        // Find all text elements - headings, paragraphs, buttons, links, and spans
-        const textSelectors = 'h1, h2, h3, h4, h5, h6, p, span.text-theme-color, span.sec-subtitle, span.content, a.vs-btn, button.vs-btn, button, .btn, a.btn, label, input[type="text"], input[type="email"], textarea, select';
+        // Find all text elements - headings, paragraphs, buttons, links, and ALL spans with text
+        const textSelectors = 'h1, h2, h3, h4, h5, h6, p, span, a.vs-btn, button.vs-btn, button, .btn, a.btn, label, input[type="text"], input[type="email"], textarea, select, div.price-off, div.discount';
         const textElements = doc.querySelectorAll(textSelectors);
         
         textElements.forEach(element => {
