@@ -1125,16 +1125,28 @@ class TemplateEditor {
         const newColor = document.getElementById('textColor')?.value;
         const newSize = document.getElementById('fontSize')?.value;
         
-        // Update text content - preserve inner HTML if it contains only text nodes and spans
-        if (element.children.length === 0 || element.tagName === 'BUTTON' || element.tagName === 'A') {
+        // Update text content - handle different element structures
+        if (element.tagName === 'BUTTON' || element.tagName === 'A') {
+            // For buttons and links, just replace text
+            element.textContent = newText;
+        } else if (element.children.length === 0) {
+            // No children, simple text replacement
             element.textContent = newText;
         } else {
-            // For complex elements, try to preserve structure
-            const textNodes = Array.from(element.childNodes).filter(node => node.nodeType === Node.TEXT_NODE);
-            if (textNodes.length > 0) {
-                textNodes[0].textContent = newText;
+            // Has children - check if it's a link inside heading
+            const link = element.querySelector('a');
+            if (link) {
+                // Update the link text
+                link.textContent = newText;
             } else {
-                element.textContent = newText;
+                // Try to update first text node
+                const textNodes = Array.from(element.childNodes).filter(node => node.nodeType === Node.TEXT_NODE);
+                if (textNodes.length > 0) {
+                    textNodes[0].textContent = newText;
+                } else {
+                    // Fallback: replace all text
+                    element.textContent = newText;
+                }
             }
         }
         
