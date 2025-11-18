@@ -2144,7 +2144,9 @@ class TemplateEditor {
         
         try {
             // Get all modified pages
+            console.log('[TemplateEditor] Getting modified pages...');
             const modifiedPages = await this.getModifiedPages();
+            console.log('[TemplateEditor] Modified pages retrieved:', modifiedPages);
             
             // Save to localStorage
             const draftData = {
@@ -2157,20 +2159,23 @@ class TemplateEditor {
             console.log('[TemplateEditor] Saving draft data:', {
                 template: draftData.template,
                 brandId: draftData.brandId,
-                pagesCount: Object.keys(modifiedPages).length
+                pagesCount: modifiedPages ? modifiedPages.length : 0
             });
             
             localStorage.setItem(`template_draft_${this.templateName}`, JSON.stringify(draftData));
+            console.log('[TemplateEditor] Draft saved to localStorage');
             
             this.showNotification('💾 Draft opgeslagen!');
             
             // If we have Supabase credentials, also save to database
             if (this.supabase && this.brandId) {
+                console.log('[TemplateEditor] Saving to Supabase...');
                 await this.saveToSupabase(draftData);
             }
         } catch (error) {
             console.error('[TemplateEditor] Save error:', error);
-            this.showNotification('❌ Fout bij opslaan', 'error');
+            console.error('[TemplateEditor] Error stack:', error.stack);
+            this.showNotification('❌ Fout bij opslaan: ' + error.message, 'error');
         }
     }
     
