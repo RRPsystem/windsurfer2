@@ -3244,6 +3244,11 @@ class TemplateEditor {
                 background-color: ${secondaryColor} !important;
             }
             
+            /* Footer CTA bar - use primary color */
+            .footer-cta, .footer-cta.bg-third-theme-color {
+                background-color: ${primaryColor} !important;
+            }
+            
             /* Footer background color - very specific to override template styles */
             footer, .footer, .footer-one, .footer-two,
             .main-footer, .site-footer,
@@ -3255,8 +3260,9 @@ class TemplateEditor {
                 background-image: none !important;
             }
             
-            /* Override any footer section backgrounds */
-            footer *, .footer *, .footer-one *, .footer-two * {
+            /* Override any footer section backgrounds except CTA */
+            footer *:not(.footer-cta), .footer *:not(.footer-cta), 
+            .footer-one *:not(.footer-cta), .footer-two *:not(.footer-cta) {
                 background-color: transparent !important;
             }
             
