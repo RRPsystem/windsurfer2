@@ -3004,6 +3004,9 @@ function clearDraft() {
         const logoUrl = document.getElementById('logoUrl').value;
         const primaryFont = document.getElementById('primaryFont').value;
         
+        // Calculate hover color
+        const primaryHover = this.adjustColor(primaryColor, -20);
+        
         // Apply colors via CSS variables
         const style = iframeDoc.createElement('style');
         style.id = 'wb-brand-styles';
@@ -3028,7 +3031,7 @@ function clearDraft() {
             }
             
             .vs-btn:hover, .btn-primary:hover, .theme-btn:hover {
-                background-color: ${this.adjustColor(primaryColor, -20)} !important;
+                background-color: ${primaryHover} !important;
             }
             
             a, .text-theme-color, .sec-subtitle {
