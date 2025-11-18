@@ -2202,6 +2202,20 @@ class TemplateEditor {
         // Clone the document to avoid modifying the live page
         const clonedDoc = iframeDoc.cloneNode(true);
         
+        // IMPORTANT: Ensure brand styles are in the cloned document
+        const originalBrandStyles = iframeDoc.getElementById('wb-brand-styles');
+        const clonedBrandStyles = clonedDoc.getElementById('wb-brand-styles');
+        
+        if (originalBrandStyles && !clonedBrandStyles) {
+            console.warn('[TemplateEditor] Brand styles not cloned! Re-adding...');
+            const brandStylesCopy = originalBrandStyles.cloneNode(true);
+            clonedDoc.head.appendChild(brandStylesCopy);
+        } else if (originalBrandStyles && clonedBrandStyles) {
+            console.log('[TemplateEditor] Brand styles present in clone ✓');
+        } else {
+            console.warn('[TemplateEditor] No brand styles found in original document!');
+        }
+        
         // Remove all editor UI elements and classes before saving
         clonedDoc.querySelectorAll('.wb-section-controls').forEach(controls => controls.remove());
         clonedDoc.querySelectorAll('.wb-add-section-btn').forEach(btn => btn.remove());
