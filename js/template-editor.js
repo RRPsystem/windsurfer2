@@ -561,17 +561,18 @@ class TemplateEditor {
                 pointer-events: none;
             }
             
-            /* Keep header topbar always visible */
-            .header-top-wrap {
-                position: relative !important;
-                display: block !important;
-                visibility: visible !important;
+            /* Keep header topbar always visible - override GSAP hiding */
+            .sticky-wrapper, .header-top-wrap {
                 opacity: 1 !important;
+                visibility: visible !important;
+                transform: none !important;
             }
             
-            /* Prevent navbar from hiding topbar */
+            /* Prevent GSAP from hiding the entire navbar container */
             #navbars {
-                position: relative !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                transform: translateY(0) !important;
             }
             
             .wb-quick-actions {
