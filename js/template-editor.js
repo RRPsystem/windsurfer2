@@ -23,59 +23,74 @@ class TemplateEditor {
     }
     
     async init() {
-        console.log('[TemplateEditor] Initializing...');
-        console.log('[TemplateEditor] Brand ID:', this.brandId);
-        console.log('[TemplateEditor] Token:', this.token ? 'Present' : 'Missing');
-        console.log('[TemplateEditor] API Key:', this.apiKey ? 'Present' : 'Missing');
-        
-        // Security check: Require brand_id and token for editor access
-        if (!this.brandId || !this.token) {
+        try {
+            console.log('[TemplateEditor] Initializing...');
+            console.log('[TemplateEditor] Brand ID:', this.brandId);
+            console.log('[TemplateEditor] Token:', this.token ? 'Present' : 'Missing');
+            console.log('[TemplateEditor] API Key:', this.apiKey ? 'Present' : 'Missing');
+            
+            // Security check: Require brand_id and token for editor access
+            if (!this.brandId || !this.token) {
+                document.getElementById('loadingOverlay').innerHTML = `
+                    <div style="text-align:center;">
+                        <div style="font-size:64px;margin-bottom:20px;">🔒</div>
+                        <h2 style="color:#333;margin-bottom:16px;">Toegang Geweigerd</h2>
+                        <p style="color:#666;margin-bottom:24px;">Deze editor is alleen toegankelijk via een geldige deeplink vanuit BOLT.</p>
+                        <p style="color:#999;font-size:14px;">Ontbrekende parameters: ${!this.brandId ? 'brand_id' : ''} ${!this.token ? 'token' : ''}</p>
+                        <button onclick="window.close()" style="margin-top:20px;padding:12px 24px;background:#667eea;color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px;">
+                            Sluiten
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Initialize Supabase if we have credentials
+            if (this.apiKey) {
+                const supabaseUrl = this.apiUrl.replace('/functions/v1', '');
+                this.supabase = supabase.createClient(supabaseUrl, this.apiKey);
+            }
+            
+            // Extract user ID from JWT token
+            if (this.token) {
+                try {
+                    const payload = JSON.parse(atob(this.token.split('.')[1]));
+                    this.userId = payload.sub;
+                    console.log('[TemplateEditor] User ID:', this.userId);
+                } catch (e) {
+                    console.error('[TemplateEditor] Failed to parse token:', e);
+                }
+            }
+            
+            // Set template name in header
+            document.getElementById('templateName').textContent = 
+                this.templateName.charAt(0).toUpperCase() + this.templateName.slice(1) + ' Template Editor';
+            
+            // Load template pages
+            await this.loadTemplatePages();
+            
+            // Setup device selector
+            this.setupDeviceSelector();
+            
+            // Setup keyboard shortcuts
+            this.setupKeyboardShortcuts();
+            
+            // Hide loading overlay
+            document.getElementById('loadingOverlay').style.display = 'none';
+        } catch (error) {
+            console.error('[TemplateEditor] Initialization error:', error);
             document.getElementById('loadingOverlay').innerHTML = `
                 <div style="text-align:center;">
-                    <div style="font-size:64px;margin-bottom:20px;">🔒</div>
-                    <h2 style="color:#333;margin-bottom:16px;">Toegang Geweigerd</h2>
-                    <p style="color:#666;margin-bottom:24px;">Deze editor is alleen toegankelijk via een geldige deeplink vanuit BOLT.</p>
-                    <p style="color:#999;font-size:14px;">Ontbrekende parameters: ${!this.brandId ? 'brand_id' : ''} ${!this.token ? 'token' : ''}</p>
-                    <button onclick="window.close()" style="margin-top:20px;padding:12px 24px;background:#667eea;color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px;">
-                        Sluiten
+                    <div style="font-size:64px;margin-bottom:20px;">❌</div>
+                    <h2 style="color:#333;margin-bottom:16px;">Fout bij Laden</h2>
+                    <p style="color:#666;margin-bottom:24px;">Er is een fout opgetreden bij het laden van de editor.</p>
+                    <p style="color:#999;font-size:12px;font-family:monospace;">${error.message}</p>
+                    <button onclick="window.location.reload()" style="margin-top:20px;padding:12px 24px;background:#667eea;color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px;">
+                        Opnieuw Proberen
                     </button>
                 </div>
             `;
-            throw new Error('Unauthorized access - missing credentials');
         }
-        
-        // Initialize Supabase if we have credentials
-        if (this.apiKey) {
-            const supabaseUrl = this.apiUrl.replace('/functions/v1', '');
-            this.supabase = supabase.createClient(supabaseUrl, this.apiKey);
-        }
-        
-        // Extract user ID from JWT token
-        if (this.token) {
-            try {
-                const payload = JSON.parse(atob(this.token.split('.')[1]));
-                this.userId = payload.sub;
-                console.log('[TemplateEditor] User ID:', this.userId);
-            } catch (e) {
-                console.error('[TemplateEditor] Failed to parse token:', e);
-            }
-        }
-        
-        // Set template name in header
-        document.getElementById('templateName').textContent = 
-            this.templateName.charAt(0).toUpperCase() + this.templateName.slice(1) + ' Template Editor';
-        
-        // Load template pages
-        await this.loadTemplatePages();
-        
-        // Setup device selector
-        this.setupDeviceSelector();
-        
-        // Setup keyboard shortcuts
-        this.setupKeyboardShortcuts();
-        
-        // Hide loading overlay
-        document.getElementById('loadingOverlay').style.display = 'none';
     }
     
     async loadTemplatePages() {
