@@ -3552,9 +3552,20 @@ class TemplateEditor {
             }
             
             /* Apply secondary color to specific background classes only */
-            .bg-theme-color, .price-off,
-            .bg-second-theme-color, .bg-secondary-color,
-            .secondary-bg, .sec-bg {
+            /* BUT preserve background images! */
+            .bg-theme-color:not([data-bg-src]):not([style*="background-image"]), 
+            .price-off:not([data-bg-src]):not([style*="background-image"]),
+            .bg-second-theme-color:not([data-bg-src]):not([style*="background-image"]), 
+            .bg-secondary-color:not([data-bg-src]):not([style*="background-image"]),
+            .secondary-bg:not([data-bg-src]):not([style*="background-image"]), 
+            .sec-bg:not([data-bg-src]):not([style*="background-image"]) {
+                background-color: ${secondaryColor} !important;
+            }
+            
+            /* For elements WITH background images, use overlay approach */
+            .bg-second-theme-color[data-bg-src],
+            .bg-second-theme-color[style*="background-image"] {
+                background-blend-mode: multiply !important;
                 background-color: ${secondaryColor} !important;
             }
             
