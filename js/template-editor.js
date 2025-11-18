@@ -561,6 +561,19 @@ class TemplateEditor {
                 pointer-events: none;
             }
             
+            /* Keep header topbar always visible */
+            .header-top-wrap {
+                position: relative !important;
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+            
+            /* Prevent navbar from hiding topbar */
+            #navbars {
+                position: relative !important;
+            }
+            
             .wb-quick-actions {
                 position: absolute;
                 top: 8px;
