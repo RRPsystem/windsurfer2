@@ -364,14 +364,18 @@ class TemplateEditor {
                 object-fit: cover;
             }
             
-            /* Fix gallery grid - remove white borders/gaps */
+            /* Fix gallery grid - 2x2 equal boxes */
             .gallery-grid,
             .gallery-layout1,
             .row.gallery-grid,
             section .row.gallery-grid {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                grid-template-rows: 1fr 1fr !important;
                 gap: 0 !important;
                 padding: 0 !important;
                 margin: 0 !important;
+                width: 100% !important;
             }
             
             .gallery-grid .col-lg-6,
@@ -384,14 +388,25 @@ class TemplateEditor {
             .gallery-layout1 [class*="col-"] {
                 padding: 0 !important;
                 margin: 0 !important;
+                width: 100% !important;
+                height: 300px !important;
             }
             
             .gallery-grid .gallery-box,
-            .gallery-layout1 .gallery-box,
+            .gallery-layout1 .gallery-box {
+                margin: 0 !important;
+                height: 100% !important;
+                position: relative !important;
+                overflow: hidden !important;
+            }
+            
             .gallery-grid img,
             .gallery-layout1 img {
                 margin: 0 !important;
                 display: block !important;
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: cover !important;
             }
             
             .wb-editable {
@@ -605,8 +620,8 @@ class TemplateEditor {
             // Skip if text is too short (likely not main content)
             if (element.textContent.trim().length < 2) return;
             
-            // Skip icon-only elements
-            if (element.querySelector('i.fa-solid, i.fa-regular') && element.textContent.trim().length < 3) return;
+            // Skip icon-only elements (but allow buttons with text)
+            if (element.querySelector('i.fa-solid, i.fa-regular') && element.textContent.trim().length < 3 && element.tagName !== 'BUTTON' && !element.classList.contains('btn')) return;
             
             element.classList.add('wb-editable', 'wb-text');
             
@@ -1058,17 +1073,21 @@ class TemplateEditor {
                         <i class="fas fa-tools"></i> Element Acties
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                        <button class="btn btn-secondary" onclick="templateEditor.duplicateElement()" title="Dupliceer element" style="font-size:12px;padding:8px;">
-                            <i class="fas fa-copy"></i><br>Dupliceer
+                        <button onclick="templateEditor.duplicateElement()" title="Dupliceer element" style="font-size:11px;padding:10px 8px;background:#6c757d;color:white;border:none;border-radius:6px;cursor:pointer;line-height:1.4;text-align:center;">
+                            <i class="fas fa-copy" style="display:block;margin-bottom:4px;font-size:14px;"></i>
+                            <span style="display:block;">Dupliceer</span>
                         </button>
-                        <button class="btn btn-danger" onclick="templateEditor.deleteElement()" title="Verwijder element" style="font-size:12px;padding:8px;">
-                            <i class="fas fa-trash"></i><br>Verwijder
+                        <button onclick="templateEditor.deleteElement()" title="Verwijder element" style="font-size:11px;padding:10px 8px;background:#dc3545;color:white;border:none;border-radius:6px;cursor:pointer;line-height:1.4;text-align:center;">
+                            <i class="fas fa-trash" style="display:block;margin-bottom:4px;font-size:14px;"></i>
+                            <span style="display:block;">Verwijder</span>
                         </button>
-                        <button class="btn btn-secondary" onclick="templateEditor.moveElementUp()" title="Verplaats omhoog" style="font-size:12px;padding:8px;">
-                            <i class="fas fa-arrow-up"></i><br>Omhoog
+                        <button onclick="templateEditor.moveElementUp()" title="Verplaats omhoog" style="font-size:11px;padding:10px 8px;background:#6c757d;color:white;border:none;border-radius:6px;cursor:pointer;line-height:1.4;text-align:center;">
+                            <i class="fas fa-arrow-up" style="display:block;margin-bottom:4px;font-size:14px;"></i>
+                            <span style="display:block;">Omhoog</span>
                         </button>
-                        <button class="btn btn-secondary" onclick="templateEditor.moveElementDown()" title="Verplaats omlaag" style="font-size:12px;padding:8px;">
-                            <i class="fas fa-arrow-down"></i><br>Omlaag
+                        <button onclick="templateEditor.moveElementDown()" title="Verplaats omlaag" style="font-size:11px;padding:10px 8px;background:#6c757d;color:white;border:none;border-radius:6px;cursor:pointer;line-height:1.4;text-align:center;">
+                            <i class="fas fa-arrow-down" style="display:block;margin-bottom:4px;font-size:14px;"></i>
+                            <span style="display:block;">Omlaag</span>
                         </button>
                     </div>
                 </div>
