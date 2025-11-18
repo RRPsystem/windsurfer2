@@ -171,12 +171,22 @@ class TemplateEditor {
         // Store template defaults for reference
         this.templateDefaults = defaults;
         
-        // Set color values in settings panel
-        document.getElementById('primaryColor').value = defaults.primaryColor;
-        document.getElementById('secondaryColor').value = defaults.secondaryColor;
-        document.getElementById('textColor').value = defaults.textColor;
-        document.getElementById('footerBgColor').value = defaults.footerBgColor;
-        document.getElementById('primaryFont').value = defaults.primaryFont;
+        // Try to set color values in settings panel (if elements exist)
+        try {
+            const primaryColorEl = document.getElementById('primaryColor');
+            const secondaryColorEl = document.getElementById('secondaryColor');
+            const textColorEl = document.getElementById('textColor');
+            const footerBgColorEl = document.getElementById('footerBgColor');
+            const primaryFontEl = document.getElementById('primaryFont');
+            
+            if (primaryColorEl) primaryColorEl.value = defaults.primaryColor;
+            if (secondaryColorEl) secondaryColorEl.value = defaults.secondaryColor;
+            if (textColorEl) textColorEl.value = defaults.textColor;
+            if (footerBgColorEl) footerBgColorEl.value = defaults.footerBgColor;
+            if (primaryFontEl) primaryFontEl.value = defaults.primaryFont;
+        } catch (error) {
+            console.log('[TemplateEditor] Settings panel not ready yet, defaults stored for later');
+        }
         
         console.log('[TemplateEditor] Loaded template defaults:', defaults);
     }
