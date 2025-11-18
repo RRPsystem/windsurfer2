@@ -13,11 +13,17 @@ class TemplateEditor {
         
         // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
-        this.templateName = urlParams.get('template') || 'gotur';
+        this.templateName = urlParams.get('template') || 'tripix';  // Changed default from 'gotur' to 'tripix'
         this.brandId = urlParams.get('brand_id');
         this.token = urlParams.get('token');
         this.apiKey = urlParams.get('apikey');
         this.apiUrl = urlParams.get('api') || 'https://huaaogdxxdcakxryecnw.supabase.co/functions/v1';
+        
+        console.log('[TemplateEditor] Template name from URL:', this.templateName);
+        console.log('[TemplateEditor] URL params:', {
+            template: urlParams.get('template'),
+            brand_id: urlParams.get('brand_id')
+        });
         
         this.init();
     }
@@ -1932,6 +1938,7 @@ class TemplateEditor {
     
     async saveDraft() {
         console.log('[TemplateEditor] Saving draft...');
+        console.log('[TemplateEditor] Template name:', this.templateName);
         
         try {
             // Get all modified pages
@@ -1944,6 +1951,12 @@ class TemplateEditor {
                 timestamp: Date.now(),
                 brandId: this.brandId
             };
+            
+            console.log('[TemplateEditor] Saving draft data:', {
+                template: draftData.template,
+                brandId: draftData.brandId,
+                pagesCount: Object.keys(modifiedPages).length
+            });
             
             localStorage.setItem(`template_draft_${this.templateName}`, JSON.stringify(draftData));
             
