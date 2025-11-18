@@ -735,27 +735,25 @@ class TemplateEditor {
         const textElements = doc.querySelectorAll(textSelectors);
         
         textElements.forEach(element => {
-            // Skip if element is empty or only contains images/icons only
-            if (!element.textContent.trim() || (element.querySelector('img') && !element.textContent.trim())) return;
+            // Skip if element is empty
+            if (!element.textContent.trim()) return;
             
-            // Skip if it's ONLY an icon (no text)
-            if (element.querySelector('i.fa-solid, i.fa-regular, i.fab') && element.textContent.trim().length === 0) return;
+            // Skip if it contains ONLY images (no text)
+            if (element.querySelector('img') && !element.textContent.trim()) return;
             
-            // Skip navigation menu items and other non-editable areas, but ALLOW topbar contact info and social links
-            if (element.closest('nav, .menu, script, style, .skip-edit, .top-one, .main-header, .header-wrapper') && 
-                !element.closest('.header-top-wrap, .contact-info, .social-share')) return;
+            // ALLOW topbar, contact info, and buttons ALWAYS
+            const isInTopbar = element.closest('.header-top-wrap, .contact-info, .social-share');
+            const isButton = element.tagName === 'BUTTON' || element.classList.contains('btn') || element.classList.contains('vs-btn');
             
-            // Skip header EXCEPT if it's in the topbar contact info or social share
-            if (element.closest('header') && !element.closest('.header-top-wrap, .contact-info, .social-share')) return;
+            // Skip navigation menu items UNLESS it's in topbar or is a button
+            if (!isInTopbar && !isButton) {
+                if (element.closest('nav, .menu, script, style, .skip-edit, .top-one, .main-header, .header-wrapper')) return;
+                if (element.closest('header')) return;
+                if (element.tagName === 'HEADER' || element.tagName === 'NAV') return;
+            }
             
-            // Skip if element IS a header or nav
-            if (element.tagName === 'HEADER' || element.tagName === 'NAV') return;
-            
-            // Skip if text is too short (likely not main content)
-            if (element.textContent.trim().length < 2) return;
-            
-            // Skip icon-only elements (but allow buttons with text)
-            if (element.querySelector('i.fa-solid, i.fa-regular') && element.textContent.trim().length < 3 && element.tagName !== 'BUTTON' && !element.classList.contains('btn')) return;
+            // Skip very short text (but allow buttons and topbar items)
+            if (!isButton && !isInTopbar && element.textContent.trim().length < 2) return;
             
             element.classList.add('wb-editable', 'wb-text');
             
