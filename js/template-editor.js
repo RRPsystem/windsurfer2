@@ -2172,6 +2172,22 @@ class TemplateEditor {
                 console.log('[TemplateEditor] Saving to Supabase...');
                 await this.saveToSupabase(draftData);
             }
+            
+            // IMPORTANT: Re-apply brand styles after save to keep them visible
+            // The styles are saved in the HTML but need to be re-applied to the live iframe
+            const iframe = document.getElementById('templateFrame');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            const brandStyles = iframeDoc.getElementById('wb-brand-styles');
+            if (brandStyles) {
+                console.log('[TemplateEditor] Re-applying brand styles after save...');
+                // Force a re-render by removing and re-adding
+                const styleContent = brandStyles.textContent;
+                brandStyles.remove();
+                const newStyle = iframeDoc.createElement('style');
+                newStyle.id = 'wb-brand-styles';
+                newStyle.textContent = styleContent;
+                iframeDoc.head.appendChild(newStyle);
+            }
         } catch (error) {
             console.error('[TemplateEditor] Save error:', error);
             console.error('[TemplateEditor] Error stack:', error.stack);
