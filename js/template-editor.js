@@ -81,6 +81,9 @@ class TemplateEditor {
             // Setup keyboard shortcuts
             this.setupKeyboardShortcuts();
             
+            // Setup auto-save (every 2 minutes)
+            this.setupAutoSave();
+            
             // Hide loading overlay
             document.getElementById('loadingOverlay').style.display = 'none';
         } catch (error) {
@@ -1861,6 +1864,16 @@ class TemplateEditor {
                 this.selectedElement = null;
             }
         });
+    }
+    
+    setupAutoSave() {
+        // Auto-save every 2 minutes
+        this.autoSaveInterval = setInterval(() => {
+            console.log('[TemplateEditor] Auto-saving...');
+            this.saveDraft();
+        }, 120000); // 2 minutes
+        
+        console.log('[TemplateEditor] Auto-save enabled (every 2 minutes)');
     }
     
     showNotification(message, type = 'success') {
