@@ -2914,6 +2914,158 @@ function clearDraft() {
         // Reload page to load original template
         window.location.reload();
     }
+    
+    openWebsiteSettings() {
+        const propertiesPanel = document.getElementById('propertiesContent');
+        
+        // Get current brand colors from CSS variables or defaults
+        const iframe = document.getElementById('templateFrame');
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        const rootStyles = window.getComputedStyle(iframeDoc.documentElement);
+        
+        propertiesPanel.innerHTML = `
+            <div class="property-section">
+                <div class="property-title">
+                    <i class="fas fa-palette"></i> Brand Kleuren
+                </div>
+                <div class="property-field">
+                    <label class="property-label">Primaire Kleur</label>
+                    <input type="color" class="property-input" id="primaryColor" value="#FF8C00">
+                    <small style="color:#666;font-size:11px;">Hoofdkleur voor buttons, links, etc.</small>
+                </div>
+                <div class="property-field">
+                    <label class="property-label">Secundaire Kleur</label>
+                    <input type="color" class="property-input" id="secondaryColor" value="#667eea">
+                    <small style="color:#666;font-size:11px;">Accent kleur voor highlights</small>
+                </div>
+                <div class="property-field">
+                    <label class="property-label">Tekst Kleur</label>
+                    <input type="color" class="property-input" id="textColor" value="#333333">
+                </div>
+            </div>
+            
+            <div class="property-section">
+                <div class="property-title">
+                    <i class="fas fa-image"></i> Brand Logo
+                </div>
+                <div class="property-field">
+                    <label class="property-label">Logo URL</label>
+                    <input type="text" class="property-input" id="logoUrl" placeholder="https://example.com/logo.png">
+                    <small style="color:#666;font-size:11px;">Of kies een afbeelding</small>
+                </div>
+                <button class="media-selector-btn" onclick="templateEditor.selectLogo()">
+                    <i class="fas fa-image"></i> Kies Logo
+                </button>
+            </div>
+            
+            <div class="property-section">
+                <div class="property-title">
+                    <i class="fas fa-font"></i> Typografie
+                </div>
+                <div class="property-field">
+                    <label class="property-label">Primair Font</label>
+                    <select class="property-input" id="primaryFont">
+                        <option value="Poppins">Poppins</option>
+                        <option value="Roboto">Roboto</option>
+                        <option value="Open Sans">Open Sans</option>
+                        <option value="Lato">Lato</option>
+                        <option value="Montserrat">Montserrat</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="property-section">
+                <button class="btn btn-primary" style="width:100%;" onclick="templateEditor.applyWebsiteSettings()">
+                    <i class="fas fa-check"></i> Instellingen Toepassen
+                </button>
+            </div>
+        `;
+    }
+    
+    async selectLogo() {
+        try {
+            const result = await window.MediaPicker.openImage();
+            if (result && result.url) {
+                document.getElementById('logoUrl').value = result.url;
+                this.showNotification('✅ Logo geselecteerd!');
+            }
+        } catch (err) {
+            console.log('[TemplateEditor] Logo selection cancelled');
+        }
+    }
+    
+    applyWebsiteSettings() {
+        const iframe = document.getElementById('templateFrame');
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        
+        const primaryColor = document.getElementById('primaryColor').value;
+        const secondaryColor = document.getElementById('secondaryColor').value;
+        const textColor = document.getElementById('textColor').value;
+        const logoUrl = document.getElementById('logoUrl').value;
+        const primaryFont = document.getElementById('primaryFont').value;
+        
+        // Apply colors via CSS variables
+        const style = iframeDoc.createElement('style');
+        style.id = 'wb-brand-styles';
+        
+        // Remove existing brand styles
+        const existing = iframeDoc.getElementById('wb-brand-styles');
+        if (existing) existing.remove();
+        
+        style.textContent = `
+            :root {
+                --brand-primary: ${primaryColor};
+                --brand-secondary: ${secondaryColor};
+                --brand-text: ${textColor};
+                --brand-font: ${primaryFont}, sans-serif;
+            }
+            
+            /* Apply primary color to buttons, links, and accents */
+            .vs-btn, .btn-primary, .theme-btn, button[type="submit"],
+            .btn, .tour-packages-next, .tour-packages-prev {
+                background-color: ${primaryColor} !important;
+                border-color: ${primaryColor} !important;
+            }
+            
+            .vs-btn:hover, .btn-primary:hover, .theme-btn:hover {
+                background-color: ${this.adjustColor(primaryColor, -20)} !important;
+            }
+            
+            a, .text-theme-color, .sec-subtitle {
+                color: ${primaryColor} !important;
+            }
+            
+            /* Apply secondary color */
+            .bg-theme-color, .price-off {
+                background-color: ${secondaryColor} !important;
+            }
+            
+            /* Apply font */
+            body, h1, h2, h3, h4, h5, h6, p {
+                font-family: var(--brand-font) !important;
+            }
+        `;
+        
+        iframeDoc.head.appendChild(style);
+        
+        // Update logo if provided
+        if (logoUrl) {
+            const logos = iframeDoc.querySelectorAll('.logo img, .main-header__logo img, header img[src*="logo"]');
+            logos.forEach(logo => {
+                logo.src = logoUrl;
+            });
+        }
+        
+        this.showNotification('✅ Website instellingen toegepast!');
+    }
+    
+    adjustColor(color, amount) {
+        const num = parseInt(color.replace('#', ''), 16);
+        const r = Math.max(0, Math.min(255, (num >> 16) + amount));
+        const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amount));
+        const b = Math.max(0, Math.min(255, (num & 0x0000FF) + amount));
+        return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+    }
 }
 
 function publishSite() {
@@ -2924,4 +3076,9 @@ function publishSite() {
 let templateEditor;
 document.addEventListener('DOMContentLoaded', () => {
     templateEditor = new TemplateEditor();
+    
+    // Setup settings button
+    document.getElementById('settingsBtn')?.addEventListener('click', () => {
+        templateEditor.openWebsiteSettings();
+    });
 });

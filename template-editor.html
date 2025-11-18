@@ -481,21 +481,26 @@
 
         <!-- Center - Editor Canvas -->
         <div class="editor-canvas">
-            <div class="canvas-toolbar">
-                <div class="device-selector">
-                    <button class="device-btn active" data-device="desktop" title="Desktop">
-                        <i class="fas fa-desktop"></i>
+            <div class="editor-toolbar">
+                <div class="toolbar-left">
+                    <button class="toolbar-btn" id="backBtn" title="Terug naar templates">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Terug</span>
                     </button>
-                    <button class="device-btn" data-device="tablet" title="Tablet">
-                        <i class="fas fa-tablet-alt"></i>
+                    <button class="toolbar-btn" id="settingsBtn" title="Website Instellingen">
+                        <i class="fas fa-cog"></i>
+                        <span>Instellingen</span>
                     </button>
-                    <button class="device-btn" data-device="mobile" title="Mobile">
-                        <i class="fas fa-mobile-alt"></i>
+                    <button class="toolbar-btn" id="previewBtn" title="Preview">
+                        <i class="fas fa-eye"></i>
+                        <span>Preview</span>
+                    </button>
+                    <button class="toolbar-btn" id="saveBtn" title="Opslaan">
+                        <i class="fas fa-save"></i>
+                        <span>Opslaan</span>
                     </button>
                 </div>
-                <div>
-                    <span style="font-size: 14px; color: #666;" id="currentPageName">Home</span>
-                </div>
+                <span style="font-size: 14px; color: #666;" id="currentPageName">Home</span>
             </div>
             <div class="canvas-frame">
                 <div class="frame-wrapper" id="frameWrapper">
