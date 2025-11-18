@@ -1054,6 +1054,18 @@ class TemplateEditor {
                         <input type="color" class="property-input" id="textColor" value="${this.getComputedColor(element)}">
                     </div>
                     <div class="property-field">
+                        <label class="property-label">Achtergrondkleur</label>
+                        <input type="color" class="property-input" id="bgColor" value="${this.getComputedBgColor(element)}">
+                        <small style="color:#666;font-size:11px;">Laat leeg voor transparant</small>
+                    </div>
+                    <div class="property-field">
+                        <label class="property-label">Achtergrond Afbeelding</label>
+                        <input type="text" class="property-input" id="bgImage" value="${this.getComputedBgImage(element)}" placeholder="URL of kies afbeelding">
+                        <button class="media-selector-btn" onclick="templateEditor.selectBackgroundImage()" style="margin-top:8px;width:100%;">
+                            <i class="fas fa-image"></i> Kies Achtergrond
+                        </button>
+                    </div>
+                    <div class="property-field">
                         <label class="property-label">Lettergrootte</label>
                         <input type="number" class="property-input" id="fontSize" value="${parseInt(window.getComputedStyle(element).fontSize)}" min="8" max="72">
                     </div>
@@ -1283,6 +1295,43 @@ class TemplateEditor {
         return '#000000';
     }
     
+    getComputedBgColor(element) {
+        const bgColor = window.getComputedStyle(element).backgroundColor;
+        // Convert rgb to hex
+        const rgb = bgColor.match(/\d+/g);
+        if (rgb && rgb.length >= 3) {
+            return '#' + rgb.slice(0, 3).map(x => {
+                const hex = parseInt(x).toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        }
+        return '#ffffff';
+    }
+    
+    getComputedBgImage(element) {
+        const bgImage = window.getComputedStyle(element).backgroundImage;
+        if (bgImage && bgImage !== 'none') {
+            // Extract URL from url("...")
+            const match = bgImage.match(/url\(["']?([^"']*)["']?\)/);
+            return match ? match[1] : '';
+        }
+        return '';
+    }
+    
+    async selectBackgroundImage() {
+        try {
+            const result = await window.MediaPicker.openImage();
+            const imageUrl = result?.url || result?.dataUrl;
+            
+            if (imageUrl) {
+                document.getElementById('bgImage').value = imageUrl;
+                this.showNotification('✅ Achtergrond geselecteerd!');
+            }
+        } catch (err) {
+            console.log('[TemplateEditor] Background selection cancelled');
+        }
+    }
+    
     applyTextChanges() {
         if (!this.selectedElement || this.selectedElement.type !== 'text') return;
         
@@ -1326,6 +1375,23 @@ class TemplateEditor {
         }
         if (newSize) {
             element.style.fontSize = newSize + 'px';
+        }
+        
+        // Apply background color if provided
+        const newBgColor = document.getElementById('bgColor')?.value;
+        if (newBgColor) {
+            element.style.backgroundColor = newBgColor;
+        }
+        
+        // Apply background image if provided
+        const newBgImage = document.getElementById('bgImage')?.value;
+        if (newBgImage) {
+            element.style.backgroundImage = `url(${newBgImage})`;
+            element.style.backgroundSize = 'cover';
+            element.style.backgroundPosition = 'center';
+        } else if (newBgImage === '') {
+            // Clear background image if empty
+            element.style.backgroundImage = 'none';
         }
         
         // Apply CSS classes if changed
