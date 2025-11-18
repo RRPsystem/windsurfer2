@@ -102,8 +102,76 @@ class TemplateEditor {
         }
     }
     
+    loadTemplateDefaults() {
+        // Define default settings for each template based on their SCSS files
+        const templateDefaults = {
+            'tripix': {
+                // Colors from _variable.scss
+                primaryColor: '#f7921f',      // Orange (--theme-color)
+                secondaryColor: '#223740',    // Dark blue (--second-theme-color)
+                accentColor: '#465b2d',       // Green (--third-theme-color)
+                textColor: '#535b5f',         // Gray (--body-color)
+                titleColor: '#141414',        // Black (--title-color)
+                footerBgColor: '#223740',     // Dark blue
+                
+                // Typography from _reset.scss
+                primaryFont: 'Rubik',         // --body-font
+                titleFont: 'Abril Fatface',   // --title-font
+                h1Size: '90px',
+                h2Size: '45px',
+                h3Size: '40px',
+                h4Size: '36px',
+                h5Size: '24px',
+                h6Size: '20px',
+                bodySize: '14px',
+                
+                // Spacing from _variable.scss
+                sectionSpace: '120px',
+                containerWidth: '1300px',
+                
+                // Logo & Branding
+                logoMaxWidth: '200px',
+                logoPosition: 'left',
+                faviconUrl: 'assets/img/favicon.png'
+            },
+            'gotur': {
+                primaryColor: '#ff6b6b',
+                secondaryColor: '#4ecdc4',
+                textColor: '#2d3436',
+                titleColor: '#2d3436',
+                footerBgColor: '#2d3436',
+                primaryFont: 'Poppins',
+                titleFont: 'Montserrat',
+                h1Size: '80px',
+                h2Size: '48px',
+                h3Size: '36px',
+                h4Size: '28px',
+                h5Size: '22px',
+                h6Size: '18px',
+                bodySize: '16px'
+            }
+        };
+        
+        const defaults = templateDefaults[this.templateName] || templateDefaults['tripix'];
+        
+        // Store template defaults for reference
+        this.templateDefaults = defaults;
+        
+        // Set color values in settings panel
+        document.getElementById('primaryColor').value = defaults.primaryColor;
+        document.getElementById('secondaryColor').value = defaults.secondaryColor;
+        document.getElementById('textColor').value = defaults.textColor;
+        document.getElementById('footerBgColor').value = defaults.footerBgColor;
+        document.getElementById('primaryFont').value = defaults.primaryFont;
+        
+        console.log('[TemplateEditor] Loaded template defaults:', defaults);
+    }
+    
     async loadTemplatePages() {
         console.log('[TemplateEditor] Loading template pages...');
+        
+        // Load template default colors
+        this.loadTemplateDefaults();
         
         // Try to load saved draft from Supabase first
         let loadedDraft = null;
