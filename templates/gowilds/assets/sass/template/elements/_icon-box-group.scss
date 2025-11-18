@@ -1,0 +1,343 @@
+//Item One
+.iconbox-one{
+	&__single{
+		border: 1px solid rgba(0,0,0,0.05);
+		padding: 30px;
+		margin: 10px 0 30px;
+		box-shadow: 6px 5px 15px 0px rgba(0, 0, 0, 0.06);
+		border-radius: 8px;
+		position: relative;
+		width: 100%;
+		background: $white;
+		z-index: 9;
+		@media(max-width: 1024px){
+			padding: 30px 20px;
+		}
+		&:after{
+			content: '';
+         background: $theme-color;
+			position: absolute;
+			top: -1px;
+			left: -1px;
+			right: -1px;
+			bottom: 100%;
+			z-index: -1;
+			transition: all 0.5s;
+			border-radius: 8px;
+			opacity: 0;
+		}
+	}
+	&__icon{
+		margin: 30px 0 25px;
+		i{
+			font-size: 56px;
+			color: $theme-color;
+			transition: all 0.5s;
+		}
+		svg{
+			width: 56px;
+			fill: $theme-color;
+			transition: all 0.5s;
+		}
+	}
+	&__title{
+		font-size: 20px;
+		margin: 0;
+		transition: all 0.5s;
+	}
+	&__desc{
+		font-size: 15px;
+		color: $black;
+		font-weight: 500;
+		position: relative;
+		letter-spacing: -0.5px;
+		line-height: 20px;
+		margin-top: 15px;
+		padding-top: 15px;
+		transition: all 0.5s;
+		&:after{
+			content: '';
+	    	width: 20px;
+	    	height: 2px;
+	    	background: $black;
+	    	position: absolute;
+	    	top: 0;
+	    	left: 0;
+	    	z-index: 1;
+	    	transition: all 0.35s;
+	   }
+	}
+	&__link-overlay{
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 11;
+	}
+	&__single{ 
+		&:hover, &:focus, &.active{ 
+			&:after{
+				bottom: -1px;
+				opacity: 1;
+			}
+			.iconbox-one{
+				&__title{
+					color: $white;
+				}
+				&__icon{
+					i{
+						color: $white;
+					}
+					svg{
+						fill: $white;
+					}
+				}
+				&__desc{
+					color: $white;
+					&:after{
+						width: 50px;
+						background: $white;
+					}	
+				}
+			}
+		}
+	}
+}
+
+.item-active.center{
+ 	.iconbox-one{
+ 		&__single:after{
+			opacity: 1;
+			bottom: -1px;
+ 		}
+ 		&__title{
+			color: $white;
+		}
+		&__icon{
+			i{
+				color: $white;
+			}
+			svg{
+				fill: $white;
+			}
+		}
+		&__desc{
+			color: $white;
+			&:after{
+				width: 50px;
+				background: $white;
+			}	
+		}
+ 	}
+}
+
+// Item Two
+.iconbox-two{
+	&__single{
+		border: 1px solid rgba(0,0,0,0.05);
+		padding: 30px;
+		margin: 10px 0 30px;
+		box-shadow: 6px 5px 15px 0px rgba(0, 0, 0, 0.06);
+		border-radius: 8px;
+		position: relative;
+		background: $white;
+		z-index: 9; 
+		transition: all 0.5s;
+		@media(max-width: 1080px){
+			padding: 30px 18px;
+		}
+		&:after{
+			content: '';
+         background: $theme-color;
+			position: absolute;
+			top: -1px;
+			left: -1px;
+			right: -1px;
+			bottom: 100%;
+			z-index: -1;
+			transition: all 0.5s;
+			border-radius: 8px;
+			opacity: 0;
+		}
+	}
+	&__content{
+		display: flex;
+		align-items: center;
+	}
+	&__content-inner{
+		padding-left: 30px;
+	}
+	&__icon{
+		i{
+			font-size: 54px;
+			color: $theme-color;
+			transition: all 0.5s;
+		}
+		svg{
+			width: 54px;
+			fill: $theme-color;
+			transition: all 0.5s;
+		}
+	}
+	&__title{
+		font-size: 20px;
+		margin: 0 0 15px;
+		transition: all 0.5s;
+	}
+	&__desc{
+		position: relative;
+		line-height: 26px;
+		transition: all 0.5s;
+	}
+	&__link-overlay{
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 11;
+	}
+	&__single{
+		&:hover{
+			transform: translateY(-10px);
+		}
+		&:hover, &:focus, &.active{ 
+			&:after{
+				bottom: -1px;
+				opacity: 1;
+			}
+			.iconbox-two{
+				&__title{
+					color: $white;
+				}
+				&__icon{
+					i{
+						color: $white;
+					}
+					svg{
+						fill: $white;
+					}
+				}
+				&__desc{
+					color: $white;
+				}
+			}
+		}
+	}
+}
+
+.item-active.center{
+	.iconbox-two{
+		&__single{ 
+			&:after{
+				bottom: -1px;
+				opacity: 1;
+			}
+		}
+		&__title{
+			color: $white;
+		}
+		&__icon{
+			i{
+				color: $white;
+			}
+			svg{
+				fill: $white;
+			}
+		}
+		&__desc{
+			color: $white;
+		}
+	}
+}
+.layout-grid{
+	.iconbox-two__single{
+		box-shadow: 0 10px 60px rgba(0, 0, 0, 0.1);
+		margin-top: 0;
+	}
+}
+
+
+// Feature List One
+.feature-list-one{
+	&__wrapper{
+		display: flex;
+		padding-bottom: 45px;
+		position: relative;
+		align-items: flex-start;
+		@media(max-width: 1200px){
+			padding-bottom: 30px;
+		}
+	}
+	&__icon-inner{
+		display: flex;
+		align-items: center;
+	}
+	&__icon-check{
+		flex: 0 0 24px;
+		width: 24px;
+		height: 24px;
+		background: url('#{$image-theme-path-base}badge-check.png') no-repeat center center transparent;
+		z-index: 1;
+	}
+	&__icon{
+		flex: 0 0 80px;
+		width: 80px;
+		height: 80px;
+		background: $white;
+		border-radius: 50%;
+		box-shadow: 0 10px 60px 0 rgba(0, 0, 0, 0.1);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-right: 30px;
+		margin-left: 30px;
+		position: relative;
+		@media(max-width: 1200px){
+			margin-left: 10px;
+			margin-right: 20px;
+			flex: 0 0 70px;
+			width: 70px;
+			height: 70px;
+		}
+		&:after{
+			content: '';
+			height: 100px;
+			width: 2px;
+			background: url('#{$image-theme-path-base}line.png') repeat-y top center transparent;
+			position: absolute;
+			top: 100%;
+		}
+		i{
+			color: $theme-color;
+			font-size: 40px;
+		}
+		svg{
+			fill: $theme-color;
+			width: 40px;
+		}
+	}
+	&__content{
+		
+	}
+	&__title{
+		font-size: 22px;
+		margin: 0 0 10px;
+		@media(max-width: 1200px){
+			font-size: 20px;
+		}
+	}
+}
+
+.iconboxs-layout-list{
+	.icon-box-item{
+		&:last-child{
+			.feature-list-one__icon{
+				&:after{
+					display: none;
+				}
+			}
+		}
+	}
+}

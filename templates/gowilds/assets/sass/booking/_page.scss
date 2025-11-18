@@ -1,0 +1,302 @@
+#checkout_form_block{
+   display: flex;
+   flex-wrap: wrap; 
+   > div{
+      h2{
+         font-size: 22px;
+         margin: 0 0 18px;
+      }
+   }
+   .checkout-items{
+      padding-right: 15px;
+      flex: 0 0 65%;
+      max-width: 65%;
+      @media(max-width: 980px){
+         max-width: 100%;
+         flex: 0 0 100%;
+         padding-right: 0;
+      }
+      table.table_order_items_details{
+         border: none;
+         tr{
+            border: none;
+            &:first-child{
+               border-top: 1px solid $border-color;
+            }
+            td{
+               padding: 20px 0 5px;
+               vertical-align: top;
+               border: none;
+               &.order_item_row_image{
+                  width: 140px;
+                  padding-right: 20px;
+                  padding-top: 30px;
+                  @media(max-width: 600px){
+                     width: 0;
+                  }
+               }
+               &.order_item_row_details{
+                  table{
+                     tr{
+                        border: none;
+                        td{
+                           padding: 0;
+                           line-height: 26px;
+                           &.order_item_info_title{
+                              font-size: 19px;
+                              font-weight: 700;
+                              padding-bottom: 5px;
+                           }
+                           .order_item_td_label{
+                              color: $black;
+                              font-weight: 500;
+                           }
+                        }
+                     }
+                  }
+               }
+               &.order_item_row_price{
+                  .table_order_item_total_price{
+                     tr{
+                        border: 0;
+                        td{
+                           text-align: right;
+                           padding: 0;
+                           border: 0;
+                        }
+                     }
+                  }
+               }
+               &.order_items_row_total, &.order_items_row_total_amount{
+                  background: $bg-gray;
+                  padding: 3px 20px 3px 15px;
+                  text-align: right;
+               }
+               &.order_items_row_subtotal{
+                  padding-top: 20px;
+               }
+               &.order_items_row_due{
+                  padding-bottom: 20px;
+               }
+            }
+         }
+      }
+   }
+   .checkout-information{
+      padding-left: 15px;
+      max-width: 35%;
+      flex: 0 0 35%;
+      @media(max-width: 980px){
+         max-width: 100%;
+         flex: 0 0 100%;
+         padding-left: 0;
+      }
+      form#checkout_form{
+         .input_group{
+            display: block;
+            > div{
+               max-width: 100%;
+               margin-bottom: 20px;
+            }
+            .checkout-form-block{
+               line-height: 24px;
+               min-width: 30px;
+               .checkout_form_input_label{
+                  font-size: 16px;
+                  padding: 0;
+                  position: static!important;
+                  transition: none;
+                  @include scale(1);
+                  max-width: 100%;
+                  font-weight: 500;
+                  color: $black;
+                  line-height: 1.1!important;
+               }
+               .checkout_input_field{
+                  padding: 0 15px;
+                  margin: 0;
+               }
+               .checkout_form_input_underline{
+                  display: none;
+               }
+               .error{
+                  font-size: 13px;
+               }
+            }
+         }
+         .amount_group{
+            padding: 0;
+            background: $bg-gray;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 500;
+            margin-bottom: 25px;
+         }
+         .payment_group.tabs_group{
+            font-size: 16px;
+         }
+         .terms_group{
+            font-size: 16px;
+            line-height: 26px;
+         }
+         .submit_group{
+            button{
+               width: 100%;
+            }
+         }
+      }
+      .coupon-form-block{
+         padding: 20px;
+         text-align: left;
+         display: block;
+         text-align: center;
+         background: $bg-gray;
+         border-radius: 8px;
+         margin-bottom: 25px;
+         border: none;
+         #coupon_input_field{
+            height: 45px;
+            padding: 0 10px;
+         }
+         #coupon_form_submit{
+            margin: 15px 0 0;
+         }
+      }
+   }
+}
+
+.table_order_items_details{
+   border: none;
+   tr{
+      border: none;
+      &:first-child{
+         border-top: 1px solid $border-color;
+      }
+      td{
+         padding: 20px 0 5px;
+         vertical-align: top;
+         border: none;
+         &.order_item_row_image{
+            width: 140px;
+            padding-right: 20px;
+            padding-top: 30px;
+         }
+         &.order_item_row_details{
+            table{
+               tr{
+                  border: none;
+                  td{
+                     padding: 0;
+                     line-height: 26px;
+                     &.order_item_info_title{
+                        font-size: 19px;
+                        font-weight: 700;
+                        padding-bottom: 5px;
+                     }
+                     .order_item_td_label{
+                        color: $black;
+                        font-weight: 500;
+                     }
+                  }
+               }
+            }
+         }
+         &.order_item_row_price{
+            .table_order_item_total_price{
+               tr{
+                  border: 0;
+                  td{
+                     text-align: right;
+                     padding: 0;
+                     border: 0;
+                  }
+               }
+            }
+         }
+         &.order_items_row_total, &.order_items_row_total_amount{
+            background: $bg-gray;
+            padding: 2px;
+         }
+         &.order_items_row_subtotal{
+            padding-top: 20px;
+         }
+         &.order_items_row_due{
+            padding-bottom: 20px;
+         }
+      }
+   }
+}
+
+.ba-confirmation-page{
+   .page{
+      h4{
+         margin-top: 30px;
+         padding-bottom: 15px;
+         border-bottom: 1px solid $border-color;
+      }
+   }
+   .babe_message_order{
+      background: $bg-gray;
+      color: $black;
+      border: none;
+      border-radius: 8px;
+   }
+   .table_order_items_details{
+      border: none;
+      border-radius: 8px;
+      width: 100%;
+      float: left; 
+      tr{
+         border: none;
+         td{
+            border: none;
+            &.order_item_row_details, &.order_item_row_price{
+               padding: 15px 15px 10px;
+            }
+            &.order_item_row_image{
+               padding: 15px 0;
+               @media(max-width: 600px){
+                  width: 0;
+               }
+            }
+            &.order_items_row_total_amount{
+               text-align: right;
+               padding-right: 20px;
+            }
+         }
+      }
+      .customer_field_label{
+         font-weight: 500;
+         color: $black;
+         width: 200px;
+         border: none;
+         padding: 5px 0;
+      }
+   }
+   .table_customer_details{
+      width: 100%;
+      background: $bg-gray;
+      border: none;
+      tr{
+         td{
+            padding: 5px 15px 5px 20px;
+            border: none;
+            font-weight: 500;
+            &.customer_field_label{
+               width: 160px;
+               color: $black;
+            }
+         }
+         &:first-child{
+            td{
+               padding: 20px 20px 5px;
+            }
+         }
+         &:last-child{
+            td{
+               padding: 5px 20px 20px;
+            }
+         }
+      }
+   }
+}

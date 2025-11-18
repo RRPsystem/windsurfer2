@@ -1,0 +1,201 @@
+.post-author-name, .post-category{
+   font-size: 15px;
+   a{
+      color: $body-color;
+      text-transform: capitalize;
+      letter-spacing: 0;
+   }
+   i{
+      color: $theme-color;
+      margin-right: 5px;
+   }
+}
+
+.gowilds-post-title{
+   .post-title{
+      font-size: 30px;
+      margin: 0;
+   }
+}
+
+.post-tags{
+   .title{
+      font-size: 18px;
+      font-weight: 700;
+      color: $black;
+      margin-right: 10px;
+      position: relative;
+      top: 2px;
+   }
+   > a{
+      background: $bg-gray;
+      font-size: 14px;
+      padding: 0 15px;
+      line-height: 28px;
+      color: $headings-color;
+      margin: 5px 15px 5px 0;
+      font-weight: 700;
+      display: inline-block;
+      white-space: nowrap;
+      &:hover{
+         color: $white;
+         background: $theme-color;
+      }
+      &:last-child{
+         margin-left: 0;
+      }
+   }
+}
+
+.post-author-box{
+   background: $bg-gray;
+   padding: 50px;
+   border-radius: 8px;
+   img{
+      border-radius: 8px;
+   }
+   @media(max-width: 1024px){
+      padding: 30px;
+   }
+   .content-inner{
+      display: flex;
+      flex-wrap: wrap;
+      .author-image{
+         max-width: 170px;
+         flex: 0 0 170px;
+         border-radius: 8px;
+         overflow: hidden;
+         @media(max-width: 580px){
+            max-width: 100%;
+            flex: 0 0 100%;
+         }
+      }
+      .author-content{
+         padding-left: 35px;
+         max-width: calc(100% - 170px);
+         flex: 0 0 calc(100% - 170px);
+         @media(max-width: 1024px){
+            padding-left: 20px;
+         }
+         @media(max-width: 580px){
+            max-width: 100%;
+            flex: 0 0 100%;
+            padding: 20px 0 0;
+         }
+         .author-name{
+            font-size: 20px;
+            font-weight: 700;
+            text-transform: capitalize;
+            position: relative;
+            padding-bottom: 15px;
+             @media(max-width: 1024px){
+               padding-bottom: 10px;
+            }
+            &:after{
+               content: '';
+               position: absolute;
+               left: 0;
+               bottom: 0;
+               width: 38px;
+               height: 3px;
+               background: $theme-color;
+               z-index: 11;
+            }
+         }
+         .author-bio{
+            font-size: 16px;
+            line-height: 30px;
+            font-weight: 500;
+            margin-top: 15px;
+            @media(max-width: 1024px){
+               margin-top: 10px;
+            }
+         }
+      }
+   }
+}
+
+.gowilds-post-share{
+   .social-networks-post{
+      margin: 0;
+      padding: 0;
+      > li{
+         list-style: none;
+         float: left;
+         margin: 5px;
+         &.title-share{
+            font-family: $headings-font-family;
+            color: $black;
+            font-weight: 600;
+            padding-top: 5px;
+         }
+         &:not(.title-share){
+            a{
+               display: inline-block;
+               @include size(42px, 42px);
+               line-height: 42px;
+               text-align: center;
+               font-size: 14px;
+               background: $bg-gray;
+               color: $black;
+               border-radius: 50%;
+               text-align: center;
+               &:hover{
+                  background: $theme-color;
+                  color: $white;
+                  border-color: $theme-color;
+               }
+            }
+         }
+      }
+   }
+   &.style-1{
+      .social-networks-post{
+         > li{
+            &.title-share{
+               display: none;
+            }
+         }
+      }
+   }
+   &.style-2{
+      position: relative;
+      .share-content{
+         position: absolute;
+         bottom: 100%;
+         right: 0;
+         z-index: 11;
+         min-width: 250px;
+         background: $white;
+         text-align: center;
+         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+         padding: 20px 15px 12px;
+         border-radius: 6px;
+         margin-bottom: 16px;
+         display: none;
+         &:after{
+            content: '';
+            position: absolute;
+            top: 100%;
+            right: 45px;
+            width: 16px;
+            height: 16px;
+            border-width: 8px;
+            border-style: solid;
+            border-color: $white transparent transparent transparent;
+            display: block;
+         }
+         .title-share{
+            display: none;
+         }
+         .social-networks-post{
+            display: inline-block;
+         }
+      }
+      &.open{
+         .share-content{
+            display: block;
+         }
+      }
+   }
+}

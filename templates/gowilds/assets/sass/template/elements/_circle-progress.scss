@@ -1,0 +1,33 @@
+.gsc-circle-progress{
+   position: relative;
+   text-align: center;
+   .circle-progress{ 
+      position: relative;
+      display: inline-block;
+      strong{
+         position: absolute;
+         top: 50%;
+         left: 50%;
+         display: block;
+         transform: translateY(-50%) translateX(-50%);
+         font-size: 24px;
+         line-height: 1;
+         margin-top: -5px;
+         color: $black;
+         font-weight: 400;
+         i{
+            font-style: normal;
+         }
+      }
+   }
+   .title{
+      display: block;
+      width: 100%;
+      position: relative;
+      font-size: 18px;
+      line-height: 26px;
+      margin-top: 10px;
+      font-weight: 600;
+      color: $black;
+   }
+}

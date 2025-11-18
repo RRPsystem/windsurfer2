@@ -1,0 +1,158 @@
+.gsc-pricing{
+	transition: all 0.35s;
+  	&.style-1{
+	 	background: $white;
+	 	padding: 55px 35px 60px;
+	 	position: relative;
+	 	box-shadow: 0px 10px 30px 0px rgba(65, 80, 138, 0.1);
+	 	@include media-breakpoint-down(xl){
+	 		padding: 55px 20px 60px;
+
+	 	}
+	 	@include media-breakpoint-down(lg){
+			padding: 60px 15px 40px;
+			max-width: 500px; 
+			margin: 0 auto;
+	 	}
+	 	@include media-breakpoint-down(md){
+	 		padding-left: 15px;
+	 		padding-right: 15px;
+	 	}
+		.content-inner{
+			max-width: 260px;
+			margin: 0 auto;
+			.sub-title{
+				font-size: 13px;
+				text-transform: uppercase;
+				padding: 0 16px;
+				line-height: 26px;
+				border-radius: 30px;
+				background: $theme-color;
+				display: inline-block;
+				color: $white;
+				font-weight: 600;
+				position: absolute;
+				top: 15px;
+				right: 15px;
+				letter-spacing: 1px;
+			}
+			.plan-price{
+			  	padding-bottom: 15px;
+			  	color: $black;
+			  	.plan-price-inner{
+			  		.currency{
+			  			font-size: 22px;
+			  			position: relative;
+			  			top: -20px;
+			  		}
+			  		.price{
+					 	line-height: 1;
+					 	margin-bottom: 10px;
+					 	font-weight: 400;
+					 	font-size: 60px;
+					 	@include media-breakpoint-down(lg){
+							font-size: 45px;
+					 	}
+					 	@include media-breakpoint-down(md){
+							font-size: 38px;
+					 	}
+				  	}
+				  	.interval{ 
+					 	font-size: 11px;
+					 	text-transform: uppercase;
+					 	font-weight: 500;
+				  	}
+				}
+			}
+			.title{
+			  	color: $theme-color;
+			  	font-size: 15px;
+			  	font-weight: 700;
+			  	margin: 0 0 18px;
+			  	letter-spacing: 5px;
+			  	text-transform: uppercase;
+			}
+			.desc{
+				font-size: 17px;
+				font-weight: 500;
+				line-height: 24px;
+			}
+			.plan-list{
+			  	list-style-type: none;
+			  	padding: 0;
+			  	margin: 25px 0 8px;
+			  	font-size: 17px;
+			  	@include media-breakpoint-down(lg){
+			  		font-size: 15px;
+			  	}
+			  	li{
+				 	position: relative;
+				 	padding: 10px 0 10px 30px;
+				 	line-height: 24px;
+				 	@include media-breakpoint-down(lg){
+			  			padding: 6px 0 6px 26px;
+			  		}
+				 	&:after{
+				 		content: '\f00c';
+				 		font-family: $font-icon-awesome;
+				 		position: absolute;
+				 		top: 8px;
+				 		left: 0;
+				 		font-size: 15px;
+				 		color: $theme-color;
+				 		z-index: 1;
+				 		font-weight: 900;
+				 		@include media-breakpoint-down(lg){
+				  			font-size: 13px;
+				  		}
+				 	}
+				 	&.no-active{
+				 		opacity: 0.38;
+				 	}
+			  	}
+			}
+			.pricing-action{
+			  	padding-top: 20px;
+			}
+		}
+		&:hover{
+			box-shadow: 0px 20px 20px 0px rgba(63, 56, 54, 0.04);
+	 	}
+	 	&.active-yes{
+	 		background: $theme-color;
+	 		.content-inner{
+	 			.sub-title{
+	 				color: $black;
+	 				background: $white;
+	 			}
+	 			.title{
+	 				color: $white;
+	 			}
+	 			.plan-price{
+	 				color: $white;
+	 			}
+	 			.desc{
+	 				color: $white;
+	 			}
+	 			.plan-list{
+	 				li{
+	 					color: $white;
+	 					&:after{
+	 						color: $white;
+	 					}
+	 					&.no-active{
+	 						opacity: 0.5;
+	 					}
+	 				}	
+	 			}
+	 			.pricing-action{
+	 				a{
+	 					background: $white;
+	 					color: $headings-color;
+	 				}
+	 			}
+	 		}
+	 	}
+  	}
+} 
+

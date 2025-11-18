@@ -1,0 +1,419 @@
+.testimonial-one{
+	&__single{
+		position: relative;
+		transition: all 0.35s;
+		max-width: 800px;
+		margin: 0 auto 30px;
+	}
+	&__content{
+			
+	}
+	&__quote{
+		font-size: 20px;
+		line-height: 38px;
+		font-weight: 500; 
+		margin-bottom: 18px;
+		padding: 50px 60px;
+		background: $white;
+		color: $headings-color;
+		border-radius: 10px;
+		border-bottom: 4px solid $theme-color;
+		position: relative;
+			@media(max-width: 1024px){
+				 padding: 50px 20px;
+				 font-size: 18px;
+				 line-height: 32px;
+			}
+		}
+		&__stars{
+			font-size: 16px;
+			letter-spacing: 2px;
+			margin-bottom: 8px;
+			i{
+				color: $theme-color;
+			}
+		}
+		&__arrow{
+			display: inline-block;
+			width: 146px;
+			height: 50px;
+			position: absolute;
+			top: 100%;
+			left: 60px;
+			@media(max-width: 1024px){
+				height: 30px;
+			}
+			span.first{
+				clip-path: polygon(0 0, 0% 100%, 100% 0);
+				width: 100%;
+				height: 100%;
+				position: absolute;
+				left: 0;
+				top: -2px;
+				background: $white;
+				z-index: 9;
+			}
+			span.second{
+				position: absolute;
+				left: 0;
+				right: -4px;
+				bottom: -4px;
+				top: 0;
+				clip-path: polygon(0 0, 0% 100%, 100% 0);
+				background: $theme-color;
+				z-index: 1;
+			}
+		}
+		&__quote-icon{
+			width: 100px;
+			height: 100px;
+			position: absolute;
+			top: 0;
+			right: 0;
+			z-index: 1;
+			background: $theme-color;
+			border-radius: 0 10px 0 100%;
+			font-size: 45px;
+			color: $white;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			padding-left: 20px;
+			@media(max-width: 1024px){
+				 width: 86px;
+				 height: 86px;
+				 font-size: 32px;
+			}
+		}
+		&__meta{
+			display: flex;
+			align-items: center;
+			position: relative;
+			margin-left: 160px;
+			@media(max-width: 1024px){
+				 margin-left: 30px;
+				 margin-top: 50px;
+			}
+		}
+		&__image{
+		flex: 0 0 94px;
+		margin-right: 18px;
+		padding: 10px;
+		border: 3px solid $theme-color;
+		border-radius: 50%;
+			@media(max-width: 1024px){
+				 flex: 0 0 86px;
+			}
+		img{
+			border-radius: 50%;
+		}
+	}
+	&__name{
+		font-size: 20px;
+			font-weight: 700;
+			color: $headings-color;
+			display: block;
+	}
+	&__job{
+		font-size: 14px;
+			display: block;
+			line-height: 18px;
+	}
+	&:hover{
+
+	}
+}
+
+.owl-item.first{
+	.testimonial-image{
+			border-color: $theme-color;
+	}
+	.testimonial-content-inner{
+			.quote-icon{
+			color: $theme-color;
+			}
+	}
+}
+
+// ========= Style 2
+.testimonial-two{
+	&__single{
+			max-width: 1100px;
+			margin: 20px 0 30px;
+			background: $white;
+			padding: 40px 50px;
+			border-radius: 10px;
+			box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+			border: 1px solid rgba(0, 0, 0, 0.06);
+			@media(max-width: 1200px){
+				 padding: 40px 30px;
+			}
+	}
+	 &__top{
+			display: flex;
+	 }
+	 &__top-left{
+			font-size: 88px;
+			color: $theme-color;
+			position: relative;
+			top: -12px;
+			@media(max-width: 1024px){
+				font-size: 68px;
+				top: -5px;
+			}
+	 }
+	 &__top-right{
+			margin-left: 32px;
+			@media(max-width: 1024px){
+				margin-left: 20px;
+			}
+	 }
+	 &__title{
+			font-size: 22px;
+			margin: 0 0 8px;
+			@media(max-width: 1024px){
+				font-size: 18px;
+			}
+	 }
+	&__stars{
+		font-size: 16px;
+		letter-spacing: 3px;
+		text-align: left;
+		color: #F7921E;
+		transition: all 0.5s;
+		@media(max-width: 1024px){
+			letter-spacing: 2px;
+		}
+	}
+	&__quote{
+		padding: 10px 0;
+		margin-bottom: 5px;
+		transition: all 0.5s;
+		font-size: 20px;
+		color: $black;
+		line-height: 36px;
+		@media(max-width: 1024px){
+			font-size: 18px;
+			line-height: 32px;
+		}
+	}
+	&__meta{
+	}
+	 &__meta-content{
+			display: flex;
+			align-items: center;
+			margin-right: 20px;
+			margin-top: 20px;
+	 }
+	&__image{
+		width: 82px;
+		height: 82px;
+		flex: 0 0 82px;
+		border-radius: 50%;
+		position: relative;
+		margin-right: 20px;
+		@media(max-width: 1024px){
+			width: 68px;
+			height: 68px;
+			flex: 0 0 68px;
+		}
+		img{
+			border-radius: 50%;
+		}
+	}
+	 &__name{
+			font-size: 20px;
+			margin: 0 0 2px;
+			@media(max-width: 1024px){
+				font-size: 18px;
+			}
+	 }
+	&__job{
+		font-size: 16px;
+		line-height: 18px;
+			margin-top: 10px;
+	}
+	&__single{
+		&:hover{
+			.testimonial-two{
+				&__quote{
+
+				}
+			}
+		}
+	}
+}
+
+.testimonial-three{
+	 &__single{
+			margin-bottom: 30px;
+	 }
+	&__content{
+		background: $white;
+		padding: 50px;
+		border-radius: 8px;
+		position: relative;
+		overflow: hidden;
+			box-shadow:  0 10px 20px rgba(0, 0, 0, 0.1);
+			@media(max-width: 1024px){
+				 padding: 40px 15px; 
+			}
+	}
+	&__quote-icon{
+			color: $white;
+			padding-left: 32px;
+			padding-top: 28px;
+			position: absolute;
+			top: 0;
+			right: 0;
+			width: 98px;
+			height: 138px;
+			font-size: 42px;
+			@media(max-width: 1024px){
+				 font-size: 32px;
+				 width: 80px;
+				 height: 100px;
+				 padding-left: 38px;
+				 padding-top: 20px ;
+			}
+			i{
+				position: relative;
+				z-index: 9;
+			}
+			&:before, &:after{
+				content: '';
+			width: 250px;
+			height: 250px;
+			border-radius: 50%;
+			position: absolute;
+			background: $theme-color;
+			}
+			&:before{
+				bottom: 0;
+				left: -20px;
+				opacity: 0.1;
+			}
+			&:after{
+			bottom: 0;
+			left: 0;
+			z-index: 1;
+			}
+	}
+	&__meta{
+		display: flex;
+	}
+	&__meta-left{
+		flex: 0 0 110px;
+		width: 110px;
+	}
+	&__image{
+		position: relative;
+		padding-right: 10px;
+		&:after{
+			content: '';
+			width: 10px;
+			height: 100%;
+			position: absolute;
+			top: 0;
+			right: 0;
+				background: $theme-color;
+				z-index: 1;
+		}
+	}
+	&__meta-right{
+		flex: 0 0 calc(100% - 110px);
+		width: calc(100% - 110px);
+		padding-left: 30px; 
+			@media(max-width: 1024px){
+				 padding-left: 18px;
+			}
+	}
+	&__stars{
+		font-size: 14px;
+		color: $theme-color;
+		letter-spacing: 1px;
+	}
+	&__name{
+		margin: 10px 0 0;
+		font-size: 22px;
+		@media(max-width: 1024px){
+			font-size: 20px;
+		}
+	}
+	&__quote{
+		font-weight: 500;
+		padding-top: 22px;
+	}
+}
+
+.swiper-slide{
+	 .testimonial-three__single{
+			margin-top: 10px;
+	 }
+}
+
+// ========= Style Four
+.testimonial-four{
+	 &__single{
+			max-width: 1100px;
+			margin: 0 0 30px;
+	 }
+	 &__top{
+			display: flex;
+	 }
+	 &__top-left{
+			font-size: 88px;
+			color: $theme-color;
+			position: relative;
+			top: -12px;
+	 }
+	 &__top-right{
+			margin-left: 30px;
+	 }
+	 &__title{
+			font-size: 22px;
+			margin: 0 0 8px;
+	 }
+	 &__stars{
+			font-size: 16px;
+			letter-spacing: 3px;
+			text-align: left;
+			color: #F7921E;
+			transition: all 0.5s;
+	 }
+	 &__quote{
+			padding: 0 0 25px;
+			margin-bottom: 30px;
+			transition: all 0.5s;
+			font-size: 20px;
+			color: $black;
+			line-height: 36px;
+			border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+	 }
+	 &__meta{
+	 }
+	 &__meta-content{
+			display: flex;
+			align-items: center;
+	 }
+	 &__image{
+			width: 82px;
+			height: 82px;
+			flex: 0 0 82px;
+			border-radius: 50%;
+			position: relative;
+			margin-right: 20px;
+			img{
+				 border-radius: 50%;
+			}
+	 }
+	 &__name{
+			font-size: 20px;
+			margin: 0 0 2px;
+	 }
+	 &__job{
+			font-size: 16px;
+			line-height: 18px;
+			margin-top: 10px;
+	 }
+}

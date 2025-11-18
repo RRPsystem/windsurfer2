@@ -1,0 +1,13 @@
+.gsc-search-box{
+   &.style-1{
+      > .content-inner{
+         display: inline-block;
+         .control-search{
+            position: relative;
+            line-height: 1;
+            transition: all 0.35s;
+            color: $body-color;
+         }
+      }
+   }
+}

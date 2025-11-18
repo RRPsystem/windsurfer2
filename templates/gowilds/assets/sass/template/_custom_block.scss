@@ -1,0 +1,112 @@
+.highlight-text-white{
+   color: #d2dce5;
+   a{
+      color: $white;
+      font-weight: 700;
+      position: relative;
+      &:after{
+         content: '';
+         width: 100%;
+         height: 2px;
+         background: $theme-color;
+         position: absolute;
+         bottom: -2px;
+         left: 0;
+         z-index: 1;
+         opacity: 1;
+         transition: all 0.35s;
+      }
+      &:hover{
+         &:after{
+            opacity: 0;
+            bottom: -10px;
+         }
+      }
+   }
+}
+
+.support-box{
+   background: $black;
+   color: $white;
+   padding: 50px 50px 40px;
+   @include media-breakpoint-down(lg){
+      padding: 30px;
+   }
+   ul{
+      list-style: none;
+      padding: 0;
+      margin: 0;
+   }
+   .title{
+      font-size: 26px;
+      font-weight: 600;
+      margin-bottom: 30px;
+   }
+   .phone{
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 10px;
+      a{
+         color: $theme-color;
+         i{
+            font-size: 30px;
+            margin-right: 10px;
+         }
+      }
+   }
+}
+.download-box{
+   background: $black;
+   a{
+      color: $white;
+      font-size: 18px;
+      font-weight: 600;
+      padding: 30px;
+      text-align: center;
+      display: block;
+      &:hover{
+         color: $theme-color;
+      }
+   }
+}
+
+.list-button{
+   display: flex;
+   align-items: center;
+   padding: 0;
+   @media(max-width: 360px){
+      display: block;
+   }
+   a{
+      font-weight: 500;
+      display: inline-block;
+      font-size: 16px;
+      background: #F7F7F7;
+      color: $black;
+      padding: 12px 40px;
+      margin-right: 20px;
+      border-radius: 8px;
+      @media(max-width: 360px){
+         display: block;
+         width: 100%;
+         margin-bottom: 10px;
+      }
+      &:last-child(){
+         margin-right: 0;
+      }
+      &:hover{
+         background: $theme-color;
+         color: $white;
+      }
+   }
+}
+
+.cta-text{
+   .elementor-heading-title{
+      span{
+         font-weight: 700;
+         color: transparent;
+         -webkit-text-stroke: 1px #B0ADAB;
+      }
+   }
+}

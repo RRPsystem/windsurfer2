@@ -1,0 +1,52 @@
+.gsc-career{
+   box-shadow: 0px 10px 30px 0px rgba(0, 0, 0, 0.1);
+   margin-bottom: 30px;
+   background: $white;
+   .box-content{ 
+      padding: 30px;
+      .title{
+         font-size: 22px;
+         margin: 0 0 10px;
+      }
+      .job-type{
+         font-size: 12px;
+         text-transform: uppercase;
+         font-weight: 700;
+         letter-spacing: 1px;
+         color: $white;
+         background: $theme-color-2;
+         margin-bottom: 10px;
+         display: inline-block;
+         line-height: 24px;
+         position: absolute;
+         top: 15px;
+         right: 15px;
+         z-index: 1;
+      }
+      .box-information{
+         font-size: 15px;
+         margin-bottom: 15px;
+         padding-bottom: 15px;
+         border-bottom: 1px solid $border-color;
+         ul{
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            li{
+               float: left;
+               margin-right: 30px;
+               &:last-child{
+                  margin-right: 0;
+               }
+               .icon{
+                  margin-right: 6px;
+                  color: $theme-color;
+               }
+            }
+         }
+      }
+      .job-action{
+         margin-top: 20px;
+      }
+   }
+}

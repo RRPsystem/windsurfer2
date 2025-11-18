@@ -1,0 +1,97 @@
+.gva-posts-grid{
+	.posts-grid-filter{
+	  margin-bottom: 15px;
+	  width: 100%;
+	  float: left;
+	  ul.nav-tabs{
+		 display: inline-block;
+		 text-align: left;
+		 float: left;
+		 padding-top: 15px;
+		 > li{
+			> a{
+			  background: none;
+			  font-weight: 500;
+			  color: $black;
+			  @include transition(all 0.35s);
+			  text-transform: uppercase;
+			  padding: 0 10px;
+			  &.active{
+				 color: $theme-color;
+			  }
+			}
+		 }
+	  }
+	  .view-all{
+		 float: right;
+	  }
+	}
+	.gva-content-items{
+	  float: left;
+	  width: 100%;
+	}
+}
+
+.gva-posts-list-small{
+	.gva-content-items{
+		> .post:last-child{
+			margin-bottom: 0;
+		}
+	}
+}
+
+.post-sticky{
+	&__wrapper{ 
+
+	}
+	&__content{
+		display: flex;
+		flex-wrap: wrap;
+	}
+	&__left{
+		display: flex;
+		flex: 0 0 66.66%;
+		width: 66.66%;
+		padding-right: 15px;
+		@media(max-width: 1024px){
+			padding-right: 5px;
+		}
+		@media(max-width: 768px){
+			flex: 0 0 100%;
+			width: 100%;
+			padding-right: 0;
+		}
+	}
+	&__left-content{
+		margin: 0 -15px;
+		display: flex;
+		flex-wrap: wrap; 
+		@media(max-width: 1024px){
+			margin: 0 -5px;
+		}
+	}
+	&__left-item{
+		flex: 0 0 50%;
+		width: 50%;
+		padding: 0 15px;
+		@media(max-width: 1024px){
+			padding: 0 5px;
+		}
+		@media(max-width: 500px){
+			flex: 0 0 100%;
+			width: 100%;
+		}
+	}
+	&__right{
+		flex: 0 0 33.34%;
+		padding-left: 15px;
+		@media(max-width: 1024px){
+			padding-left: 5px;
+		}
+		@media(max-width: 768px){
+			flex: 0 0 100%;
+			width: 100%;
+			padding-left: 0;
+		}
+	}
+}

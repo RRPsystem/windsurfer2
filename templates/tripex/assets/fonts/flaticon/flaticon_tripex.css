@@ -1,0 +1,140 @@
+/*!
+*    ______ _       _   _
+*    |  ____| |     | | (_)
+*    | |__  | | __ _| |_ _  ___ ___  _ __
+*    |  __| | |/ _` | __| |/ __/ _ \| '_ \
+*    | |    | | (_| | |_| | (_| (_) | | | |
+*    |_|    |_|\__,_|\__|_|\___\___/|_| |_|
+*
+*         https://www.flaticon.com
+*/
+
+@font-face {
+    font-family: "flaticon_tripex";
+    src: url("./flaticon_tripex.woff2?2976f0b69cb7e2b6ac7dddf1a3058ba2") format("woff2"),
+url("./flaticon_tripex.woff?2976f0b69cb7e2b6ac7dddf1a3058ba2") format("woff"),
+url("./flaticon_tripex.eot?2976f0b69cb7e2b6ac7dddf1a3058ba2#iefix") format("embedded-opentype"),
+url("./flaticon_tripex.ttf?2976f0b69cb7e2b6ac7dddf1a3058ba2") format("truetype"),
+url("./flaticon_tripex.svg?2976f0b69cb7e2b6ac7dddf1a3058ba2#flaticon_tripex") format("svg")
+}
+
+i[class^="flaticon-"]:before, i[class*=" flaticon-"]:before {
+    font-family: flaticon_tripex !important;
+    font-style: normal;
+    font-weight: normal !important;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.flaticon-field-trip:before {
+    content: "\f101";
+}
+.flaticon-help:before {
+    content: "\f102";
+}
+.flaticon-premium-badge:before {
+    content: "\f103";
+}
+.flaticon-travel-agency:before {
+    content: "\f104";
+}
+.flaticon-safe-flight:before {
+    content: "\f105";
+}
+.flaticon-travel:before {
+    content: "\f106";
+}
+.flaticon-investment:before {
+    content: "\f107";
+}
+.flaticon-tent:before {
+    content: "\f108";
+}
+.flaticon-kayak:before {
+    content: "\f109";
+}
+.flaticon-bungee-jumping:before {
+    content: "\f10a";
+}
+.flaticon-canoe:before {
+    content: "\f10b";
+}
+.flaticon-zip-line:before {
+    content: "\f10c";
+}
+.flaticon-cycling:before {
+    content: "\f10d";
+}
+.flaticon-award-symbol:before {
+    content: "\f10e";
+}
+.flaticon-quote:before {
+    content: "\f10f";
+}
+.flaticon-airplane-travel-around-the-world:before {
+    content: "\f110";
+}
+.flaticon-traveling:before {
+    content: "\f111";
+}
+.flaticon-travel-and-tourism:before {
+    content: "\f112";
+}
+.flaticon-man:before {
+    content: "\f113";
+}
+.flaticon-school-bag:before {
+    content: "\f114";
+}
+.flaticon-ribbon:before {
+    content: "\f115";
+}
+.flaticon-travel-1:before {
+    content: "\f116";
+}
+.flaticon-hiking:before {
+    content: "\f117";
+}
+.flaticon-travel-2:before {
+    content: "\f118";
+}
+.flaticon-affordable:before {
+    content: "\f119";
+}
+.flaticon-booking:before {
+    content: "\f11a";
+}
+.flaticon-destination:before {
+    content: "\f11b";
+}
+.flaticon-rating:before {
+    content: "\f11c";
+}
+.flaticon-experience:before {
+    content: "\f11d";
+}
+.flaticon-airplane:before {
+    content: "\f11e";
+}
+.flaticon-world:before {
+    content: "\f11f";
+}
+.flaticon-tourist:before {
+    content: "\f120";
+}
+.flaticon-email-marketing:before {
+    content: "\f121";
+}
+.flaticon-letterbox:before {
+    content: "\f122";
+}
+.flaticon-telephone:before {
+    content: "\f123";
+}
+.flaticon-location:before {
+    content: "\f124";
+}
+

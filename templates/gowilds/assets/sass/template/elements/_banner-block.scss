@@ -1,0 +1,306 @@
+.lt-banner-one{
+   &__single{
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+   }
+   &__wrap{
+      position: relative;
+      overflow: hidden;
+   }
+   &__image{
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      transition: all 10s;
+      &:after{
+         content: '';
+         position: absolute;
+         background-image: -webkit-linear-gradient(to bottom,transparent 30%,rgba(0, 0, 0, .9) 100%);
+         background-image: -moz-linear-gradient(to bottom,transparent 30%,rgba(0, 0, 0, .9) 100%);
+         background-image: -ms-linear-gradient(to bottom,transparent 30%,rgba(0, 0, 0, .9) 100%);
+         background-image: -o-linear-gradient(to bottom,transparent 30%,rgba(0, 0, 0, .9) 100%);
+         background-image: linear-gradient(to bottom,transparent 30%,rgba(0, 0, 0, .9) 100%);
+         @include size(100%, 100%);
+         top: 0;
+         left: 0;
+         z-index: 1;
+      }
+      img{
+         position: absolute;
+         height: 100%;
+         width: 100%;
+         object-fit: cover;
+         transform: translate(-50%, -50%);
+         top: 50%;
+         left: 50%;
+      }
+   }
+   &__content{
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      z-index: 11;
+      width: 100%;
+      padding: 15px 30px 25px 30px;
+      @media(max-width: 1200px){ 
+         padding: 0 20px 20px;
+      }
+      @media(max-width: 1024px){ 
+         padding: 15px 15px 20px;
+      }
+   }
+   &__subtitle{
+      font-size: 20px;
+      color: $theme-color;
+      font-family: $font-second;
+   }
+   &__title{
+      font-size: 26px;
+      color: $white;
+      margin: 0;
+      line-height: 1.2;
+      @include media-breakpoint-down(lg){ 
+         font-size: 22px;
+      }
+   }
+   &__count{
+      font-size: 11px;
+      font-weight: 700;
+      background: $theme-color-2;
+      color: $white;
+      padding: 0 20px;
+      line-height: 30px;
+      text-align: center;
+      border-radius: 8px;
+      position: absolute;
+      text-transform: uppercase;
+      top: 20px;
+      right: 20px;
+      z-index: 12;
+      letter-spacing: 1px;
+      white-space: nowrap;
+   }
+   &__link{
+      position: absolute;
+      @include size(100%, 100%);
+      top: 0;
+      left: 0;
+      z-index: 15;
+   }
+   &__single{
+      &.text-left{
+         .lt-banner-one__count{
+            left: auto;
+            right: 20px;
+            transform: translateX(0);
+         }
+      }
+      &.text-right{
+         .lt-banner-one__count{
+            left: 20px;
+            transform: translateX(0);
+         }
+      }
+      &:hover{
+         .lt-banner-one__image{
+            transform: scale(1.2);
+         }
+      }
+   }
+}
+
+.lt-banner-two{
+   &__single{
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+   }
+   &__wrap{
+      position: relative;
+      overflow: hidden;
+   }
+   &__image{
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      transition: all 10s;
+      &:after{
+         content: '';
+         position: absolute;
+         background: $theme-color;
+         opacity: 0.9;
+         @include size(100%, 100%);
+         top: 0;
+         left: 0;
+         z-index: 1; 
+      }
+      img{
+         position: absolute;
+         height: 100%;
+         width: 100%;
+         object-fit: cover;
+         transform: translate(-50%, -50%);
+         top: 50%;
+         left: 50%;
+      }
+   }
+   &__content{
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      z-index: 11;
+      width: 100%;
+      padding: 0 30px 35px;
+      @media(max-width: 1200px){ 
+         padding: 0 20px 20px;
+      }
+      @media(max-width: 1024px){ 
+         padding: 15px 15px 20px;
+      }
+   }
+   &__subtitle{
+      font-family: $font-family-base;
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      color: $white;
+      letter-spacing: 1px;
+      margin-bottom: 15px;
+      background: $theme-color-2;
+      display: inline-block;
+      padding: 6px 15px;
+      border-radius: 6px;
+      line-height: 16px;
+   }
+   &__title{
+      font-size: 26px;
+      line-height: 36px;
+      letter-spacing: 0;
+      color: $white;
+      margin: 0;
+      line-height: 1.2;
+      @include media-breakpoint-down(lg){ 
+         font-size: 22px;
+      }
+   }
+   &__count{
+      font-size: 11px;
+      font-weight: 700;
+      background: $theme-color-2;
+      color: $white;
+      padding: 0 20px;
+      line-height: 30px;
+      text-align: center;
+      border-radius: 8px;
+      position: absolute;
+      text-transform: uppercase;
+      top: 20px;
+      right: 20px;
+      z-index: 12;
+      letter-spacing: 1px;
+      white-space: nowrap;
+   }
+   &__link{
+      position: absolute;
+      @include size(100%, 100%);
+      top: 0;
+      left: 0;
+      z-index: 15;
+   }
+   &__btn{
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 14px;
+      @include media-breakpoint-down(lg){
+         padding: 14px 16px;
+      }
+   }
+   &__single{
+      &:hover{
+         .lt-banner-two__image{
+            transform: scale(1.2);
+         }
+      }
+   }
+}
+
+.lt-banner-three{
+   &__single{
+      position: relative;
+      box-shadow: 0 3px 5px rgba(70, 70, 70, 0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 30px;
+   }
+   &__count{
+      font-size: 11px;
+      font-weight: 700;
+      background: $theme-color;
+      color: $white;
+      padding: 0 20px;
+      line-height: 30px;
+      text-align: center;
+      border-radius: 8px;
+      position: absolute;
+      text-transform: uppercase;
+      top: 20px;
+      right: 20px;
+      z-index: 12;
+      letter-spacing: 1px;
+      white-space: nowrap;
+   }
+   &__content{
+      padding: 25px 30px;
+   }
+   &__subtitle{
+      color: $theme-color;
+   }
+   &__title{
+      margin: 0;
+      font-size: 26px;
+      position: relative;
+      @media(max-width: 1024px){
+         font-size: 22px;
+      }
+      &:after{
+         content: '\f054';
+         font-family: 'Font Awesome 5 Free';
+         width: 36px;
+         height: 36px;
+         line-height: 36px;
+         text-align: center;
+         font-size: 16px;
+         border-radius: 50%;
+         position: absolute;
+         top: 50%;
+         margin-top: -18px;
+         right: -10px;
+         background: $theme-color-2;
+         color: $white;
+         transition: all 0.35s;
+      }
+   }
+   &__link{
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 11;
+   }
+   &__single{
+      &:hover{
+         .lt-banner-three__title{
+            &:after{
+               background: $theme-color;
+               color: $white;
+            }
+         }
+      }
+   }
+}
