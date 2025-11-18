@@ -920,6 +920,20 @@ class TemplateEditor {
                 
                 <div class="property-section">
                     <div class="property-title">
+                        <i class="fas fa-code"></i> HTML Code Editor
+                    </div>
+                    <div class="property-field">
+                        <label class="property-label">Bewerk HTML direct</label>
+                        <textarea class="property-input property-textarea" id="htmlContent" style="font-family:monospace;font-size:12px;height:150px;">${element.innerHTML.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+                        <small style="color:#666;font-size:11px;">⚠️ Voorzichtig: verkeerde HTML kan de layout breken</small>
+                    </div>
+                    <button class="btn btn-secondary" style="width:100%;margin-top:8px;" onclick="templateEditor.applyHTMLChanges()">
+                        <i class="fas fa-code"></i> HTML Toepassen
+                    </button>
+                </div>
+                
+                <div class="property-section">
+                    <div class="property-title">
                         <i class="fas fa-palette"></i> Styling
                     </div>
                     <div class="property-field">
@@ -929,6 +943,41 @@ class TemplateEditor {
                     <div class="property-field">
                         <label class="property-label">Lettergrootte</label>
                         <input type="number" class="property-input" id="fontSize" value="${parseInt(window.getComputedStyle(element).fontSize)}" min="8" max="72">
+                    </div>
+                </div>
+                
+                <div class="property-section">
+                    <div class="property-title">
+                        <i class="fas fa-cog"></i> Geavanceerde Opties
+                    </div>
+                    <div class="property-field">
+                        <label class="property-label">CSS Classes</label>
+                        <input type="text" class="property-input" id="cssClasses" value="${element.className}" placeholder="class1 class2 class3">
+                        <small style="color:#666;font-size:11px;">Voeg CSS classes toe (gescheiden door spaties)</small>
+                    </div>
+                    <div class="property-field">
+                        <label class="property-label">Custom CSS (inline)</label>
+                        <textarea class="property-input" id="customCSS" style="font-family:monospace;font-size:12px;height:80px;" placeholder="color: red; font-weight: bold;">${element.getAttribute('style') || ''}</textarea>
+                    </div>
+                </div>
+                
+                <div class="property-section">
+                    <div class="property-title">
+                        <i class="fas fa-tools"></i> Element Acties
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <button class="btn btn-secondary" onclick="templateEditor.duplicateElement()" title="Dupliceer element">
+                            <i class="fas fa-copy"></i> Dupliceer
+                        </button>
+                        <button class="btn btn-danger" onclick="templateEditor.deleteElement()" title="Verwijder element">
+                            <i class="fas fa-trash"></i> Verwijder
+                        </button>
+                        <button class="btn btn-secondary" onclick="templateEditor.moveElementUp()" title="Verplaats omhoog">
+                            <i class="fas fa-arrow-up"></i> Omhoog
+                        </button>
+                        <button class="btn btn-secondary" onclick="templateEditor.moveElementDown()" title="Verplaats omlaag">
+                            <i class="fas fa-arrow-down"></i> Omlaag
+                        </button>
                     </div>
                 </div>
                 
@@ -1162,7 +1211,87 @@ class TemplateEditor {
             element.style.fontSize = newSize + 'px';
         }
         
+        // Apply CSS classes if changed
+        const cssClasses = document.getElementById('cssClasses')?.value;
+        if (cssClasses !== undefined) {
+            element.className = cssClasses;
+        }
+        
+        // Apply custom CSS if provided
+        const customCSS = document.getElementById('customCSS')?.value;
+        if (customCSS !== undefined) {
+            element.setAttribute('style', customCSS);
+        }
+        
         this.showNotification('✅ Tekst bijgewerkt!');
+    }
+    
+    applyHTMLChanges() {
+        if (!this.selectedElement || this.selectedElement.type !== 'text') return;
+        
+        const element = this.selectedElement.element;
+        const htmlContent = document.getElementById('htmlContent')?.value;
+        
+        if (htmlContent) {
+            element.innerHTML = htmlContent;
+            this.showNotification('✅ HTML bijgewerkt!');
+        }
+    }
+    
+    duplicateElement() {
+        if (!this.selectedElement) return;
+        
+        const element = this.selectedElement.element;
+        const clone = element.cloneNode(true);
+        
+        // Remove editor classes from clone
+        clone.classList.remove('wb-editable', 'wb-text', 'wb-image', 'wb-selected');
+        clone.querySelectorAll('.wb-quick-actions, .wb-edit-label').forEach(el => el.remove());
+        
+        // Insert after original
+        element.parentNode.insertBefore(clone, element.nextSibling);
+        
+        this.showNotification('✅ Element gedupliceerd!');
+        this.deselectElement();
+    }
+    
+    deleteElement() {
+        if (!this.selectedElement) return;
+        
+        if (confirm('Weet je zeker dat je dit element wilt verwijderen?')) {
+            const element = this.selectedElement.element;
+            element.remove();
+            this.showNotification('✅ Element verwijderd!');
+            this.deselectElement();
+        }
+    }
+    
+    moveElementUp() {
+        if (!this.selectedElement) return;
+        
+        const element = this.selectedElement.element;
+        const prev = element.previousElementSibling;
+        
+        if (prev) {
+            element.parentNode.insertBefore(element, prev);
+            this.showNotification('✅ Element verplaatst!');
+        } else {
+            this.showNotification('ℹ️ Element staat al bovenaan', 'info');
+        }
+    }
+    
+    moveElementDown() {
+        if (!this.selectedElement) return;
+        
+        const element = this.selectedElement.element;
+        const next = element.nextElementSibling;
+        
+        if (next) {
+            element.parentNode.insertBefore(next, element);
+            this.showNotification('✅ Element verplaatst!');
+        } else {
+            this.showNotification('ℹ️ Element staat al onderaan', 'info');
+        }
     }
     
     applyImageChanges() {
