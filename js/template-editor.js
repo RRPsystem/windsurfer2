@@ -3616,6 +3616,13 @@ class TemplateEditor {
                 background-color: ${footerBgColor} !important;
             }
             
+            /* Fix Adventures section background text */
+            .vs-feature-style1 h2.position-absolute {
+                opacity: 0.08 !important;
+                color: rgba(255, 255, 255, 0.08) !important;
+                pointer-events: none !important;
+            }
+            
             /* Apply font */
             body, h1, h2, h3, h4, h5, h6, p {
                 font-family: var(--brand-font) !important;
