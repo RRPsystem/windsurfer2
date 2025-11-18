@@ -1992,6 +1992,41 @@ class TemplateEditor {
         });
         clonedDoc.body.classList.remove('wb-editing-mode');
         
+        // Keep wb-brand-styles (brand colors/fonts) but remove wb-editor-styles
+        const editorStyles = clonedDoc.getElementById('wb-editor-styles');
+        if (editorStyles) editorStyles.remove();
+        
+        // Apply gallery grid styles inline to make them persistent
+        const galleryGrids = clonedDoc.querySelectorAll('.gallery-grid, .gallery-layout1');
+        galleryGrids.forEach(grid => {
+            grid.style.display = 'grid';
+            grid.style.gridTemplateColumns = '1fr 1fr';
+            grid.style.gridTemplateRows = '1fr 1fr';
+            grid.style.gap = '0';
+            grid.style.padding = '0';
+            grid.style.margin = '0';
+            grid.style.width = '100%';
+            
+            // Apply to columns
+            const cols = grid.querySelectorAll('[class*="col-"]');
+            cols.forEach(col => {
+                col.style.padding = '0';
+                col.style.margin = '0';
+                col.style.width = '100%';
+                col.style.height = '300px';
+            });
+            
+            // Apply to images
+            const imgs = grid.querySelectorAll('img');
+            imgs.forEach(img => {
+                img.style.margin = '0';
+                img.style.display = 'block';
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+            });
+        });
+        
         // Restore original carousel HTML
         const carousels = clonedDoc.querySelectorAll('.owl-carousel');
         carousels.forEach((carousel, index) => {
