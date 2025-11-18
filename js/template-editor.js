@@ -561,18 +561,19 @@ class TemplateEditor {
                 pointer-events: none;
             }
             
-            /* Keep header topbar always visible - override GSAP hiding */
-            .sticky-wrapper, .header-top-wrap {
+            /* Keep header topbar always visible by forcing it outside GSAP control */
+            .header-top-wrap {
                 opacity: 1 !important;
                 visibility: visible !important;
                 transform: none !important;
+                position: relative !important;
+                z-index: 9999 !important;
             }
             
-            /* Prevent GSAP from hiding the entire navbar container */
-            #navbars {
+            /* Keep the sticky wrapper visible */
+            .sticky-wrapper {
                 opacity: 1 !important;
                 visibility: visible !important;
-                transform: translateY(0) !important;
             }
             
             .wb-quick-actions {
