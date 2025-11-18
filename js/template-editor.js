@@ -353,15 +353,22 @@ class TemplateEditor {
                     iframeDoc.body.setAttribute(attr.name, attr.value);
                 });
                 
-                // IMPORTANT: Re-apply brand styles if they exist in the saved HTML
-                const savedBrandStyles = savedDoc.getElementById('wb-brand-styles');
+                // IMPORTANT: Re-apply brand styles from saved HTML HEAD (not body!)
+                const savedBrandStyles = savedDoc.head.querySelector('#wb-brand-styles');
                 if (savedBrandStyles) {
-                    console.log('[TemplateEditor] Re-applying saved brand styles...');
+                    console.log('[TemplateEditor] Re-applying saved brand styles from HEAD...');
+                    console.log('[TemplateEditor] Brand styles content length:', savedBrandStyles.textContent.length);
                     // Remove any existing brand styles first
                     const existingStyles = iframeDoc.getElementById('wb-brand-styles');
-                    if (existingStyles) existingStyles.remove();
-                    // Add the saved brand styles
+                    if (existingStyles) {
+                        console.log('[TemplateEditor] Removing existing brand styles...');
+                        existingStyles.remove();
+                    }
+                    // Add the saved brand styles to HEAD
                     iframeDoc.head.appendChild(savedBrandStyles.cloneNode(true));
+                    console.log('[TemplateEditor] Brand styles applied successfully ✓');
+                } else {
+                    console.warn('[TemplateEditor] No brand styles found in saved HTML HEAD!');
                 }
             }
             
