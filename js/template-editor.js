@@ -325,6 +325,22 @@ class TemplateEditor {
                 object-fit: cover;
             }
             
+            /* Fix service card image heights - make them all equal */
+            .service-card .service-card__thumb,
+            .service-card-two .service-card-two__thumb,
+            .service-box .service-thumb {
+                height: 200px;
+                overflow: hidden;
+            }
+            
+            .service-card .service-card__thumb img,
+            .service-card-two .service-card-two__thumb img,
+            .service-box .service-thumb img {
+                width: 100%;
+                height: 200px;
+                object-fit: cover;
+            }
+            
             .wb-editable {
                 outline: 2px dashed transparent;
                 transition: all 0.2s;
