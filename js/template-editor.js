@@ -3176,6 +3176,9 @@ class TemplateEditor {
         const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
         const rootStyles = window.getComputedStyle(iframeDoc.documentElement);
         
+        // Get template defaults
+        const defaults = this.templateDefaults || {};
+        
         propertiesPanel.innerHTML = `
             <div class="property-section">
                 <div class="property-title">
@@ -3183,22 +3186,103 @@ class TemplateEditor {
                 </div>
                 <div class="property-field">
                     <label class="property-label">Primaire Kleur</label>
-                    <input type="color" class="property-input" id="primaryColor" value="#FF8C00">
+                    <input type="color" class="property-input" id="primaryColor" value="${defaults.primaryColor || '#FF8C00'}">
                     <small style="color:#666;font-size:11px;">Hoofdkleur voor buttons, links, etc.</small>
                 </div>
                 <div class="property-field">
                     <label class="property-label">Secundaire Kleur</label>
-                    <input type="color" class="property-input" id="secondaryColor" value="#667eea">
+                    <input type="color" class="property-input" id="secondaryColor" value="${defaults.secondaryColor || '#667eea'}">
                     <small style="color:#666;font-size:11px;">Accent kleur voor highlights</small>
                 </div>
                 <div class="property-field">
+                    <label class="property-label">Accent Kleur</label>
+                    <input type="color" class="property-input" id="accentColor" value="${defaults.accentColor || '#465b2d'}">
+                    <small style="color:#666;font-size:11px;">Extra accent kleur (${this.templateName === 'tripix' ? 'groen' : 'zwart'})</small>
+                </div>
+                <div class="property-field">
                     <label class="property-label">Tekst Kleur</label>
-                    <input type="color" class="property-input" id="textColor" value="#333333">
+                    <input type="color" class="property-input" id="textColor" value="${defaults.textColor || '#333333'}">
+                </div>
+                <div class="property-field">
+                    <label class="property-label">Titel Kleur</label>
+                    <input type="color" class="property-input" id="titleColor" value="${defaults.titleColor || '#141414'}">
                 </div>
                 <div class="property-field">
                     <label class="property-label">Footer Achtergrond</label>
-                    <input type="color" class="property-input" id="footerBgColor" value="#1a1a1a">
+                    <input type="color" class="property-input" id="footerBgColor" value="${defaults.footerBgColor || '#1a1a1a'}">
                     <small style="color:#666;font-size:11px;">Achtergrondkleur voor footer</small>
+                </div>
+            </div>
+            
+            <div class="property-section">
+                <div class="property-title">
+                    <i class="fas fa-font"></i> Typografie
+                </div>
+                <div class="property-field">
+                    <label class="property-label">Body Font</label>
+                    <select class="property-input" id="primaryFont">
+                        <option value="Rubik" ${defaults.primaryFont === 'Rubik' ? 'selected' : ''}>Rubik</option>
+                        <option value="Plus Jakarta Sans" ${defaults.primaryFont === 'Plus Jakarta Sans' ? 'selected' : ''}>Plus Jakarta Sans</option>
+                        <option value="Poppins" ${defaults.primaryFont === 'Poppins' ? 'selected' : ''}>Poppins</option>
+                        <option value="Roboto" ${defaults.primaryFont === 'Roboto' ? 'selected' : ''}>Roboto</option>
+                        <option value="Open Sans" ${defaults.primaryFont === 'Open Sans' ? 'selected' : ''}>Open Sans</option>
+                        <option value="Lato" ${defaults.primaryFont === 'Lato' ? 'selected' : ''}>Lato</option>
+                        <option value="Montserrat" ${defaults.primaryFont === 'Montserrat' ? 'selected' : ''}>Montserrat</option>
+                    </select>
+                    <small style="color:#666;font-size:11px;">Template default: ${defaults.primaryFont || 'Rubik'}</small>
+                </div>
+                <div class="property-field">
+                    <label class="property-label">Title Font</label>
+                    <select class="property-input" id="titleFont">
+                        <option value="Abril Fatface" ${defaults.titleFont === 'Abril Fatface' ? 'selected' : ''}>Abril Fatface</option>
+                        <option value="Plus Jakarta Sans" ${defaults.titleFont === 'Plus Jakarta Sans' ? 'selected' : ''}>Plus Jakarta Sans</option>
+                        <option value="Playfair Display" ${defaults.titleFont === 'Playfair Display' ? 'selected' : ''}>Playfair Display</option>
+                        <option value="Montserrat" ${defaults.titleFont === 'Montserrat' ? 'selected' : ''}>Montserrat</option>
+                        <option value="Poppins" ${defaults.titleFont === 'Poppins' ? 'selected' : ''}>Poppins</option>
+                    </select>
+                    <small style="color:#666;font-size:11px;">Template default: ${defaults.titleFont || 'Abril Fatface'}</small>
+                </div>
+                <div class="property-field">
+                    <label class="property-label">Body Font Size</label>
+                    <input type="number" class="property-input" id="bodySize" value="${parseInt(defaults.bodySize) || 14}" min="12" max="20">
+                    <small style="color:#666;font-size:11px;">Template default: ${defaults.bodySize || '14px'}</small>
+                </div>
+            </div>
+            
+            <div class="property-section">
+                <div class="property-title">
+                    <i class="fas fa-text-height"></i> Heading Sizes
+                </div>
+                <div class="property-field">
+                    <label class="property-label">H1 Size (px)</label>
+                    <input type="number" class="property-input" id="h1Size" value="${parseInt(defaults.h1Size) || 90}" min="30" max="120">
+                    <small style="color:#666;font-size:11px;">Template default: ${defaults.h1Size || '90px'}</small>
+                </div>
+                <div class="property-field">
+                    <label class="property-label">H2 Size (px)</label>
+                    <input type="number" class="property-input" id="h2Size" value="${parseInt(defaults.h2Size) || 45}" min="24" max="80">
+                    <small style="color:#666;font-size:11px;">Template default: ${defaults.h2Size || '45px'}</small>
+                </div>
+                <div class="property-field">
+                    <label class="property-label">H3 Size (px)</label>
+                    <input type="number" class="property-input" id="h3Size" value="${parseInt(defaults.h3Size) || 40}" min="20" max="60">
+                    <small style="color:#666;font-size:11px;">Template default: ${defaults.h3Size || '40px'}</small>
+                </div>
+            </div>
+            
+            <div class="property-section">
+                <div class="property-title">
+                    <i class="fas fa-ruler-horizontal"></i> Layout & Spacing
+                </div>
+                <div class="property-field">
+                    <label class="property-label">Section Spacing (px)</label>
+                    <input type="number" class="property-input" id="sectionSpace" value="${parseInt(defaults.sectionSpace) || 120}" min="60" max="200" step="10">
+                    <small style="color:#666;font-size:11px;">Template default: ${defaults.sectionSpace || '120px'}</small>
+                </div>
+                <div class="property-field">
+                    <label class="property-label">Container Width (px)</label>
+                    <input type="number" class="property-input" id="containerWidth" value="${parseInt(defaults.containerWidth) || 1300}" min="1000" max="1600" step="50">
+                    <small style="color:#666;font-size:11px;">Template default: ${defaults.containerWidth || '1300px'}</small>
                 </div>
             </div>
             
@@ -3217,27 +3301,19 @@ class TemplateEditor {
                 <button class="media-selector-btn" onclick="templateEditor.selectLogo()">
                     <i class="fas fa-image"></i> Kies Logo
                 </button>
-            </div>
-            
-            <div class="property-section">
-                <div class="property-title">
-                    <i class="fas fa-font"></i> Typografie
-                </div>
-                <div class="property-field">
-                    <label class="property-label">Primair Font</label>
-                    <select class="property-input" id="primaryFont">
-                        <option value="Poppins">Poppins</option>
-                        <option value="Roboto">Roboto</option>
-                        <option value="Open Sans">Open Sans</option>
-                        <option value="Lato">Lato</option>
-                        <option value="Montserrat">Montserrat</option>
-                    </select>
+                <div class="property-field" style="margin-top:12px;">
+                    <label class="property-label">Logo Max Width (px)</label>
+                    <input type="number" class="property-input" id="logoMaxWidth" value="${parseInt(defaults.logoMaxWidth) || 200}" min="100" max="400" step="10">
+                    <small style="color:#666;font-size:11px;">Template default: ${defaults.logoMaxWidth || '200px'}</small>
                 </div>
             </div>
             
             <div class="property-section">
                 <button class="btn btn-primary" style="width:100%;" onclick="templateEditor.applyWebsiteSettings()">
                     <i class="fas fa-check"></i> Instellingen Toepassen
+                </button>
+                <button class="btn btn-secondary" style="width:100%;margin-top:8px;" onclick="templateEditor.resetToDefaults()">
+                    <i class="fas fa-undo"></i> Reset naar Template Defaults
                 </button>
             </div>
         `;
@@ -3437,11 +3513,38 @@ class TemplateEditor {
             }
         }
         
-        this.showNotification('✅ Website instellingen toegepast!');
+        this.showNotification('✅ Instellingen toegepast!');
+    }
+    
+    resetToDefaults() {
+        if (!confirm('Weet je zeker dat je alle instellingen wilt resetten naar de template defaults?')) {
+            return;
+        }
+        
+        const defaults = this.templateDefaults || {};
+        
+        // Reset all inputs to defaults
+        if (document.getElementById('primaryColor')) document.getElementById('primaryColor').value = defaults.primaryColor || '#FF8C00';
+        if (document.getElementById('secondaryColor')) document.getElementById('secondaryColor').value = defaults.secondaryColor || '#667eea';
+        if (document.getElementById('accentColor')) document.getElementById('accentColor').value = defaults.accentColor || '#465b2d';
+        if (document.getElementById('textColor')) document.getElementById('textColor').value = defaults.textColor || '#333333';
+        if (document.getElementById('titleColor')) document.getElementById('titleColor').value = defaults.titleColor || '#141414';
+        if (document.getElementById('footerBgColor')) document.getElementById('footerBgColor').value = defaults.footerBgColor || '#1a1a1a';
+        if (document.getElementById('primaryFont')) document.getElementById('primaryFont').value = defaults.primaryFont || 'Rubik';
+        if (document.getElementById('titleFont')) document.getElementById('titleFont').value = defaults.titleFont || 'Abril Fatface';
+        if (document.getElementById('bodySize')) document.getElementById('bodySize').value = parseInt(defaults.bodySize) || 14;
+        if (document.getElementById('h1Size')) document.getElementById('h1Size').value = parseInt(defaults.h1Size) || 90;
+        if (document.getElementById('h2Size')) document.getElementById('h2Size').value = parseInt(defaults.h2Size) || 45;
+        if (document.getElementById('h3Size')) document.getElementById('h3Size').value = parseInt(defaults.h3Size) || 40;
+        if (document.getElementById('sectionSpace')) document.getElementById('sectionSpace').value = parseInt(defaults.sectionSpace) || 120;
+        if (document.getElementById('containerWidth')) document.getElementById('containerWidth').value = parseInt(defaults.containerWidth) || 1300;
+        if (document.getElementById('logoMaxWidth')) document.getElementById('logoMaxWidth').value = parseInt(defaults.logoMaxWidth) || 200;
+        
+        this.showNotification('🔄 Instellingen gereset naar template defaults!');
     }
     
     adjustColor(color, amount) {
-        const num = parseInt(color.replace('#', ''), 16);
+        const num = parseInt(color.slice(1), 16);
         const r = Math.max(0, Math.min(255, (num >> 16) + amount));
         const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amount));
         const b = Math.max(0, Math.min(255, (num & 0x0000FF) + amount));
