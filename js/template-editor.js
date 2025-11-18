@@ -334,36 +334,30 @@ class TemplateEditor {
         
         // Wait for iframe to load
         iframe.onload = () => {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            
             // Check if we have a saved draft for this page
             const savedPageData = this.savedDraft?.pages?.find(p => p.path === page.path);
             
             if (savedPageData && savedPageData.html) {
-                console.log('[TemplateEditor] Applying saved draft HTML for page:', page.name);
+                console.log('[TemplateEditor] Loading saved draft for page:', page.name);
                 
-                // Replace the body content with saved HTML
-                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                 const parser = new DOMParser();
                 const savedDoc = parser.parseFromString(savedPageData.html, 'text/html');
                 
-                // Replace body content
-                iframeDoc.body.innerHTML = savedDoc.body.innerHTML;
-                
-                // Copy body attributes
-                Array.from(savedDoc.body.attributes).forEach(attr => {
-                    iframeDoc.body.setAttribute(attr.name, attr.value);
-                });
-                
-                // IMPORTANT: Re-apply brand styles from saved HTML HEAD (not body!)
+                // ONLY apply brand styles from saved HTML - DO NOT replace body content!
                 const savedBrandStyles = savedDoc.head.querySelector('#wb-brand-styles');
                 if (savedBrandStyles) {
                     console.log('[TemplateEditor] Re-applying saved brand styles from HEAD...');
                     console.log('[TemplateEditor] Brand styles content length:', savedBrandStyles.textContent.length);
+                    
                     // Remove any existing brand styles first
                     const existingStyles = iframeDoc.getElementById('wb-brand-styles');
                     if (existingStyles) {
                         console.log('[TemplateEditor] Removing existing brand styles...');
                         existingStyles.remove();
                     }
+                    
                     // Add the saved brand styles to HEAD
                     iframeDoc.head.appendChild(savedBrandStyles.cloneNode(true));
                     console.log('[TemplateEditor] Brand styles applied successfully ✓');
@@ -373,6 +367,9 @@ class TemplateEditor {
                 } else {
                     console.warn('[TemplateEditor] No brand styles found in saved HTML HEAD!');
                 }
+                
+                // TODO: Apply saved text content without destroying layout
+                // For now, we only restore brand styles (colors, fonts, logo)
             }
             
             this.setupIframeEditing();
