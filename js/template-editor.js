@@ -2085,20 +2085,29 @@ class TemplateEditor {
     async saveWebsiteToSupabase(exportData) {
         try {
             console.log('[TemplateEditor] Saving website to Supabase...');
+            console.log('[TemplateEditor] Export data:', {
+                template: exportData.template,
+                brandId: this.brandId,
+                pagesCount: Object.keys(exportData.pages).length
+            });
+            
+            const websiteData = {
+                brand_id: this.brandId,
+                name: `${exportData.template} Website`,
+                slug: this.sanitizeSlug(exportData.template),
+                template: exportData.template,
+                pages: exportData.pages,
+                preview_url: exportData.previewUrl,
+                status: exportData.status,
+                created_by: this.userId,
+                updated_at: new Date().toISOString()
+            };
+            
+            console.log('[TemplateEditor] Saving to websites table:', websiteData);
             
             const { data, error} = await this.supabase
                 .from('websites')
-                .upsert({
-                    brand_id: this.brandId,
-                    name: `${this.templateName} Website`,
-                    slug: this.sanitizeSlug(this.templateName),
-                    template: exportData.template,
-                    pages: exportData.pages,
-                    preview_url: exportData.previewUrl,
-                    status: exportData.status,
-                    created_by: this.userId,
-                    updated_at: new Date().toISOString()
-                }, {
+                .upsert(websiteData, {
                     onConflict: 'brand_id,template'
                 });
             
@@ -2134,6 +2143,7 @@ class TemplateEditor {
         }
         
         console.log('[TemplateEditor] Publishing site...');
+        console.log('[TemplateEditor] Current template:', this.templateName);
         
         try {
             // Save first
@@ -2152,8 +2162,15 @@ class TemplateEditor {
                 timestamp: Date.now(),
                 brandId: this.brandId,
                 previewUrl: previewUrl,
-                status: 'draft'
+                status: 'published'  // Changed from 'draft' to 'published'
             };
+            
+            console.log('[TemplateEditor] Export data created:', {
+                template: exportData.template,
+                brandId: exportData.brandId,
+                status: exportData.status,
+                pagesCount: Object.keys(allPagesHTML).length
+            });
             
             // Save to websites table in Supabase
             if (this.supabase && this.brandId) {
