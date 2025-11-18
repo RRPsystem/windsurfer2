@@ -3049,13 +3049,16 @@ class TemplateEditor {
             const result = await window.MediaPicker.openImage();
             console.log('[TemplateEditor] Media picker result:', result);
             
-            if (result && result.url) {
-                console.log('[TemplateEditor] Setting logo URL:', result.url);
-                document.getElementById('logoUrl').value = result.url;
+            // MediaPicker can return either url (from URL/Unsplash) or dataUrl (from upload)
+            const logoUrl = result?.url || result?.dataUrl;
+            
+            if (logoUrl) {
+                console.log('[TemplateEditor] Setting logo URL:', logoUrl.substring(0, 50) + '...');
+                document.getElementById('logoUrl').value = logoUrl;
                 this.updateLogoPreview();
                 this.showNotification('✅ Logo geselecteerd!');
             } else {
-                console.warn('[TemplateEditor] No URL in result:', result);
+                console.warn('[TemplateEditor] No URL or dataUrl in result:', result);
                 this.showNotification('⚠️ Geen afbeelding geselecteerd', 'warning');
             }
         } catch (err) {
