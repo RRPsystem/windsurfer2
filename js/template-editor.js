@@ -312,16 +312,22 @@ class TemplateEditor {
             /* Fix tour package card image heights - make them all equal */
             .tour-package-card .tour-package-thumb,
             .package-style1 .package-thumb,
-            .vs-tour-package .package-thumb {
-                height: 280px;
+            .vs-tour-package .package-thumb,
+            .package-card .package-thumb,
+            .tour-card .tour-thumb,
+            .tour-package .tour-package-thumb {
+                height: 280px !important;
                 overflow: hidden;
             }
             
             .tour-package-card .tour-package-thumb img,
             .package-style1 .package-thumb img,
-            .vs-tour-package .package-thumb img {
+            .vs-tour-package .package-thumb img,
+            .package-card .package-thumb img,
+            .tour-card .tour-thumb img,
+            .tour-package .tour-package-thumb img {
                 width: 100%;
-                height: 280px;
+                height: 280px !important;
                 object-fit: cover;
             }
             
