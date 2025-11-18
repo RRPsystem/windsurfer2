@@ -3045,14 +3045,22 @@ class TemplateEditor {
     
     async selectLogo() {
         try {
+            console.log('[TemplateEditor] Opening media picker for logo...');
             const result = await window.MediaPicker.openImage();
+            console.log('[TemplateEditor] Media picker result:', result);
+            
             if (result && result.url) {
+                console.log('[TemplateEditor] Setting logo URL:', result.url);
                 document.getElementById('logoUrl').value = result.url;
                 this.updateLogoPreview();
                 this.showNotification('✅ Logo geselecteerd!');
+            } else {
+                console.warn('[TemplateEditor] No URL in result:', result);
+                this.showNotification('⚠️ Geen afbeelding geselecteerd', 'warning');
             }
         } catch (err) {
-            console.log('[TemplateEditor] Logo selection cancelled');
+            console.error('[TemplateEditor] Logo selection error:', err);
+            this.showNotification('❌ Fout bij selecteren logo', 'error');
         }
     }
     
