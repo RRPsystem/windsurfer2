@@ -3184,19 +3184,36 @@ class TemplateEditor {
                 <div class="property-title">
                     <i class="fas fa-palette"></i> Brand Kleuren
                 </div>
+                
+                <!-- Color Preview -->
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;padding:12px;background:#f9f9f9;border-radius:8px;">
+                    <div style="text-align:center;">
+                        <div id="primaryPreview" style="width:100%;height:40px;border-radius:6px;background:${defaults.primaryColor || '#FF8C00'};margin-bottom:4px;"></div>
+                        <small style="color:#666;font-size:10px;">Primair</small>
+                    </div>
+                    <div style="text-align:center;">
+                        <div id="secondaryPreview" style="width:100%;height:40px;border-radius:6px;background:${defaults.secondaryColor || '#667eea'};margin-bottom:4px;"></div>
+                        <small style="color:#666;font-size:10px;">Secundair</small>
+                    </div>
+                    <div style="text-align:center;">
+                        <div id="accentPreview" style="width:100%;height:40px;border-radius:6px;background:${defaults.accentColor || '#465b2d'};margin-bottom:4px;"></div>
+                        <small style="color:#666;font-size:10px;">Accent</small>
+                    </div>
+                </div>
+                
                 <div class="property-field">
                     <label class="property-label">Primaire Kleur</label>
-                    <input type="color" class="property-input" id="primaryColor" value="${defaults.primaryColor || '#FF8C00'}">
+                    <input type="color" class="property-input" id="primaryColor" value="${defaults.primaryColor || '#FF8C00'}" onchange="document.getElementById('primaryPreview').style.background = this.value">
                     <small style="color:#666;font-size:11px;">Hoofdkleur voor buttons, links, etc.</small>
                 </div>
                 <div class="property-field">
                     <label class="property-label">Secundaire Kleur</label>
-                    <input type="color" class="property-input" id="secondaryColor" value="${defaults.secondaryColor || '#667eea'}">
+                    <input type="color" class="property-input" id="secondaryColor" value="${defaults.secondaryColor || '#667eea'}" onchange="document.getElementById('secondaryPreview').style.background = this.value">
                     <small style="color:#666;font-size:11px;">Accent kleur voor highlights</small>
                 </div>
                 <div class="property-field">
                     <label class="property-label">Accent Kleur</label>
-                    <input type="color" class="property-input" id="accentColor" value="${defaults.accentColor || '#465b2d'}">
+                    <input type="color" class="property-input" id="accentColor" value="${defaults.accentColor || '#465b2d'}" onchange="document.getElementById('accentPreview').style.background = this.value">
                     <small style="color:#666;font-size:11px;">Extra accent kleur (${this.templateName === 'tripix' ? 'groen' : 'zwart'})</small>
                 </div>
                 <div class="property-field">
@@ -3382,11 +3399,30 @@ class TemplateEditor {
                 --brand-secondary: ${secondaryColor};
                 --brand-text: ${textColor};
                 --brand-font: ${primaryFont}, sans-serif;
+                
+                /* Override ALL Tripix CSS variables */
+                --theme-color: ${primaryColor};
+                --theme-color-rgb: ${this.hexToRgb(primaryColor)};
+                --second-theme-color: ${secondaryColor};
+                --second-theme-color-rgb: ${this.hexToRgb(secondaryColor)};
+                --third-theme-color: ${primaryColor};
+                --third-theme-color-rgb: ${this.hexToRgb(primaryColor)};
+                --body-color: ${textColor};
+                --body-color-rgb: ${this.hexToRgb(textColor)};
+                
+                /* Override ALL Gotur CSS variables */
+                --gotur-primary: ${primaryColor};
+                --gotur-primary-rgb: ${this.hexToRgb(primaryColor)};
+                --gotur-base: ${secondaryColor};
+                --gotur-base-rgb: ${this.hexToRgb(secondaryColor)};
+                --gotur-text: ${textColor};
+                --gotur-text-rgb: ${this.hexToRgb(textColor)};
             }
             
             /* Apply primary color to buttons, links, and accents */
             .vs-btn, .btn-primary, .theme-btn, button[type="submit"],
-            .btn, .tour-packages-next, .tour-packages-prev {
+            .btn, .tour-packages-next, .tour-packages-prev,
+            .gotur-btn, .gotur-btn--primary {
                 background-color: ${primaryColor} !important;
                 border-color: ${primaryColor} !important;
             }
@@ -3549,6 +3585,14 @@ class TemplateEditor {
         const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amount));
         const b = Math.max(0, Math.min(255, (num & 0x0000FF) + amount));
         return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+    }
+    
+    hexToRgb(hex) {
+        const num = parseInt(hex.slice(1), 16);
+        const r = (num >> 16) & 255;
+        const g = (num >> 8) & 255;
+        const b = num & 255;
+        return `${r}, ${g}, ${b}`;
     }
 }
 
