@@ -3252,9 +3252,41 @@ class TemplateEditor {
                 background-color: ${primaryHover} !important;
             }
             
-            /* Apply secondary color */
-            .bg-theme-color, .price-off {
+            /* Apply secondary color to ALL template secondary classes */
+            .bg-theme-color, .price-off,
+            .bg-second-theme-color, .bg-secondary-color,
+            .secondary-bg, .sec-bg {
                 background-color: ${secondaryColor} !important;
+            }
+            
+            /* Override ALL template primary/accent colors */
+            .bg-third-theme-color, .bg-accent-color,
+            .accent-bg, .highlight-bg,
+            .text-theme-color, .text-accent-color,
+            .theme-color, .accent-color {
+                background-color: ${primaryColor} !important;
+                color: ${primaryColor} !important;
+            }
+            
+            /* Service boxes and cards - use primary for accents */
+            .service-box .service-icon,
+            .destination-box .destination-icon,
+            .feature-icon, .icon-box {
+                background-color: ${primaryColor} !important;
+                color: white !important;
+            }
+            
+            /* Ensure button text is always white */
+            .vs-btn, .btn-primary, .theme-btn, button[type="submit"],
+            .btn, .tour-packages-next, .tour-packages-prev,
+            footer button, .footer button, .footer .btn {
+                color: white !important;
+            }
+            
+            /* Fix green-on-green issue: ensure contrast */
+            .vs-btn.style-4, .btn.style-4 {
+                background-color: ${primaryColor} !important;
+                color: white !important;
             }
             
             /* Footer CTA bar - use primary color */
