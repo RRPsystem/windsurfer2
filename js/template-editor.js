@@ -731,18 +731,22 @@ class TemplateEditor {
     
     makeTextEditable(doc) {
         // Find all text elements - headings, paragraphs, buttons, links, and ALL spans with text
-        const textSelectors = 'h1, h2, h3, h4, h5, h6, p, span, a.vs-btn, button.vs-btn, button, .btn, a.btn, label, input[type="text"], input[type="email"], textarea, select, div.price-off, div.discount';
+        const textSelectors = 'h1, h2, h3, h4, h5, h6, p, span, a, button, .btn, label, input[type="text"], input[type="email"], textarea, select, div.price-off, div.discount';
         const textElements = doc.querySelectorAll(textSelectors);
         
         textElements.forEach(element => {
-            // Skip if element is empty or only contains images
-            if (!element.textContent.trim() || element.querySelector('img')) return;
+            // Skip if element is empty or only contains images/icons only
+            if (!element.textContent.trim() || (element.querySelector('img') && !element.textContent.trim())) return;
             
-            // Skip navigation menu items and other non-editable areas, but ALLOW topbar contact info
-            if (element.closest('nav, .menu, script, style, .skip-edit, .top-one, .main-header, .header-wrapper')) return;
+            // Skip if it's ONLY an icon (no text)
+            if (element.querySelector('i.fa-solid, i.fa-regular, i.fab') && element.textContent.trim().length === 0) return;
             
-            // Skip header EXCEPT if it's in the topbar contact info
-            if (element.closest('header') && !element.closest('.header-top-wrap, .contact-info')) return;
+            // Skip navigation menu items and other non-editable areas, but ALLOW topbar contact info and social links
+            if (element.closest('nav, .menu, script, style, .skip-edit, .top-one, .main-header, .header-wrapper') && 
+                !element.closest('.header-top-wrap, .contact-info, .social-share')) return;
+            
+            // Skip header EXCEPT if it's in the topbar contact info or social share
+            if (element.closest('header') && !element.closest('.header-top-wrap, .contact-info, .social-share')) return;
             
             // Skip if element IS a header or nav
             if (element.tagName === 'HEADER' || element.tagName === 'NAV') return;
@@ -3406,7 +3410,9 @@ class TemplateEditor {
         
         const primaryColor = document.getElementById('primaryColor').value;
         const secondaryColor = document.getElementById('secondaryColor').value;
+        const accentColor = document.getElementById('accentColor').value;
         const textColor = document.getElementById('textColor').value;
+        const titleColor = document.getElementById('titleColor').value;
         const footerBgColor = document.getElementById('footerBgColor').value;
         const logoUrl = document.getElementById('logoUrl').value;
         const primaryFont = document.getElementById('primaryFont').value;
@@ -3426,7 +3432,9 @@ class TemplateEditor {
             :root {
                 --brand-primary: ${primaryColor};
                 --brand-secondary: ${secondaryColor};
+                --brand-accent: ${accentColor};
                 --brand-text: ${textColor};
+                --brand-title: ${titleColor};
                 --brand-font: ${primaryFont}, sans-serif;
                 
                 /* Override ALL Tripix CSS variables */
@@ -3434,10 +3442,12 @@ class TemplateEditor {
                 --theme-color-rgb: ${this.hexToRgb(primaryColor)};
                 --second-theme-color: ${secondaryColor};
                 --second-theme-color-rgb: ${this.hexToRgb(secondaryColor)};
-                --third-theme-color: ${primaryColor};
-                --third-theme-color-rgb: ${this.hexToRgb(primaryColor)};
+                --third-theme-color: ${accentColor};
+                --third-theme-color-rgb: ${this.hexToRgb(accentColor)};
                 --body-color: ${textColor};
                 --body-color-rgb: ${this.hexToRgb(textColor)};
+                --title-color: ${titleColor};
+                --title-color-rgb: ${this.hexToRgb(titleColor)};
                 
                 /* Override ALL Gotur CSS variables */
                 --gotur-primary: ${primaryColor};
