@@ -3427,17 +3427,22 @@ class TemplateEditor {
                 border-color: ${primaryColor} !important;
             }
             
-            .vs-btn:hover, .btn-primary:hover, .theme-btn:hover {
+            .vs-btn:hover, .btn-primary:hover, .theme-btn:hover,
+            .gotur-btn:hover, .gotur-btn--primary:hover {
                 background-color: ${primaryHover} !important;
             }
             
-            a, .text-theme-color, .sec-subtitle {
+            /* Only color specific accent text elements - NOT all links/text */
+            .sec-subtitle, .section-subtitle,
+            .blog-card__meta a:hover,
+            .destination-card__title a:hover {
                 color: ${primaryColor} !important;
             }
             
-            /* Footer links and accents */
-            footer a, .footer a, .footer-widget a,
-            .footer-one a, .footer-two a {
+            /* Footer links - only in footer */
+            footer a:not(.btn):not(.vs-btn), 
+            .footer a:not(.btn):not(.vs-btn), 
+            .footer-widget a:not(.btn):not(.vs-btn) {
                 color: ${primaryColor} !important;
             }
             
@@ -3456,19 +3461,21 @@ class TemplateEditor {
                 background-color: ${primaryHover} !important;
             }
             
-            /* Apply secondary color to ALL template secondary classes */
+            /* Apply secondary color to specific background classes only */
             .bg-theme-color, .price-off,
             .bg-second-theme-color, .bg-secondary-color,
             .secondary-bg, .sec-bg {
                 background-color: ${secondaryColor} !important;
             }
             
-            /* Override ALL template primary/accent colors */
+            /* Override template accent BACKGROUNDS only - not text colors */
             .bg-third-theme-color, .bg-accent-color,
-            .accent-bg, .highlight-bg,
-            .text-theme-color, .text-accent-color,
-            .theme-color, .accent-color {
+            .accent-bg, .highlight-bg {
                 background-color: ${primaryColor} !important;
+            }
+            
+            /* Only specific text accent elements */
+            .text-theme-color:not(a):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(p) {
                 color: ${primaryColor} !important;
             }
             
