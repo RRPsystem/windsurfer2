@@ -24,7 +24,8 @@ class TailwindEditor {
     }
     
     async init() {
-        console.log('🚀 Initializing Tailwind Editor...');
+        console.log('🚀 Initializing Tailwind Editor v2.1...');
+        console.log('📅 Build: 2025-11-20 00:16');
         
         // FORCE CLEAR OLD SAVED PAGES (always clear for now)
         // This ensures we always load fresh templates with new CSS
