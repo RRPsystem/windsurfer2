@@ -476,10 +476,23 @@ class TailwindEditor {
     async save() {
         console.log('💾 Saving...');
         
-        const canvas = document.getElementById('canvasSections');
+        const iframe = document.getElementById('pageFrame');
+        let html = '';
+        
+        try {
+            // Get HTML from iframe
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            html = iframeDoc.documentElement.outerHTML;
+        } catch (error) {
+            console.error('Cannot access iframe content:', error);
+            // Fallback to canvas
+            const canvas = document.getElementById('canvasSections');
+            html = canvas.innerHTML;
+        }
+        
         const data = {
             page: this.currentPage,
-            html: canvas.innerHTML,
+            html: html,
             timestamp: Date.now()
         };
         
@@ -592,7 +605,7 @@ class TailwindEditor {
     async loadPageTemplate(pageId) {
         console.log('📋 Loading template for:', pageId);
         
-        const canvas = document.getElementById('canvasSections');
+        const iframe = document.getElementById('pageFrame');
         const emptyState = document.getElementById('emptyState');
         
         // Get HTML file for this page
@@ -600,51 +613,84 @@ class TailwindEditor {
         
         if (!htmlFile) {
             // Show empty state
-            canvas.innerHTML = '';
+            iframe.classList.add('hidden');
             emptyState.classList.remove('hidden');
-            canvas.classList.add('hidden');
             return;
         }
         
         try {
-            // Load complete HTML page
-            const response = await fetch(`/templates/package/src/${htmlFile}`);
-            const html = await response.text();
-            
-            // Parse HTML and extract body content
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const pageContent = doc.querySelector('.page-content') || doc.querySelector('main') || doc.body;
-            
-            // Hide empty state
+            // Hide empty state, show iframe
             emptyState.classList.add('hidden');
-            canvas.classList.remove('hidden');
+            iframe.classList.remove('hidden');
             
-            // Load content
-            canvas.innerHTML = pageContent.innerHTML;
+            // Load page in iframe with correct base path
+            iframe.src = `/templates/package/src/${htmlFile}`;
             
-            // Fix image paths
-            canvas.querySelectorAll('img').forEach(img => {
-                if (img.src && !img.src.startsWith('http')) {
-                    const src = img.getAttribute('src');
-                    if (src.startsWith('assets/')) {
-                        img.src = `/templates/package/src/${src}`;
-                    } else if (src.startsWith('./assets/')) {
-                        img.src = `/templates/package/src/${src.substring(2)}`;
-                    }
+            // Wait for iframe to load
+            iframe.onload = () => {
+                console.log('✅ Page loaded in iframe');
+                
+                // Make iframe content editable
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    
+                    // Add editing capabilities
+                    this.makeIframeEditable(iframeDoc);
+                    
+                    this.showNotification(`✅ Loaded ${pageId} page`, 'success');
+                } catch (error) {
+                    console.error('Cannot access iframe content:', error);
                 }
-            });
+            };
             
-            // Save initial template
-            this.save();
-            
-            this.showNotification(`✅ Loaded ${pageId} page template`, 'success');
         } catch (error) {
             console.error('Failed to load template:', error);
-            canvas.innerHTML = '';
+            iframe.classList.add('hidden');
             emptyState.classList.remove('hidden');
-            canvas.classList.add('hidden');
         }
+    }
+    
+    makeIframeEditable(iframeDoc) {
+        // Add click-to-edit functionality
+        iframeDoc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, button').forEach(el => {
+            el.style.cursor = 'pointer';
+            el.title = 'Click to edit';
+            
+            el.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.editElement(el);
+            });
+        });
+        
+        // Add hover effect
+        const style = iframeDoc.createElement('style');
+        style.textContent = `
+            [contenteditable="true"] {
+                outline: 2px solid #3b82f6 !important;
+                outline-offset: 2px;
+            }
+        `;
+        iframeDoc.head.appendChild(style);
+    }
+    
+    editElement(element) {
+        // Make element editable
+        element.contentEditable = true;
+        element.focus();
+        
+        // Select all text
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        
+        // Save on blur
+        element.addEventListener('blur', () => {
+            element.contentEditable = false;
+            this.save();
+            this.showNotification('✅ Text updated!', 'success');
+        }, { once: true });
     }
     
     getPageHtmlFile(pageId) {
