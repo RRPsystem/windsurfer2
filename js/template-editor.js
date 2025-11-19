@@ -197,26 +197,30 @@ class TemplateEditor {
         // Load template default colors
         this.loadTemplateDefaults();
         
-        // Try to load saved draft from Supabase first
-        let loadedDraft = null;
+        // FORCE CLEAN START - Delete any old drafts
+        // This ensures we always start with a fresh template
+        console.log('[TemplateEditor] 🧹 Cleaning old drafts...');
         if (this.supabase && this.brandId) {
             try {
-                console.log('[TemplateEditor] Checking for saved draft...');
-                const { data, error } = await this.supabase
+                await this.supabase
                     .from('template_drafts')
-                    .select('*')
+                    .delete()
                     .eq('brand_id', this.brandId)
-                    .eq('template', this.templateName)
-                    .single();
-                
-                if (data && !error) {
-                    console.log('[TemplateEditor] Found saved draft!');
-                    loadedDraft = data;
-                }
+                    .eq('template', this.templateName);
+                console.log('[TemplateEditor] ✓ Old drafts deleted from Supabase');
             } catch (error) {
-                console.log('[TemplateEditor] No draft found, loading fresh template');
+                console.log('[TemplateEditor] No old drafts to delete');
             }
         }
+        
+        // Also delete from localStorage
+        const storageKey = `template_draft_${this.templateName}_${this.brandId}`;
+        localStorage.removeItem(storageKey);
+        console.log('[TemplateEditor] ✓ Old drafts deleted from localStorage');
+        console.log('[TemplateEditor] 🎉 Starting with FRESH template!');
+        
+        // Always start fresh - no loading of old drafts
+        let loadedDraft = null;
         
         // Define pages for each template
         const templatePages = {
