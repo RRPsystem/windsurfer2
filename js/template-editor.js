@@ -365,22 +365,25 @@ class TemplateEditor {
                         return;
                     }
                     
-                    // Extract colors from brand styles and update settings panel
-                    const brandStyles = newIframeDoc.getElementById('wb-brand-styles');
-                    if (brandStyles) {
-                        console.log('[TemplateEditor] Extracting brand styles...');
-                        this.extractColorsFromBrandStyles(brandStyles.textContent);
-                        console.log('[TemplateEditor] Brand styles extracted ✓');
-                    } else {
-                        console.warn('[TemplateEditor] No brand styles found in loaded HTML!');
-                    }
-                    
                     // IMPORTANT: Re-initialize carousel storage for loaded HTML
                     this.storeOriginalCarouselHTML(newIframeDoc);
                     
                     // Setup editor UI (make elements editable, add controls)
                     console.log('[TemplateEditor] Setting up iframe editing...');
                     this.setupIframeEditing();
+                    
+                    // Extract colors AFTER a delay to ensure settings panel is loaded
+                    setTimeout(() => {
+                        const brandStyles = newIframeDoc.getElementById('wb-brand-styles');
+                        if (brandStyles) {
+                            console.log('[TemplateEditor] Extracting brand styles...');
+                            this.extractColorsFromBrandStyles(brandStyles.textContent);
+                            console.log('[TemplateEditor] Brand styles extracted ✓');
+                        } else {
+                            console.warn('[TemplateEditor] No brand styles found in loaded HTML!');
+                        }
+                    }, 500);
+                    
                     console.log('[TemplateEditor] Draft loaded and editor setup complete ✓');
                 }, 300);
                 
@@ -2336,11 +2339,15 @@ class TemplateEditor {
             console.log('[TemplateEditor] Added base tag:', baseUrl);
         }
         
-        // Remove script tags to prevent double-loading when restoring
-        // We'll keep inline scripts but remove external script sources
-        const scripts = clonedDoc.querySelectorAll('script[src]');
+        // Remove ALL script tags to prevent double-loading when restoring
+        // Both external and inline scripts will be removed
+        const scripts = clonedDoc.querySelectorAll('script');
         scripts.forEach(script => {
-            console.log('[TemplateEditor] Removing script:', script.src);
+            if (script.src) {
+                console.log('[TemplateEditor] Removing external script:', script.src);
+            } else {
+                console.log('[TemplateEditor] Removing inline script');
+            }
             script.remove();
         });
         
