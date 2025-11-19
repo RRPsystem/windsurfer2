@@ -589,16 +589,16 @@ class TailwindEditor {
         }
     }
     
-    loadPageTemplate(pageId) {
+    async loadPageTemplate(pageId) {
         console.log('📋 Loading template for:', pageId);
         
         const canvas = document.getElementById('canvasSections');
         const emptyState = document.getElementById('emptyState');
         
-        // Get sections for this page type
-        const templateSections = this.getPageTemplateSections(pageId);
+        // Get HTML file for this page
+        const htmlFile = this.getPageHtmlFile(pageId);
         
-        if (templateSections.length === 0) {
+        if (!htmlFile) {
             // Show empty state
             canvas.innerHTML = '';
             emptyState.classList.remove('hidden');
@@ -606,59 +606,59 @@ class TailwindEditor {
             return;
         }
         
-        // Hide empty state
-        emptyState.classList.add('hidden');
-        canvas.classList.remove('hidden');
-        canvas.innerHTML = '';
-        
-        // Add sections
-        templateSections.forEach(sectionId => {
-            const section = this.sectionsData.sections.find(s => s.id === sectionId);
-            if (section) {
-                this.addSectionToCanvas(section, true); // true = skip save
-            }
-        });
-        
-        // Save initial template
-        this.saveState();
-        this.save();
-        
-        this.showNotification(`✅ Loaded ${templateSections.length} sections for ${pageId}`, 'success');
+        try {
+            // Load complete HTML page
+            const response = await fetch(`/templates/package/src/${htmlFile}`);
+            const html = await response.text();
+            
+            // Parse HTML and extract body content
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const pageContent = doc.querySelector('.page-content') || doc.querySelector('main') || doc.body;
+            
+            // Hide empty state
+            emptyState.classList.add('hidden');
+            canvas.classList.remove('hidden');
+            
+            // Load content
+            canvas.innerHTML = pageContent.innerHTML;
+            
+            // Fix image paths
+            canvas.querySelectorAll('img').forEach(img => {
+                if (img.src && !img.src.startsWith('http')) {
+                    const src = img.getAttribute('src');
+                    if (src.startsWith('assets/')) {
+                        img.src = `/templates/package/src/${src}`;
+                    } else if (src.startsWith('./assets/')) {
+                        img.src = `/templates/package/src/${src.substring(2)}`;
+                    }
+                }
+            });
+            
+            // Save initial template
+            this.save();
+            
+            this.showNotification(`✅ Loaded ${pageId} page template`, 'success');
+        } catch (error) {
+            console.error('Failed to load template:', error);
+            canvas.innerHTML = '';
+            emptyState.classList.remove('hidden');
+            canvas.classList.add('hidden');
+        }
     }
     
-    getPageTemplateSections(pageId) {
-        // Return section IDs for each page template
-        const templates = {
-            'home': [
-                'index-hero-0',      // Hero section
-                'index-tours-3',     // Tours grid
-                'index-destinations-4', // Destinations
-                'index-gallery-7'    // Gallery
-            ],
-            'about': [
-                'about-1-hero-0',    // About hero
-                'about-1-features-2', // Features
-                'about-1-team-3'     // Team
-            ],
-            'trips': [
-                'tour-1-grid-hero-0', // Tours hero
-                'tour-1-grid-tours-1' // Tours grid
-            ],
-            'destinations': [
-                'destination-1-grid-hero-0',        // Destinations hero
-                'destination-1-grid-destinations-1' // Destinations grid
-            ],
-            'blog': [
-                'blog-grid-hero-0',  // Blog hero
-                'blog-grid-blog-1'   // Blog grid
-            ],
-            'contact': [
-                'contact-hero-0',    // Contact hero
-                'contact-contact-1'  // Contact form
-            ]
+    getPageHtmlFile(pageId) {
+        // Map page IDs to actual HTML files
+        const pageFiles = {
+            'home': 'index.html',
+            'about': 'about-1.html',
+            'trips': 'tour-1-grid.html',
+            'destinations': 'destination-1-grid.html',
+            'blog': 'blog-grid.html',
+            'contact': 'contact.html'
         };
         
-        return templates[pageId] || [];
+        return pageFiles[pageId] || null;
     }
     
     showNotification(message, type = 'info') {

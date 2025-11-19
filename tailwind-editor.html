@@ -52,17 +52,25 @@
             background: #e3f2fd;
         }
         
-        /* Canvas section hover */
+        /* Canvas section */
         .canvas-section {
             position: relative;
+            border: 2px dashed transparent;
             transition: all 0.2s ease;
+            margin-bottom: 2rem;
         }
         .canvas-section:hover {
-            outline: 2px dashed #3b82f6;
-            outline-offset: 4px;
+            border-color: #3b82f6;
         }
         .canvas-section:hover .section-controls {
             opacity: 1;
+        }
+        
+        /* Canvas content - ensure proper layout */
+        #canvasSections > * {
+            position: relative;
+            display: block;
+            width: 100%;
         }
         
         /* Section controls */
