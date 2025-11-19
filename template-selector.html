@@ -293,6 +293,32 @@
                 </div>
             </div>
 
+            <!-- Travlla Tailwind Template -->
+            <div class="template-card" data-template="travlla">
+                <div class="template-preview">
+                    <img src="templates/package/src/assets/images/backgrounds/page-header-bg-1-1.jpg" alt="Travlla Template Preview" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22600%22%3E%3Crect fill=%22%23066168%22 width=%22800%22 height=%22600%22/%3E%3Ctext fill=%22white%22 font-family=%22Arial%22 font-size=%2248%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3ETravlla%3C/text%3E%3C/svg%3E'">
+                    <div class="template-badge">✨ Nieuw</div>
+                </div>
+                <div class="template-info">
+                    <h2 class="template-name">Travlla (Tailwind)</h2>
+                    <p class="template-description">
+                        Modern Tailwind CSS template met inline editing en 33+ kant-en-klare pagina's. Perfect voor snel en flexibel bouwen.
+                    </p>
+                    <ul class="template-features">
+                        <li>✏️ Live inline text editing</li>
+                        <li>📄 33+ voorgebouwde pagina's</li>
+                        <li>🎨 Tailwind CSS framework</li>
+                        <li>🖼️ Tours, destinations & blog</li>
+                        <li>💾 Auto-save functionaliteit</li>
+                        <li>⚡ Snel en modern</li>
+                    </ul>
+                    <div class="template-actions">
+                        <button class="btn btn-secondary" onclick="previewTemplate('travlla')">Preview</button>
+                        <button class="btn btn-primary" onclick="selectTemplate('travlla')">Kies Template</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Coming Soon Template 1 -->
             <div class="template-card coming-soon" data-template="adventure">
                 <div class="template-preview">
@@ -400,7 +426,8 @@
             // Open template preview in new tab
             const previewUrls = {
                 'gotur': 'https://www.ai-websitestudio.nl/templates/gotur/gotur-html-main/index.html',
-                'tripix': 'https://www.ai-websitestudio.nl/templates/tripix-html/index.html'
+                'tripix': 'https://www.ai-websitestudio.nl/templates/tripix-html/index.html',
+                'travlla': 'https://www.ai-websitestudio.nl/templates/package/src/index.html'
             };
             
             if (previewUrls[templateName]) {
@@ -409,7 +436,7 @@
         }
 
         function selectTemplate(templateName) {
-            // Redirect to template editor
+            // Redirect to appropriate editor
             const params = new URLSearchParams();
             params.set('template', templateName);
             
@@ -419,7 +446,12 @@
             if (apiUrl) params.set('api', apiUrl);
             if (returnUrl) params.set('return_url', returnUrl);
             
-            window.location.href = `template-editor.html?${params.toString()}`;
+            // Use Tailwind editor for Travlla template
+            if (templateName === 'travlla') {
+                window.location.href = `tailwind-editor.html?${params.toString()}`;
+            } else {
+                window.location.href = `template-editor.html?${params.toString()}`;
+            }
         }
 
         // Check if we have required parameters
