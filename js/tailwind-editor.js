@@ -774,46 +774,127 @@ class TailwindEditor {
     }
     
     makeIframeEditable(iframeDoc) {
-        // Add click-to-edit functionality
-        iframeDoc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, button').forEach(el => {
-            el.style.cursor = 'pointer';
-            el.title = 'Click to edit';
-            
-            el.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.editElement(el);
-            });
-        });
+        console.log('🎨 Making iframe editable...');
         
-        // Add hover effect
+        // Add editing styles
         const style = iframeDoc.createElement('style');
         style.textContent = `
-            [contenteditable="true"] {
-                outline: 2px solid #3b82f6 !important;
+            /* Editable elements hover */
+            .editable-element:hover {
+                outline: 2px dashed #3b82f6 !important;
                 outline-offset: 2px;
+                cursor: pointer !important;
+                position: relative;
+            }
+            
+            /* Active editing */
+            [contenteditable="true"] {
+                outline: 3px solid #3b82f6 !important;
+                outline-offset: 2px;
+                background: rgba(59, 130, 246, 0.05) !important;
+            }
+            
+            /* Edit indicator */
+            .editable-element:hover::after {
+                content: '✏️ Click to edit';
+                position: absolute;
+                top: -25px;
+                left: 0;
+                background: #3b82f6;
+                color: white;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: bold;
+                white-space: nowrap;
+                z-index: 10000;
+                pointer-events: none;
+            }
+            
+            /* Hide edit indicator when editing */
+            [contenteditable="true"]::after {
+                display: none !important;
             }
         `;
         iframeDoc.head.appendChild(style);
+        
+        // Make text elements editable
+        const editableSelectors = 'h1, h2, h3, h4, h5, h6, p, a, span, li, td, th, button, label';
+        iframeDoc.querySelectorAll(editableSelectors).forEach(el => {
+            // Skip elements inside forms or with specific classes
+            if (el.closest('form') || el.closest('.no-edit')) return;
+            
+            el.classList.add('editable-element');
+            
+            el.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.editElement(el, iframeDoc);
+            });
+        });
+        
+        // Make images clickable for future image upload
+        iframeDoc.querySelectorAll('img').forEach(img => {
+            img.style.cursor = 'pointer';
+            img.title = 'Click to change image (coming soon)';
+            img.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showNotification('🖼️ Image upload coming soon!', 'info');
+            });
+        });
+        
+        console.log('✅ Iframe is now editable!');
     }
     
-    editElement(element) {
+    editElement(element, iframeDoc) {
+        // Don't edit if already editing
+        if (element.contentEditable === 'true') return;
+        
+        console.log('✏️ Editing element:', element.tagName);
+        
+        // Store original content
+        const originalContent = element.innerHTML;
+        
         // Make element editable
         element.contentEditable = true;
         element.focus();
         
         // Select all text
-        const range = document.createRange();
+        const iframeWindow = iframeDoc.defaultView;
+        const range = iframeDoc.createRange();
         range.selectNodeContents(element);
-        const sel = window.getSelection();
+        const sel = iframeWindow.getSelection();
         sel.removeAllRanges();
         sel.addRange(range);
         
+        // Handle keyboard shortcuts
+        const handleKeydown = (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                element.blur();
+            } else if (e.key === 'Escape') {
+                element.innerHTML = originalContent;
+                element.blur();
+            }
+        };
+        
+        element.addEventListener('keydown', handleKeydown);
+        
         // Save on blur
-        element.addEventListener('blur', () => {
+        const handleBlur = () => {
             element.contentEditable = false;
-            this.save();
-            this.showNotification('✅ Text updated!', 'success');
-        }, { once: true });
+            element.removeEventListener('keydown', handleKeydown);
+            element.removeEventListener('blur', handleBlur);
+            
+            // Check if content changed
+            if (element.innerHTML !== originalContent) {
+                console.log('💾 Content changed, saving...');
+                this.save();
+                this.showNotification('✅ Text updated!', 'success');
+            }
+        };
+        
+        element.addEventListener('blur', handleBlur);
     }
     
     getPageHtmlFile(pageId) {
