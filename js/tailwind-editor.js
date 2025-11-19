@@ -230,7 +230,7 @@ class TailwindEditor {
         return icons[type] || 'cube';
     }
     
-    addSectionToCanvas(sectionData) {
+    addSectionToCanvas(sectionData, skipSave = false) {
         const canvas = document.getElementById('canvasSections');
         const emptyState = document.getElementById('emptyState');
         
@@ -294,8 +294,10 @@ class TailwindEditor {
         // Add "Add Section" button after this section
         this.addSectionButton(canvas);
         
-        // Save state
-        this.saveState();
+        // Save state (unless skipped for batch operations)
+        if (!skipSave) {
+            this.saveState();
+        }
         
         console.log('✅ Added section:', sectionData.title);
     }
@@ -582,12 +584,81 @@ class TailwindEditor {
             document.getElementById('emptyState').classList.add('hidden');
             canvas.classList.remove('hidden');
         } else {
-            // Clear canvas
-            const canvas = document.getElementById('canvasSections');
-            canvas.innerHTML = '';
-            document.getElementById('emptyState').classList.remove('hidden');
-            canvas.classList.add('hidden');
+            // Load template for this page
+            this.loadPageTemplate(page);
         }
+    }
+    
+    loadPageTemplate(pageId) {
+        console.log('📋 Loading template for:', pageId);
+        
+        const canvas = document.getElementById('canvasSections');
+        const emptyState = document.getElementById('emptyState');
+        
+        // Get sections for this page type
+        const templateSections = this.getPageTemplateSections(pageId);
+        
+        if (templateSections.length === 0) {
+            // Show empty state
+            canvas.innerHTML = '';
+            emptyState.classList.remove('hidden');
+            canvas.classList.add('hidden');
+            return;
+        }
+        
+        // Hide empty state
+        emptyState.classList.add('hidden');
+        canvas.classList.remove('hidden');
+        canvas.innerHTML = '';
+        
+        // Add sections
+        templateSections.forEach(sectionId => {
+            const section = this.sectionsData.sections.find(s => s.id === sectionId);
+            if (section) {
+                this.addSectionToCanvas(section, true); // true = skip save
+            }
+        });
+        
+        // Save initial template
+        this.saveState();
+        this.save();
+        
+        this.showNotification(`✅ Loaded ${templateSections.length} sections for ${pageId}`, 'success');
+    }
+    
+    getPageTemplateSections(pageId) {
+        // Return section IDs for each page template
+        const templates = {
+            'home': [
+                'index-hero-0',      // Hero section
+                'index-tours-3',     // Tours grid
+                'index-destinations-4', // Destinations
+                'index-gallery-7'    // Gallery
+            ],
+            'about': [
+                'about-1-hero-0',    // About hero
+                'about-1-features-2', // Features
+                'about-1-team-3'     // Team
+            ],
+            'trips': [
+                'tour-1-grid-hero-0', // Tours hero
+                'tour-1-grid-tours-1' // Tours grid
+            ],
+            'destinations': [
+                'destination-1-grid-hero-0',        // Destinations hero
+                'destination-1-grid-destinations-1' // Destinations grid
+            ],
+            'blog': [
+                'blog-grid-hero-0',  // Blog hero
+                'blog-grid-blog-1'   // Blog grid
+            ],
+            'contact': [
+                'contact-hero-0',    // Contact hero
+                'contact-contact-1'  // Contact form
+            ]
+        };
+        
+        return templates[pageId] || [];
     }
     
     showNotification(message, type = 'info') {
