@@ -75,6 +75,33 @@
             z-index: 10;
         }
         
+        /* Add section button between sections */
+        .add-section-btn {
+            opacity: 0;
+            transition: all 0.2s ease;
+            transform: translateY(-50%);
+        }
+        .add-section-btn:hover {
+            opacity: 1 !important;
+            transform: translateY(-50%) scale(1.1);
+        }
+        .canvas-section:hover + .add-section-btn,
+        .add-section-btn:hover {
+            opacity: 1;
+        }
+        
+        /* Page card styles */
+        .page-card {
+            transition: all 0.2s ease;
+        }
+        .page-card:hover {
+            transform: translateX(4px);
+        }
+        .page-card.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
         /* Loading animation */
         .loading-spinner {
             border: 3px solid #f3f3f3;
@@ -144,54 +171,75 @@
     <!-- Main Container -->
     <div class="flex pt-16 h-screen">
         
-        <!-- Left Sidebar: Section Library -->
-        <aside id="sectionLibrary" class="w-80 bg-white border-r border-gray-200 overflow-y-auto custom-scrollbar">
+        <!-- Left Sidebar: Pages & Sections -->
+        <aside id="pagesSidebar" class="w-80 bg-white border-r border-gray-200 overflow-y-auto custom-scrollbar">
             <div class="p-4">
-                <h2 class="text-lg font-bold text-gray-800 mb-4">
-                    <i class="fas fa-th-large text-blue-600 mr-2"></i>
-                    Section Library
-                </h2>
-                
-                <!-- Search -->
-                <div class="mb-4">
-                    <input 
-                        type="text" 
-                        id="sectionSearch" 
-                        placeholder="Search sections..."
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
+                <!-- Pages Section -->
+                <div class="mb-6">
+                    <h2 class="text-lg font-bold text-gray-800 mb-3">
+                        <i class="fas fa-file-alt text-blue-600 mr-2"></i>
+                        Pagina's
+                    </h2>
+                    
+                    <!-- New Page Button -->
+                    <button id="newPageBtn" class="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition mb-3 font-medium">
+                        <i class="fas fa-plus mr-2"></i>Nieuwe Pagina
+                    </button>
+                    
+                    <!-- Pages List -->
+                    <div id="pagesList" class="space-y-2">
+                        <!-- Pages will be added here -->
+                    </div>
                 </div>
                 
-                <!-- Category Tabs -->
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <button class="category-tab active px-3 py-1 text-sm rounded-full bg-blue-600 text-white" data-category="all">
-                        All
-                    </button>
-                    <button class="category-tab px-3 py-1 text-sm rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300" data-category="hero">
-                        Hero
-                    </button>
-                    <button class="category-tab px-3 py-1 text-sm rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300" data-category="tours">
-                        Tours
-                    </button>
-                    <button class="category-tab px-3 py-1 text-sm rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300" data-category="destinations">
-                        Destinations
-                    </button>
-                    <button class="category-tab px-3 py-1 text-sm rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300" data-category="gallery">
-                        Gallery
-                    </button>
-                    <button class="category-tab px-3 py-1 text-sm rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300" data-category="blog">
-                        Blog
-                    </button>
-                    <button class="category-tab px-3 py-1 text-sm rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300" data-category="contact">
-                        Contact
-                    </button>
-                </div>
-                
-                <!-- Sections Grid -->
-                <div id="sectionsGrid" class="space-y-3">
-                    <!-- Loading state -->
-                    <div class="flex items-center justify-center py-12">
-                        <div class="loading-spinner"></div>
+                <!-- Section Library -->
+                <div class="border-t border-gray-200 pt-4">
+                    <h2 class="text-lg font-bold text-gray-800 mb-3">
+                        <i class="fas fa-th-large text-blue-600 mr-2"></i>
+                        Section Library
+                    </h2>
+                    
+                    <!-- Search -->
+                    <div class="mb-3">
+                        <input 
+                            type="text" 
+                            id="sectionSearch" 
+                            placeholder="Search sections..."
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        >
+                    </div>
+                    
+                    <!-- Category Tabs -->
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <button class="category-tab active px-2 py-1 text-xs rounded-full bg-blue-600 text-white" data-category="all">
+                            All
+                        </button>
+                        <button class="category-tab px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300" data-category="hero">
+                            Hero
+                        </button>
+                        <button class="category-tab px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300" data-category="tours">
+                            Tours
+                        </button>
+                        <button class="category-tab px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300" data-category="destinations">
+                            Destinations
+                        </button>
+                        <button class="category-tab px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300" data-category="gallery">
+                            Gallery
+                        </button>
+                        <button class="category-tab px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300" data-category="blog">
+                            Blog
+                        </button>
+                        <button class="category-tab px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300" data-category="contact">
+                            Contact
+                        </button>
+                    </div>
+                    
+                    <!-- Sections Grid -->
+                    <div id="sectionsGrid" class="space-y-2">
+                        <!-- Loading state -->
+                        <div class="flex items-center justify-center py-8">
+                            <div class="loading-spinner"></div>
+                        </div>
                     </div>
                 </div>
             </div>

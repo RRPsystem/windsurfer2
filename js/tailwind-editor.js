@@ -11,6 +11,14 @@ class TailwindEditor {
         this.historyIndex = -1;
         this.currentPage = 'home';
         this.sectionsData = null;
+        this.pages = [
+            { id: 'home', name: 'Home', icon: 'home', file: 'index.html' },
+            { id: 'about', name: 'About', icon: 'info-circle', file: 'about.html' },
+            { id: 'trips', name: 'Trips', icon: 'plane', file: 'trips.html' },
+            { id: 'destinations', name: 'Destinations', icon: 'map-marked-alt', file: 'destinations.html' },
+            { id: 'blog', name: 'Blog', icon: 'newspaper', file: 'blog.html' },
+            { id: 'contact', name: 'Contact', icon: 'envelope', file: 'contact.html' }
+        ];
         
         this.init();
     }
@@ -22,6 +30,7 @@ class TailwindEditor {
         await this.loadSectionsData();
         
         // Setup UI
+        this.renderPagesList();
         this.setupEventListeners();
         this.setupDragAndDrop();
         this.renderSectionLibrary();
@@ -41,7 +50,64 @@ class TailwindEditor {
         }
     }
     
+    renderPagesList() {
+        const pagesList = document.getElementById('pagesList');
+        pagesList.innerHTML = '';
+        
+        this.pages.forEach(page => {
+            const pageCard = document.createElement('div');
+            pageCard.className = `page-card px-4 py-3 rounded-lg cursor-pointer flex items-center justify-between ${
+                page.id === this.currentPage ? 'active' : 'bg-gray-50 hover:bg-gray-100'
+            }`;
+            pageCard.dataset.pageId = page.id;
+            
+            pageCard.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${page.icon} mr-3 ${page.id === this.currentPage ? 'text-white' : 'text-gray-600'}"></i>
+                    <div>
+                        <div class="font-semibold ${page.id === this.currentPage ? 'text-white' : 'text-gray-800'}">${page.name}</div>
+                        <div class="text-xs ${page.id === this.currentPage ? 'text-white/80' : 'text-gray-500'}">${page.file}</div>
+                    </div>
+                </div>
+                <div class="flex gap-1">
+                    <button class="settings-page-btn p-1.5 rounded hover:bg-white/20" title="Settings">
+                        <i class="fas fa-cog text-sm ${page.id === this.currentPage ? 'text-white' : 'text-gray-600'}"></i>
+                    </button>
+                    <button class="delete-page-btn p-1.5 rounded hover:bg-white/20" title="Delete">
+                        <i class="fas fa-trash text-sm ${page.id === this.currentPage ? 'text-white' : 'text-gray-600'}"></i>
+                    </button>
+                </div>
+            `;
+            
+            // Click to switch page
+            pageCard.addEventListener('click', (e) => {
+                if (!e.target.closest('.settings-page-btn') && !e.target.closest('.delete-page-btn')) {
+                    this.switchPage(page.id);
+                }
+            });
+            
+            // Settings button
+            pageCard.querySelector('.settings-page-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.showPageSettings(page);
+            });
+            
+            // Delete button
+            pageCard.querySelector('.delete-page-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.deletePage(page.id);
+            });
+            
+            pagesList.appendChild(pageCard);
+        });
+    }
+    
     setupEventListeners() {
+        // New page button
+        document.getElementById('newPageBtn').addEventListener('click', () => {
+            this.createNewPage();
+        });
+        
         // Category tabs
         document.querySelectorAll('.category-tab').forEach(tab => {
             tab.addEventListener('click', (e) => {
@@ -225,10 +291,37 @@ class TailwindEditor {
         // Add to canvas
         canvas.appendChild(sectionEl);
         
+        // Add "Add Section" button after this section
+        this.addSectionButton(canvas);
+        
         // Save state
         this.saveState();
         
         console.log('✅ Added section:', sectionData.title);
+    }
+    
+    addSectionButton(canvas) {
+        const addBtn = document.createElement('div');
+        addBtn.className = 'add-section-btn relative flex items-center justify-center py-4';
+        addBtn.innerHTML = `
+            <button class="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition shadow-lg flex items-center gap-2">
+                <i class="fas fa-plus"></i>
+                <span>Add Section</span>
+            </button>
+        `;
+        
+        addBtn.querySelector('button').addEventListener('click', () => {
+            this.showSectionPicker(addBtn);
+        });
+        
+        canvas.appendChild(addBtn);
+    }
+    
+    showSectionPicker(insertAfter) {
+        // Show a modal or dropdown with section library
+        // For now, just scroll to section library
+        document.getElementById('sectionsGrid').scrollIntoView({ behavior: 'smooth' });
+        this.showNotification('👆 Select a section from the library on the left', 'info');
     }
     
     selectSection(sectionEl) {
@@ -423,9 +516,55 @@ class TailwindEditor {
         this.showNotification('🚀 Publishing feature coming soon!', 'info');
     }
     
+    createNewPage() {
+        const name = prompt('Enter page name:');
+        if (!name) return;
+        
+        const id = name.toLowerCase().replace(/\s+/g, '-');
+        const file = `${id}.html`;
+        
+        this.pages.push({
+            id,
+            name,
+            icon: 'file',
+            file
+        });
+        
+        this.renderPagesList();
+        this.switchPage(id);
+        this.showNotification(`✅ Page "${name}" created!`, 'success');
+    }
+    
+    showPageSettings(page) {
+        this.showNotification('⚙️ Page settings coming soon!', 'info');
+    }
+    
+    deletePage(pageId) {
+        if (this.pages.length <= 1) {
+            this.showNotification('❌ Cannot delete the last page!', 'error');
+            return;
+        }
+        
+        const page = this.pages.find(p => p.id === pageId);
+        if (!page) return;
+        
+        if (confirm(`Delete page "${page.name}"?`)) {
+            this.pages = this.pages.filter(p => p.id !== pageId);
+            
+            // Switch to first page if current page was deleted
+            if (this.currentPage === pageId) {
+                this.switchPage(this.pages[0].id);
+            }
+            
+            this.renderPagesList();
+            this.showNotification(`✅ Page "${page.name}" deleted!`, 'success');
+        }
+    }
+    
     switchPage(page) {
         console.log('📄 Switching to page:', page);
         this.currentPage = page;
+        this.renderPagesList();
         
         // Load saved page data
         const saved = localStorage.getItem(`tailwind_page_${page}`);
