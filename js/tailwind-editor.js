@@ -510,11 +510,21 @@ class TailwindEditor {
         
         // Check if iframe has content
         if (!iframe.classList.contains('hidden')) {
-            // Get current page file
-            const htmlFile = this.getPageHtmlFile(this.currentPage);
-            if (htmlFile) {
-                // Open template page in new window
-                window.open(`/templates/package/src/${htmlFile}`, '_blank');
+            try {
+                // Get the EDITED HTML from iframe
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                const fullHtml = iframeDoc.documentElement.outerHTML;
+                
+                // Open in new window with edited content
+                const previewWindow = window.open('', '_blank', 'width=1200,height=800');
+                previewWindow.document.write(fullHtml);
+                previewWindow.document.close();
+                
+                this.showNotification('👁️ Preview opened with your changes!', 'success');
+                return;
+            } catch (error) {
+                console.error('Cannot access iframe content:', error);
+                this.showNotification('⚠️ Cannot preview - security restriction', 'error');
                 return;
             }
         }
@@ -721,8 +731,49 @@ class TailwindEditor {
         this.currentPage = page;
         this.renderPagesList();
         
-        // Always load fresh template (for now - later we can add save/load)
-        this.loadPageTemplate(page);
+        // Check if we have saved changes
+        const saved = localStorage.getItem(`tailwind_page_${page}`);
+        if (saved) {
+            console.log('📂 Found saved version, loading...');
+            this.loadSavedPage(page, saved);
+        } else {
+            console.log('📄 No saved version, loading fresh template...');
+            this.loadPageTemplate(page);
+        }
+    }
+    
+    loadSavedPage(pageId, savedData) {
+        const iframe = document.getElementById('pageFrame');
+        const emptyState = document.getElementById('emptyState');
+        
+        try {
+            const data = JSON.parse(savedData);
+            
+            // Hide empty state, show iframe
+            emptyState.classList.add('hidden');
+            iframe.classList.remove('hidden');
+            
+            // Write saved HTML to iframe
+            iframe.srcdoc = data.html;
+            
+            // Wait for iframe to load
+            iframe.onload = () => {
+                console.log('✅ Saved page loaded');
+                
+                // Make iframe content editable
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    this.makeIframeEditable(iframeDoc);
+                    this.showNotification(`✅ Loaded saved ${pageId} page`, 'success');
+                } catch (error) {
+                    console.error('Cannot access iframe content:', error);
+                }
+            };
+        } catch (error) {
+            console.error('Failed to load saved page:', error);
+            // Fallback to fresh template
+            this.loadPageTemplate(pageId);
+        }
     }
     
     async loadPageTemplate(pageId) {
