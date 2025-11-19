@@ -339,60 +339,158 @@ class TemplateEditor {
             // Check if we have a saved draft for this page
             const savedPageData = this.savedDraft?.pages?.find(p => p.path === page.path);
             
+            if (savedPageData && savedPageData.changes) {
+                console.log('[TemplateEditor] Applying saved changes to fresh template...');
+                
+                // NEW APPROACH: Apply changes to the fresh template (preserves all functionality!)
+                setTimeout(() => {
+                    this.applyContentChanges(iframeDoc, savedPageData.changes);
+                    
+                    // Setup editor UI
+                    this.setupIframeEditing();
+                    
+                    // Extract colors to update settings panel
+                    setTimeout(() => {
+                        if (savedPageData.changes.brandStyles) {
+                            this.extractColorsFromBrandStyles(savedPageData.changes.brandStyles);
+                        }
+                    }, 500);
+                    
+                    console.log('[TemplateEditor] Changes applied and editor setup complete ✓');
+                }, 300);
+                
+                return;
+            }
+            
+            // FALLBACK: Old format with complete HTML (for backwards compatibility)
             if (savedPageData && savedPageData.html) {
-                console.log('[TemplateEditor] Loading saved draft for page:', page.name);
+                console.warn('[TemplateEditor] Loading old format (complete HTML) - consider re-saving');
                 console.log('[TemplateEditor] Saved HTML length:', savedPageData.html.length);
                 
-                // WORDPRESS-STYLE: Replace the ENTIRE document with saved HTML
-                // This preserves ALL changes: text, images, colors, layout, everything!
-                const parser = new DOMParser();
-                const savedDoc = parser.parseFromString(savedPageData.html, 'text/html');
-                
-                // Replace the entire document content
                 iframeDoc.open();
                 iframeDoc.write(savedPageData.html);
                 iframeDoc.close();
                 
-                console.log('[TemplateEditor] Complete HTML loaded ✓');
-                
-                // Wait for document to be ready, then setup editing
                 setTimeout(() => {
-                    console.log('[TemplateEditor] Setting up editor after HTML load...');
                     const newIframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                    
-                    if (!newIframeDoc || !newIframeDoc.body) {
-                        console.error('[TemplateEditor] IframeDoc not ready!');
-                        return;
-                    }
-                    
-                    // IMPORTANT: Re-initialize carousel storage for loaded HTML
                     this.storeOriginalCarouselHTML(newIframeDoc);
-                    
-                    // Setup editor UI (make elements editable, add controls)
-                    console.log('[TemplateEditor] Setting up iframe editing...');
                     this.setupIframeEditing();
                     
-                    // Extract colors AFTER a delay to ensure settings panel is loaded
                     setTimeout(() => {
                         const brandStyles = newIframeDoc.getElementById('wb-brand-styles');
                         if (brandStyles) {
-                            console.log('[TemplateEditor] Extracting brand styles...');
                             this.extractColorsFromBrandStyles(brandStyles.textContent);
-                            console.log('[TemplateEditor] Brand styles extracted ✓');
-                        } else {
-                            console.warn('[TemplateEditor] No brand styles found in loaded HTML!');
                         }
                     }, 500);
-                    
-                    console.log('[TemplateEditor] Draft loaded and editor setup complete ✓');
                 }, 300);
                 
-                return; // Don't call setupIframeEditing yet, we'll do it in setTimeout
+                return;
             }
             
             // No saved draft, just setup editing on fresh template
             this.setupIframeEditing();
         };
+    }
+    
+    applyContentChanges(iframeDoc, changes) {
+        console.log('[TemplateEditor] Applying content changes to iframe...');
+        
+        // 1. Apply brand styles
+        if (changes.brandStyles) {
+            console.log('[TemplateEditor] Applying brand styles...');
+            
+            // Remove existing brand styles
+            const existingStyles = iframeDoc.getElementById('wb-brand-styles');
+            if (existingStyles) {
+                existingStyles.remove();
+            }
+            
+            // Add saved brand styles
+            const styleEl = iframeDoc.createElement('style');
+            styleEl.id = 'wb-brand-styles';
+            styleEl.textContent = changes.brandStyles;
+            iframeDoc.head.appendChild(styleEl);
+            console.log('[TemplateEditor] Brand styles applied ✓');
+        }
+        
+        // 2. Apply text changes
+        if (changes.textChanges && changes.textChanges.length > 0) {
+            console.log('[TemplateEditor] Applying', changes.textChanges.length, 'text changes...');
+            let appliedCount = 0;
+            
+            changes.textChanges.forEach(change => {
+                try {
+                    const element = iframeDoc.querySelector(change.selector);
+                    if (element) {
+                        element.innerHTML = change.content;
+                        appliedCount++;
+                    } else {
+                        console.warn('[TemplateEditor] Text element not found:', change.selector);
+                    }
+                } catch (error) {
+                    console.error('[TemplateEditor] Error applying text change:', error);
+                }
+            });
+            
+            console.log('[TemplateEditor] Applied', appliedCount, '/', changes.textChanges.length, 'text changes ✓');
+        }
+        
+        // 3. Apply image changes
+        if (changes.imageChanges && changes.imageChanges.length > 0) {
+            console.log('[TemplateEditor] Applying', changes.imageChanges.length, 'image changes...');
+            let appliedCount = 0;
+            
+            changes.imageChanges.forEach(change => {
+                try {
+                    const img = iframeDoc.querySelector(change.selector);
+                    if (img) {
+                        img.src = change.src;
+                        if (change.alt) img.alt = change.alt;
+                        appliedCount++;
+                    } else {
+                        console.warn('[TemplateEditor] Image not found:', change.selector);
+                    }
+                } catch (error) {
+                    console.error('[TemplateEditor] Error applying image change:', error);
+                }
+            });
+            
+            console.log('[TemplateEditor] Applied', appliedCount, '/', changes.imageChanges.length, 'image changes ✓');
+        }
+        
+        // 4. Apply background image changes
+        if (changes.backgroundImageChanges && changes.backgroundImageChanges.length > 0) {
+            console.log('[TemplateEditor] Applying', changes.backgroundImageChanges.length, 'background image changes...');
+            let appliedCount = 0;
+            
+            changes.backgroundImageChanges.forEach(change => {
+                try {
+                    const element = iframeDoc.querySelector(change.selector);
+                    if (element) {
+                        element.style.backgroundImage = change.backgroundImage;
+                        appliedCount++;
+                    } else {
+                        console.warn('[TemplateEditor] Background element not found:', change.selector);
+                    }
+                } catch (error) {
+                    console.error('[TemplateEditor] Error applying background image change:', error);
+                }
+            });
+            
+            console.log('[TemplateEditor] Applied', appliedCount, '/', changes.backgroundImageChanges.length, 'background image changes ✓');
+        }
+        
+        // 5. Apply logo
+        if (changes.logoUrl) {
+            console.log('[TemplateEditor] Applying logo...');
+            const logos = iframeDoc.querySelectorAll('header img.logo, .logo img, .main-header__logo img, .header-logo img, [class*="logo"] img');
+            logos.forEach(logo => {
+                logo.src = changes.logoUrl;
+            });
+            console.log('[TemplateEditor] Applied logo to', logos.length, 'elements ✓');
+        }
+        
+        console.log('[TemplateEditor] All changes applied successfully ✓');
     }
     
     storeOriginalCarouselHTML(iframeDoc) {
@@ -2223,6 +2321,137 @@ class TemplateEditor {
     }
     
     async getModifiedPages() {
+        console.log('[TemplateEditor] Extracting content changes...');
+        const iframe = document.getElementById('templateFrame');
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        
+        // NEW APPROACH: Extract only the CHANGES, not the complete HTML
+        const changes = this.extractContentChanges(iframeDoc);
+        
+        return [{
+            name: this.currentPage.name,
+            path: this.currentPage.path,
+            changes: changes, // Store changes instead of complete HTML
+            modified: true
+        }];
+    }
+    
+    extractContentChanges(iframeDoc) {
+        console.log('[TemplateEditor] Extracting content changes from iframe...');
+        
+        const changes = {
+            brandStyles: null,
+            textChanges: [],
+            imageChanges: [],
+            backgroundImageChanges: [],
+            logoUrl: null
+        };
+        
+        // 1. Extract brand styles (colors, fonts)
+        const brandStyles = iframeDoc.getElementById('wb-brand-styles');
+        if (brandStyles) {
+            changes.brandStyles = brandStyles.textContent;
+            console.log('[TemplateEditor] Extracted brand styles:', changes.brandStyles.length, 'chars');
+        }
+        
+        // 2. Extract text changes (elements with wb-text class that were edited)
+        const textElements = iframeDoc.querySelectorAll('.wb-text');
+        textElements.forEach((el, index) => {
+            // Create a unique selector for this element
+            const selector = this.createUniqueSelector(el);
+            changes.textChanges.push({
+                selector: selector,
+                content: el.innerHTML,
+                index: index
+            });
+        });
+        console.log('[TemplateEditor] Extracted', changes.textChanges.length, 'text changes');
+        
+        // 3. Extract image changes (img elements with data:image src)
+        const images = iframeDoc.querySelectorAll('img');
+        images.forEach((img, index) => {
+            if (img.src && img.src.startsWith('data:image')) {
+                const selector = this.createUniqueSelector(img);
+                changes.imageChanges.push({
+                    selector: selector,
+                    src: img.src,
+                    alt: img.alt,
+                    index: index
+                });
+            }
+        });
+        console.log('[TemplateEditor] Extracted', changes.imageChanges.length, 'image changes');
+        
+        // 4. Extract background image changes
+        const bgElements = iframeDoc.querySelectorAll('[style*="background-image"]');
+        bgElements.forEach((el, index) => {
+            const bgImage = el.style.backgroundImage;
+            if (bgImage && bgImage.includes('data:image')) {
+                const selector = this.createUniqueSelector(el);
+                changes.backgroundImageChanges.push({
+                    selector: selector,
+                    backgroundImage: bgImage,
+                    index: index
+                });
+            }
+        });
+        console.log('[TemplateEditor] Extracted', changes.backgroundImageChanges.length, 'background image changes');
+        
+        // 5. Extract logo URL
+        const logoInput = document.getElementById('logoUrl');
+        if (logoInput && logoInput.value) {
+            changes.logoUrl = logoInput.value;
+            console.log('[TemplateEditor] Extracted logo URL');
+        }
+        
+        return changes;
+    }
+    
+    createUniqueSelector(element) {
+        // Create a CSS selector that uniquely identifies this element
+        const path = [];
+        let current = element;
+        
+        while (current && current !== document.body && current !== document.documentElement) {
+            let selector = current.tagName.toLowerCase();
+            
+            // Add ID if present
+            if (current.id) {
+                selector += '#' + current.id;
+                path.unshift(selector);
+                break; // ID is unique enough
+            }
+            
+            // Add classes
+            if (current.className && typeof current.className === 'string') {
+                const classes = current.className.split(' ')
+                    .filter(c => c && !c.startsWith('wb-')) // Exclude editor classes
+                    .slice(0, 2); // Max 2 classes
+                if (classes.length > 0) {
+                    selector += '.' + classes.join('.');
+                }
+            }
+            
+            // Add nth-child if needed
+            if (current.parentElement) {
+                const siblings = Array.from(current.parentElement.children);
+                const index = siblings.indexOf(current);
+                if (siblings.length > 1) {
+                    selector += `:nth-child(${index + 1})`;
+                }
+            }
+            
+            path.unshift(selector);
+            current = current.parentElement;
+            
+            // Limit depth
+            if (path.length >= 5) break;
+        }
+        
+        return path.join(' > ');
+    }
+    
+    async getModifiedPages_OLD() {
         const iframe = document.getElementById('templateFrame');
         const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
         
