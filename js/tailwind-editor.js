@@ -577,29 +577,66 @@ class TailwindEditor {
             { name: '404 Error', file: 'error-404.html', icon: 'exclamation-triangle', category: 'Other' }
         ];
         
-        // Render templates
+        // Category colors
+        const categoryColors = {
+            'Home': 'from-orange-500 to-red-500',
+            'About': 'from-blue-500 to-indigo-600',
+            'Tours': 'from-sky-500 to-blue-600',
+            'Destinations': 'from-green-500 to-emerald-600',
+            'Blog': 'from-purple-500 to-pink-600',
+            'Contact': 'from-red-500 to-rose-600',
+            'Other': 'from-gray-500 to-slate-600'
+        };
+        
+        // Render templates grouped by category
         grid.innerHTML = '';
-        templates.forEach(template => {
-            const card = document.createElement('div');
-            card.className = 'bg-white border-2 border-gray-200 rounded-lg overflow-hidden hover:border-blue-500 hover:shadow-lg transition cursor-pointer';
-            card.innerHTML = `
-                <div class="h-40 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                    <i class="fas fa-${template.icon} text-6xl text-white opacity-80"></i>
-                </div>
-                <div class="p-4">
-                    <div class="text-xs text-blue-600 font-semibold mb-1">${template.category}</div>
-                    <h3 class="font-bold text-gray-800 mb-2">${template.name}</h3>
-                    <button class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm">
-                        <i class="fas fa-plus mr-2"></i>Gebruik Template
-                    </button>
-                </div>
+        
+        // Group by category
+        const grouped = {};
+        templates.forEach(t => {
+            if (!grouped[t.category]) grouped[t.category] = [];
+            grouped[t.category].push(t);
+        });
+        
+        // Render each category
+        Object.keys(grouped).forEach(category => {
+            // Category header
+            const categoryHeader = document.createElement('div');
+            categoryHeader.className = 'col-span-full mt-6 mb-2';
+            categoryHeader.innerHTML = `
+                <h3 class="text-xl font-bold text-gray-800 flex items-center">
+                    <span class="w-2 h-8 bg-gradient-to-b ${categoryColors[category]} rounded mr-3"></span>
+                    ${category}
+                    <span class="ml-2 text-sm text-gray-500 font-normal">(${grouped[category].length})</span>
+                </h3>
             `;
+            grid.appendChild(categoryHeader);
+            
+            // Templates in this category
+            grouped[category].forEach(template => {
+                const card = document.createElement('div');
+                card.className = 'bg-white border-2 border-gray-200 rounded-lg overflow-hidden hover:border-blue-500 hover:shadow-lg transition cursor-pointer';
+                card.innerHTML = `
+                    <div class="h-40 bg-gradient-to-br ${categoryColors[category]} flex items-center justify-center relative">
+                        <i class="fas fa-${template.icon} text-6xl text-white opacity-80"></i>
+                        <div class="absolute top-2 right-2 bg-white/20 backdrop-blur-sm px-2 py-1 rounded text-xs text-white font-semibold">
+                            ${category}
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-bold text-gray-800 mb-3">${template.name}</h3>
+                        <button class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm">
+                            <i class="fas fa-plus mr-2"></i>Gebruik Template
+                        </button>
+                    </div>
+                `;
             
             card.querySelector('button').addEventListener('click', () => {
                 this.selectTemplate(template);
             });
             
-            grid.appendChild(card);
+                grid.appendChild(card);
+            });
         });
         
         // Show modal
