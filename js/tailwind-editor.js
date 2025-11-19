@@ -875,6 +875,32 @@ class TailwindEditor {
                 margin: 0 !important;
             }
             
+            /* DISABLE SLIDERS/CAROUSELS IN EDITOR */
+            .swiper-container,
+            .swiper,
+            [class*="swiper"] {
+                pointer-events: none !important;
+            }
+            
+            /* But allow editing text inside sliders */
+            .swiper-container .editable-element,
+            .swiper .editable-element,
+            [class*="swiper"] .editable-element {
+                pointer-events: auto !important;
+            }
+            
+            /* Pause all animations in editor */
+            * {
+                animation-play-state: paused !important;
+                transition: none !important;
+            }
+            
+            /* But keep editing transitions */
+            .editable-element:hover,
+            [contenteditable="true"] {
+                transition: all 0.2s ease !important;
+            }
+            
             /* Editable elements hover */
             .editable-element:hover {
                 outline: 2px dashed #3b82f6 !important;
@@ -913,6 +939,22 @@ class TailwindEditor {
             }
         `;
         iframeDoc.head.appendChild(style);
+        
+        // Disable all Swiper instances
+        try {
+            const iframeWindow = iframeDoc.defaultView;
+            if (iframeWindow.Swiper) {
+                // Find all swiper instances and destroy them
+                iframeDoc.querySelectorAll('.swiper').forEach(swiperEl => {
+                    if (swiperEl.swiper) {
+                        swiperEl.swiper.destroy(true, true);
+                        console.log('🛑 Stopped Swiper instance');
+                    }
+                });
+            }
+        } catch (error) {
+            console.log('No Swiper instances to stop');
+        }
         
         // Make text elements editable
         const editableSelectors = 'h1, h2, h3, h4, h5, h6, p, a, span, li, td, th, button, label';
