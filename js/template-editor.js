@@ -1129,12 +1129,16 @@ class TemplateEditor {
         const iframe = document.getElementById('templateFrame');
         const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
         
-        // Remove previous selection
+        // Remove previous selection and toolbar
         iframeDoc.querySelectorAll('.wb-selected').forEach(el => {
             el.classList.remove('wb-selected');
             const label = el.querySelector('.wb-edit-label');
             if (label) label.remove();
         });
+        
+        // Remove existing inline toolbar
+        const existingToolbar = iframeDoc.querySelector('.wb-inline-toolbar');
+        if (existingToolbar) existingToolbar.remove();
         
         // Add selection to new element
         element.classList.add('wb-selected');
@@ -1153,8 +1157,103 @@ class TemplateEditor {
         
         this.selectedElement = { element, type };
         
-        // Show properties panel
+        // Show INLINE toolbar above element
+        this.showInlineToolbar(element, type, iframeDoc);
+        
+        // Show properties panel (minimized)
         this.showPropertiesPanel(element, type);
+    }
+    
+    showInlineToolbar(element, type, iframeDoc) {
+        // Create inline toolbar
+        const toolbar = iframeDoc.createElement('div');
+        toolbar.className = 'wb-inline-toolbar';
+        toolbar.style.cssText = `
+            position: absolute;
+            z-index: 10000;
+            background: #2c3e50;
+            border-radius: 8px;
+            padding: 8px 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        `;
+        
+        // Get element position
+        const rect = element.getBoundingClientRect();
+        const scrollTop = iframeDoc.documentElement.scrollTop || iframeDoc.body.scrollTop;
+        
+        // Position toolbar above element
+        toolbar.style.left = rect.left + 'px';
+        toolbar.style.top = (rect.top + scrollTop - 60) + 'px';
+        
+        // Add buttons based on type
+        if (type === 'text') {
+            toolbar.innerHTML = `
+                <button class="wb-toolbar-btn" onclick="parent.templateEditor.makeTextBold()" title="Vet">
+                    <i class="fas fa-bold"></i>
+                </button>
+                <button class="wb-toolbar-btn" onclick="parent.templateEditor.makeTextItalic()" title="Cursief">
+                    <i class="fas fa-italic"></i>
+                </button>
+                <div style="width:1px;height:24px;background:#555;"></div>
+                <input type="color" class="wb-toolbar-color" onchange="parent.templateEditor.changeTextColor(this.value)" title="Tekstkleur" style="width:40px;height:32px;border:none;border-radius:4px;cursor:pointer;">
+                <input type="color" class="wb-toolbar-color" onchange="parent.templateEditor.changeBackgroundColor(this.value)" title="Achtergrondkleur" style="width:40px;height:32px;border:none;border-radius:4px;cursor:pointer;">
+                <div style="width:1px;height:24px;background:#555;"></div>
+                <button class="wb-toolbar-btn" onclick="parent.templateEditor.openMediaPicker('text-bg')" title="Achtergrond afbeelding">
+                    <i class="fas fa-image"></i>
+                </button>
+            `;
+        } else if (type === 'image') {
+            toolbar.innerHTML = `
+                <button class="wb-toolbar-btn" onclick="parent.templateEditor.openMediaPicker('image')" title="Wijzig afbeelding">
+                    <i class="fas fa-image"></i> Wijzig Afbeelding
+                </button>
+                <button class="wb-toolbar-btn" onclick="parent.templateEditor.removeImage()" title="Verwijder">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+        } else if (type === 'background') {
+            toolbar.innerHTML = `
+                <button class="wb-toolbar-btn" onclick="parent.templateEditor.openMediaPicker('background')" title="Wijzig achtergrond">
+                    <i class="fas fa-image"></i> Wijzig Achtergrond
+                </button>
+                <input type="color" class="wb-toolbar-color" onchange="parent.templateEditor.changeBackgroundColor(this.value)" title="Achtergrondkleur" style="width:40px;height:32px;border:none;border-radius:4px;cursor:pointer;">
+            `;
+        }
+        
+        // Add close button
+        const closeBtn = iframeDoc.createElement('button');
+        closeBtn.className = 'wb-toolbar-btn';
+        closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+        closeBtn.onclick = () => toolbar.remove();
+        closeBtn.style.cssText = 'margin-left:8px;color:#e74c3c;';
+        toolbar.appendChild(closeBtn);
+        
+        // Add toolbar styles
+        if (!iframeDoc.getElementById('wb-toolbar-styles')) {
+            const style = iframeDoc.createElement('style');
+            style.id = 'wb-toolbar-styles';
+            style.textContent = `
+                .wb-toolbar-btn {
+                    background: transparent;
+                    border: none;
+                    color: white;
+                    padding: 6px 10px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    transition: background 0.2s;
+                }
+                .wb-toolbar-btn:hover {
+                    background: rgba(255,255,255,0.1);
+                }
+            `;
+            iframeDoc.head.appendChild(style);
+        }
+        
+        iframeDoc.body.appendChild(toolbar);
     }
     
     showPropertiesPanel(element, type) {
