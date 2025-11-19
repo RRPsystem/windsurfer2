@@ -532,22 +532,106 @@ class TailwindEditor {
     }
     
     createNewPage() {
-        const name = prompt('Enter page name:');
+        // Show template picker modal
+        this.showTemplatePicker();
+    }
+    
+    showTemplatePicker() {
+        const modal = document.getElementById('templatePickerModal');
+        const grid = document.getElementById('templateGrid');
+        
+        // Available templates
+        const templates = [
+            { name: 'Home - Main', file: 'index.html', icon: 'home', category: 'Home' },
+            { name: 'Home - Style 2', file: 'index-2.html', icon: 'home', category: 'Home' },
+            { name: 'Home - Style 3', file: 'index-3.html', icon: 'home', category: 'Home' },
+            { name: 'About Us', file: 'about-1.html', icon: 'info-circle', category: 'About' },
+            { name: 'Tours Grid', file: 'tour-1-grid.html', icon: 'plane', category: 'Tours' },
+            { name: 'Tours Grid Right', file: 'tour-1-grid-right.html', icon: 'plane', category: 'Tours' },
+            { name: 'Tours Style 2', file: 'tour-2-grid.html', icon: 'plane', category: 'Tours' },
+            { name: 'Tours Style 2 Right', file: 'tour-2-grid-right.html', icon: 'plane', category: 'Tours' },
+            { name: 'Tours Style 3', file: 'tour-3-grid.html', icon: 'plane', category: 'Tours' },
+            { name: 'Tours Style 3 Right', file: 'tour-3-grid-right.html', icon: 'plane', category: 'Tours' },
+            { name: 'Tours List', file: 'tour-list-style.html', icon: 'list', category: 'Tours' },
+            { name: 'Tour Detail', file: 'tour-detail.html', icon: 'plane', category: 'Tours' },
+            { name: 'Destinations Grid', file: 'destination-1-grid.html', icon: 'map-marked-alt', category: 'Destinations' },
+            { name: 'Destinations Left', file: 'destination-1-left.html', icon: 'map-marked-alt', category: 'Destinations' },
+            { name: 'Destinations Style 2', file: 'destination-2-grid.html', icon: 'map-marked-alt', category: 'Destinations' },
+            { name: 'Destinations Style 2 Left', file: 'destination-2-left.html', icon: 'map-marked-alt', category: 'Destinations' },
+            { name: 'Destinations Style 3', file: 'destination-3-grid.html', icon: 'map-marked-alt', category: 'Destinations' },
+            { name: 'Destinations Style 3 Left', file: 'destination-3-left.html', icon: 'map-marked-alt', category: 'Destinations' },
+            { name: 'Destination Detail', file: 'destination-detail.html', icon: 'map-marked-alt', category: 'Destinations' },
+            { name: 'Blog Grid', file: 'blog-grid.html', icon: 'newspaper', category: 'Blog' },
+            { name: 'Blog Grid Left', file: 'blog-grid-left.html', icon: 'newspaper', category: 'Blog' },
+            { name: 'Blog List Left', file: 'blog-list-left.html', icon: 'list', category: 'Blog' },
+            { name: 'Blog Detail', file: 'blog-detail.html', icon: 'newspaper', category: 'Blog' },
+            { name: 'Contact', file: 'contact.html', icon: 'envelope', category: 'Contact' },
+            { name: 'Gallery', file: 'gallery.html', icon: 'images', category: 'Other' },
+            { name: 'Services', file: 'services.html', icon: 'concierge-bell', category: 'Other' },
+            { name: 'Service Detail', file: 'service-detail.html', icon: 'concierge-bell', category: 'Other' },
+            { name: 'Our Team', file: 'our-team.html', icon: 'users', category: 'Other' },
+            { name: 'Team Detail', file: 'our-team-detail.html', icon: 'user', category: 'Other' },
+            { name: 'Testimonials', file: 'testimonial.html', icon: 'quote-left', category: 'Other' },
+            { name: 'Pricing', file: 'pricing.html', icon: 'tag', category: 'Other' },
+            { name: 'FAQ', file: 'faq.html', icon: 'question-circle', category: 'Other' },
+            { name: '404 Error', file: 'error-404.html', icon: 'exclamation-triangle', category: 'Other' }
+        ];
+        
+        // Render templates
+        grid.innerHTML = '';
+        templates.forEach(template => {
+            const card = document.createElement('div');
+            card.className = 'bg-white border-2 border-gray-200 rounded-lg overflow-hidden hover:border-blue-500 hover:shadow-lg transition cursor-pointer';
+            card.innerHTML = `
+                <div class="h-40 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <i class="fas fa-${template.icon} text-6xl text-white opacity-80"></i>
+                </div>
+                <div class="p-4">
+                    <div class="text-xs text-blue-600 font-semibold mb-1">${template.category}</div>
+                    <h3 class="font-bold text-gray-800 mb-2">${template.name}</h3>
+                    <button class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm">
+                        <i class="fas fa-plus mr-2"></i>Gebruik Template
+                    </button>
+                </div>
+            `;
+            
+            card.querySelector('button').addEventListener('click', () => {
+                this.selectTemplate(template);
+            });
+            
+            grid.appendChild(card);
+        });
+        
+        // Show modal
+        modal.classList.remove('hidden');
+        
+        // Close button
+        document.getElementById('closeTemplatePickerBtn').onclick = () => {
+            modal.classList.add('hidden');
+        };
+    }
+    
+    selectTemplate(template) {
+        const name = prompt(`Naam voor nieuwe pagina:`, template.name);
         if (!name) return;
         
         const id = name.toLowerCase().replace(/\s+/g, '-');
-        const file = `${id}.html`;
         
         this.pages.push({
             id,
             name,
-            icon: 'file',
-            file
+            icon: template.icon,
+            file: template.file
         });
         
+        // Close modal
+        document.getElementById('templatePickerModal').classList.add('hidden');
+        
+        // Switch to new page
         this.renderPagesList();
         this.switchPage(id);
-        this.showNotification(`✅ Page "${name}" created!`, 'success');
+        
+        this.showNotification(`✅ Pagina "${name}" aangemaakt!`, 'success');
     }
     
     showPageSettings(page) {
@@ -581,25 +665,8 @@ class TailwindEditor {
         this.currentPage = page;
         this.renderPagesList();
         
-        // Load saved page data
-        const saved = localStorage.getItem(`tailwind_page_${page}`);
-        if (saved) {
-            const data = JSON.parse(saved);
-            const canvas = document.getElementById('canvasSections');
-            canvas.innerHTML = data.html;
-            
-            // Re-attach events
-            canvas.querySelectorAll('.canvas-section').forEach(section => {
-                this.attachSectionEvents(section);
-            });
-            
-            // Show canvas
-            document.getElementById('emptyState').classList.add('hidden');
-            canvas.classList.remove('hidden');
-        } else {
-            // Load template for this page
-            this.loadPageTemplate(page);
-        }
+        // Always load fresh template (for now - later we can add save/load)
+        this.loadPageTemplate(page);
     }
     
     async loadPageTemplate(pageId) {
