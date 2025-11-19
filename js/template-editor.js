@@ -334,46 +334,62 @@ class TemplateEditor {
         
         // Wait for iframe to load
         iframe.onload = () => {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            
             // Check if we have a saved draft for this page
             const savedPageData = this.savedDraft?.pages?.find(p => p.path === page.path);
             
             if (savedPageData && savedPageData.html) {
-                console.log('[TemplateEditor] Applying saved draft HTML for page:', page.name);
+                console.log('[TemplateEditor] Loading saved draft for page:', page.name);
                 
-                // Replace the body content with saved HTML
-                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                 const parser = new DOMParser();
                 const savedDoc = parser.parseFromString(savedPageData.html, 'text/html');
                 
-                // Replace body content
-                iframeDoc.body.innerHTML = savedDoc.body.innerHTML;
-                
-                // Copy body attributes
-                Array.from(savedDoc.body.attributes).forEach(attr => {
-                    iframeDoc.body.setAttribute(attr.name, attr.value);
-                });
-                
-                // IMPORTANT: Re-apply brand styles from saved HTML HEAD (not body!)
+                // ONLY apply brand styles from saved HTML - DO NOT replace body content!
                 const savedBrandStyles = savedDoc.head.querySelector('#wb-brand-styles');
                 if (savedBrandStyles) {
                     console.log('[TemplateEditor] Re-applying saved brand styles from HEAD...');
                     console.log('[TemplateEditor] Brand styles content length:', savedBrandStyles.textContent.length);
+                    
                     // Remove any existing brand styles first
                     const existingStyles = iframeDoc.getElementById('wb-brand-styles');
                     if (existingStyles) {
                         console.log('[TemplateEditor] Removing existing brand styles...');
                         existingStyles.remove();
                     }
+                    
                     // Add the saved brand styles to HEAD
                     iframeDoc.head.appendChild(savedBrandStyles.cloneNode(true));
                     console.log('[TemplateEditor] Brand styles applied successfully ✓');
+                    
+                    // Extract colors from saved brand styles and update settings panel
+                    this.extractColorsFromBrandStyles(savedBrandStyles.textContent);
                 } else {
                     console.warn('[TemplateEditor] No brand styles found in saved HTML HEAD!');
                 }
+                
+                // TODO: Apply saved text content without destroying layout
+                // For now, we only restore brand styles (colors, fonts, logo)
             }
             
             this.setupIframeEditing();
         };
+    }
+    
+    convertDataBgSrc(iframeDoc) {
+        // Convert data-bg-src attributes to actual background images
+        // This is what the template's main.js does, but we need to do it manually
+        const elements = iframeDoc.querySelectorAll('[data-bg-src]');
+        console.log('[TemplateEditor] Converting', elements.length, 'data-bg-src elements to background images');
+        
+        elements.forEach(el => {
+            const bgSrc = el.getAttribute('data-bg-src');
+            if (bgSrc) {
+                el.style.backgroundImage = `url(${bgSrc})`;
+                el.classList.add('background-image');
+                console.log('[TemplateEditor] Set background image:', bgSrc);
+            }
+        });
     }
     
     storeOriginalCarouselHTML(iframeDoc) {
@@ -397,6 +413,10 @@ class TemplateEditor {
         
         const iframe = document.getElementById('templateFrame');
         const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        
+        // IMPORTANT: Convert data-bg-src to actual background images
+        // This ensures the palm tree and other backgrounds are visible
+        this.convertDataBgSrc(iframeDoc);
         
         // Store original carousel HTML before Owl Carousel initializes
         this.storeOriginalCarouselHTML(iframeDoc);
@@ -748,12 +768,13 @@ class TemplateEditor {
             // Skip if it contains ONLY images (no text)
             if (element.querySelector('img') && !element.textContent.trim()) return;
             
-            // ALLOW topbar, contact info, and buttons ALWAYS
+            // ALLOW topbar, contact info, buttons, and feature sections ALWAYS
             const isInTopbar = element.closest('.header-top-wrap, .contact-info, .social-share');
             const isButton = element.tagName === 'BUTTON' || element.classList.contains('btn') || element.classList.contains('vs-btn');
+            const isFeatureSection = element.classList.contains('feature-expert') || element.closest('.vs-feature-style1');
             
-            // Skip navigation menu items UNLESS it's in topbar or is a button
-            if (!isInTopbar && !isButton) {
+            // Skip navigation menu items UNLESS it's in topbar, is a button, or is in feature section
+            if (!isInTopbar && !isButton && !isFeatureSection) {
                 if (element.closest('nav, .menu, script, style, .skip-edit, .top-one, .main-header, .header-wrapper')) return;
                 if (element.closest('header')) return;
                 if (element.tagName === 'HEADER' || element.tagName === 'NAV') return;
@@ -3551,9 +3572,20 @@ class TemplateEditor {
             }
             
             /* Apply secondary color to specific background classes only */
-            .bg-theme-color, .price-off,
-            .bg-second-theme-color, .bg-secondary-color,
-            .secondary-bg, .sec-bg {
+            /* BUT preserve background images! */
+            .bg-theme-color:not([data-bg-src]):not([style*="background-image"]), 
+            .price-off:not([data-bg-src]):not([style*="background-image"]),
+            .bg-second-theme-color:not([data-bg-src]):not([style*="background-image"]), 
+            .bg-secondary-color:not([data-bg-src]):not([style*="background-image"]),
+            .secondary-bg:not([data-bg-src]):not([style*="background-image"]), 
+            .sec-bg:not([data-bg-src]):not([style*="background-image"]) {
+                background-color: ${secondaryColor} !important;
+            }
+            
+            /* For elements WITH background images, use overlay approach */
+            .bg-second-theme-color[data-bg-src],
+            .bg-second-theme-color[style*="background-image"] {
+                background-blend-mode: multiply !important;
                 background-color: ${secondaryColor} !important;
             }
             
@@ -3616,6 +3648,13 @@ class TemplateEditor {
                 background-color: ${footerBgColor} !important;
             }
             
+            /* Fix Adventures section background text */
+            .vs-feature-style1 h2.position-absolute {
+                opacity: 0.08 !important;
+                color: rgba(255, 255, 255, 0.08) !important;
+                pointer-events: none !important;
+            }
+            
             /* Apply font */
             body, h1, h2, h3, h4, h5, h6, p {
                 font-family: var(--brand-font) !important;
@@ -3652,31 +3691,109 @@ class TemplateEditor {
         this.showNotification('✅ Instellingen toegepast!');
     }
     
-    resetToDefaults() {
-        if (!confirm('Weet je zeker dat je alle instellingen wilt resetten naar de template defaults?')) {
+    extractColorsFromBrandStyles(cssText) {
+        console.log('[TemplateEditor] Extracting colors from brand styles...');
+        
+        // Extract colors using regex
+        const primaryMatch = cssText.match(/--brand-primary:\s*(#[0-9a-fA-F]{6})/);
+        const secondaryMatch = cssText.match(/--brand-secondary:\s*(#[0-9a-fA-F]{6})/);
+        const accentMatch = cssText.match(/--brand-accent:\s*(#[0-9a-fA-F]{6})/);
+        const textMatch = cssText.match(/--brand-text:\s*(#[0-9a-fA-F]{6})/);
+        const titleMatch = cssText.match(/--brand-title:\s*(#[0-9a-fA-F]{6})/);
+        
+        // Update settings panel inputs
+        if (primaryMatch && document.getElementById('primaryColor')) {
+            document.getElementById('primaryColor').value = primaryMatch[1];
+            console.log('[TemplateEditor] Set primary color:', primaryMatch[1]);
+        }
+        if (secondaryMatch && document.getElementById('secondaryColor')) {
+            document.getElementById('secondaryColor').value = secondaryMatch[1];
+            console.log('[TemplateEditor] Set secondary color:', secondaryMatch[1]);
+        }
+        if (accentMatch && document.getElementById('accentColor')) {
+            document.getElementById('accentColor').value = accentMatch[1];
+            console.log('[TemplateEditor] Set accent color:', accentMatch[1]);
+        }
+        if (textMatch && document.getElementById('textColor')) {
+            document.getElementById('textColor').value = textMatch[1];
+            console.log('[TemplateEditor] Set text color:', textMatch[1]);
+        }
+        if (titleMatch && document.getElementById('titleColor')) {
+            document.getElementById('titleColor').value = titleMatch[1];
+            console.log('[TemplateEditor] Set title color:', titleMatch[1]);
+        }
+        
+        // Update color previews (with null checks)
+        const primaryPreview = document.getElementById('primaryPreview');
+        const secondaryPreview = document.getElementById('secondaryPreview');
+        const accentPreview = document.getElementById('accentPreview');
+        const textPreview = document.getElementById('textPreview');
+        const titlePreview = document.getElementById('titlePreview');
+        
+        if (primaryMatch && primaryPreview) primaryPreview.style.background = primaryMatch[1];
+        if (secondaryMatch && secondaryPreview) secondaryPreview.style.background = secondaryMatch[1];
+        if (accentMatch && accentPreview) accentPreview.style.background = accentMatch[1];
+        if (textMatch && textPreview) textPreview.style.background = textMatch[1];
+        if (titleMatch && titlePreview) titlePreview.style.background = titleMatch[1];
+        
+        // Extract logo from iframe and update settings panel
+        const iframe = document.getElementById('templateFrame');
+        const iframeDoc = iframe?.contentDocument || iframe?.contentWindow?.document;
+        const logoUrlInput = document.getElementById('logoUrl');
+        
+        if (iframeDoc && logoUrlInput) {
+            const logoImg = iframeDoc.querySelector('header img.logo, .logo img, .main-header__logo img, .header-logo img, [class*="logo"] img');
+            if (logoImg && logoImg.src && logoImg.src.startsWith('data:image')) {
+                console.log('[TemplateEditor] Extracting logo from iframe...');
+                logoUrlInput.value = logoImg.src;
+                this.updateLogoPreview();
+                console.log('[TemplateEditor] Logo extracted and set ✓');
+            }
+        } else if (!logoUrlInput) {
+            console.warn('[TemplateEditor] logoUrl input not found - settings panel may not be loaded yet');
+        }
+        
+        console.log('[TemplateEditor] Colors extracted and applied to settings panel ✓');
+    }
+    
+    async resetToDefaults() {
+        if (!confirm('Weet je zeker dat je ALLE wijzigingen wilt verwijderen en terug wilt naar het originele template? Dit kan niet ongedaan worden!')) {
             return;
         }
         
-        const defaults = this.templateDefaults || {};
+        console.log('[TemplateEditor] Deleting draft and resetting to defaults...');
         
-        // Reset all inputs to defaults
-        if (document.getElementById('primaryColor')) document.getElementById('primaryColor').value = defaults.primaryColor || '#FF8C00';
-        if (document.getElementById('secondaryColor')) document.getElementById('secondaryColor').value = defaults.secondaryColor || '#667eea';
-        if (document.getElementById('accentColor')) document.getElementById('accentColor').value = defaults.accentColor || '#465b2d';
-        if (document.getElementById('textColor')) document.getElementById('textColor').value = defaults.textColor || '#333333';
-        if (document.getElementById('titleColor')) document.getElementById('titleColor').value = defaults.titleColor || '#141414';
-        if (document.getElementById('footerBgColor')) document.getElementById('footerBgColor').value = defaults.footerBgColor || '#1a1a1a';
-        if (document.getElementById('primaryFont')) document.getElementById('primaryFont').value = defaults.primaryFont || 'Rubik';
-        if (document.getElementById('titleFont')) document.getElementById('titleFont').value = defaults.titleFont || 'Abril Fatface';
-        if (document.getElementById('bodySize')) document.getElementById('bodySize').value = parseInt(defaults.bodySize) || 14;
-        if (document.getElementById('h1Size')) document.getElementById('h1Size').value = parseInt(defaults.h1Size) || 90;
-        if (document.getElementById('h2Size')) document.getElementById('h2Size').value = parseInt(defaults.h2Size) || 45;
-        if (document.getElementById('h3Size')) document.getElementById('h3Size').value = parseInt(defaults.h3Size) || 40;
-        if (document.getElementById('sectionSpace')) document.getElementById('sectionSpace').value = parseInt(defaults.sectionSpace) || 120;
-        if (document.getElementById('containerWidth')) document.getElementById('containerWidth').value = parseInt(defaults.containerWidth) || 1300;
-        if (document.getElementById('logoMaxWidth')) document.getElementById('logoMaxWidth').value = parseInt(defaults.logoMaxWidth) || 200;
+        // Delete from Supabase
+        try {
+            const { error } = await this.supabase
+                .from('template_drafts')
+                .delete()
+                .eq('brand_id', this.brandId)
+                .eq('template', this.templateName);
+            
+            if (error) {
+                console.error('[TemplateEditor] Error deleting draft:', error);
+            } else {
+                console.log('[TemplateEditor] Draft deleted from Supabase ✓');
+            }
+        } catch (error) {
+            console.error('[TemplateEditor] Error deleting draft:', error);
+        }
         
-        this.showNotification('🔄 Instellingen gereset naar template defaults!');
+        // Delete from localStorage
+        const storageKey = `template_draft_${this.templateName}_${this.brandId}`;
+        localStorage.removeItem(storageKey);
+        console.log('[TemplateEditor] Draft deleted from localStorage ✓');
+        
+        // Clear savedDraft
+        this.savedDraft = null;
+        
+        this.showNotification('🔄 Draft verwijderd! Pagina wordt herladen...');
+        
+        // Reload page to load fresh template
+        setTimeout(() => {
+            location.reload();
+        }, 1000);
     }
     
     adjustColor(color, amount) {
