@@ -3703,24 +3703,34 @@ class TemplateEditor {
             console.log('[TemplateEditor] Set title color:', titleMatch[1]);
         }
         
-        // Update color previews
-        if (primaryMatch) document.getElementById('primaryPreview').style.background = primaryMatch[1];
-        if (secondaryMatch) document.getElementById('secondaryPreview').style.background = secondaryMatch[1];
-        if (accentMatch) document.getElementById('accentPreview').style.background = accentMatch[1];
-        if (textMatch) document.getElementById('textPreview').style.background = textMatch[1];
-        if (titleMatch) document.getElementById('titlePreview').style.background = titleMatch[1];
+        // Update color previews (with null checks)
+        const primaryPreview = document.getElementById('primaryPreview');
+        const secondaryPreview = document.getElementById('secondaryPreview');
+        const accentPreview = document.getElementById('accentPreview');
+        const textPreview = document.getElementById('textPreview');
+        const titlePreview = document.getElementById('titlePreview');
+        
+        if (primaryMatch && primaryPreview) primaryPreview.style.background = primaryMatch[1];
+        if (secondaryMatch && secondaryPreview) secondaryPreview.style.background = secondaryMatch[1];
+        if (accentMatch && accentPreview) accentPreview.style.background = accentMatch[1];
+        if (textMatch && textPreview) textPreview.style.background = textMatch[1];
+        if (titleMatch && titlePreview) titlePreview.style.background = titleMatch[1];
         
         // Extract logo from iframe and update settings panel
         const iframe = document.getElementById('templateFrame');
         const iframeDoc = iframe?.contentDocument || iframe?.contentWindow?.document;
-        if (iframeDoc) {
+        const logoUrlInput = document.getElementById('logoUrl');
+        
+        if (iframeDoc && logoUrlInput) {
             const logoImg = iframeDoc.querySelector('header img.logo, .logo img, .main-header__logo img, .header-logo img, [class*="logo"] img');
             if (logoImg && logoImg.src && logoImg.src.startsWith('data:image')) {
                 console.log('[TemplateEditor] Extracting logo from iframe...');
-                document.getElementById('logoUrl').value = logoImg.src;
+                logoUrlInput.value = logoImg.src;
                 this.updateLogoPreview();
                 console.log('[TemplateEditor] Logo extracted and set ✓');
             }
+        } else if (!logoUrlInput) {
+            console.warn('[TemplateEditor] logoUrl input not found - settings panel may not be loaded yet');
         }
         
         console.log('[TemplateEditor] Colors extracted and applied to settings panel ✓');
