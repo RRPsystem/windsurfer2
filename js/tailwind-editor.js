@@ -26,20 +26,16 @@ class TailwindEditor {
     async init() {
         console.log('🚀 Initializing Tailwind Editor...');
         
-        // FORCE CLEAR OLD SAVED PAGES (one-time cleanup)
-        // This ensures we load fresh templates with new CSS
-        const clearOldPages = localStorage.getItem('tailwind_editor_v2_cleared');
-        if (!clearOldPages) {
-            console.log('🧹 Clearing old saved pages...');
-            Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('tailwind_page_')) {
-                    localStorage.removeItem(key);
-                    console.log('  ✓ Cleared:', key);
-                }
-            });
-            localStorage.setItem('tailwind_editor_v2_cleared', 'true');
-            console.log('✅ Old pages cleared!');
-        }
+        // FORCE CLEAR OLD SAVED PAGES (always clear for now)
+        // This ensures we always load fresh templates with new CSS
+        console.log('🧹 Clearing all saved pages...');
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('tailwind_page_')) {
+                localStorage.removeItem(key);
+                console.log('  ✓ Cleared:', key);
+            }
+        });
+        console.log('✅ All pages cleared - loading fresh templates!');
         
         // Load sections data
         await this.loadSectionsData();
@@ -847,19 +843,26 @@ class TailwindEditor {
         style.textContent = `
             /* HIDE NAVIGATION AND HEADER IN EDITOR */
             .site-header,
-            header,
+            header:not(.template-name),
             .header,
             nav,
             .navigation,
             .navbar,
             .menu,
+            .main-bar-wraper,
             .loading-area,
             .cursor,
             .cursor2,
             footer,
             .footer,
-            .site-footer {
+            .site-footer,
+            [class*="header"],
+            [class*="Header"] {
                 display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                height: 0 !important;
+                overflow: hidden !important;
             }
             
             /* Clean body layout */
