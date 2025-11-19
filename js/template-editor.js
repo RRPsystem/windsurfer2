@@ -357,19 +357,32 @@ class TemplateEditor {
                 
                 // Wait for document to be ready, then setup editing
                 setTimeout(() => {
+                    console.log('[TemplateEditor] Setting up editor after HTML load...');
                     const newIframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    
+                    if (!newIframeDoc || !newIframeDoc.body) {
+                        console.error('[TemplateEditor] IframeDoc not ready!');
+                        return;
+                    }
                     
                     // Extract colors from brand styles and update settings panel
                     const brandStyles = newIframeDoc.getElementById('wb-brand-styles');
                     if (brandStyles) {
+                        console.log('[TemplateEditor] Extracting brand styles...');
                         this.extractColorsFromBrandStyles(brandStyles.textContent);
                         console.log('[TemplateEditor] Brand styles extracted ✓');
+                    } else {
+                        console.warn('[TemplateEditor] No brand styles found in loaded HTML!');
                     }
                     
-                    // Setup editor UI
+                    // IMPORTANT: Re-initialize carousel storage for loaded HTML
+                    this.storeOriginalCarouselHTML(newIframeDoc);
+                    
+                    // Setup editor UI (make elements editable, add controls)
+                    console.log('[TemplateEditor] Setting up iframe editing...');
                     this.setupIframeEditing();
-                    console.log('[TemplateEditor] Draft loaded successfully ✓');
-                }, 100);
+                    console.log('[TemplateEditor] Draft loaded and editor setup complete ✓');
+                }, 300);
                 
                 return; // Don't call setupIframeEditing yet, we'll do it in setTimeout
             }
@@ -3706,12 +3719,18 @@ class TemplateEditor {
             console.log('[TemplateEditor] Set title color:', titleMatch[1]);
         }
         
-        // Update color previews
-        if (primaryMatch) document.getElementById('primaryPreview').style.background = primaryMatch[1];
-        if (secondaryMatch) document.getElementById('secondaryPreview').style.background = secondaryMatch[1];
-        if (accentMatch) document.getElementById('accentPreview').style.background = accentMatch[1];
-        if (textMatch) document.getElementById('textPreview').style.background = textMatch[1];
-        if (titleMatch) document.getElementById('titlePreview').style.background = titleMatch[1];
+        // Update color previews (with null checks)
+        const primaryPreview = document.getElementById('primaryPreview');
+        const secondaryPreview = document.getElementById('secondaryPreview');
+        const accentPreview = document.getElementById('accentPreview');
+        const textPreview = document.getElementById('textPreview');
+        const titlePreview = document.getElementById('titlePreview');
+        
+        if (primaryMatch && primaryPreview) primaryPreview.style.background = primaryMatch[1];
+        if (secondaryMatch && secondaryPreview) secondaryPreview.style.background = secondaryMatch[1];
+        if (accentMatch && accentPreview) accentPreview.style.background = accentMatch[1];
+        if (textMatch && textPreview) textPreview.style.background = textMatch[1];
+        if (titleMatch && titlePreview) titlePreview.style.background = titleMatch[1];
         
         // Extract logo from iframe and update settings panel
         const iframe = document.getElementById('templateFrame');
