@@ -377,19 +377,28 @@ class TemplateEditor {
     }
     
     convertDataBgSrc(iframeDoc) {
-        // Convert data-bg-src attributes to actual background images
-        // This is what the template's main.js does, but we need to do it manually
-        const elements = iframeDoc.querySelectorAll('[data-bg-src]');
-        console.log('[TemplateEditor] Converting', elements.length, 'data-bg-src elements to background images');
+        // The template's main.js has already converted data-bg-src to background-image
+        // and removed the data-bg-src attribute. So we need to find elements that 
+        // HAVE background images set and mark them so brand colors don't override them.
         
-        elements.forEach(el => {
-            const bgSrc = el.getAttribute('data-bg-src');
-            if (bgSrc) {
-                el.style.backgroundImage = `url(${bgSrc})`;
-                el.classList.add('background-image');
-                console.log('[TemplateEditor] Set background image:', bgSrc);
+        // Find all elements with background images
+        const allElements = iframeDoc.querySelectorAll('*');
+        let bgImageCount = 0;
+        
+        allElements.forEach(el => {
+            const bgImage = window.getComputedStyle(el).backgroundImage;
+            
+            // If element has a background image (not 'none')
+            if (bgImage && bgImage !== 'none' && bgImage.includes('url(')) {
+                // Mark it so our brand color CSS won't override it
+                el.setAttribute('data-has-bg-image', 'true');
+                el.classList.add('has-background-image');
+                bgImageCount++;
+                console.log('[TemplateEditor] Preserved background image on:', el.className, bgImage.substring(0, 50));
             }
         });
+        
+        console.log('[TemplateEditor] Preserved', bgImageCount, 'background images from being overridden');
     }
     
     storeOriginalCarouselHTML(iframeDoc) {
@@ -3573,18 +3582,18 @@ class TemplateEditor {
             
             /* Apply secondary color to specific background classes only */
             /* BUT preserve background images! */
-            .bg-theme-color:not([data-bg-src]):not([style*="background-image"]), 
-            .price-off:not([data-bg-src]):not([style*="background-image"]),
-            .bg-second-theme-color:not([data-bg-src]):not([style*="background-image"]), 
-            .bg-secondary-color:not([data-bg-src]):not([style*="background-image"]),
-            .secondary-bg:not([data-bg-src]):not([style*="background-image"]), 
-            .sec-bg:not([data-bg-src]):not([style*="background-image"]) {
+            .bg-theme-color:not([data-has-bg-image]):not(.has-background-image), 
+            .price-off:not([data-has-bg-image]):not(.has-background-image),
+            .bg-second-theme-color:not([data-has-bg-image]):not(.has-background-image), 
+            .bg-secondary-color:not([data-has-bg-image]):not(.has-background-image),
+            .secondary-bg:not([data-has-bg-image]):not(.has-background-image), 
+            .sec-bg:not([data-has-bg-image]):not(.has-background-image) {
                 background-color: ${secondaryColor} !important;
             }
             
             /* For elements WITH background images, use overlay approach */
-            .bg-second-theme-color[data-bg-src],
-            .bg-second-theme-color[style*="background-image"] {
+            .bg-second-theme-color[data-has-bg-image],
+            .bg-second-theme-color.has-background-image {
                 background-blend-mode: multiply !important;
                 background-color: ${secondaryColor} !important;
             }
