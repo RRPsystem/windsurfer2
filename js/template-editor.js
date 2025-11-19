@@ -3726,31 +3726,44 @@ class TemplateEditor {
         console.log('[TemplateEditor] Colors extracted and applied to settings panel ✓');
     }
     
-    resetToDefaults() {
-        if (!confirm('Weet je zeker dat je alle instellingen wilt resetten naar de template defaults?')) {
+    async resetToDefaults() {
+        if (!confirm('Weet je zeker dat je ALLE wijzigingen wilt verwijderen en terug wilt naar het originele template? Dit kan niet ongedaan worden!')) {
             return;
         }
         
-        const defaults = this.templateDefaults || {};
+        console.log('[TemplateEditor] Deleting draft and resetting to defaults...');
         
-        // Reset all inputs to defaults
-        if (document.getElementById('primaryColor')) document.getElementById('primaryColor').value = defaults.primaryColor || '#FF8C00';
-        if (document.getElementById('secondaryColor')) document.getElementById('secondaryColor').value = defaults.secondaryColor || '#667eea';
-        if (document.getElementById('accentColor')) document.getElementById('accentColor').value = defaults.accentColor || '#465b2d';
-        if (document.getElementById('textColor')) document.getElementById('textColor').value = defaults.textColor || '#333333';
-        if (document.getElementById('titleColor')) document.getElementById('titleColor').value = defaults.titleColor || '#141414';
-        if (document.getElementById('footerBgColor')) document.getElementById('footerBgColor').value = defaults.footerBgColor || '#1a1a1a';
-        if (document.getElementById('primaryFont')) document.getElementById('primaryFont').value = defaults.primaryFont || 'Rubik';
-        if (document.getElementById('titleFont')) document.getElementById('titleFont').value = defaults.titleFont || 'Abril Fatface';
-        if (document.getElementById('bodySize')) document.getElementById('bodySize').value = parseInt(defaults.bodySize) || 14;
-        if (document.getElementById('h1Size')) document.getElementById('h1Size').value = parseInt(defaults.h1Size) || 90;
-        if (document.getElementById('h2Size')) document.getElementById('h2Size').value = parseInt(defaults.h2Size) || 45;
-        if (document.getElementById('h3Size')) document.getElementById('h3Size').value = parseInt(defaults.h3Size) || 40;
-        if (document.getElementById('sectionSpace')) document.getElementById('sectionSpace').value = parseInt(defaults.sectionSpace) || 120;
-        if (document.getElementById('containerWidth')) document.getElementById('containerWidth').value = parseInt(defaults.containerWidth) || 1300;
-        if (document.getElementById('logoMaxWidth')) document.getElementById('logoMaxWidth').value = parseInt(defaults.logoMaxWidth) || 200;
+        // Delete from Supabase
+        try {
+            const { error } = await this.supabase
+                .from('template_drafts')
+                .delete()
+                .eq('brand_id', this.brandId)
+                .eq('template', this.templateName);
+            
+            if (error) {
+                console.error('[TemplateEditor] Error deleting draft:', error);
+            } else {
+                console.log('[TemplateEditor] Draft deleted from Supabase ✓');
+            }
+        } catch (error) {
+            console.error('[TemplateEditor] Error deleting draft:', error);
+        }
         
-        this.showNotification('🔄 Instellingen gereset naar template defaults!');
+        // Delete from localStorage
+        const storageKey = `template_draft_${this.templateName}_${this.brandId}`;
+        localStorage.removeItem(storageKey);
+        console.log('[TemplateEditor] Draft deleted from localStorage ✓');
+        
+        // Clear savedDraft
+        this.savedDraft = null;
+        
+        this.showNotification('🔄 Draft verwijderd! Pagina wordt herladen...');
+        
+        // Reload page to load fresh template
+        setTimeout(() => {
+            location.reload();
+        }, 1000);
     }
     
     adjustColor(color, amount) {
