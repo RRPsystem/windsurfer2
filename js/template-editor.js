@@ -376,6 +376,22 @@ class TemplateEditor {
         };
     }
     
+    convertDataBgSrc(iframeDoc) {
+        // Convert data-bg-src attributes to actual background images
+        // This is what the template's main.js does, but we need to do it manually
+        const elements = iframeDoc.querySelectorAll('[data-bg-src]');
+        console.log('[TemplateEditor] Converting', elements.length, 'data-bg-src elements to background images');
+        
+        elements.forEach(el => {
+            const bgSrc = el.getAttribute('data-bg-src');
+            if (bgSrc) {
+                el.style.backgroundImage = `url(${bgSrc})`;
+                el.classList.add('background-image');
+                console.log('[TemplateEditor] Set background image:', bgSrc);
+            }
+        });
+    }
+    
     storeOriginalCarouselHTML(iframeDoc) {
         // Store original carousel HTML before Owl Carousel modifies it
         if (!this.originalCarouselHTML) {
@@ -397,6 +413,10 @@ class TemplateEditor {
         
         const iframe = document.getElementById('templateFrame');
         const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        
+        // IMPORTANT: Convert data-bg-src to actual background images
+        // This ensures the palm tree and other backgrounds are visible
+        this.convertDataBgSrc(iframeDoc);
         
         // Store original carousel HTML before Owl Carousel initializes
         this.storeOriginalCarouselHTML(iframeDoc);
