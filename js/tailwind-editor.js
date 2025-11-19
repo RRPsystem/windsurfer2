@@ -200,7 +200,13 @@ class TailwindEditor {
         
         // Add section HTML
         const content = document.createElement('div');
-        content.innerHTML = sectionData.html;
+        let html = sectionData.html;
+        
+        // Fix relative image paths
+        html = html.replace(/src="assets\//g, 'src="/templates/package/src/assets/');
+        html = html.replace(/src="\.\/assets\//g, 'src="/templates/package/src/assets/');
+        
+        content.innerHTML = html;
         
         sectionEl.appendChild(controls);
         sectionEl.appendChild(content);
