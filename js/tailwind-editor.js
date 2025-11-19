@@ -915,15 +915,24 @@ class TailwindEditor {
             }
             
             /* Pause all animations in editor */
-            * {
+            *,
+            *::before,
+            *::after {
+                animation: none !important;
                 animation-play-state: paused !important;
                 transition: none !important;
+                transform: none !important;
             }
             
             /* But keep editing transitions */
             .editable-element:hover,
             [contenteditable="true"] {
-                transition: all 0.2s ease !important;
+                transition: outline 0.2s ease, background 0.2s ease !important;
+            }
+            
+            /* Stop all CSS animations by name */
+            @keyframes * {
+                0%, 100% { opacity: 1; transform: none; }
             }
             
             /* Editable elements hover */
@@ -1004,11 +1013,17 @@ class TailwindEditor {
             console.log('Error disabling sliders:', error);
         }
         
-        // Make text elements editable
-        const editableSelectors = 'h1, h2, h3, h4, h5, h6, p, a, span, li, td, th, button, label';
+        // Make text elements editable (including badges, tags, and small text)
+        const editableSelectors = 'h1, h2, h3, h4, h5, h6, p, a, span, li, td, th, button, label, div[class*="badge"], div[class*="tag"], small, em, strong, b, i';
         iframeDoc.querySelectorAll(editableSelectors).forEach(el => {
+            // Skip if no text content or only whitespace
+            if (!el.textContent || !el.textContent.trim()) return;
+            
             // Skip elements inside forms or with specific classes
             if (el.closest('form') || el.closest('.no-edit')) return;
+            
+            // Skip if it's a container with many children (likely not meant to be edited as one)
+            if (el.children.length > 3) return;
             
             el.classList.add('editable-element');
             
