@@ -26,6 +26,21 @@ class TailwindEditor {
     async init() {
         console.log('🚀 Initializing Tailwind Editor...');
         
+        // FORCE CLEAR OLD SAVED PAGES (one-time cleanup)
+        // This ensures we load fresh templates with new CSS
+        const clearOldPages = localStorage.getItem('tailwind_editor_v2_cleared');
+        if (!clearOldPages) {
+            console.log('🧹 Clearing old saved pages...');
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('tailwind_page_')) {
+                    localStorage.removeItem(key);
+                    console.log('  ✓ Cleared:', key);
+                }
+            });
+            localStorage.setItem('tailwind_editor_v2_cleared', 'true');
+            console.log('✅ Old pages cleared!');
+        }
+        
         // Load sections data
         await this.loadSectionsData();
         
