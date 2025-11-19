@@ -349,7 +349,7 @@ class TemplateEditor {
                     // Setup editor UI
                     this.setupIframeEditing();
                     
-                    // Extract colors and logo to update settings panel
+                    // Extract colors and logo to update settings panel (wait longer for panel to load)
                     setTimeout(() => {
                         if (savedPageData.changes.brandStyles) {
                             this.extractColorsFromBrandStyles(savedPageData.changes.brandStyles);
@@ -362,9 +362,11 @@ class TemplateEditor {
                                 logoUrlInput.value = savedPageData.changes.logoUrl;
                                 this.updateLogoPreview();
                                 console.log('[TemplateEditor] Logo restored to settings panel ✓');
+                            } else {
+                                console.warn('[TemplateEditor] logoUrl input still not found after 1000ms delay');
                             }
                         }
-                    }, 500);
+                    }, 1000);
                     
                     console.log('[TemplateEditor] Changes applied and editor setup complete ✓');
                 }, 300);
@@ -2415,11 +2417,12 @@ class TemplateEditor {
         });
         console.log('[TemplateEditor] Extracted', changes.imageChanges.length, 'image changes');
         
-        // 4. Extract background image changes
+        // 4. Extract ALL background image changes (including template backgrounds like palm tree)
         const bgElements = iframeDoc.querySelectorAll('[style*="background-image"]');
         bgElements.forEach((el, index) => {
             const bgImage = el.style.backgroundImage;
-            if (bgImage && bgImage.includes('data:image')) {
+            // Save ALL background images, not just uploaded ones (data:image)
+            if (bgImage && bgImage !== 'none' && bgImage.trim() !== '') {
                 const selector = this.createUniqueSelector(el);
                 changes.backgroundImageChanges.push({
                     selector: selector,
@@ -2428,7 +2431,7 @@ class TemplateEditor {
                 });
             }
         });
-        console.log('[TemplateEditor] Extracted', changes.backgroundImageChanges.length, 'background image changes');
+        console.log('[TemplateEditor] Extracted', changes.backgroundImageChanges.length, 'background image changes (including template backgrounds)');
         
         // 5. Extract data-bg-src attributes (for templates that use this pattern)
         const dataBgElements = iframeDoc.querySelectorAll('[data-bg-src]');
