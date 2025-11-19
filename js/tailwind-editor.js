@@ -881,8 +881,30 @@ class TailwindEditor {
             /* DISABLE SLIDERS/CAROUSELS IN EDITOR */
             .swiper-container,
             .swiper,
-            [class*="swiper"] {
+            .swiper-wrapper,
+            [class*="swiper"],
+            [class*="slider"],
+            [class*="carousel"],
+            [data-swiper] {
                 pointer-events: none !important;
+                transform: none !important;
+                transition: none !important;
+                animation: none !important;
+            }
+            
+            /* Lock slider position */
+            .swiper-wrapper {
+                transform: translate3d(0, 0, 0) !important;
+            }
+            
+            /* Hide slider navigation */
+            .swiper-button-prev,
+            .swiper-button-next,
+            .swiper-pagination,
+            [class*="arrow"],
+            [class*="prev"],
+            [class*="next"] {
+                display: none !important;
             }
             
             /* But allow editing text inside sliders */
@@ -943,20 +965,43 @@ class TailwindEditor {
         `;
         iframeDoc.head.appendChild(style);
         
-        // Disable all Swiper instances
+        // Disable ALL sliders and carousels
         try {
             const iframeWindow = iframeDoc.defaultView;
+            
+            // Stop Swiper instances
             if (iframeWindow.Swiper) {
-                // Find all swiper instances and destroy them
-                iframeDoc.querySelectorAll('.swiper').forEach(swiperEl => {
+                iframeDoc.querySelectorAll('.swiper, [class*="swiper"]').forEach(swiperEl => {
                     if (swiperEl.swiper) {
                         swiperEl.swiper.destroy(true, true);
                         console.log('🛑 Stopped Swiper instance');
                     }
                 });
             }
+            
+            // Stop all setInterval and setTimeout
+            const highestId = iframeWindow.setTimeout(() => {}, 0);
+            for (let i = 0; i < highestId; i++) {
+                iframeWindow.clearTimeout(i);
+                iframeWindow.clearInterval(i);
+            }
+            console.log('🛑 Cleared all timers');
+            
+            // Disable all slider navigation buttons
+            iframeDoc.querySelectorAll('[class*="prev"], [class*="next"], [class*="arrow"], .swiper-button-prev, .swiper-button-next').forEach(btn => {
+                btn.style.pointerEvents = 'none';
+                btn.style.opacity = '0.3';
+            });
+            
+            // Remove all event listeners from slider elements
+            iframeDoc.querySelectorAll('.swiper, [class*="swiper"], [class*="slider"], [class*="carousel"]').forEach(el => {
+                const clone = el.cloneNode(true);
+                el.parentNode.replaceChild(clone, el);
+            });
+            
+            console.log('✅ All sliders disabled');
         } catch (error) {
-            console.log('No Swiper instances to stop');
+            console.log('Error disabling sliders:', error);
         }
         
         // Make text elements editable
