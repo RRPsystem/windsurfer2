@@ -349,10 +349,20 @@ class TemplateEditor {
                     // Setup editor UI
                     this.setupIframeEditing();
                     
-                    // Extract colors to update settings panel
+                    // Extract colors and logo to update settings panel
                     setTimeout(() => {
                         if (savedPageData.changes.brandStyles) {
                             this.extractColorsFromBrandStyles(savedPageData.changes.brandStyles);
+                        }
+                        
+                        // Also set logo in settings panel
+                        if (savedPageData.changes.logoUrl) {
+                            const logoUrlInput = document.getElementById('logoUrl');
+                            if (logoUrlInput) {
+                                logoUrlInput.value = savedPageData.changes.logoUrl;
+                                this.updateLogoPreview();
+                                console.log('[TemplateEditor] Logo restored to settings panel ✓');
+                            }
                         }
                     }, 500);
                     
@@ -480,7 +490,29 @@ class TemplateEditor {
             console.log('[TemplateEditor] Applied', appliedCount, '/', changes.backgroundImageChanges.length, 'background image changes ✓');
         }
         
-        // 5. Apply logo
+        // 5. Apply data-bg-src attributes
+        if (changes.dataBgSrcChanges && changes.dataBgSrcChanges.length > 0) {
+            console.log('[TemplateEditor] Applying', changes.dataBgSrcChanges.length, 'data-bg-src attributes...');
+            let appliedCount = 0;
+            
+            changes.dataBgSrcChanges.forEach(change => {
+                try {
+                    const element = iframeDoc.querySelector(change.selector);
+                    if (element) {
+                        element.setAttribute('data-bg-src', change.dataBgSrc);
+                        appliedCount++;
+                    } else {
+                        console.warn('[TemplateEditor] data-bg-src element not found:', change.selector);
+                    }
+                } catch (error) {
+                    console.error('[TemplateEditor] Error applying data-bg-src:', error);
+                }
+            });
+            
+            console.log('[TemplateEditor] Applied', appliedCount, '/', changes.dataBgSrcChanges.length, 'data-bg-src attributes ✓');
+        }
+        
+        // 6. Apply logo
         if (changes.logoUrl) {
             console.log('[TemplateEditor] Applying logo...');
             const logos = iframeDoc.querySelectorAll('header img.logo, .logo img, .main-header__logo img, .header-logo img, [class*="logo"] img');
@@ -2344,6 +2376,7 @@ class TemplateEditor {
             textChanges: [],
             imageChanges: [],
             backgroundImageChanges: [],
+            dataBgSrcChanges: [], // NEW: Track data-bg-src attributes
             logoUrl: null
         };
         
@@ -2397,7 +2430,22 @@ class TemplateEditor {
         });
         console.log('[TemplateEditor] Extracted', changes.backgroundImageChanges.length, 'background image changes');
         
-        // 5. Extract logo URL
+        // 5. Extract data-bg-src attributes (for templates that use this pattern)
+        const dataBgElements = iframeDoc.querySelectorAll('[data-bg-src]');
+        dataBgElements.forEach((el, index) => {
+            const dataBgSrc = el.getAttribute('data-bg-src');
+            if (dataBgSrc) {
+                const selector = this.createUniqueSelector(el);
+                changes.dataBgSrcChanges.push({
+                    selector: selector,
+                    dataBgSrc: dataBgSrc,
+                    index: index
+                });
+            }
+        });
+        console.log('[TemplateEditor] Extracted', changes.dataBgSrcChanges.length, 'data-bg-src attributes');
+        
+        // 6. Extract logo URL
         const logoInput = document.getElementById('logoUrl');
         if (logoInput && logoInput.value) {
             changes.logoUrl = logoInput.value;
