@@ -869,7 +869,6 @@ class TailwindEditor {
             body {
                 padding: 0 !important;
                 margin: 0 !important;
-                overflow-x: hidden !important;
             }
             
             /* Make page-wraper full width */
@@ -915,13 +914,12 @@ class TailwindEditor {
             }
             
             /* Pause all animations in editor */
-            *,
+            *:not(html):not(body),
             *::before,
             *::after {
                 animation: none !important;
                 animation-play-state: paused !important;
                 transition: none !important;
-                transform: none !important;
             }
             
             /* But keep editing transitions */
@@ -930,9 +928,10 @@ class TailwindEditor {
                 transition: outline 0.2s ease, background 0.2s ease !important;
             }
             
-            /* Stop all CSS animations by name */
-            @keyframes * {
-                0%, 100% { opacity: 1; transform: none; }
+            /* Allow body to scroll */
+            html, body {
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
             }
             
             /* Editable elements hover */
