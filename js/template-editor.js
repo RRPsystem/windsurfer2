@@ -341,37 +341,40 @@ class TemplateEditor {
             
             if (savedPageData && savedPageData.html) {
                 console.log('[TemplateEditor] Loading saved draft for page:', page.name);
+                console.log('[TemplateEditor] Saved HTML length:', savedPageData.html.length);
                 
+                // WORDPRESS-STYLE: Replace the ENTIRE document with saved HTML
+                // This preserves ALL changes: text, images, colors, layout, everything!
                 const parser = new DOMParser();
                 const savedDoc = parser.parseFromString(savedPageData.html, 'text/html');
                 
-                // ONLY apply brand styles from saved HTML - DO NOT replace body content!
-                const savedBrandStyles = savedDoc.head.querySelector('#wb-brand-styles');
-                if (savedBrandStyles) {
-                    console.log('[TemplateEditor] Re-applying saved brand styles from HEAD...');
-                    console.log('[TemplateEditor] Brand styles content length:', savedBrandStyles.textContent.length);
+                // Replace the entire document content
+                iframeDoc.open();
+                iframeDoc.write(savedPageData.html);
+                iframeDoc.close();
+                
+                console.log('[TemplateEditor] Complete HTML loaded ✓');
+                
+                // Wait for document to be ready, then setup editing
+                setTimeout(() => {
+                    const newIframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                     
-                    // Remove any existing brand styles first
-                    const existingStyles = iframeDoc.getElementById('wb-brand-styles');
-                    if (existingStyles) {
-                        console.log('[TemplateEditor] Removing existing brand styles...');
-                        existingStyles.remove();
+                    // Extract colors from brand styles and update settings panel
+                    const brandStyles = newIframeDoc.getElementById('wb-brand-styles');
+                    if (brandStyles) {
+                        this.extractColorsFromBrandStyles(brandStyles.textContent);
+                        console.log('[TemplateEditor] Brand styles extracted ✓');
                     }
                     
-                    // Add the saved brand styles to HEAD
-                    iframeDoc.head.appendChild(savedBrandStyles.cloneNode(true));
-                    console.log('[TemplateEditor] Brand styles applied successfully ✓');
-                    
-                    // Extract colors from saved brand styles and update settings panel
-                    this.extractColorsFromBrandStyles(savedBrandStyles.textContent);
-                } else {
-                    console.warn('[TemplateEditor] No brand styles found in saved HTML HEAD!');
-                }
+                    // Setup editor UI
+                    this.setupIframeEditing();
+                    console.log('[TemplateEditor] Draft loaded successfully ✓');
+                }, 100);
                 
-                // TODO: Apply saved text content without destroying layout
-                // For now, we only restore brand styles (colors, fonts, logo)
+                return; // Don't call setupIframeEditing yet, we'll do it in setTimeout
             }
             
+            // No saved draft, just setup editing on fresh template
             this.setupIframeEditing();
         };
     }
