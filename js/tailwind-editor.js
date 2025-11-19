@@ -506,24 +506,43 @@ class TailwindEditor {
     preview() {
         console.log('👁️ Opening preview...');
         
+        const iframe = document.getElementById('pageFrame');
+        
+        // Check if iframe has content
+        if (!iframe.classList.contains('hidden')) {
+            // Get current page file
+            const htmlFile = this.getPageHtmlFile(this.currentPage);
+            if (htmlFile) {
+                // Open template page in new window
+                window.open(`/templates/package/src/${htmlFile}`, '_blank');
+                return;
+            }
+        }
+        
+        // Fallback: try canvas content
         const canvas = document.getElementById('canvasSections');
         const html = canvas.innerHTML;
         
-        // Open in new window
-        const previewWindow = window.open('', '_blank');
-        previewWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Preview</title>
-                <script src="https://cdn.tailwindcss.com"></script>
-                <link rel="stylesheet" href="/templates/package/src/assets/css/style.css">
-            </head>
-            <body>
-                ${html}
-            </body>
-            </html>
-        `);
+        if (html.trim()) {
+            // Open in new window
+            const previewWindow = window.open('', '_blank');
+            previewWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Preview - ${this.currentPage}</title>
+                    <script src="https://cdn.tailwindcss.com"></script>
+                    <link rel="stylesheet" href="/templates/package/src/assets/css/style.css">
+                    <link rel="stylesheet" href="/templates/package/src/assets/vendor/swiper/swiper-bundle.min.css">
+                </head>
+                <body>
+                    ${html}
+                </body>
+                </html>
+            `);
+        } else {
+            this.showNotification('⚠️ No content to preview', 'error');
+        }
     }
     
     publish() {
