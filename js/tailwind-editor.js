@@ -830,6 +830,36 @@ class TailwindEditor {
         // Add editing styles
         const style = iframeDoc.createElement('style');
         style.textContent = `
+            /* HIDE NAVIGATION AND HEADER IN EDITOR */
+            .site-header,
+            header,
+            .header,
+            nav,
+            .navigation,
+            .navbar,
+            .menu,
+            .loading-area,
+            .cursor,
+            .cursor2,
+            footer,
+            .footer,
+            .site-footer {
+                display: none !important;
+            }
+            
+            /* Clean body layout */
+            body {
+                padding: 0 !important;
+                margin: 0 !important;
+                overflow-x: hidden !important;
+            }
+            
+            /* Make page-wraper full width */
+            .page-wraper {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            
             /* Editable elements hover */
             .editable-element:hover {
                 outline: 2px dashed #3b82f6 !important;
