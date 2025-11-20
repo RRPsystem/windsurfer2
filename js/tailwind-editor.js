@@ -24,8 +24,8 @@ class TailwindEditor {
     }
     
     async init() {
-        console.log('🚀 Initializing Tailwind Editor v2.3 SCROLL-FIX...');
-        console.log('📅 Build: 2025-11-20 09:45');
+        console.log('🚀 Initializing Tailwind Editor v2.4 CSS-FIX...');
+        console.log('📅 Build: 2025-11-20 09:53');
         
         // FORCE CLEAR OLD SAVED PAGES (always clear for now)
         // This ensures we always load fresh templates with new CSS
@@ -809,17 +809,18 @@ class TailwindEditor {
             emptyState.classList.add('hidden');
             iframe.classList.remove('hidden');
             
-            // Fetch HTML and strip scripts BEFORE loading
+            // Fetch HTML and strip ONLY JavaScript (keep CSS!)
             const response = await fetch(`/templates/package/src/${htmlFile}`);
             let html = await response.text();
             
-            // Remove problematic script tags
-            console.log('🧹 Stripping template scripts...');
-            html = html.replace(/<script[^>]*src="[^"]*swiper[^"]*"[^>]*><\/script>/gi, '<!-- swiper removed -->');
-            html = html.replace(/<script[^>]*src="[^"]*main\.js[^"]*"[^>]*><\/script>/gi, '<!-- main.js removed -->');
-            html = html.replace(/<script[^>]*src="[^"]*jquery[^"]*"[^>]*><\/script>/gi, '<!-- jquery removed -->');
-            html = html.replace(/<script[^>]*src="[^"]*bootstrap[^"]*"[^>]*><\/script>/gi, '<!-- bootstrap removed -->');
-            console.log('✅ Scripts stripped');
+            // Remove ONLY problematic script tags (NOT link/style tags!)
+            console.log('🧹 Stripping JavaScript only (keeping CSS)...');
+            html = html.replace(/<script\b[^>]*\bsrc\s*=\s*["'][^"']*swiper[^"']*["'][^>]*><\/script>/gi, '<!-- swiper.js removed -->');
+            html = html.replace(/<script\b[^>]*\bsrc\s*=\s*["'][^"']*main\.js[^"']*["'][^>]*><\/script>/gi, '<!-- main.js removed -->');
+            html = html.replace(/<script\b[^>]*\bsrc\s*=\s*["'][^"']*jquery[^"']*["'][^>]*><\/script>/gi, '<!-- jquery removed -->');
+            html = html.replace(/<script\b[^>]*\bsrc\s*=\s*["'][^"']*bootstrap\.bundle[^"']*["'][^>]*><\/script>/gi, '<!-- bootstrap.js removed -->');
+            html = html.replace(/<script\b[^>]*\bsrc\s*=\s*["'][^"']*bootstrap\.min\.js[^"']*["'][^>]*><\/script>/gi, '<!-- bootstrap.min.js removed -->');
+            console.log('✅ JavaScript stripped (CSS preserved)');
             
             // Write cleaned HTML to iframe
             iframe.srcdoc = html;
