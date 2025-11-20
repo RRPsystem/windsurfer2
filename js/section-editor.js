@@ -594,8 +594,11 @@ class SectionEditor {
         // Update headings
         section.data.headings.forEach((heading, index) => {
             const newText = formData.get(`heading_${index}`);
-            if (newText) {
-                updatedHtml = updatedHtml.replace(heading.text, newText);
+            if (newText && newText !== heading.text) {
+                // Use regex to replace text content while preserving HTML structure
+                const escapedOld = this.escapeRegex(heading.text);
+                const regex = new RegExp(`(>${escapedOld}<)`, 'g');
+                updatedHtml = updatedHtml.replace(regex, `>${newText}<`);
                 heading.text = newText;
             }
         });
@@ -603,8 +606,10 @@ class SectionEditor {
         // Update paragraphs
         section.data.paragraphs.forEach((para, index) => {
             const newText = formData.get(`paragraph_${index}`);
-            if (newText) {
-                updatedHtml = updatedHtml.replace(para, newText);
+            if (newText && newText !== para) {
+                const escapedOld = this.escapeRegex(para);
+                const regex = new RegExp(`(>${escapedOld}<)`, 'g');
+                updatedHtml = updatedHtml.replace(regex, `>${newText}<`);
                 section.data.paragraphs[index] = newText;
             }
         });
@@ -612,9 +617,28 @@ class SectionEditor {
         // Update buttons
         section.data.buttons.forEach((btn, index) => {
             const newText = formData.get(`button_${index}`);
-            if (newText) {
-                updatedHtml = updatedHtml.replace(btn.text, newText);
+            if (newText && newText !== btn.text) {
+                const escapedOld = this.escapeRegex(btn.text);
+                const regex = new RegExp(`(>${escapedOld}<)`, 'g');
+                updatedHtml = updatedHtml.replace(regex, `>${newText}<`);
                 btn.text = newText;
+            }
+        });
+        
+        // Update images
+        section.data.images.forEach((img, index) => {
+            const newSrc = formData.get(`image_${index}_src`);
+            const newAlt = formData.get(`image_${index}_alt`);
+            
+            if (newSrc && newSrc !== img.src) {
+                updatedHtml = updatedHtml.replace(img.src, newSrc);
+                img.src = newSrc;
+            }
+            if (newAlt && newAlt !== img.alt) {
+                const oldAltAttr = `alt="${img.alt}"`;
+                const newAltAttr = `alt="${newAlt}"`;
+                updatedHtml = updatedHtml.replace(oldAltAttr, newAltAttr);
+                img.alt = newAlt;
             }
         });
         
@@ -624,11 +648,44 @@ class SectionEditor {
         // Save to localStorage
         this.saveToLocalStorage();
         
-        // Refresh preview
-        this.refreshPreview();
+        // Update ONLY this section in the preview (smoother)
+        this.updateSectionInPreview(sectionIndex, updatedHtml);
         
         this.showNotification('✅ Changes saved!', 'success');
         this.closeEditPanel();
+    }
+    
+    escapeRegex(str) {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    
+    updateSectionInPreview(sectionIndex, newHtml) {
+        try {
+            const iframe = document.getElementById('previewFrame');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            
+            // Find all content divs in preview
+            const contentDiv = iframeDoc.querySelector('.page-content');
+            if (contentDiv && contentDiv.children[sectionIndex]) {
+                // Parse new HTML
+                const parser = new DOMParser();
+                const tempDoc = parser.parseFromString(newHtml, 'text/html');
+                const newElement = tempDoc.body.firstElementChild;
+                
+                if (newElement) {
+                    // Replace old section with new one
+                    contentDiv.children[sectionIndex].replaceWith(newElement);
+                    console.log('✅ Updated section in preview without full reload');
+                }
+            } else {
+                // Fallback to full refresh if section not found
+                this.refreshPreview();
+            }
+        } catch (error) {
+            console.error('Failed to update section in preview:', error);
+            // Fallback to full refresh
+            this.refreshPreview();
+        }
     }
     
     saveToLocalStorage() {
@@ -689,13 +746,25 @@ class SectionEditor {
             return;
         }
         
-        // Open preview in new window
+        // Build full HTML for preview
         const sections = this.sections[this.currentPage];
-        const html = sections.map(s => s.html).join('\n');
+        const fullHtml = this.buildFullPageHtml(sections);
         
-        const previewWindow = window.open('', '_blank');
-        previewWindow.document.write(html);
+        // Open preview in new window
+        const previewWindow = window.open('', '_blank', 'width=1200,height=800');
+        previewWindow.document.write(fullHtml);
         previewWindow.document.close();
+        
+        // Fix image paths after load
+        setTimeout(() => {
+            const doc = previewWindow.document;
+            doc.querySelectorAll('img').forEach(img => {
+                const src = img.getAttribute('src');
+                if (src && !src.startsWith('http') && !src.startsWith('/templates')) {
+                    img.src = `${window.location.origin}/templates/package/src/${src}`;
+                }
+            });
+        }, 100);
     }
     
     saveAll() {
