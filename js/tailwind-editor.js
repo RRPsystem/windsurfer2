@@ -24,8 +24,8 @@ class TailwindEditor {
     }
     
     async init() {
-        console.log('🚀 Initializing Tailwind Editor v2.1...');
-        console.log('📅 Build: 2025-11-20 00:16');
+        console.log('🚀 Initializing Tailwind Editor v2.2 NUCLEAR...');
+        console.log('📅 Build: 2025-11-20 09:41');
         
         // FORCE CLEAR OLD SAVED PAGES (always clear for now)
         // This ensures we always load fresh templates with new CSS
@@ -974,9 +974,36 @@ class TailwindEditor {
         `;
         iframeDoc.head.appendChild(style);
         
-        // Disable ALL sliders and carousels
+        // Disable ALL sliders, carousels, and template scripts
         try {
             const iframeWindow = iframeDoc.defaultView;
+            
+            // NUCLEAR OPTION: Disable ALL template JavaScript
+            // Remove all script tags from the iframe
+            iframeDoc.querySelectorAll('script').forEach(script => {
+                if (script.src && (
+                    script.src.includes('swiper') ||
+                    script.src.includes('main.js') ||
+                    script.src.includes('jquery') ||
+                    script.src.includes('bootstrap')
+                )) {
+                    script.remove();
+                    console.log('🛑 Removed script:', script.src);
+                }
+            });
+            
+            // Override common animation functions
+            if (iframeWindow) {
+                iframeWindow.requestAnimationFrame = () => {};
+                iframeWindow.setInterval = () => {};
+                iframeWindow.setTimeout = (fn, delay) => {
+                    // Only allow very short timeouts (for essential functionality)
+                    if (delay && delay < 100) {
+                        return window.setTimeout(fn, delay);
+                    }
+                    return 0;
+                };
+            }
             
             // Stop Swiper instances
             if (iframeWindow.Swiper) {
@@ -988,11 +1015,11 @@ class TailwindEditor {
                 });
             }
             
-            // Stop all setInterval and setTimeout
-            const highestId = iframeWindow.setTimeout(() => {}, 0);
+            // Stop all existing timers
+            const highestId = window.setTimeout(() => {}, 0);
             for (let i = 0; i < highestId; i++) {
-                iframeWindow.clearTimeout(i);
-                iframeWindow.clearInterval(i);
+                window.clearTimeout(i);
+                window.clearInterval(i);
             }
             console.log('🛑 Cleared all timers');
             
@@ -1002,15 +1029,15 @@ class TailwindEditor {
                 btn.style.opacity = '0.3';
             });
             
-            // Remove all event listeners from slider elements
-            iframeDoc.querySelectorAll('.swiper, [class*="swiper"], [class*="slider"], [class*="carousel"]').forEach(el => {
-                const clone = el.cloneNode(true);
-                el.parentNode.replaceChild(clone, el);
+            // Freeze all animated elements
+            iframeDoc.querySelectorAll('*').forEach(el => {
+                el.style.animationPlayState = 'paused';
+                el.style.transitionDuration = '0s';
             });
             
-            console.log('✅ All sliders disabled');
+            console.log('✅ All scripts and animations disabled');
         } catch (error) {
-            console.log('Error disabling sliders:', error);
+            console.log('Error disabling scripts:', error);
         }
         
         // Make text elements editable (including badges, tags, and small text)
