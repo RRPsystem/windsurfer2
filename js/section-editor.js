@@ -149,12 +149,8 @@ class SectionEditor {
             const sectionName = match[1].trim();
             const sectionContent = match[2].trim();
             
-            // Skip header, nav, footer sections
-            if (sectionName.toLowerCase().includes('header') || 
-                sectionName.toLowerCase().includes('navigation') ||
-                sectionName.toLowerCase().includes('footer') ||
-                sectionName.toLowerCase().includes('loading') ||
-                sectionContent.length < 100) {
+            // Skip unwanted sections
+            if (this.shouldSkipSection(sectionName, sectionContent)) {
                 continue;
             }
             
@@ -165,19 +161,100 @@ class SectionEditor {
             
             if (!sectionElement) continue;
             
+            // Get better section name from content
+            const betterName = this.getBetterSectionName(sectionName, sectionElement);
+            
+            // Extract data
+            const data = this.extractSectionData(sectionElement);
+            
+            // Skip if no editable content
+            if (!this.hasEditableContent(data)) {
+                console.log(`⏭️ Skipping section with no editable content: ${betterName}`);
+                continue;
+            }
+            
             const sectionData = {
                 id: `section-${sectionIndex}`,
-                name: this.cleanSectionName(sectionName),
+                name: betterName,
                 html: sectionContent,
                 type: this.detectSectionType(sectionElement),
-                data: this.extractSectionData(sectionElement)
+                data: data
             };
             
             this.sections[pageId].push(sectionData);
             sectionIndex++;
         }
         
-        console.log(`✅ Found ${this.sections[pageId].length} sections for ${pageId}`);
+        console.log(`✅ Found ${this.sections[pageId].length} editable sections for ${pageId}`);
+    }
+    
+    shouldSkipSection(name, content) {
+        const nameLower = name.toLowerCase();
+        
+        // Skip navigation/structural elements
+        if (nameLower.includes('header') || 
+            nameLower.includes('navigation') ||
+            nameLower.includes('footer') ||
+            nameLower.includes('loading') ||
+            nameLower.includes('cursor') ||
+            nameLower.includes('menu')) {
+            return true;
+        }
+        
+        // Skip too small sections
+        if (content.length < 200) {
+            return true;
+        }
+        
+        // Skip sections with only scripts/styles
+        if (content.includes('<script') && !content.includes('<div')) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    getBetterSectionName(commentName, element) {
+        // First try to get H2 heading
+        const h2 = element.querySelector('h2');
+        if (h2 && h2.textContent.trim()) {
+            return h2.textContent.trim().substring(0, 40);
+        }
+        
+        // Try H3
+        const h3 = element.querySelector('h3');
+        if (h3 && h3.textContent.trim()) {
+            return h3.textContent.trim().substring(0, 40);
+        }
+        
+        // Clean up comment name
+        let cleaned = commentName
+            .replace(/SECTION/gi, '')
+            .replace(/START|END/gi, '')
+            .replace(/STYLE\s+\w+/gi, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+        
+        // If it's just "TITLE", try to find actual title
+        if (cleaned.toLowerCase() === 'title') {
+            const h1 = element.querySelector('h1');
+            if (h1) return h1.textContent.trim().substring(0, 40);
+            
+            const anyHeading = element.querySelector('h1, h2, h3, h4');
+            if (anyHeading) return anyHeading.textContent.trim().substring(0, 40);
+            
+            return 'Untitled Section';
+        }
+        
+        return cleaned || 'Section';
+    }
+    
+    hasEditableContent(data) {
+        // Check if section has any editable content
+        return (data.headings && data.headings.length > 0) ||
+               (data.paragraphs && data.paragraphs.length > 0) ||
+               (data.images && data.images.length > 0) ||
+               (data.buttons && data.buttons.length > 0);
     }
     
     cleanSectionName(name) {
