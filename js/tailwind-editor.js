@@ -24,8 +24,8 @@ class TailwindEditor {
     }
     
     async init() {
-        console.log('🚀 Initializing Tailwind Editor v2.6 SELECTIVE...');
-        console.log('📅 Build: 2025-11-20 10:21');
+        console.log('🚀 Initializing Tailwind Editor v2.7 DEBUG...');
+        console.log('📅 Build: 2025-11-20 10:34');
         
         // FORCE CLEAR OLD SAVED PAGES (always clear for now)
         // This ensures we always load fresh templates with new CSS
@@ -796,8 +796,10 @@ class TailwindEditor {
         
         // Get HTML file for this page
         const htmlFile = this.getPageHtmlFile(pageId);
+        console.log('📄 HTML file:', htmlFile);
         
         if (!htmlFile) {
+            console.error('❌ No HTML file found for:', pageId);
             // Show empty state
             iframe.classList.add('hidden');
             emptyState.classList.remove('hidden');
@@ -810,7 +812,15 @@ class TailwindEditor {
             iframe.classList.remove('hidden');
             
             // Load page normally first (so CSS paths work)
-            iframe.src = `/templates/package/src/${htmlFile}`;
+            const iframeSrc = `/templates/package/src/${htmlFile}`;
+            console.log('🔗 Loading iframe from:', iframeSrc);
+            iframe.src = iframeSrc;
+            
+            // Add error handler
+            iframe.onerror = (error) => {
+                console.error('❌ Iframe failed to load:', error);
+                this.showNotification('Failed to load page', 'error');
+            };
             
             // Wait for iframe to load
             iframe.onload = () => {
