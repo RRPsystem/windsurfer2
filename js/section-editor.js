@@ -141,12 +141,22 @@ class SectionEditor {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
         
-        // Find all major sections (sections with classes or IDs)
-        const sectionElements = doc.querySelectorAll('section, [class*="section"], .hero, [id*="section"]');
+        // Remove header, nav, footer first
+        doc.querySelectorAll('header, nav, footer, .site-header, .site-footer, [class*="navigation"]').forEach(el => {
+            el.remove();
+        });
+        
+        // Find all major content sections
+        const sectionElements = doc.querySelectorAll('section, [class*="section"]:not(header):not(nav):not(footer), .hero, [id*="section"]');
         
         this.sections[pageId] = [];
         
         sectionElements.forEach((section, index) => {
+            // Skip if it's inside header/nav/footer or too small
+            if (section.closest('header, nav, footer') || section.textContent.trim().length < 50) {
+                return;
+            }
+            
             const sectionData = {
                 id: section.id || `section-${index}`,
                 name: this.getSectionName(section, index),
@@ -281,10 +291,29 @@ class SectionEditor {
         iframeDoc.write(html);
         iframeDoc.close();
         
-        // Fix image paths in iframe
+        // Fix image paths and hide navigation
         setTimeout(() => {
             this.fixImagePaths(iframeDoc);
+            this.hideNavigationInPreview(iframeDoc);
         }, 100);
+    }
+    
+    hideNavigationInPreview(doc) {
+        // Hide header, nav, footer in preview
+        const style = doc.createElement('style');
+        style.textContent = `
+            header, nav, footer, 
+            .site-header, .site-footer, 
+            [class*="navigation"],
+            [class*="navbar"],
+            .main-bar-wraper {
+                display: none !important;
+            }
+            body {
+                padding-top: 0 !important;
+            }
+        `;
+        doc.head.appendChild(style);
     }
     
     fixImagePaths(doc) {
