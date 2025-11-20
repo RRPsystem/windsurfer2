@@ -797,10 +797,7 @@ class TailwindEditor {
             emptyState.classList.add('hidden');
             iframe.classList.remove('hidden');
             
-            // Load page in iframe with correct base path
-            iframe.src = `/templates/package/src/${htmlFile}`;
-            
-            // Wait for iframe to load
+            // Set onload handler BEFORE setting src
             iframe.onload = () => {
                 console.log('✅ Page loaded in iframe');
                 
@@ -816,6 +813,10 @@ class TailwindEditor {
                     console.error('Cannot access iframe content:', error);
                 }
             };
+            
+            // NOW load page in iframe with correct base path
+            iframe.src = `/templates/package/src/${htmlFile}`;
+            console.log('🔗 Loading:', iframe.src);
             
         } catch (error) {
             console.error('Failed to load template:', error);
