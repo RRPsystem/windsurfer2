@@ -286,14 +286,22 @@ class SectionEditor {
         const iframe = document.getElementById('previewFrame');
         const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
         
-        // Write HTML to iframe
+        // Parse HTML to add base tag for proper resource loading
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Add base tag to fix all relative paths
+        const base = doc.createElement('base');
+        base.href = '/templates/package/src/';
+        doc.head.insertBefore(base, doc.head.firstChild);
+        
+        // Write modified HTML to iframe
         iframeDoc.open();
-        iframeDoc.write(html);
+        iframeDoc.write(doc.documentElement.outerHTML);
         iframeDoc.close();
         
         // Fix image paths and hide navigation
         setTimeout(() => {
-            this.fixImagePaths(iframeDoc);
             this.hideNavigationInPreview(iframeDoc);
         }, 100);
     }
