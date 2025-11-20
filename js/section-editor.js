@@ -124,8 +124,11 @@ class SectionEditor {
             // Render sections list
             this.renderSectionsList(pageId);
             
+            // Build full page HTML with all sections
+            const fullHtml = this.buildFullPageHtml(this.sections[pageId]);
+            
             // Render preview
-            this.renderPreview(html);
+            this.renderPreview(fullHtml);
             
             this.showNotification(`✅ Loaded ${page.name} page`, 'success');
         } catch (error) {
@@ -645,11 +648,34 @@ class SectionEditor {
         if (this.currentPage) {
             // Rebuild HTML with updated sections
             const sections = this.sections[this.currentPage];
-            const updatedHtml = sections.map(s => s.html).join('\n');
+            
+            // Build full page HTML with proper structure
+            const fullHtml = this.buildFullPageHtml(sections);
             
             // Re-render preview
-            this.renderPreview(updatedHtml);
+            this.renderPreview(fullHtml);
         }
+    }
+    
+    buildFullPageHtml(sections) {
+        // Build a complete HTML page with all sections
+        return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/templates/package/src/assets/css/style.css">
+    <link rel="stylesheet" href="/templates/package/src/assets/vendor/swiper/swiper-bundle.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="page-content">
+        ${sections.map(s => s.html).join('\n')}
+    </div>
+</body>
+</html>
+        `;
     }
     
     closeEditPanel() {
