@@ -24,8 +24,8 @@ class TailwindEditor {
     }
     
     async init() {
-        console.log('🚀 Initializing Tailwind Editor v2.7 DEBUG...');
-        console.log('📅 Build: 2025-11-20 10:34');
+        console.log('🚀 Initializing Tailwind Editor v2.8 ONLOAD-FIX...');
+        console.log('📅 Build: 2025-11-20 11:49');
         
         // FORCE CLEAR OLD SAVED PAGES (always clear for now)
         // This ensures we always load fresh templates with new CSS
@@ -811,20 +811,17 @@ class TailwindEditor {
             emptyState.classList.add('hidden');
             iframe.classList.remove('hidden');
             
-            // Load page normally first (so CSS paths work)
-            const iframeSrc = `/templates/package/src/${htmlFile}`;
-            console.log('🔗 Loading iframe from:', iframeSrc);
-            iframe.src = iframeSrc;
-            
-            // Add error handler
+            // Set up handlers BEFORE setting src
             iframe.onerror = (error) => {
                 console.error('❌ Iframe failed to load:', error);
                 this.showNotification('Failed to load page', 'error');
             };
             
-            // Wait for iframe to load
             iframe.onload = () => {
                 console.log('✅ Page loaded in iframe');
+                
+                // Small delay to ensure DOM is fully ready
+                setTimeout(() => {
                 
                 // NOW remove scripts from the loaded document
                 try {
@@ -854,7 +851,13 @@ class TailwindEditor {
                 } catch (error) {
                     console.error('Cannot access iframe content:', error);
                 }
-            };
+                }, 100); // End setTimeout
+            }; // End onload
+            
+            // NOW set the src to trigger loading
+            const iframeSrc = `/templates/package/src/${htmlFile}`;
+            console.log('🔗 Loading iframe from:', iframeSrc);
+            iframe.src = iframeSrc;
             
         } catch (error) {
             console.error('Failed to load template:', error);
