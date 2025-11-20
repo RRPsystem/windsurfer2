@@ -24,8 +24,8 @@ class TailwindEditor {
     }
     
     async init() {
-        console.log('🚀 Initializing Tailwind Editor v2.2 NUCLEAR...');
-        console.log('📅 Build: 2025-11-20 09:41');
+        console.log('🚀 Initializing Tailwind Editor v2.3 SCROLL-FIX...');
+        console.log('📅 Build: 2025-11-20 09:45');
         
         // FORCE CLEAR OLD SAVED PAGES (always clear for now)
         // This ensures we always load fresh templates with new CSS
@@ -809,12 +809,24 @@ class TailwindEditor {
             emptyState.classList.add('hidden');
             iframe.classList.remove('hidden');
             
-            // Load page in iframe with correct base path
-            iframe.src = `/templates/package/src/${htmlFile}`;
+            // Fetch HTML and strip scripts BEFORE loading
+            const response = await fetch(`/templates/package/src/${htmlFile}`);
+            let html = await response.text();
+            
+            // Remove problematic script tags
+            console.log('🧹 Stripping template scripts...');
+            html = html.replace(/<script[^>]*src="[^"]*swiper[^"]*"[^>]*><\/script>/gi, '<!-- swiper removed -->');
+            html = html.replace(/<script[^>]*src="[^"]*main\.js[^"]*"[^>]*><\/script>/gi, '<!-- main.js removed -->');
+            html = html.replace(/<script[^>]*src="[^"]*jquery[^"]*"[^>]*><\/script>/gi, '<!-- jquery removed -->');
+            html = html.replace(/<script[^>]*src="[^"]*bootstrap[^"]*"[^>]*><\/script>/gi, '<!-- bootstrap removed -->');
+            console.log('✅ Scripts stripped');
+            
+            // Write cleaned HTML to iframe
+            iframe.srcdoc = html;
             
             // Wait for iframe to load
             iframe.onload = () => {
-                console.log('✅ Page loaded in iframe');
+                console.log('✅ Page loaded in iframe (scripts stripped)');
                 
                 // Make iframe content editable
                 try {
@@ -914,12 +926,14 @@ class TailwindEditor {
                 pointer-events: auto !important;
             }
             
-            /* Pause all animations in editor */
-            *:not(html):not(body),
-            *::before,
-            *::after {
+            /* Pause all animations in editor - but NOT on html/body/scrollable containers */
+            *:not(html):not(body):not(.page-content):not([class*="container"]) {
                 animation: none !important;
                 animation-play-state: paused !important;
+            }
+            
+            /* Remove transitions but keep transforms for layout */
+            *:not(html):not(body) {
                 transition: none !important;
             }
             
@@ -929,10 +943,13 @@ class TailwindEditor {
                 transition: outline 0.2s ease, background 0.2s ease !important;
             }
             
-            /* Allow body to scroll */
-            html, body {
+            /* CRITICAL: Allow scrolling */
+            html, body, .page-content, .page-wraper {
+                overflow: visible !important;
                 overflow-y: auto !important;
                 overflow-x: hidden !important;
+                height: auto !important;
+                max-height: none !important;
             }
             
             /* Editable elements hover */
