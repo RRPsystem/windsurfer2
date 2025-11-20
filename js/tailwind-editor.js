@@ -24,8 +24,8 @@ class TailwindEditor {
     }
     
     async init() {
-        console.log('🚀 Initializing Tailwind Editor v2.4 CSS-FIX...');
-        console.log('📅 Build: 2025-11-20 09:53');
+        console.log('🚀 Initializing Tailwind Editor v2.5 POST-LOAD...');
+        console.log('📅 Build: 2025-11-20 10:02');
         
         // FORCE CLEAR OLD SAVED PAGES (always clear for now)
         // This ensures we always load fresh templates with new CSS
@@ -809,31 +809,35 @@ class TailwindEditor {
             emptyState.classList.add('hidden');
             iframe.classList.remove('hidden');
             
-            // Fetch HTML and strip ONLY JavaScript (keep CSS!)
-            const response = await fetch(`/templates/package/src/${htmlFile}`);
-            let html = await response.text();
-            
-            // Remove ONLY problematic script tags (NOT link/style tags!)
-            console.log('🧹 Stripping JavaScript only (keeping CSS)...');
-            html = html.replace(/<script\b[^>]*\bsrc\s*=\s*["'][^"']*swiper[^"']*["'][^>]*><\/script>/gi, '<!-- swiper.js removed -->');
-            html = html.replace(/<script\b[^>]*\bsrc\s*=\s*["'][^"']*main\.js[^"']*["'][^>]*><\/script>/gi, '<!-- main.js removed -->');
-            html = html.replace(/<script\b[^>]*\bsrc\s*=\s*["'][^"']*jquery[^"']*["'][^>]*><\/script>/gi, '<!-- jquery removed -->');
-            html = html.replace(/<script\b[^>]*\bsrc\s*=\s*["'][^"']*bootstrap\.bundle[^"']*["'][^>]*><\/script>/gi, '<!-- bootstrap.js removed -->');
-            html = html.replace(/<script\b[^>]*\bsrc\s*=\s*["'][^"']*bootstrap\.min\.js[^"']*["'][^>]*><\/script>/gi, '<!-- bootstrap.min.js removed -->');
-            console.log('✅ JavaScript stripped (CSS preserved)');
-            
-            // Write cleaned HTML to iframe
-            iframe.srcdoc = html;
+            // Load page normally first (so CSS paths work)
+            iframe.src = `/templates/package/src/${htmlFile}`;
             
             // Wait for iframe to load
             iframe.onload = () => {
-                console.log('✅ Page loaded in iframe (scripts stripped)');
+                console.log('✅ Page loaded in iframe');
                 
-                // Make iframe content editable
+                // NOW remove scripts from the loaded document
                 try {
                     const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                     
-                    // Add editing capabilities
+                    // Remove problematic scripts AFTER page loaded
+                    console.log('🧹 Removing JavaScript from loaded page...');
+                    const scripts = iframeDoc.querySelectorAll('script[src]');
+                    let removedCount = 0;
+                    scripts.forEach(script => {
+                        const src = script.getAttribute('src') || '';
+                        if (src.includes('swiper') || 
+                            src.includes('main.js') || 
+                            src.includes('jquery') || 
+                            src.includes('bootstrap')) {
+                            script.remove();
+                            removedCount++;
+                            console.log('  🛑 Removed:', src);
+                        }
+                    });
+                    console.log(`✅ Removed ${removedCount} script(s), CSS preserved`);
+                    
+                    // Make iframe content editable
                     this.makeIframeEditable(iframeDoc);
                     
                     this.showNotification(`✅ Loaded ${pageId} page`, 'success');
