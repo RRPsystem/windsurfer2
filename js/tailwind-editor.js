@@ -24,8 +24,8 @@ class TailwindEditor {
     }
     
     async init() {
-        console.log('🚀 Initializing Tailwind Editor v2.5 POST-LOAD...');
-        console.log('📅 Build: 2025-11-20 10:02');
+        console.log('🚀 Initializing Tailwind Editor v2.6 SELECTIVE...');
+        console.log('📅 Build: 2025-11-20 10:21');
         
         // FORCE CLEAR OLD SAVED PAGES (always clear for now)
         // This ensures we always load fresh templates with new CSS
@@ -931,14 +931,13 @@ class TailwindEditor {
                 pointer-events: auto !important;
             }
             
-            /* Pause all animations in editor - but NOT on html/body/scrollable containers */
-            *:not(html):not(body):not(.page-content):not([class*="container"]) {
+            /* ONLY pause slider/carousel animations - keep everything else */
+            .swiper-wrapper,
+            [class*="swiper"],
+            [class*="slider"],
+            [class*="carousel"] {
                 animation: none !important;
                 animation-play-state: paused !important;
-            }
-            
-            /* Remove transitions but keep transforms for layout */
-            *:not(html):not(body) {
                 transition: none !important;
             }
             
@@ -1049,12 +1048,6 @@ class TailwindEditor {
             iframeDoc.querySelectorAll('[class*="prev"], [class*="next"], [class*="arrow"], .swiper-button-prev, .swiper-button-next').forEach(btn => {
                 btn.style.pointerEvents = 'none';
                 btn.style.opacity = '0.3';
-            });
-            
-            // Freeze all animated elements
-            iframeDoc.querySelectorAll('*').forEach(el => {
-                el.style.animationPlayState = 'paused';
-                el.style.transitionDuration = '0s';
             });
             
             console.log('✅ All scripts and animations disabled');
