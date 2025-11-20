@@ -137,38 +137,57 @@ class SectionEditor {
     parseSections(html, pageId) {
         console.log('🔍 Parsing sections from HTML...');
         
-        // Create a temporary DOM to parse
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        
-        // Remove header, nav, footer first
-        doc.querySelectorAll('header, nav, footer, .site-header, .site-footer, [class*="navigation"]').forEach(el => {
-            el.remove();
-        });
-        
-        // Find all major content sections
-        const sectionElements = doc.querySelectorAll('section, [class*="section"]:not(header):not(nav):not(footer), .hero, [id*="section"]');
-        
         this.sections[pageId] = [];
         
-        sectionElements.forEach((section, index) => {
-            // Skip if it's inside header/nav/footer or too small
-            if (section.closest('header, nav, footer') || section.textContent.trim().length < 50) {
-                return;
+        // Split HTML by comment markers that indicate sections
+        const sectionRegex = /<!--\s*([^-]+?)\s*(?:START|SECTION START)?\s*-->([\s\S]*?)(?=<!--\s*[^-]+?\s*(?:START|SECTION START|END)\s*-->|$)/gi;
+        
+        let match;
+        let sectionIndex = 0;
+        
+        while ((match = sectionRegex.exec(html)) !== null) {
+            const sectionName = match[1].trim();
+            const sectionContent = match[2].trim();
+            
+            // Skip header, nav, footer sections
+            if (sectionName.toLowerCase().includes('header') || 
+                sectionName.toLowerCase().includes('navigation') ||
+                sectionName.toLowerCase().includes('footer') ||
+                sectionName.toLowerCase().includes('loading') ||
+                sectionContent.length < 100) {
+                continue;
             }
             
+            // Parse the section content
+            const parser = new DOMParser();
+            const tempDoc = parser.parseFromString(sectionContent, 'text/html');
+            const sectionElement = tempDoc.body.firstElementChild;
+            
+            if (!sectionElement) continue;
+            
             const sectionData = {
-                id: section.id || `section-${index}`,
-                name: this.getSectionName(section, index),
-                html: section.outerHTML,
-                type: this.detectSectionType(section),
-                data: this.extractSectionData(section)
+                id: `section-${sectionIndex}`,
+                name: this.cleanSectionName(sectionName),
+                html: sectionContent,
+                type: this.detectSectionType(sectionElement),
+                data: this.extractSectionData(sectionElement)
             };
             
             this.sections[pageId].push(sectionData);
-        });
+            sectionIndex++;
+        }
         
-        console.log(`✅ Found ${this.sections[pageId].length} sections`);
+        console.log(`✅ Found ${this.sections[pageId].length} sections for ${pageId}`);
+    }
+    
+    cleanSectionName(name) {
+        // Clean up section names from comments
+        return name
+            .replace(/SECTION/gi, '')
+            .replace(/START|END/gi, '')
+            .replace(/STYLE\s+\w+/gi, '')
+            .replace(/\s+/g, ' ')
+            .trim();
     }
     
     getSectionName(section, index) {
