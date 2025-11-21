@@ -295,6 +295,11 @@
             padding: 6px 12px;
             font-size: 13px;
         }
+        
+        /* Global Image Fit Styles - injected into iframe */
+        #globalImageFix {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -568,8 +573,11 @@
                 console.log('📄 Loading:', path);
                 iframe.src = path;
                 
-                // Re-enable edit mode after page loads
+                // Re-enable edit mode after page loads + inject CSS fix
                 iframe.onload = () => {
+                    // Inject global CSS to fix all images
+                    this.injectImageFixCSS();
+                    
                     if (this.editMode) {
                         setTimeout(() => this.enableEditMode(), 500);
                     }
@@ -578,6 +586,42 @@
                 // Update title
                 document.querySelector('.header h1').textContent = 
                     `📝 ${this.currentTemplate.name} - ${page.name}`;
+            }
+            
+            injectImageFixCSS() {
+                const iframe = document.getElementById('previewFrame');
+                try {
+                    const doc = iframe.contentDocument || iframe.contentWindow.document;
+                    
+                    // Check if already injected
+                    if (doc.getElementById('editor-image-fix')) return;
+                    
+                    // Create style element
+                    const style = doc.createElement('style');
+                    style.id = 'editor-image-fix';
+                    style.textContent = `
+                        /* Auto-injected by editor for proper image fitting */
+                        img {
+                            object-fit: cover !important;
+                            object-position: center !important;
+                        }
+                        
+                        /* Fix for background images */
+                        [style*="background-image"],
+                        .hero-image-box img,
+                        .tripex-image img {
+                            background-size: cover !important;
+                            background-position: center !important;
+                            background-repeat: no-repeat !important;
+                        }
+                    `;
+                    
+                    // Inject into head
+                    doc.head.appendChild(style);
+                    console.log('✅ Image fit CSS injected');
+                } catch (error) {
+                    console.warn('⚠️ Could not inject image fix CSS:', error);
+                }
             }
             
             saveTemplate() {
@@ -747,13 +791,7 @@
                         const media = await MediaPicker.openImage();
                         if (media && media.url) {
                             element.src = media.url;
-                            
-                            // Ensure image fits properly
-                            if (!element.style.objectFit) {
-                                element.style.objectFit = 'cover';
-                                element.style.objectPosition = 'center';
-                            }
-                            
+                            // Global CSS handles object-fit automatically
                             console.log('✅ Image updated:', media.url);
                         }
                     } catch (error) {
