@@ -584,6 +584,10 @@
                 // Parse and clean HTML (this also extracts CSS)
                 const cleanedHtml = this.cleanHtmlForEditor(html);
                 
+                // Debug: Log what we're loading
+                console.log('📝 HTML length:', cleanedHtml.length);
+                console.log('📝 HTML preview:', cleanedHtml.substring(0, 500));
+                
                 // Set components
                 this.editor.setComponents(cleanedHtml);
                 
@@ -603,6 +607,13 @@
                     this.editor.setStyle(allCss);
                     console.log('✅ CSS loaded:', allCss.length, 'characters from', this.cssFiles.length, 'files');
                 }
+                
+                // Debug: Check if components were added
+                setTimeout(() => {
+                    const components = this.editor.getComponents();
+                    console.log('📊 Components in editor:', components.length);
+                    console.log('📊 Editor HTML:', this.editor.getHtml().substring(0, 500));
+                }, 100);
                 
                 // Update UI
                 document.getElementById('templateName').textContent = cleanName;
