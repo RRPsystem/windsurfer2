@@ -312,9 +312,6 @@
             <button class="btn btn-danger" onclick="editor.toggleSectionMode()" id="sectionModeBtn">
                 🗑️ Section Mode: OFF
             </button>
-            <button class="btn btn-secondary" onclick="editor.toggleImageFit()" id="imageFitBtn" title="Toggle tussen cover (crop) en contain (fit)">
-                🖼️ Fit: Cover
-            </button>
             <button class="btn btn-primary" onclick="editor.saveTemplate()">💾 Download</button>
             <button class="btn btn-success" onclick="editor.openInNewTab()">🚀 Open in New Tab</button>
         </div>
@@ -498,7 +495,6 @@
                 this.currentPage = null;
                 this.editMode = false;
                 this.sectionMode = false;
-                this.imageFitMode = 'cover'; // 'cover' or 'contain'
                 this.currentEditElement = null;
                 this.currentSection = null;
                 this.init();
@@ -600,15 +596,12 @@
                     // Check if already injected
                     if (doc.getElementById('editor-image-fix')) return;
                     
-                    // Create style element - ONLY fix images that have explicit dimensions
+                    // Simple global CSS - cover ALL images automatically
                     const style = doc.createElement('style');
                     style.id = 'editor-image-fix';
                     style.textContent = `
-                        /* Auto-injected by editor - only fix constrained images */
-                        img[width],
-                        img[height],
-                        img[style*="width"],
-                        img[style*="height"] {
+                        /* Auto-fit all images to their containers */
+                        img {
                             object-fit: cover !important;
                             object-position: center !important;
                         }
@@ -624,31 +617,8 @@
                     // Inject into head
                     doc.head.appendChild(style);
                     
-                    // Mark all images with data attribute for styling
                     const allImages = doc.querySelectorAll('img');
-                    allImages.forEach(img => {
-                        // Mark for CSS targeting
-                        img.dataset.editorManaged = 'true';
-                        
-                        // Store original dimensions
-                        if (!img.dataset.originalWidth) {
-                            img.dataset.originalWidth = img.width || img.getAttribute('width') || '';
-                            img.dataset.originalHeight = img.height || img.getAttribute('height') || '';
-                        }
-                    });
-                    
-                    // Add CSS specifically for managed images (using current fit mode)
-                    const managedStyle = doc.createElement('style');
-                    managedStyle.id = 'editor-managed-images';
-                    managedStyle.textContent = `
-                        img[data-editor-managed="true"] {
-                            object-fit: ${this.imageFitMode} !important;
-                            object-position: center !important;
-                        }
-                    `;
-                    doc.head.appendChild(managedStyle);
-                    
-                    console.log('✅ Image fit CSS injected + ' + allImages.length + ' images marked');
+                    console.log('✅ Auto-fit CSS applied to ' + allImages.length + ' images');
                 } catch (error) {
                     console.warn('⚠️ Could not inject image fix CSS:', error);
                 }
@@ -1093,27 +1063,6 @@
                         parent.insertBefore(next, this.currentSection);
                         console.log('✅ Section moved down');
                     }
-                }
-            }
-            
-            toggleImageFit() {
-                this.imageFitMode = this.imageFitMode === 'cover' ? 'contain' : 'cover';
-                const btn = document.getElementById('imageFitBtn');
-                btn.textContent = this.imageFitMode === 'cover' ? '🖼️ Fit: Cover' : '🖼️ Fit: Contain';
-                
-                // Update all images in iframe
-                const iframe = document.getElementById('previewFrame');
-                try {
-                    const doc = iframe.contentDocument || iframe.contentWindow.document;
-                    const allImages = doc.querySelectorAll('img[data-editor-managed="true"]');
-                    
-                    allImages.forEach(img => {
-                        img.style.objectFit = this.imageFitMode;
-                    });
-                    
-                    console.log('✅ Image fit changed to:', this.imageFitMode, '(' + allImages.length + ' images)');
-                } catch (error) {
-                    console.warn('⚠️ Could not change image fit:', error);
                 }
             }
         }
