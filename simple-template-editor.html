@@ -697,27 +697,6 @@
                     const doc = iframe.contentDocument || iframe.contentWindow.document;
                     
                     // Make all editable elements clickable (text + images)
-                    // Find ALL images (even nested ones)
-                    const allImages = doc.querySelectorAll('img');
-                    console.log('🔍 DEBUG: Found', allImages.length, 'total images in page');
-                    
-                    // Debug each image
-                    allImages.forEach((img, index) => {
-                        const rect = img.getBoundingClientRect();
-                        const parent = img.parentElement;
-                        const computedStyle = doc.defaultView.getComputedStyle(img);
-                        
-                        console.log(`Image ${index + 1}:`, {
-                            src: img.src,
-                            dimensions: `${Math.round(rect.width)}x${Math.round(rect.height)}`,
-                            visible: rect.width > 0 && rect.height > 0,
-                            parentTag: parent?.tagName,
-                            pointerEvents: computedStyle.pointerEvents,
-                            zIndex: computedStyle.zIndex,
-                            position: computedStyle.position
-                        });
-                    });
-                    
                     const editableElements = doc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, span, button, li, img');
                     
                     editableElements.forEach(el => {
@@ -728,28 +707,54 @@
                                 console.warn('⚠️ Image too small, skipping:', el.src);
                                 return;
                             }
+                            
+                            // Images get GREEN outline + higher z-index to be clickable
+                            el.style.cursor = 'pointer';
+                            el.style.outline = '2px dashed rgba(46, 204, 113, 0.6)'; // Green
+                            el.style.pointerEvents = 'auto';
+                            el.style.position = 'relative';
+                            el.style.zIndex = '999'; // Above text overlays
+                            
+                            el.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                console.log('🖼️ Image clicked:', el.src);
+                                this.editElement(el);
+                            });
+                            
+                            el.addEventListener('mouseenter', (e) => {
+                                el.style.outline = '3px solid #2ecc71'; // Bright green
+                            });
+                            
+                            el.addEventListener('mouseleave', (e) => {
+                                if (el !== this.currentEditElement) {
+                                    el.style.outline = '2px dashed rgba(46, 204, 113, 0.6)';
+                                }
+                            });
+                            
+                        } else {
+                            // Text elements get BLUE outline
+                            el.style.cursor = 'pointer';
+                            el.style.outline = '1px dashed rgba(52, 152, 219, 0.3)'; // Blue
+                            el.style.pointerEvents = 'auto';
+                            
+                            el.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                console.log('📝 Text clicked:', el.tagName, el.className);
+                                this.editElement(el);
+                            });
+                            
+                            el.addEventListener('mouseenter', (e) => {
+                                el.style.outline = '2px solid #3498db'; // Bright blue
+                            });
+                            
+                            el.addEventListener('mouseleave', (e) => {
+                                if (el !== this.currentEditElement) {
+                                    el.style.outline = '1px dashed rgba(52, 152, 219, 0.3)';
+                                }
+                            });
                         }
-                        
-                        el.style.cursor = 'pointer';
-                        el.style.outline = '1px dashed rgba(52, 152, 219, 0.3)';
-                        el.style.pointerEvents = 'auto'; // Force clickable
-                        
-                        el.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('🖱️ Clicked:', el.tagName, el.className);
-                            this.editElement(el);
-                        });
-                        
-                        el.addEventListener('mouseenter', (e) => {
-                            el.style.outline = '2px solid #3498db';
-                        });
-                        
-                        el.addEventListener('mouseleave', (e) => {
-                            if (el !== this.currentEditElement) {
-                                el.style.outline = '1px dashed rgba(52, 152, 219, 0.3)';
-                            }
-                        });
                     });
                     
                     // ALSO make background-image elements editable (hero sections!)
