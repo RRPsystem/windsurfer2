@@ -838,18 +838,33 @@
                     console.log('📐 Image container: ' + Math.round(rect.width) + 'x' + Math.round(rect.height) + ' (ratio: ' + aspectRatio + ')');
                     
                     try {
-                        const media = await MediaPicker.openImage();
+                        // Pass container dimensions to MediaPicker for better sizing
+                        const width = Math.round(rect.width);
+                        const height = Math.round(rect.height);
+                        
+                        const media = await MediaPicker.openImage({
+                            preferredWidth: width,
+                            preferredHeight: height
+                        });
+                        
                         if (media && media.url) {
-                            element.src = media.url;
+                            // Add dimensions to Unsplash URL if needed
+                            let imageUrl = media.url;
+                            if (media.source === 'unsplash' && !imageUrl.includes('&w=')) {
+                                // Add width/height params to Unsplash imgix URL
+                                imageUrl += `&w=${width}&h=${height}&fit=crop`;
+                                console.log('📐 Adjusted Unsplash to:', width + 'x' + height);
+                            }
                             
-                            // ALWAYS apply object-fit for proper fitting
-                            // Sliders can handle object-fit just fine
+                            element.src = imageUrl;
+                            
+                            // Apply object-fit for proper fitting
                             element.style.objectFit = 'cover';
                             element.style.objectPosition = 'center';
                             element.style.width = '100%';
                             element.style.height = '100%';
                             
-                            console.log('✅ Image updated with object-fit:', media.url);
+                            console.log('✅ Image updated:', imageUrl);
                         }
                     } catch (error) {
                         console.log('❌ Image selection cancelled');
@@ -920,18 +935,32 @@
                 console.log('📐 Current container: ' + Math.round(rect.width) + 'x' + Math.round(rect.height) + ' (ratio: ' + aspectRatio + ')');
                 
                 try {
+                    // Pass container dimensions for optimal sizing
+                    const width = Math.round(rect.width);
+                    const height = Math.round(rect.height);
+                    
                     const media = await MediaPicker.openImage({ 
                         defaultTab: 'unsplash', 
-                        searchQuery: 'travel landscape' 
+                        searchQuery: 'travel landscape',
+                        preferredWidth: width,
+                        preferredHeight: height
                     });
+                    
                     if (media && media.url) {
+                        // Add dimensions to Unsplash URL if needed
+                        let imageUrl = media.url;
+                        if (media.source === 'unsplash' && !imageUrl.includes('&w=')) {
+                            imageUrl += `&w=${width}&h=${height}&fit=crop`;
+                            console.log('📐 Adjusted Unsplash to:', width + 'x' + height);
+                        }
+                        
                         // Update background image with proper fit
-                        element.style.backgroundImage = `url('${media.url}')`;
+                        element.style.backgroundImage = `url('${imageUrl}')`;
                         element.style.backgroundSize = 'cover';
                         element.style.backgroundPosition = 'center';
                         element.style.backgroundRepeat = 'no-repeat';
                         
-                        console.log('✅ Background image updated:', media.url);
+                        console.log('✅ Background image updated:', imageUrl);
                     }
                 } catch (error) {
                     console.log('❌ Background image selection cancelled');
