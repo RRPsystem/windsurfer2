@@ -593,44 +593,58 @@
                     const iframeWindow = iframe.contentWindow;
                     const doc = iframe.contentDocument || iframeWindow.document;
                     
-                    // Wait for jQuery to be available
+                    // Wait for scripts to load
                     setTimeout(() => {
-                        if (iframeWindow.jQuery && iframeWindow.jQuery.fn.slick) {
-                            // Reinitialize all slick sliders
-                            const $ = iframeWindow.jQuery;
-                            
-                            // Destroy existing sliders
-                            $('.slick-slider', doc).slick('unslick');
-                            
-                            // Reinitialize based on template
-                            if (this.currentTemplate.id === 'gowild') {
-                                // Gowild slider config
-                                $('.hero-slider', doc).slick({
-                                    slidesToShow: 1,
-                                    slidesToScroll: 1,
-                                    arrows: true,
-                                    dots: false,
-                                    autoplay: true,
-                                    autoplaySpeed: 3000,
-                                    fade: true
-                                });
-                            } else if (this.currentTemplate.id === 'tripex') {
-                                // Tripex slider config
-                                $('.hero-slider', doc).slick({
-                                    slidesToShow: 1,
-                                    slidesToScroll: 1,
-                                    arrows: true,
-                                    dots: true,
-                                    autoplay: true,
-                                    autoplaySpeed: 4000
-                                });
-                            }
-                            
-                            console.log('✅ Slideshows reinitialized');
-                        } else {
-                            console.warn('⚠️ jQuery or Slick not available');
+                        if (!iframeWindow.jQuery) {
+                            console.warn('⚠️ jQuery not available in iframe');
+                            return;
                         }
-                    }, 1000);
+                        
+                        const $ = iframeWindow.jQuery;
+                        
+                        // Disable magnificPopup calls to prevent errors
+                        if (!$.fn.magnificPopup) {
+                            console.log('🔧 MagnificPopup not available - creating stub');
+                            $.fn.magnificPopup = function() { return this; };
+                        }
+                        
+                        // Reinitialize slick sliders if available
+                        if ($.fn.slick) {
+                            try {
+                                // Find all slick initialized sliders and reinitialize
+                                $('.slick-initialized', doc).each(function() {
+                                    const $slider = $(this);
+                                    $slider.slick('unslick');
+                                    $slider.slick({
+                                        slidesToShow: 1,
+                                        slidesToScroll: 1,
+                                        arrows: true,
+                                        dots: true,
+                                        autoplay: true,
+                                        autoplaySpeed: 3000
+                                    });
+                                });
+                                console.log('✅ Slick sliders reinitialized');
+                            } catch (e) {
+                                console.warn('⚠️ Slick reinit failed:', e);
+                            }
+                        }
+                        
+                        // Reload the theme.js to reinitialize everything properly
+                        try {
+                            const scripts = doc.querySelectorAll('script[src*="theme.js"]');
+                            if (scripts.length > 0) {
+                                const themeScript = scripts[0];
+                                const newScript = doc.createElement('script');
+                                newScript.src = themeScript.src + '?t=' + Date.now();
+                                doc.body.appendChild(newScript);
+                                console.log('✅ Theme.js reloaded');
+                            }
+                        } catch (e) {
+                            console.warn('⚠️ Could not reload theme.js:', e);
+                        }
+                        
+                    }, 1500);
                 } catch (error) {
                     console.warn('⚠️ Could not fix slideshows:', error);
                 }
