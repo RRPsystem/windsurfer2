@@ -69,6 +69,44 @@
             display: flex;
             gap: 12px;
             position: relative;
+            align-items: center;
+        }
+        
+        .device-preview-buttons {
+            display: flex;
+            gap: 8px;
+            margin-right: 16px;
+            padding-right: 16px;
+            border-right: 2px solid rgba(255,255,255,0.2);
+        }
+        
+        .device-btn {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .device-btn:hover {
+            background: rgba(255,255,255,0.25);
+            border-color: rgba(255,255,255,0.5);
+            transform: scale(1.05);
+        }
+        
+        .device-btn.active {
+            background: white;
+            color: #667eea;
+            border-color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
         
         .btn {
@@ -167,15 +205,45 @@
         
         .preview-container {
             flex: 1;
-            background: white;
+            background: rgba(255,255,255,0.1);
             border-radius: 16px;
-            overflow: hidden;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+        
+        .preview-wrapper {
+            background: white;
+            border-radius: 12px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: all 0.5s ease;
+            width: 100%;
+            height: fit-content;
+            min-height: calc(100vh - 160px);
+            overflow: hidden;
+        }
+        
+        .preview-wrapper.desktop {
+            width: 100%;
+            max-width: none;
+        }
+        
+        .preview-wrapper.tablet {
+            width: 768px;
+            max-width: 95%;
+        }
+        
+        .preview-wrapper.mobile {
+            width: 375px;
+            max-width: 95%;
         }
         
         .preview-frame {
             width: 100%;
             height: 100%;
+            min-height: calc(100vh - 160px);
             border: none;
         }
         
@@ -415,6 +483,19 @@
     <div class="header">
         <h1>📝 Template Preview</h1>
         <div class="header-actions">
+            <!-- Device Preview Buttons -->
+            <div class="device-preview-buttons">
+                <button class="device-btn active" onclick="editor.setDevicePreview('desktop')" id="desktopBtn" title="Desktop Preview">
+                    💻
+                </button>
+                <button class="device-btn" onclick="editor.setDevicePreview('tablet')" id="tabletBtn" title="Tablet Preview (768px)">
+                    📱
+                </button>
+                <button class="device-btn" onclick="editor.setDevicePreview('mobile')" id="mobileBtn" title="Mobile Preview (375px)">
+                    📲
+                </button>
+            </div>
+            
             <button class="btn btn-primary" onclick="editor.toggleEditMode()" id="editModeBtn">
                 ✏️ Edit Mode: OFF
             </button>
@@ -534,7 +615,9 @@
         </div>
         
         <div class="preview-container">
-            <iframe class="preview-frame" id="previewFrame"></iframe>
+            <div class="preview-wrapper desktop" id="previewWrapper">
+                <iframe class="preview-frame" id="previewFrame"></iframe>
+            </div>
         </div>
     </div>
     
@@ -1155,6 +1238,33 @@
                     indicator.classList.remove('active');
                     this.disableSectionMode();
                 }
+            }
+            
+            setDevicePreview(device) {
+                const wrapper = document.getElementById('previewWrapper');
+                const desktopBtn = document.getElementById('desktopBtn');
+                const tabletBtn = document.getElementById('tabletBtn');
+                const mobileBtn = document.getElementById('mobileBtn');
+                
+                // Remove all active classes
+                desktopBtn.classList.remove('active');
+                tabletBtn.classList.remove('active');
+                mobileBtn.classList.remove('active');
+                wrapper.classList.remove('desktop', 'tablet', 'mobile');
+                
+                // Add active class to selected button and wrapper
+                if (device === 'desktop') {
+                    desktopBtn.classList.add('active');
+                    wrapper.classList.add('desktop');
+                } else if (device === 'tablet') {
+                    tabletBtn.classList.add('active');
+                    wrapper.classList.add('tablet');
+                } else if (device === 'mobile') {
+                    mobileBtn.classList.add('active');
+                    wrapper.classList.add('mobile');
+                }
+                
+                console.log('📱 Device preview changed to:', device);
             }
             
             enableSectionMode() {
