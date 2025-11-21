@@ -608,40 +608,27 @@
                             $.fn.magnificPopup = function() { return this; };
                         }
                         
-                        // Reinitialize slick sliders if available
-                        if ($.fn.slick) {
-                            try {
-                                // Find all slick initialized sliders and reinitialize
-                                $('.slick-initialized', doc).each(function() {
-                                    const $slider = $(this);
-                                    $slider.slick('unslick');
-                                    $slider.slick({
-                                        slidesToShow: 1,
-                                        slidesToScroll: 1,
-                                        arrows: true,
-                                        dots: true,
-                                        autoplay: true,
-                                        autoplaySpeed: 3000
-                                    });
-                                });
-                                console.log('✅ Slick sliders reinitialized');
-                            } catch (e) {
-                                console.warn('⚠️ Slick reinit failed:', e);
-                            }
-                        }
+                        // DON'T reinitialize sliders - just let them work
+                        // The theme.js will handle initialization correctly
                         
-                        // Reload the theme.js to reinitialize everything properly
+                        // Reload the theme.js to reinitialize everything with CORRECT configs
                         try {
-                            const scripts = doc.querySelectorAll('script[src*="theme.js"]');
+                            const scripts = doc.querySelectorAll('script[src*="theme.js"], script[src*="main.js"]');
                             if (scripts.length > 0) {
-                                const themeScript = scripts[0];
+                                // Remove old script to force re-execution
+                                const oldScript = scripts[scripts.length - 1];
+                                const scriptSrc = oldScript.src;
+                                
+                                // Create new script with cache buster
                                 const newScript = doc.createElement('script');
-                                newScript.src = themeScript.src + '?t=' + Date.now();
+                                newScript.src = scriptSrc + '?reload=' + Date.now();
+                                newScript.onload = function() {
+                                    console.log('✅ Theme scripts reloaded - sliders should work now');
+                                };
                                 doc.body.appendChild(newScript);
-                                console.log('✅ Theme.js reloaded');
                             }
                         } catch (e) {
-                            console.warn('⚠️ Could not reload theme.js:', e);
+                            console.warn('⚠️ Could not reload theme scripts:', e);
                         }
                         
                     }, 1500);
