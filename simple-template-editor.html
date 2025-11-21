@@ -736,12 +736,24 @@
                 if (tagName === 'IMG') {
                     // Image editing - direct open media selector!
                     element.style.outline = '3px solid #9b59b6';
+                    
+                    // Get dimensions for aspect ratio
+                    const rect = element.getBoundingClientRect();
+                    const aspectRatio = (rect.width / rect.height).toFixed(2);
                     console.log('🖼️ Opening media selector for image...');
+                    console.log('📐 Image container: ' + Math.round(rect.width) + 'x' + Math.round(rect.height) + ' (ratio: ' + aspectRatio + ')');
                     
                     try {
                         const media = await MediaPicker.openImage();
                         if (media && media.url) {
                             element.src = media.url;
+                            
+                            // Ensure image fits properly
+                            if (!element.style.objectFit) {
+                                element.style.objectFit = 'cover';
+                                element.style.objectPosition = 'center';
+                            }
+                            
                             console.log('✅ Image updated:', media.url);
                         }
                     } catch (error) {
@@ -806,13 +818,23 @@
                 this.currentEditElement = element;
                 element.style.outline = '3px solid #9b59b6';
                 
+                // Get current dimensions for aspect ratio recommendation
+                const rect = element.getBoundingClientRect();
+                const aspectRatio = (rect.width / rect.height).toFixed(2);
                 console.log('🖼️ Opening media selector for background image...');
+                console.log('📐 Current container: ' + Math.round(rect.width) + 'x' + Math.round(rect.height) + ' (ratio: ' + aspectRatio + ')');
                 
                 try {
-                    const media = await MediaPicker.openImage({ defaultTab: 'unsplash', searchQuery: 'travel landscape' });
+                    const media = await MediaPicker.openImage({ 
+                        defaultTab: 'unsplash', 
+                        searchQuery: 'travel landscape' 
+                    });
                     if (media && media.url) {
-                        // Update background image
+                        // Update background image with proper fit
                         element.style.backgroundImage = `url('${media.url}')`;
+                        element.style.backgroundSize = 'cover';
+                        element.style.backgroundPosition = 'center';
+                        element.style.backgroundRepeat = 'no-repeat';
                         console.log('✅ Background image updated:', media.url);
                     }
                 } catch (error) {
