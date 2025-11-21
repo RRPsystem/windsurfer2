@@ -805,15 +805,14 @@
                         if (media && media.url) {
                             element.src = media.url;
                             
-                            // Only apply object-fit if NOT in a slideshow/carousel
-                            const isInSlideshow = element.closest('.slick-slider, .carousel, .swiper, .slider, [class*="slide"]');
-                            if (!isInSlideshow) {
-                                element.style.objectFit = 'cover';
-                                element.style.objectPosition = 'center';
-                                console.log('✅ Image updated (with object-fit):', media.url);
-                            } else {
-                                console.log('✅ Image updated (slideshow - no object-fit):', media.url);
-                            }
+                            // ALWAYS apply object-fit for proper fitting
+                            // Sliders can handle object-fit just fine
+                            element.style.objectFit = 'cover';
+                            element.style.objectPosition = 'center';
+                            element.style.width = '100%';
+                            element.style.height = '100%';
+                            
+                            console.log('✅ Image updated with object-fit:', media.url);
                         }
                     } catch (error) {
                         console.log('❌ Image selection cancelled');
@@ -889,16 +888,11 @@
                         searchQuery: 'travel landscape' 
                     });
                     if (media && media.url) {
-                        // Update background image
+                        // Update background image with proper fit
                         element.style.backgroundImage = `url('${media.url}')`;
-                        
-                        // Only apply size/position if NOT in slideshow
-                        const isInSlideshow = element.closest('.slick-slider, .carousel, .swiper, .slider, [class*="slide"]');
-                        if (!isInSlideshow) {
-                            element.style.backgroundSize = 'cover';
-                            element.style.backgroundPosition = 'center';
-                            element.style.backgroundRepeat = 'no-repeat';
-                        }
+                        element.style.backgroundSize = 'cover';
+                        element.style.backgroundPosition = 'center';
+                        element.style.backgroundRepeat = 'no-repeat';
                         
                         console.log('✅ Background image updated:', media.url);
                     }
@@ -924,12 +918,11 @@
                     if (newUrl) {
                         element.src = newUrl;
                         
-                        // Only apply object-fit if NOT in a slideshow
-                        const isInSlideshow = element.closest('.slick-slider, .carousel, .swiper, .slider, [class*="slide"]');
-                        if (!isInSlideshow) {
-                            element.style.objectFit = 'cover';
-                            element.style.objectPosition = 'center';
-                        }
+                        // Always apply object-fit for proper fitting
+                        element.style.objectFit = 'cover';
+                        element.style.objectPosition = 'center';
+                        element.style.width = '100%';
+                        element.style.height = '100%';
                         
                         console.log('✅ Image updated:', newUrl);
                     }
