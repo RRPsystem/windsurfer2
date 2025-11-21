@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Template Editor</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Media Picker CSS -->
+    <link rel="stylesheet" href="/styles/media-picker.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 18px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-primary { background: #3498db; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-secondary { background: #95a5a6; color: white; }
+        
+        .editor-container {
+            display: flex;
+            height: calc(100vh - 50px);
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .template-list {
+            list-style: none;
+        }
+        
+        .template-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .template-item:hover {
+            border-color: #3498db;
+            transform: translateX(4px);
+        }
+        
+        .template-item.active {
+            border-color: #3498db;
+            background: #e3f2fd;
+        }
+        
+        .preview-container {
+            flex: 1;
+            background: white;
+        }
+        
+        .preview-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* Edit Mode Styles */
+        .edit-mode-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 10000;
+            display: none;
+        }
+        
+        .edit-mode-indicator.active {
+            display: block;
+        }
+        
+        /* Section Mode Indicator */
+        .section-mode-indicator {
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            background: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 10000;
+            display: none;
+        }
+        
+        .section-mode-indicator.active {
+            display: block;
+        }
+        
+        /* Section Actions Toolbar */
+        .section-actions {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 10001;
+            display: none;
+        }
+        
+        .section-actions.active {
+            display: block;
+        }
+        
+        .section-actions button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        /* Edit Popup Modal */
+        .edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .edit-modal.active {
+            display: flex;
+        }
+        
+        .edit-popup {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .edit-popup h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .edit-popup .element-tag {
+            background: #3498db;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: normal;
+        }
+        
+        .edit-popup textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        
+        .edit-popup textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .edit-popup input[type="text"],
+        .edit-popup input[type="url"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .edit-popup input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .edit-popup label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        .edit-field {
+            margin-bottom: 20px;
+        }
+        
+        .btn-media {
+            width: 100%;
+            padding: 12px;
+            background: #9b59b6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            margin-bottom: 15px;
+            transition: all 0.2s;
+        }
+        
+        .btn-media:hover {
+            background: #8e44ad;
+        }
+        
+        .current-image {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .edit-popup-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📝 Template Preview</h1>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="editor.toggleEditMode()" id="editModeBtn">
+                ✏️ Edit Mode: OFF
+            </button>
+            <button class="btn btn-danger" onclick="editor.toggleSectionMode()" id="sectionModeBtn">
+                🗑️ Section Mode: OFF
+            </button>
+            <button class="btn btn-primary" onclick="editor.saveTemplate()">💾 Download</button>
+            <button class="btn btn-success" onclick="editor.openInNewTab()">🚀 Open in New Tab</button>
+        </div>
+    </div>
+    
+    <!-- Edit Mode Indicator -->
+    <div class="edit-mode-indicator" id="editIndicator">
+        ✏️ Edit Mode: Click op tekst om te bewerken
+    </div>
+    
+    <!-- Section Mode Indicator -->
+    <div class="section-mode-indicator" id="sectionIndicator">
+        🗑️ Section Mode: Click op sectie om te verwijderen
+    </div>
+    
+    <!-- Section Actions Toolbar -->
+    <div class="section-actions" id="sectionActions">
+        <h4 style="margin-bottom: 15px; font-size: 14px;">Sectie Acties</h4>
+        <button class="btn btn-danger" onclick="editor.deleteSection()">
+            <i class="fas fa-trash"></i> Verwijder Sectie
+        </button>
+        <button class="btn btn-primary" onclick="editor.duplicateSection()">
+            <i class="fas fa-copy"></i> Dupliceer Sectie
+        </button>
+        <button class="btn btn-secondary" onclick="editor.moveSection('up')">
+            <i class="fas fa-arrow-up"></i> Omhoog
+        </button>
+        <button class="btn btn-secondary" onclick="editor.moveSection('down')">
+            <i class="fas fa-arrow-down"></i> Omlaag
+        </button>
+    </div>
+    
+    <!-- Edit Popup Modal -->
+    <div class="edit-modal" id="editModal" onclick="if(event.target === this) editor.cancelEdit()">
+        <div class="edit-popup">
+            <h3>
+                <span id="editTitle">✏️ Tekst Bewerken</span>
+                <span class="element-tag" id="elementTag">H1</span>
+            </h3>
+            
+            <!-- Text Field -->
+            <div class="edit-field" id="textField">
+                <label>Tekst</label>
+                <textarea id="editTextarea" placeholder="Type hier je tekst..."></textarea>
+            </div>
+            
+            <!-- Link Field (voor A en BUTTON tags) -->
+            <div class="edit-field" id="linkField" style="display:none;">
+                <label>Link URL</label>
+                <input type="url" id="editLinkUrl" placeholder="https://example.com" />
+            </div>
+            
+            <!-- Image Field (voor IMG tags) -->
+            <div class="edit-field" id="imageField" style="display:none;">
+                <img id="currentImage" class="current-image" style="display:none;" />
+                <button class="btn-media" onclick="editor.selectMedia()">
+                    <i class="fas fa-images"></i> Kies Afbeelding (Unsplash, Pexels, Upload)
+                </button>
+                <input type="url" id="editImageUrl" placeholder="Of plak image URL..." />
+            </div>
+            
+            <div class="edit-popup-actions">
+                <button class="btn btn-secondary" onclick="editor.cancelEdit()">Annuleren</button>
+                <button class="btn btn-success" onclick="editor.saveEdit()">✔️ Opslaan</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Initialize MEDIA_CONFIG before loading picker -->
+    <script>
+        // Initialize empty config (will be filled by config.prod.js)
+        window.MEDIA_CONFIG = window.MEDIA_CONFIG || {};
+        
+        // Debug: Log when config is loaded
+        setTimeout(() => {
+            console.log('🔑 Media Config:', window.MEDIA_CONFIG);
+            if (!window.MEDIA_CONFIG.unsplashKey) {
+                console.warn('⚠️ Unsplash key niet geladen - check Vercel environment variables');
+            }
+            if (!window.MEDIA_CONFIG.pexelsKey) {
+                console.warn('⚠️ Pexels key niet geladen - check Vercel environment variables');
+            }
+        }, 2000);
+    </script>
+    
+    <!-- Load config (try local first, then prod) -->
+    <script src="/js/config.local.js" onerror="console.log('⚠️ config.local.js niet gevonden, probeer config.prod.js')"></script>
+    <script src="/js/config.prod.js"></script>
+    
+    <!-- Media Picker Script -->
+    <script src="/js/media.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Media Picker CSS & JS -->
+    <link rel="stylesheet" href="/styles/media-picker.css">
+    <script src="/js/media.js"></script>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+            
+    <div class="editor-container">
+        <div class="sidebar">
+            <h3 style="margin-bottom: 15px;">Templates</h3>
+            <ul class="template-list" id="templateList"></ul>
+            
+            <div style="margin-top: 30px;">
+                <h3 style="margin-bottom: 15px;">Pages</h3>
+                <ul class="template-list" id="pageList"></ul>
+            </div>
+        </div>
+        
+        <div class="preview-container">
+            <iframe class="preview-frame" id="previewFrame"></iframe>
+        </div>
+    </div>
+    
+    <script>
+        const TEMPLATES = [
+            {
+                id: 'gowild',
+                name: 'Gowild',
+                folder: 'Gowild',
+                pages: [
+                    { name: 'Home', file: 'index.html' },
+                    { name: 'Home 2', file: 'index-2.html' },
+                    { name: 'Home 3', file: 'index-3.html' },
+                    { name: 'Home 4', file: 'index-4.html' },
+                    { name: 'About', file: 'about.html' },
+                    { name: 'Destinations', file: 'destination.html' },
+                    { name: 'Destination Details', file: 'destination-details.html' },
+                    { name: 'Tours', file: 'tour.html' },
+                    { name: 'Tour Details', file: 'tour-details.html' },
+                    { name: 'Events', file: 'events.html' },
+                    { name: 'Gallery', file: 'gallery.html' },
+                    { name: 'Shop', file: 'shop.html' },
+                    { name: 'Product Details', file: 'product-details.html' },
+                    { name: 'Blog List', file: 'blog-list.html' },
+                    { name: 'Blog Details', file: 'blog-details.html' },
+                    { name: 'Contact', file: 'contact.html' }
+                ]
+            },
+            {
+                id: 'tripex',
+                name: 'Tripex',
+                folder: 'tripex',
+                pages: [
+                    { name: 'Home', file: 'index.html' },
+                    { name: 'Home 2', file: 'index-2.html' },
+                    { name: 'Home 3', file: 'index-3.html' },
+                    { name: 'Home 4', file: 'index-4.html' },
+                    { name: 'About', file: 'about.html' },
+                    { name: 'Destinations 1', file: 'destinations-1.html' },
+                    { name: 'Destinations 2', file: 'destinations-2.html' },
+                    { name: 'Destination Details', file: 'destination-details.html' },
+                    { name: 'Tour Grid', file: 'tour-grid.html' },
+                    { name: 'Tour List', file: 'tour-list.html' },
+                    { name: 'Tour Details', file: 'tour-details.html' },
+                    { name: 'Events', file: 'event.html' },
+                    { name: 'Event Details', file: 'event-details.html' },
+                    { name: 'Gallery', file: 'gallery.html' },
+                    { name: 'Team', file: 'team.html' },
+                    { name: 'FAQ', file: 'faq.html' },
+                    { name: 'Shop', file: 'shop.html' },
+                    { name: 'Shop Details', file: 'shop-details.html' },
+                    { name: 'Cart', file: 'cart.html' },
+                    { name: 'Checkout', file: 'checkout.html' },
+                    { name: 'Blog Grid', file: 'blog-grid.html' },
+                    { name: 'Blog List', file: 'blog-list.html' },
+                    { name: 'Blog Details', file: 'blog-details.html' },
+                    { name: 'Contact', file: 'contact.html' },
+                    { name: '404', file: '404.html' }
+                ]
+            }
+        ];
+        
+        class SimpleEditor {
+            constructor() {
+                this.currentTemplate = null;
+                this.currentPage = null;
+                this.editMode = false;
+                this.sectionMode = false;
+                this.currentEditElement = null;
+                this.currentSection = null;
+                this.init();
+            }
+            
+            init() {
+                this.renderTemplateList();
+            }
+            
+            renderTemplateList() {
+                const list = document.getElementById('templateList');
+                list.innerHTML = '';
+                
+                TEMPLATES.forEach(template => {
+                    const item = document.createElement('li');
+                    item.className = 'template-item';
+                    item.textContent = template.name;
+                    item.onclick = () => this.selectTemplate(template);
+                    list.appendChild(item);
+                });
+            }
+            
+            selectTemplate(template) {
+                this.currentTemplate = template;
+                
+                // Update active state
+                document.querySelectorAll('#templateList .template-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                event.target.classList.add('active');
+                
+                // Render pages
+                this.renderPageList();
+                
+                // Load first page
+                if (template.pages.length > 0) {
+                    this.loadPage(template.pages[0]);
+                }
+            }
+            
+            renderPageList() {
+                const list = document.getElementById('pageList');
+                list.innerHTML = '';
+                
+                if (!this.currentTemplate) return;
+                
+                this.currentTemplate.pages.forEach(page => {
+                    const item = document.createElement('li');
+                    item.className = 'template-item';
+                    item.textContent = page.name;
+                    item.onclick = () => this.loadPage(page);
+                    list.appendChild(item);
+                });
+            }
+            
+            loadPage(page) {
+                if (!this.currentTemplate) return;
+                
+                this.currentPage = page;
+                
+                // Update active state
+                document.querySelectorAll('#pageList .template-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                event.target.classList.add('active');
+                
+                // Disable edit mode when loading new page
+                if (this.editMode) {
+                    this.toggleEditMode();
+                }
+                
+                // Load page in iframe
+                const iframe = document.getElementById('previewFrame');
+                const path = `/templates/${this.currentTemplate.folder}/${page.file}`;
+                
+                console.log('📄 Loading:', path);
+                iframe.src = path;
+                
+                // Re-enable edit mode after page loads
+                iframe.onload = () => {
+                    if (this.editMode) {
+                        setTimeout(() => this.enableEditMode(), 500);
+                    }
+                };
+                
+                // Update title
+                document.querySelector('.header h1').textContent = 
+                    `📝 ${this.currentTemplate.name} - ${page.name}`;
+            }
+            
+            saveTemplate() {
+                if (!this.currentTemplate || !this.currentPage) {
+                    alert('⚠️ Selecteer eerst een template en pagina');
+                    return;
+                }
+                
+                const iframe = document.getElementById('previewFrame');
+                try {
+                    const doc = iframe.contentDocument || iframe.contentWindow.document;
+                    const html = doc.documentElement.outerHTML;
+                    
+                    // Download
+                    const blob = new Blob([html], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${this.currentTemplate.name}-${this.currentPage.name}.html`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    console.log('✅ Template downloaded');
+                } catch (error) {
+                    console.error('❌ Error:', error);
+                    alert('Fout bij opslaan. Mogelijk CORS probleem.');
+                }
+            }
+            
+            openInNewTab() {
+                const iframe = document.getElementById('previewFrame');
+                if (iframe.src) {
+                    window.open(iframe.src, '_blank');
+                }
+            }
+            
+            toggleEditMode() {
+                this.editMode = !this.editMode;
+                const btn = document.getElementById('editModeBtn');
+                const indicator = document.getElementById('editIndicator');
+                
+                if (this.editMode) {
+                    btn.textContent = '✏️ Edit Mode: ON';
+                    btn.style.background = '#27ae60';
+                    indicator.classList.add('active');
+                    this.enableEditMode();
+                } else {
+                    btn.textContent = '✏️ Edit Mode: OFF';
+                    btn.style.background = '#3498db';
+                    indicator.classList.remove('active');
+                    this.disableEditMode();
+                }
+            }
+            
+            enableEditMode() {
+                const iframe = document.getElementById('previewFrame');
+                try {
+                    const doc = iframe.contentDocument || iframe.contentWindow.document;
+                    
+                    // Make all editable elements clickable (text + images)
+                    const editableElements = doc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, span, button, li, img');
+                    
+                    editableElements.forEach(el => {
+                        el.style.cursor = 'pointer';
+                        el.style.outline = '1px dashed rgba(52, 152, 219, 0.3)';
+                        
+                        el.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            this.editElement(el);
+                        });
+                        
+                        el.addEventListener('mouseenter', (e) => {
+                            el.style.outline = '2px solid #3498db';
+                        });
+                        
+                        el.addEventListener('mouseleave', (e) => {
+                            if (el !== this.currentEditElement) {
+                                el.style.outline = '1px dashed rgba(52, 152, 219, 0.3)';
+                            }
+                        });
+                    });
+                    
+                    // ALSO make background-image elements editable (hero sections!)
+                    const bgElements = doc.querySelectorAll('[style*="background-image"], .hero, .banner, [class*="hero"], [class*="banner"], [class*="bg-"]');
+                    
+                    bgElements.forEach(el => {
+                        const computedStyle = window.getComputedStyle ? doc.defaultView.getComputedStyle(el, null) : el.currentStyle;
+                        const bgImage = computedStyle.backgroundImage;
+                        
+                        // Only if it has a background image
+                        if (bgImage && bgImage !== 'none' && bgImage.includes('url')) {
+                            el.style.cursor = 'pointer';
+                            el.style.outline = '2px dashed rgba(155, 89, 182, 0.5)'; // Purple for backgrounds
+                            el.dataset.hasBackgroundImage = 'true';
+                            
+                            el.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                this.editBackgroundImage(el);
+                            });
+                            
+                            el.addEventListener('mouseenter', (e) => {
+                                el.style.outline = '3px solid #9b59b6';
+                            });
+                            
+                            el.addEventListener('mouseleave', (e) => {
+                                if (el !== this.currentEditElement) {
+                                    el.style.outline = '2px dashed rgba(155, 89, 182, 0.5)';
+                                }
+                            });
+                        }
+                    });
+                    
+                    console.log('✅ Edit mode enabled on', editableElements.length, 'text elements +', bgElements.length, 'background images');
+                } catch (error) {
+                    console.error('❌ Could not enable edit mode:', error);
+                    alert('Kan edit mode niet activeren. Mogelijk CORS probleem.');
+                }
+            }
+            
+            disableEditMode() {
+                const iframe = document.getElementById('previewFrame');
+                try {
+                    const doc = iframe.contentDocument || iframe.contentWindow.document;
+                    
+                    // Remove text element outlines
+                    const textElements = doc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, span, button, li, img');
+                    textElements.forEach(el => {
+                        el.style.cursor = '';
+                        el.style.outline = '';
+                    });
+                    
+                    // Remove background-image outlines
+                    const bgElements = doc.querySelectorAll('[data-has-background-image="true"]');
+                    bgElements.forEach(el => {
+                        el.style.cursor = '';
+                        el.style.outline = '';
+                        delete el.dataset.hasBackgroundImage;
+                    });
+                    
+                    // Hide modal
+                    document.getElementById('editModal').classList.remove('active');
+                } catch (error) {
+                    console.error('❌ Could not disable edit mode:', error);
+                }
+            }
+            
+            async editElement(element) {
+                this.currentEditElement = element;
+                const tagName = element.tagName.toUpperCase();
+                
+                // Handle different element types
+                if (tagName === 'IMG') {
+                    // Image editing - direct open media selector!
+                    element.style.outline = '3px solid #9b59b6';
+                    console.log('🖼️ Opening media selector for image...');
+                    
+                    try {
+                        const media = await MediaPicker.openImage();
+                        if (media && media.url) {
+                            element.src = media.url;
+                            console.log('✅ Image updated:', media.url);
+                        }
+                    } catch (error) {
+                        console.log('❌ Image selection cancelled');
+                    }
+                    
+                    // Reset outline
+                    element.style.outline = '1px dashed rgba(52, 152, 219, 0.3)';
+                    this.currentEditElement = null;
+                    return;
+                }
+                
+                // For other elements, show the modal
+                // Reset all fields
+                document.getElementById('textField').style.display = 'none';
+                document.getElementById('linkField').style.display = 'none';
+                document.getElementById('imageField').style.display = 'none';
+                
+                // Show modal
+                const modal = document.getElementById('editModal');
+                const tagLabel = document.getElementById('elementTag');
+                const title = document.getElementById('editTitle');
+                tagLabel.textContent = tagName;
+                
+                if (tagName === 'A' || tagName === 'BUTTON') {
+                    // Link + text editing
+                    title.textContent = '🔗 Link Bewerken';
+                    document.getElementById('textField').style.display = 'block';
+                    document.getElementById('linkField').style.display = 'block';
+                    document.getElementById('editTextarea').value = element.textContent;
+                    document.getElementById('editLinkUrl').value = element.href || '';
+                    
+                } else {
+                    // Text only editing
+                    title.textContent = '✏️ Tekst Bewerken';
+                    document.getElementById('textField').style.display = 'block';
+                    document.getElementById('editTextarea').value = element.textContent;
+                }
+                
+                modal.classList.add('active');
+                
+                // Highlight current element
+                element.style.outline = '3px solid #27ae60';
+                
+                console.log('✏️ Editing:', tagName, element.textContent?.substring(0, 50));
+            }
+            
+            async selectMedia() {
+                try {
+                    const media = await MediaPicker.openImage();
+                    if (media && media.url) {
+                        document.getElementById('editImageUrl').value = media.url;
+                        document.getElementById('currentImage').src = media.url;
+                        console.log('✅ Media selected:', media.url);
+                    }
+                } catch (error) {
+                    console.error('❌ Media selection cancelled or failed');
+                }
+            }
+            
+            async editBackgroundImage(element) {
+                this.currentEditElement = element;
+                element.style.outline = '3px solid #9b59b6';
+                
+                console.log('🖼️ Opening media selector for background image...');
+                
+                try {
+                    const media = await MediaPicker.openImage({ defaultTab: 'unsplash', searchQuery: 'travel landscape' });
+                    if (media && media.url) {
+                        // Update background image
+                        element.style.backgroundImage = `url('${media.url}')`;
+                        console.log('✅ Background image updated:', media.url);
+                    }
+                } catch (error) {
+                    console.log('❌ Background image selection cancelled');
+                }
+                
+                // Reset outline
+                element.style.outline = '2px dashed rgba(155, 89, 182, 0.5)';
+                this.currentEditElement = null;
+            }
+            
+            saveEdit() {
+                if (!this.currentEditElement) return;
+                
+                const element = this.currentEditElement;
+                const tagName = element.tagName.toUpperCase();
+                
+                // Update based on element type
+                if (tagName === 'IMG') {
+                    // Update image
+                    const newUrl = document.getElementById('editImageUrl').value;
+                    if (newUrl) {
+                        element.src = newUrl;
+                        console.log('✅ Image updated:', newUrl);
+                    }
+                    
+                } else if (tagName === 'A' || tagName === 'BUTTON') {
+                    // Update link + text
+                    const newText = document.getElementById('editTextarea').value;
+                    const newUrl = document.getElementById('editLinkUrl').value;
+                    
+                    element.textContent = newText;
+                    if (tagName === 'A') {
+                        element.href = newUrl || '#';
+                    } else {
+                        element.onclick = () => window.location.href = newUrl;
+                    }
+                    console.log('✅ Link updated:', newText, '->', newUrl);
+                    
+                } else {
+                    // Update text only
+                    const newText = document.getElementById('editTextarea').value;
+                    element.textContent = newText;
+                    console.log('✅ Text updated');
+                }
+                
+                this.cancelEdit();
+            }
+            
+            cancelEdit() {
+                if (this.currentEditElement) {
+                    this.currentEditElement.style.outline = '1px dashed rgba(52, 152, 219, 0.3)';
+                }
+                
+                this.currentEditElement = null;
+                document.getElementById('editModal').classList.remove('active');
+            }
+            
+            toggleSectionMode() {
+                this.sectionMode = !this.sectionMode;
+                const btn = document.getElementById('sectionModeBtn');
+                const indicator = document.getElementById('sectionIndicator');
+                
+                if (this.sectionMode) {
+                    // Disable edit mode if active
+                    if (this.editMode) {
+                        this.toggleEditMode();
+                    }
+                    
+                    btn.textContent = '🗑️ Section Mode: ON';
+                    btn.style.background = '#c0392b'; // Darker red when ON
+                    indicator.classList.add('active');
+                    this.enableSectionMode();
+                } else {
+                    btn.textContent = '🗑️ Section Mode: OFF';
+                    btn.style.background = ''; // Reset to default .btn-danger
+                    indicator.classList.remove('active');
+                    this.disableSectionMode();
+                }
+            }
+            
+            enableSectionMode() {
+                const iframe = document.getElementById('previewFrame');
+                try {
+                    const doc = iframe.contentDocument || iframe.contentWindow.document;
+                    
+                    // Make all major sections clickable
+                    const sections = doc.querySelectorAll('section, .section, header, footer, div[class*="section"]');
+                    
+                    sections.forEach(section => {
+                        section.style.cursor = 'pointer';
+                        section.style.outline = '2px dashed rgba(231, 76, 60, 0.3)';
+                        
+                        section.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            this.selectSection(section);
+                        });
+                        
+                        section.addEventListener('mouseenter', (e) => {
+                            section.style.outline = '3px solid #e74c3c';
+                            section.style.backgroundColor = 'rgba(231, 76, 60, 0.05)';
+                        });
+                        
+                        section.addEventListener('mouseleave', (e) => {
+                            if (section !== this.currentSection) {
+                                section.style.outline = '2px dashed rgba(231, 76, 60, 0.3)';
+                                section.style.backgroundColor = '';
+                            }
+                        });
+                    });
+                    
+                    console.log('✅ Section mode enabled on', sections.length, 'sections');
+                } catch (error) {
+                    console.error('❌ Could not enable section mode:', error);
+                    alert('Kan section mode niet activeren.');
+                }
+            }
+            
+            disableSectionMode() {
+                const iframe = document.getElementById('previewFrame');
+                try {
+                    const doc = iframe.contentDocument || iframe.contentWindow.document;
+                    const sections = doc.querySelectorAll('section, .section, header, footer, div[class*="section"]');
+                    
+                    sections.forEach(section => {
+                        section.style.cursor = '';
+                        section.style.outline = '';
+                        section.style.backgroundColor = '';
+                    });
+                    
+                    document.getElementById('sectionActions').classList.remove('active');
+                } catch (error) {
+                    console.error('❌ Could not disable section mode:', error);
+                }
+            }
+            
+            selectSection(section) {
+                // Deselect previous
+                if (this.currentSection) {
+                    this.currentSection.style.outline = '2px dashed rgba(231, 76, 60, 0.3)';
+                    this.currentSection.style.backgroundColor = '';
+                }
+                
+                this.currentSection = section;
+                section.style.outline = '3px solid #27ae60';
+                section.style.backgroundColor = 'rgba(39, 174, 96, 0.05)';
+                
+                // Show actions
+                document.getElementById('sectionActions').classList.add('active');
+                
+                console.log('🎯 Section selected:', section.className || section.tagName);
+            }
+            
+            deleteSection() {
+                if (!this.currentSection) return;
+                
+                if (confirm('Weet je zeker dat je deze sectie wilt verwijderen?')) {
+                    this.currentSection.remove();
+                    document.getElementById('sectionActions').classList.remove('active');
+                    this.currentSection = null;
+                    console.log('✅ Section deleted');
+                }
+            }
+            
+            duplicateSection() {
+                if (!this.currentSection) return;
+                
+                const clone = this.currentSection.cloneNode(true);
+                this.currentSection.parentNode.insertBefore(clone, this.currentSection.nextSibling);
+                console.log('✅ Section duplicated');
+            }
+            
+            moveSection(direction) {
+                if (!this.currentSection) return;
+                
+                const parent = this.currentSection.parentNode;
+                
+                if (direction === 'up') {
+                    const prev = this.currentSection.previousElementSibling;
+                    if (prev) {
+                        parent.insertBefore(this.currentSection, prev);
+                        console.log('✅ Section moved up');
+                    }
+                } else {
+                    const next = this.currentSection.nextElementSibling;
+                    if (next) {
+                        parent.insertBefore(next, this.currentSection);
+                        console.log('✅ Section moved down');
+                    }
+                }
+            }
+        }
+        
+        const editor = new SimpleEditor();
+    </script>
+</body>
+</html>
