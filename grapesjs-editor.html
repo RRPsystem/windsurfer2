@@ -613,7 +613,17 @@
                     const components = this.editor.getComponents();
                     console.log('📊 Components in editor:', components.length);
                     console.log('📊 Editor HTML:', this.editor.getHtml().substring(0, 500));
-                }, 100);
+                    
+                    // Check if canvas iframe exists and has content
+                    const canvas = this.editor.Canvas;
+                    const frame = canvas.getFrameEl();
+                    if (frame) {
+                        const frameDoc = frame.contentDocument || frame.contentWindow.document;
+                        console.log('🖼️ Canvas iframe body:', frameDoc.body ? 'EXISTS' : 'MISSING');
+                        console.log('🖼️ Canvas body HTML length:', frameDoc.body ? frameDoc.body.innerHTML.length : 0);
+                        console.log('🖼️ Canvas body preview:', frameDoc.body ? frameDoc.body.innerHTML.substring(0, 300) : 'NO BODY');
+                    }
+                }, 500);
                 
                 // Update UI
                 document.getElementById('templateName').textContent = cleanName;
