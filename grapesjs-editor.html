@@ -227,6 +227,13 @@
             background: #f8f9fa;
         }
         
+        /* Force wrapper to be visible in canvas */
+        #gjs iframe [data-gjs-type="wrapper"] {
+            min-height: 100vh !important;
+            height: auto !important;
+            display: block !important;
+        }
+        
         /* Template Info */
         .template-info {
             display: none;
@@ -611,20 +618,26 @@
                     console.log('✅ CSS loaded:', allCss.length, 'characters from', this.cssFiles.length, 'files');
                 }
                 
-                // Debug: Check if components were added
+                // Fix wrapper height after content is loaded
                 setTimeout(() => {
-                    const components = this.editor.getComponents();
-                    console.log('📊 Components in editor:', components.length);
-                    console.log('📊 Editor HTML:', this.editor.getHtml().substring(0, 500));
-                    
-                    // Check if canvas iframe exists and has content
                     const canvas = this.editor.Canvas;
                     const frame = canvas.getFrameEl();
                     if (frame) {
                         const frameDoc = frame.contentDocument || frame.contentWindow.document;
+                        
+                        // Find and fix the wrapper
+                        const wrapper = frameDoc.querySelector('[data-gjs-type="wrapper"]');
+                        if (wrapper) {
+                            wrapper.style.minHeight = '100vh';
+                            wrapper.style.height = 'auto';
+                            wrapper.style.display = 'block';
+                            console.log('✅ Wrapper height fixed!');
+                        }
+                        
+                        // Debug info
+                        console.log('📊 Components in editor:', this.editor.getComponents().length);
                         console.log('🖼️ Canvas iframe body:', frameDoc.body ? 'EXISTS' : 'MISSING');
                         console.log('🖼️ Canvas body HTML length:', frameDoc.body ? frameDoc.body.innerHTML.length : 0);
-                        console.log('🖼️ Canvas body preview:', frameDoc.body ? frameDoc.body.innerHTML.substring(0, 300) : 'NO BODY');
                     }
                 }, 500);
                 
