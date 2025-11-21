@@ -1,0 +1,4580 @@
+
+/*----------------------------------------------------------------------------------- 
+
+Template Name: Tripex - Travel & Tour Booking HTML Template
+URI: pixelfit.agency
+Description: Tripex is a clean and elegant Travel & Tour Booking HTML template designed for travel agencies, tour operators, and booking platforms. With its modern layout and smooth user experience, it allows you to beautifully showcase destinations, tour packages, and booking options all in one place. Perfect for creating a professional online presence with style and simplicity. 
+Author: Pixelfit
+Author URI: https://themeforest.net/user/pixelfit
+Version: 1.0 
+
+
+------------------------------------------------------
+   CSS INDEX
+-----------------------------------------------------
+
+    01# Common CSS
+    02# Page Hero CSS
+    03# CTA Section CSS
+    04# About Page CSS
+    05# Tour Grid Page CSS
+    06# Tour List Page CSS
+    07# Tour Details Page CSS
+    08# Destination Page CSS
+    09# Destination Details Page
+    10# Team Page CSS
+    11# Gallery Page CSS
+    12# Event Page CSS
+    13# Event Details Page CSS
+    14# Faq Page CSS
+    15# Shop Page CSS
+    16# Shop Details Page CSS
+    17# Cart Page CSS
+    18# Checkout Page CSS
+    19# Blog Grid Page CSS
+    20# Blog List Page CSS
+    21# Blog Details Page CSS
+    22# Contact Page CSS
+    23# 404 Page CSS
+-------------------------------------------------------    */
+
+@import "../abstract";
+
+
+/*==== 01# Common CSS ====*/ 
+
+.big-text{
+    & h2{
+        font-size: 200px;
+        font-style: normal;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.05em;
+        background: url(../../images/home-one/gallery/footer-text-bg.jpg) no-repeat center;
+        background-size: cover;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        @include respond(xxxl){
+            font-size: 160px;
+        }
+        @include respond(xxl){
+            font-size: 140px;
+        }
+        @include respond(xl){
+            font-size: 120px;
+        }
+        @include respond(lg){
+            font-size: 80px;
+        }
+        @include respond(md){
+            font-size: 40px;
+        }
+    }
+}
+
+
+/*===== 02# Page Hero CSS ====*/
+
+.page-hero-banner{
+    margin: 0 20px;
+    border-radius: 15px;
+    padding-top: 240px;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    @include respond(md){
+        margin: 0 10px;
+    }
+    & .text-bg{
+        position: absolute;
+        bottom: 0;
+        left: 35px;
+        max-width: 850px;
+        width: 100%;
+        height: 300px;
+        z-index: -1;
+        @include respond(xxxl){
+            left: 0;
+            max-width: 750px;
+        }
+        @include respond(xl){
+            left: 0;
+            max-width: 650px;
+        }
+        @include respond(lg){
+            left: 0;
+            max-width: 400px;
+            height: 250px;
+        }
+        @include respond(md){
+            max-width: 100%;
+            height: 200px;
+        }
+    }
+    & .page-content{
+        padding-bottom: 40px;
+        @include respond(md){
+            padding-bottom: 20px;
+        }
+        & h1{
+            color: $white-color;
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+            font-weight: 800;
+            @include respond(lg){
+                font-size: 40px;
+                line-height: 50px;
+            }
+        }
+        & .breadcrumb-link{
+            & li{
+                display: inline-block;
+                & i{
+                    margin-right: 10px;
+                    margin-left: 10px;
+                }
+                color: $white-color;
+                font-weight: 600;
+                font-size: 22px;
+            }
+        }
+    }
+}
+
+.page-title-hero{
+    position: relative;
+    z-index: 1;
+    padding-top: 90px;
+    padding-bottom: 40px;
+    & .shape{
+        position: absolute;
+        z-index: -1;
+        @include respond(xl){
+            display: none;
+        }
+        &.shape-one{
+            top: 75px;
+            left: 50px;
+            @include respond(xxxl){
+                top: 35px;
+                left: 30px;
+            }
+        }
+        &.shape-two{
+            right: 115px;
+            bottom: 70px;
+            @include respond(xxxl){
+                right: 65px;
+            }
+        }
+    }
+    & .page-content{
+        & ul.breadcrumb-link{
+            margin-bottom: 7px;
+            & li{
+                display: inline-block;
+                & i{
+                    margin-right: 10px;
+                    margin-left: 10px;
+                }
+                color: $text-color;
+                font-weight: 500;
+                font-size: 22px;
+                @include respond(md){
+                    font-size: 18px;
+                }
+            }
+        }
+        & h1{
+            font-size: 55px;
+            line-height: 65px;
+            margin-bottom: 20px;
+            @include respond(lg){
+                font-size: 34px;
+                line-height: 45px;
+            }
+            @include respond(md){
+                font-size: 24px;
+                line-height: 35px;
+            }
+        }
+        & .event-meta{
+            & span{
+                font-weight: 500;
+                &:not(:last-child){
+                    margin-right: 15px;
+                }
+                & i{
+                    color: $secondary-color;
+                    margin-right: 5px;
+                }
+            }
+        }
+    }
+}
+
+/*===== 03# CTA Section CSS ====*/
+
+.tripex-cta-sec{
+    margin: 0 20px;
+    @include respond(md){
+        margin: 0 10px;
+    }
+    & .cta-wrapper{
+        position: relative;
+        z-index: 1;
+        background-color: $primary-black-color;
+        border-radius: 15px;
+        padding-top: 40px;
+        & .shape{
+            position: absolute;
+            z-index: -1;
+            @include respond(xl){
+                display: none;
+            }
+            &.shape-one{
+                top: 80px;
+                left: 55px;
+                @include respond(xxxl){
+                    top: 30px;
+                    left: 0;
+                }
+                @include respond(xxl){
+                    top: 30px;
+                    left: 20px;
+                    & img{
+                        width: 60%;
+                    }
+                }
+            }
+            &.shape-two{
+                top: 75px;
+                right: 44px;
+                @include respond(xxl){
+                    display: none;
+                }
+            }
+        }
+        & .map-bg{
+            position: absolute;
+            z-index: -1;
+            bottom: 0;
+            left: 40px;
+            width: 50%;
+            height: 100%;
+            background-size: contain;
+        }
+    }
+    & .tripex-content-box{
+        padding-bottom: 52px;
+        @include respond(xxl){
+            padding-right: 30px;
+        }
+        @include respond(lg){
+            margin-bottom: 40px;
+            padding-right: 0;
+        }
+        & h2{
+            color: $white-color;
+            margin-bottom: 15px;
+            @include respond(xxxl){
+                font-size: 50px;
+            }
+            @include respond(xxl){
+                font-size: 45px;
+                line-height: 60px;
+            }
+            @include respond(xl){
+                font-size: 32px;
+                line-height: 45px;
+            }
+            @include respond(md){
+                font-size: 24px;
+                line-height: 35px;
+            }
+        }
+        & p{
+            color: $white-color;
+            max-width: 575px;
+            margin-bottom: 25px;
+        }
+    }
+}
+
+
+/*=== 04# About Page CSS ===*/ 
+
+.tripex-about-sec{
+    position: relative;
+    z-index: 1;
+    & .shape{
+        position: absolute;
+        z-index: -1;
+        @include respond(xl){
+            display: none;
+        }
+        &.shape-one{
+            top: 40%;
+            left: 30px;
+            @include respond(xxxl){
+                left: 0;
+                & img{
+                    width: 50%;
+                }
+            }
+        }
+        &.shape-two{
+            bottom: 0;
+            right: 0;
+        }
+    }
+    & .tripex-image-box{
+        position: relative;
+        & .tripex-image{
+            &.image-one{
+                position: relative;
+                z-index: 1;
+                margin-bottom: 15px;
+                & img{
+                    border-radius: 120px;
+                }
+            }
+            &.image-two{
+                position: absolute;
+                right: 20px;
+                bottom: 20px;
+                z-index: 2;
+            }
+        }
+        & .tripex-award-card{
+            position: relative;
+            margin-left: 30px;
+            z-index: 3;
+        }
+    }
+    & .tripex-content-box{
+        & .tripex-iconic-list{
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid $border-color;
+        }
+        & .tripex-button-wrap{
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            & .tripex-button{
+                margin-right: 30px;
+                @include respond(xl){
+                    margin-right: 20px;
+                }
+            }
+        }
+    }
+    & .tripex-image-box{
+        margin-right: -75px;
+        @include respond(xl){
+            margin-right: 0;
+        }
+    }
+}
+.tripex-award-card{
+    background-color: $primary-color;
+    padding: 35px 40px;
+    border-radius: 30px;
+    max-width: 300px;
+    & .icon{
+        margin-bottom: 25px;
+    }
+    & .content{
+        & h5{
+            color: $white-color;
+        }
+    }
+}
+.tripex-iconic-item{
+    & .content{
+        & h5{
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 15px;
+            & i{
+                flex: 0 0 auto;
+                width: 70px;
+                height: 70px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: $primary-color;
+                font-size: 40px;
+                color: $white-color;
+                margin-right: 20px;
+            }
+        }
+        & p{
+            line-height: 28px;
+            font-weight: 500;
+        }
+    }
+}
+.tripex-avatar-card{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    border: 1px solid $border-color;
+    border-radius: 30.5px;
+    padding: 8px 25px 8px 8px;
+    background-color: $white-color;
+    border: 1px solid $primary-color;
+    box-shadow: 10px 4px 60px 0px rgba(115, 180, 88, 0.20);
+    & ul{
+        & li{
+            display: inline-block;
+            &:not(:first-child){
+                margin-left: -15px;
+            }
+            & img{
+                border-radius: 50%;
+                width: 44px;
+                height: 44px;
+                border: 2px solid $border-color;
+                box-shadow: 10px 4px 60px 0px rgba(0, 0, 0, 0.10);
+            }
+        }
+    }
+    & span{
+        font-size: 18px;
+        font-weight: 500;
+        margin-left: 15px;
+    }
+}
+.tripex-activities-sec{
+    position: relative;
+    z-index: 1;
+    & .shape{
+        position: absolute;
+        z-index: -1;
+        @include respond(xl){
+            display: none;
+        }
+        &.shape-one{
+            top: 120px;
+            left: 45px;
+            @include respond(xxxl){
+                left: 15px;
+            }
+        }
+        &.shape-two{
+            top: 120px;
+            right: 145px;
+            @include respond(xxxl){
+                right: 40px;
+            }
+        }
+    }
+    & .tripex-image-box{
+        position: relative;
+        padding-left: 10px;
+        @include respond(md){
+            text-align: center;
+            padding-left: 0;
+        }
+        & .tripex-image{
+            & img{
+                border-radius: 30px;
+            }
+        }
+        & .tripex-country-card{
+            position: absolute;
+            bottom: 0;
+            left: 33%;
+            @include respond(md){
+                position: relative;
+                bottom: auto;
+                left: auto;
+                margin: 30px auto 0;
+            }
+        }
+    }
+}
+.tripex-country-card{
+    background-color: $secondary-color;
+    padding: 30px 40px 40px;
+    max-width: 295px;
+    border-radius: 30px;
+    & .content{
+        & h5{
+            margin-bottom: 20px;
+            color: $white-color;
+        }
+        & ul.avatar-list{
+            display: inline-flex;
+            flex-wrap: wrap;
+            & li{
+                &:not(:first-child){
+                    margin-left: -10px;
+                }
+                & img{
+                    width: 50px;
+                    height: 50px;
+                    border-radius: 50%;
+                    border: 2px solid $border-color;
+                }
+            }
+        }
+    }
+}
+.tripex-features-table{
+    border: 1px solid $border-color;
+    border-radius: 10px;
+    & .features-table-row{
+        display: flex;  
+        flex-wrap: wrap;
+        &:not(:last-child){
+            border-bottom: 1px solid $border-color;
+        }
+        @include respond(md){
+            flex-wrap: wrap;
+        }
+        & .features-table-col{
+            padding: 10px;
+            width: 50%;
+            &:not(:last-child){
+                border-right: 1px solid $border-color;
+            }
+            @include respond(md){
+                width: 100%;
+            }
+        }
+    }
+}
+.tripex-iconic-box{
+    background-color: $gray-color;
+    padding: 30px 35px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    @include respond(xxxl){
+        padding: 30px;
+    }
+    & .icon{
+        flex: 0 0 auto;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background-color: $white-color;
+        color: $heading-color;
+        font-size: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 20px;
+        transition: all .3s;
+    }
+    & .content{
+        & h5{
+            line-height:30px;
+            @include respond(xxxl){
+                font-size: 18px;
+            }
+        }
+    }
+    &:hover{
+        & .icon{
+            background-color: $secondary-color;
+            color: $white-color;
+        }
+    }
+}
+.gallery-slider{
+    & .slick-slide{
+        margin-left: 15px;  
+        margin-right: 15px;
+    }
+    & .tripex-gallery-item{
+        & .gallery-image{
+            & img{
+                border-radius: 15px;
+            }
+        }
+    }
+}
+.tripex-team-sec{
+    position: relative;
+    z-index: 1;
+    background-color: $primary-black-color;
+    margin: 0 20px 20px;
+    border-radius: 15px;
+    overflow: hidden;
+    & .team-bg{
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+    }
+    & .shape{
+        position: absolute;
+        z-index: -1;
+        @include respond(xl){
+            display: none;
+        }
+        &.shape-one{
+            right: 65px;
+            bottom: 75px;
+            @include respond(xxxl){
+                right: 15px;
+                width: 200px;
+            }
+        }
+    }
+    & .tripex-team-item{
+        & .member-info{
+            & h4{
+                color: $white-color;
+            }
+            & span.position{
+                color: rgba(255, 255, 255, 0.65);
+            }
+            & .social-box{
+                & a{
+                    background-color: $white-color;
+                    color: $primary-black-color;
+                }
+            }
+        }
+    }
+}
+.tripex-download-sec{
+    background-color: $primary-color;
+    margin: 0 20px;
+    border-radius: 15px;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    @include respond(md){
+        margin: 0 10px;
+    }
+    & .map-bg{
+        position: absolute;
+        top: 0;
+        left: 90px;
+        z-index: -1;
+        & img{
+            opacity: 0.07;
+        }
+        @include respond(xl){
+           top: 0;
+           left: 0;
+        }
+    }
+    & .shape{
+        position: absolute;
+        z-index: -1;
+        @include respond(xxxl){
+            width: 100px;
+        }
+        @include respond(xl){
+            display: none;
+        }
+        &.shape-one{
+            top: 70px;
+            left: 80px;
+            @include respond(xxxl){
+                left: 10px;
+                top: 30px;
+            }
+        }
+        &.shape-two{
+            bottom: 80px;
+            left: 80px;
+            @include respond(xxxl){
+                left: 20px;
+                bottom: 40px;
+            }
+        }
+        &.shape-three{
+            top: 70px;
+            right: 60px;
+            @include respond(xxxl){
+                right: 30px;
+                top: 40px;
+            }
+        }
+        &.shape-four{
+            bottom: 0;
+            right: 90px;
+            @include respond(xxxl){
+                right: 30px;
+            }
+        }
+    }
+    & .tripex-content-box{
+        padding-right: 70px;
+        padding-top: 100px;
+        padding-bottom: 90px;
+        @include respond(xxxl){
+            padding: 70px 0 90px;
+        }
+        @include respond(xl){
+            padding-right: 0;
+            padding: 50px 0 70px;
+        }
+        & .section-title{
+            & span.sub-title{
+                color: $white-color;
+            }
+        }
+        & p{
+            margin-bottom: 35px;
+            font: 600 20px $heading-font;
+            line-height: 35px;
+        }
+        & .tripex-button{
+            & a{
+                margin-bottom: 10px;
+                &:not(:last-child){
+                    margin-right: 15px;
+                    @include respond(md){
+                        margin-right: 5px;
+                    }
+                }
+            }
+        }
+    }
+    & .tripex-image-box{
+        position: relative;
+        z-index: 1;
+        & .discount-box{
+            position: absolute;
+            left: 0;
+            bottom: 170px;
+            width: 140px;
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            & .content{
+                text-align: center;
+                & h3{
+                    font-size: 40px;
+                    letter-spacing: -0.02em;
+                    line-height: 1;
+                    & span{
+                        font-size: 16px;
+                        letter-spacing: 0;
+                    }
+                }
+            }
+            @include respond(md){
+                bottom: 50px;
+            }
+        }
+        & .tripex-image{
+            text-align: right;
+            padding-top: 50px;
+            @include respond(xl){
+                padding-top: 0;
+            }
+        }
+    }
+}
+.tripex-features-sec{
+    & .tripex-image-box{
+        position: relative;
+        & .shape{
+            position: absolute;
+            &.shape-one{
+                top: 120px;
+                left: -70px;
+                z-index: 1;
+                @include respond(md){
+                    display: none;
+                }
+            }
+            &.shape-two{
+                left: 12%;
+                top: 55px;
+                @include respond(md){
+                    top: 30px;
+                    left: 7%;
+                }
+            }
+            &.shape-three{
+                top: 50px;
+                right: 20%;
+                @include respond(md){
+                    top: 20px;
+                    right: 10%;
+                }
+            }
+        }
+    }
+}
+.client-wrapper{
+    border: 1px solid $border-color;
+    padding: 60px 30px 70px;
+    border-radius: 15px;
+    @include respond(xl){
+        padding: 40px 30px 50px;
+    }
+    & h4{
+        color: $text-color;
+        font-weight: 400;
+        margin-bottom: 37px;
+        @include respond(xl){
+            font-size: 18px;
+        }
+    }
+}
+.tripex-client-item{
+    & .thumbnail{
+        text-align: center;
+        & img{
+            margin: 0 auto;
+        }
+    }
+}
+
+
+
+/*=== 05# Tour Grid Page CSS ===*/
+
+.tour-sidebar-area{
+    & .sidebar-title{
+        & button{
+            background-color: $secondary-color;
+            font-size: 16px;
+            color: $white-color;
+            padding: 7px 15px;
+            border-radius: 20px;
+            line-height: 1;
+            font-weight: 500;
+            float: right;
+        }
+    }
+    & .tour-sidebar-widget{
+        border: 1px solid $border-color;
+        border-radius: 15px;
+        padding: 25px 30px 20px;
+        & .widget-title{
+            margin-bottom: 12px;
+            & i{
+                float: right;
+            }
+        }
+        & .widget-content{
+            & .form-check{
+                margin-bottom: 10px;
+                & span{
+                    margin-left: auto;
+                }
+                & a{
+                    margin-left: auto;
+                }
+            }
+        }
+    }
+    & .tour-range-filter-widget{
+        & .widget-title{
+            margin-bottom: 25px;
+        }
+        & .widget-content{
+            & .range-labels {
+                display: flex;
+                justify-content: space-between;
+                font-size: 16px;
+                font-weight: 500;
+                margin-top: 8px;
+            }
+            & .ui-widget.ui-widget-content{
+                border: none;
+                background-color: $secondary-color;
+                height: 3px;
+                border-radius: 2.5px;
+            }
+            & .ui-widget-header{
+                background-color: $secondary-color;
+            }
+            & .ui-slider .ui-slider-handle{
+                top: -7.5px;
+                width: 15px;
+                height: 15px;
+                border-radius: 50%;
+                background: $secondary-color;
+                margin-left: 0;
+                color: transparent;
+                border: none;
+                outline: none;
+            }
+        }
+    }
+}
+.tripex-tour-filter{
+    padding-bottom: 15px;
+    border-bottom: 1px solid $border-color;
+    margin-bottom: 40px;
+    & .show-text{
+        @include respond(md){
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        & p{
+            & span{
+                font: 600 16px $heading-font;
+                color: $primary-color;
+                &:nth-child(2){
+                    color: $heading-color;
+                }
+            }
+        }
+    }
+    & .product-sorting{
+        display: flex;
+        align-items: center;
+        justify-self: flex-end;
+        font: 600 16px $heading-font;
+        @include respond(md){
+            justify-content: center;
+        }
+        & span{
+            margin-right: 10px;
+        }
+        & .nice-select{
+            width: 150px;
+            color: $heading-color;
+            border: none;
+            font-weight: 600;
+            font-family: $heading-font;
+        }
+    }
+    & .product-filtering{
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        @include respond(md){
+            justify-content: center;
+        }
+        & .product-style{
+            margin-left: 20px;
+            &:before{
+                margin-right: 20px;
+                display: inline-block;
+                content: '';
+                width: 1px;
+                height: 25px;
+                background-color: $heading-color;
+            }
+            & a{
+                font-size: 30px;
+                color: $heading-color;
+                &:not(:last-child){
+                    margin-right: 15px;
+                }
+                &.active,
+                &:hover{
+                    color: $primary-color;
+                }
+            }
+        }
+    }
+}
+.tripex-tour-grid-item{
+    padding: 10px;
+    border-radius: 15px;
+    background-color: $white-color;
+    box-shadow: 10px 4px 60px 0px rgba(115, 180, 88, 0.10);
+    border: 1px solid $border-color;
+    & .thumbnail{
+        position: relative;
+        & img{
+            border-radius: 15px;
+            width: 100%;
+        }
+        & .features-tag{
+            position: absolute;
+            top: 15px;
+            left: 15px;
+        }
+        & .offer,
+        & .tag-text{
+            background-color: $secondary-color;
+            color: $white-color;
+            padding: 8px 15px;
+            line-height: 1;
+            font-family: $heading-font;
+            font-weight: 600;
+            border-radius: 10px;
+        }
+        & .offer{
+            background-color: $primary-color;
+        }
+        & .duration{
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-weight: 500;
+            padding: 11px 20px;
+            line-height: 1;
+            background-color: $white-color;
+            color: $heading-color;
+            border-radius: 30px;
+        }
+    }
+    & .content-wrap{
+        & .content{
+            padding: 25px 35px 28px;
+            @include respond(xxxl){
+                padding: 25px 30px 28px;
+            }
+            @include respond(lg){
+                padding: 25px 10px 28px;
+            }
+            & .ratings{
+                margin-bottom: 5px;
+            }
+            & h4{
+                margin-bottom: 15px;
+                @include respond(lg){
+                    font-size: 20px;
+                }
+            }
+            & span{
+                margin-bottom: 20px;
+                & i{
+                    margin-right: 10px;
+                }
+            }
+        }
+        & .tour-meta{
+            border: 1px solid $border-color;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            & .meta-item{
+                padding: 8px 15px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 33.33%;
+                &:nth-child(2){
+                    border-left: 1px solid $border-color;
+                    border-right: 1px solid $border-color;
+                }
+                & .meta-title{
+                    color: $text-color;
+                    display: block;
+                    & i{
+                        margin-right: 5px;
+                        color: $secondary-color;
+                    }
+                }
+                & .meta-value{
+                    color: $heading-color;
+                    font-weight: 700;
+                    font-size: 20px;
+                }
+            }
+        }
+        & .tour-footer{
+            padding: 0 35px 10px;
+            @include respond(lg){
+                padding: 0 10px 10px;
+            }
+            & .theme-btn{
+                &.style-one{
+                    padding: 5px 5px 5px 25px;
+                    background-color: $gray-color;
+                    color: $heading-color;
+                    & i{
+                        color: $primary-color;
+                    }
+                    &:hover{
+                        background-color: $primary-color;
+                        color: $white-color;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/*=== 06# Tour List Page CSS ===*/ 
+
+.tripex-tour-list-item{
+    display: flex;
+    padding: 10px;
+    border-radius: 15px;
+    box-shadow: 10px 4px 60px 0px rgba(115, 180, 88, 0.10);
+    background-color: $white-color;
+    @include respond(md){
+        flex-direction: column;
+    }
+    & .thumbnail{
+        position: relative;
+        max-width: 400px;
+        width: 100%;
+        & img{
+            border-radius: 15px;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+        & .features-tag{
+            position: absolute;
+            top: 15px;
+            left: 15px;
+        }
+        & .offer,
+        & .tag-text{
+            background-color: $secondary-color;
+            color: $white-color;
+            padding: 8px 15px;
+            line-height: 1;
+            font-family: $heading-font;
+            font-weight: 600;
+            border-radius: 10px;
+        }
+        & .offer{
+            background-color: $primary-color;
+        }
+    }
+    & .content-wrap{
+        width: 100%;
+        padding: 20px 30px;
+        @include respond(sm){
+            padding: 20px 15px;
+        }
+        & .tour-meta{
+            margin-bottom: 15px;
+            & span{
+                display: block;
+                & i{
+                    color: $secondary-color;
+                    margin-right: 10px;
+                }
+            }
+        }
+        & .ratings{
+            margin-bottom: 9px;
+        }
+        & h4{
+            letter-spacing: -0.0275em;
+            line-height: 30px;
+            margin-bottom: 20px;
+        }
+        & p{
+            max-width: 330px;
+            color: $heading-color;
+            line-height: 28px;
+            margin-bottom: 23px;
+        }
+        & .tour-footer{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            & .tour-button{
+                & .theme-btn{
+                    &.style-one{
+                        background-color: $gray-color;
+                        color: $heading-color;
+                        & i{
+                            color: $primary-color;
+                        }
+                        &:hover{
+                            background-color: $primary-color;
+                            color: $white-color;
+                        }
+                    }
+                }
+            }
+            & .offer-price{
+                & span{
+                    font-size: 14px;
+                    & span.off{
+                        font-weight: 600;
+                        font-size: 10px;
+                        background-color: $secondary-color;
+                        padding: 5px 7px;
+                        color: $white-color;
+                        line-height: 1;
+                        text-transform: uppercase;
+                        border-radius: 6px;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/*=== 07# Tour Details Page CSS ===*/ 
+
+.tripex-feature-item-two{
+    display: flex;
+    align-items: center;
+    & .icon{
+        flex: 0 0 auto;
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        background-color: $white-color;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: $secondary-color;
+        margin-right: 20px;
+    }
+    & .content{
+        & h6{
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+    }
+}
+.tripex-tour-details-sec{
+    & .tour-gallery-slider{
+        margin-left: -15px;
+        margin-right: -15px;
+        @include respond(lg){
+            margin-left: -12px;
+            margin-right: -12px;
+        }
+        & .slick-slide{
+            margin-left: 15px;
+            margin-right: 15px;
+            @include respond(lg){
+                margin-left: 12px;
+                margin-right: 12px;
+            }
+        }
+        & .tripex-image{
+            & img{
+                border-radius: 15px;
+            }
+        }
+    }
+}
+.tour-details-wrapper{
+    & .tour-title-meta-wrap{
+        padding: 30px 0;
+        border-bottom: 1px solid $border-color;
+        margin-bottom: 100px;
+        @include respond(md){
+            margin-bottom: 30px;
+        }
+        & .tour-title-wrap{
+            & .ratings{
+                margin-bottom: 5px;
+            }
+        }
+        & .tour-meta{
+            & span{
+                display: block;
+                &:not(:last-child){
+                    margin-bottom: 6px;
+                }
+                & i{
+                    color: $secondary-color;
+                    margin-right: 10px;
+                }
+            }
+        }
+        & .social-box{
+            & h4{
+                margin-bottom: 17px;
+            }
+            & a{
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                border: 1px solid $border-color;
+                font-size: 14px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                &:not(:last-child){
+                    margin-right: 5px;
+                }
+                &:hover{
+                    background-color: $secondary-color;
+                    color: $white-color;
+                    border-color: transparent;
+                }
+            }
+        }
+    }
+    & .tripex-content-wrapper{
+        & .tripex-content{
+            margin-top: -8px;
+            & h4{
+                margin-bottom: 15px;
+            }
+            & p{
+                margin-bottom: 30px;
+            }
+            & .check-list{
+                &.style-one{
+                    & li{
+                        &:not(:last-child){
+                            margin-bottom: 25px;
+                        }
+                    }
+                }
+            }
+            & .tripex-image{
+                & img{
+                    border-radius: 15px;
+                }
+            }
+        }
+    }
+    & .tripex-details-tabs{
+        & li{
+            &:first-child{
+                & .nav-link{
+                    padding: 0;
+                    padding-bottom: 15px;
+                    padding-right: 8px;
+                }
+            }
+        }
+        & .nav-link{
+            position: relative;
+            border-radius: 0;
+            border: none;
+            margin-bottom: 0;
+            padding: 0 40px 15px;
+            font-weight: 600;
+            font-size: 18px;
+            color: $text-color;
+            & i{
+                margin-right: 7px;
+            }
+            &:after{
+                position: absolute;
+                bottom: -1px;
+                left: 0;
+                content: '';
+                width: 100%;
+                height: 2px;
+                background-color: $primary-black-color;
+                visibility: hidden;
+                opacity: 0;
+            }
+            &.active{
+                color: $heading-color;
+                & i{
+                    color: $secondary-color;
+                }
+                &:after{
+                    visibility: visible;
+                    opacity: 1;
+                }
+            }
+            @include respond(md){
+                padding: 0 20px 15px;
+            }
+            @include respond(sm){
+                padding: 0 0 15px;
+                margin-right: 15px;
+                &:after{
+                    display: none;
+                }
+            }
+        }
+    }
+    & .tripex-features-box{
+        padding: 30px 40px 10px;
+        background-color: $gray-color;
+        border-radius: 15px;
+        & h4{
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(17, 34, 28, 0.10);
+        }
+    }
+    & .tripex-include-excluded-box{
+        background-color: $white-color;
+        box-shadow: 10px 4px 60px 0px rgba(196, 196, 196, 0.25);
+        display: flex;
+        border-radius: 15px;
+        @include respond(md){
+            flex-direction: column;
+        }
+        & .tripex-excluded-box,
+        & .tripex-include-box{
+            width: 50%;
+            & h4{
+                border-bottom: 1px solid $border-color;
+                padding: 25px 40px;
+                font-size: 24px;
+            }
+            & .content{
+                padding: 40px 40px;
+                & ul.check-list{
+                    &.style-one{
+                        & li{
+                            &:not(:last-child){
+                                margin-bottom: 20px;
+                            }
+                        }
+                    }
+                }
+            }
+            @include respond(md){
+                width: 100%;
+            }
+        }
+        & .tripex-excluded-box{
+            border-left: 1px solid $border-color;
+            & .content{
+                padding-left: 40px;
+                & ul.check-list{
+                    &.style-one{
+                        & li{
+                            & i{
+                                color: $secondary-color;
+                            }
+                        }
+                    }
+                }
+            }
+            @include respond(md){
+               border-left: none;
+            }
+        }
+    }
+    & .tripex-details-summary{
+        & .tripex-content-box{
+            & p{
+                margin-bottom: 40px;
+            }
+            & h5{
+                margin-bottom: 30px;
+            }
+            & .check-list{
+                &.style-one{
+                    & li{
+                        &:not(:last-child){
+                            margin-bottom: 15px;
+                        }
+                    }
+                }
+            }
+        }
+        & .tripex-content-wrapper{
+            background-color: $white-color;
+            box-shadow: 10px 4px 60px 0px rgba(196, 196, 196, 0.25);
+            border: 1px solid $border-color;
+            border-radius: 15px;
+            & .title-wrap{
+                display: flex;
+                justify-content: space-between;
+                border-bottom: 1px solid $border-color;
+                padding: 20px 40px;
+                & h4{
+                    & i{
+                        margin-right: 10px;
+                        color: $secondary-color;
+                    }
+                }
+            }
+            & .accordion{
+                padding: 40px 40px 20px;
+            }
+        }
+        & .faq-content-wrapper{
+            & .accordion{
+                padding: 35px 40px;
+            }
+        }
+        & .map-box{
+            & iframe{
+                height: 500px;
+                border-radius: 15px;
+            }
+        }
+    }
+    & .tripex-rating-box{
+        background-color: $white-color;
+        box-shadow: 10px 4px 60px rgba(196, 196, 196, 0.25);
+        display: flex;
+        align-items: center;
+        border-radius: 10px;
+        @include respond(md){
+            flex-direction: column;
+        }
+        & .rating-wrap{
+            max-width: 300px;
+            width: 100%;
+            flex: 0 0 auto;
+            padding: 70px 70px 60px;
+            text-align: center;
+            border-right: 1px solid $border-color;
+            @include respond(md){
+                padding: 40px 30px 30px;
+                border-right: none;
+                border-bottom: 1px solid $border-color;
+            }
+            & h2{
+                font-size: 100px;
+                margin-bottom: 30px;
+            }
+            & h4{
+                color: $secondary-color;
+            }
+        }
+        & .rating-check-list{
+            width: 100%;
+            padding: 40px 50px;
+            @include respond(md){
+                padding: 40px 30px 30px;
+            }
+            & .form-check{
+                margin-bottom: 10px;
+                & a{
+                    margin-left: auto;
+                }
+            }
+        }
+    }
+    & .tripex-review-area{
+        & h4{
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid $border-color;
+        }
+        & .tripex-reviews-item{
+            display: flex;
+            padding-bottom: 33px;
+            border-bottom: 1px solid $border-color;
+            margin-bottom: 40px;
+            & .author-thumb{
+                width: 100px;
+                flex: 0 0 auto;
+                margin-right: 30px;
+                & img{
+                    width: 100%;
+                    border-radius: 50%;
+                }
+            }
+            & .author-content{
+                & .date{
+                    display: flex;
+                    align-items: center;
+                    &:before{
+                        content: '';
+                        width: 30px;
+                        height: 2px;
+                        background-color: $secondary-color;
+                        margin-right: 10px;
+                    }
+                }
+                & a{
+                    color: $secondary-color;
+                    font-weight: 700;
+                    color: $secondary-color;
+                    & i{
+                        margin-left: 8px;
+                    }
+                }
+            }
+        }
+    }
+    & .tripex-review-form-area{
+        & h4{
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid $border-color;
+        }
+        & .rating-box{
+            margin-bottom: 20px;
+            & h5{
+                margin-bottom: 5px;
+            }
+        }
+        & .avarage-rating{
+            background-color: $secondary-color;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 10px 4px 60px rgba(196, 196, 196, 0.25);
+            padding: 15px;
+            & h2{
+                color: $white-color;
+            }
+            & span{
+                color: $white-color;
+            }
+        }
+        & p{
+            margin-bottom: 20px;
+        }
+        & .form_control{
+            padding: 15px 25px;
+            background-color: $gray-color;
+            border: 1px solid transparent;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            transition: all .3s;
+            &:focus{
+                border-color: $heading-color;
+                background-color: $white-color;
+            }
+        }
+    }
+    & .tripex-tour-pricing-box{
+        padding: 30px 40px;
+        background-color: $white-color;
+        box-shadow: 10px 4px 30px rgba(205, 205, 205, 0.25);
+        border-radius: 15px;
+        & h4{
+            margin-bottom: 18px;
+        }
+        & .pricing-list{
+            margin-bottom: 32px;
+            & .pricing-list-item{
+                border-bottom: 1px solid $border-color;
+                padding: 20px 0 22px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                &:first-child{
+                    border-top: 1px solid $border-color;
+                }
+                & .title{
+                    vertical-align: middle;
+                    & .off{
+                        background-color: $secondary-color;
+                        border-radius: 7px;
+                        line-height: 1;
+                        padding: 5px 7px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        letter-spacing: 0.0225em;
+                        color: $white-color;
+                        text-transform: uppercase;
+                    }
+                }
+                & h3{
+                    & span{
+                        font-size: 16px;
+                        color: $text-color;
+                        font-weight: 400;
+                    }
+                }
+            }
+        }
+        & .pricing-extra{
+            margin-bottom: 30px;
+            & h5{
+                font-size: 18px;
+                margin-bottom: 10px;
+            }
+        }
+        & .pricing-footer{
+            & .theme-btn{
+                &.style-one{
+                    width: 100%;
+                }
+            }
+            & .text-box{
+                padding-top: 20px;
+                & p{
+                    font-size: 14px;
+                    & a{
+                        color: $heading-color;
+                        font-family: $heading-font;
+                        font-weight: 700;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+/*=== 08# Destination Page CSS ====*/
+
+.filter-nav-items{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    & li{
+        padding: 7px 20px;
+        line-height: 1;
+        border-radius: 20px;
+        border: 1px solid $border-color;
+        cursor: pointer;
+        transition: all .3s;
+        &:hover,
+        &.active{
+            background-color: $secondary-color;
+            color: $white-color;
+            border-color: transparent;
+        }
+    }
+}
+.destination-slider{
+    margin-left: -15px;
+    margin-right: -15px;
+    @include respond(md){
+        margin-left: -12px;
+        margin-right: -12px;
+    }
+    & .slick-slide{
+        margin-left: 15px;
+        margin-right: 15px;
+        @include respond(md){
+            margin-left: 12px;
+            margin-right: 12px;
+        }
+    }
+    & .slick-dots{
+        text-align: center;
+        & li{
+            margin-left: 5px;
+            margin-right: 5px;
+            & button{
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                background-color: $primary-color;
+                transition: all .35s;
+            }
+            &.slick-active{
+                & button{
+                    width: 30px;
+                    border-radius: 3.5px;
+                }
+            }
+        }
+    }
+}
+.tripex-destination-sec{
+    margin: 0 8px;
+    & .tripex-image{
+        & img{
+            border-radius: 10px;
+        }
+    }
+    & .section-title{
+        & h2{
+            & span{
+                background-color: $primary-color;
+                padding: 3px 8px;
+                border-radius: 15px;
+                color: $white-color;
+                line-height: 1;
+            }
+        }
+    }
+}
+.tripex-destination-item{
+    & .thumbnail{
+        position: relative;
+        overflow: hidden;
+        & img{
+            width: 100%;
+            border-radius: 150px;
+        }
+        & .hover-content{
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            padding: 20px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            & .content{
+                display: block;
+                background-color: $white-color;
+                width: 100%;
+                padding: 30px;
+                text-align: center;
+                border-bottom-left-radius: 130px;
+                border-bottom-right-radius: 130px;
+                min-height: 130px;
+                & span{
+                    padding: 8px 15px;
+                    border-radius: 14px;
+                    font-weight: 600;
+                    color: $white-color;
+                    line-height: 1;
+                    border: 1px solid $white-color;
+                    font-size: 14px;
+                    background-color: $primary-color;
+                    box-shadow: 10px 4px 30px 0px rgba(115, 180, 88, 0.50);
+                    margin-bottom: 15px;
+                }
+            }
+        }
+    }
+}
+
+
+/*=== 09# Destination Details Page CSS ===*/
+
+.tripex-destination-item-two{
+    & .thumbnail{
+        position: relative;
+        z-index: 1;
+        overflow: hidden;
+        border-radius: 10px;
+        & img{
+            width: 100%;
+            border-radius: 10px;
+        }
+        & .bottom-img{
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 130px;
+            background-size: contain;
+        }
+        & .hover-content{
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding:30px;
+            & .content{
+                text-align: center;
+                & h4{
+                    font-size: 24px;
+                    color: $white-color;
+                }
+            }
+        }
+    }
+}
+.tripex-feature-sec{
+    & .feature-wrapper{
+        display: flex;
+        flex-wrap: wrap;
+        @include respond(xl){
+            flex-direction: column;
+        }
+        & .tripex-image{
+            width: 32%;
+            @include respond(xl){
+                display: none;
+            }
+        }
+        & .feature-content-wrapper{
+            width: calc(68% - 10px);
+            margin-left: auto;
+            @include respond(xl){
+                width: 100%;
+            }
+        }
+        & .feature-content-wrapper{
+            background-color: $primary-black-color;
+            padding: 95px 40px 60px 100px;
+            @include respond(xxxl){
+                padding: 25px 40px 30px;
+            }
+            @include respond(xl){
+                padding: 40px 30px;
+            }
+            & .section-title{
+                margin-bottom: 72px;
+                @include respond(xxxl){
+                    margin-bottom: 30px;
+                }
+                & h2{
+                   @include respond(xxl){
+                        font-size: 40px;
+                        line-height: 50px;
+                    }
+                    @include respond(md){
+                        font-size: 32px;
+                        line-height: 45px;
+                    }
+                }
+            }
+            & .features-items{
+                display: flex;
+                flex-wrap: wrap;
+                @include respond(md){
+                    flex-direction: column;
+                }
+                & .tripex-feature-item{
+                    width: 33.33%;
+                    &:nth-child(2){
+                        border-left: 1px solid rgba(255, 255, 255, 0.10);
+                        border-right: 1px solid rgba(255, 255, 255, 0.10);
+                        @include respond(md){
+                            border-right: none;
+                            border-left: none;
+                            border-top: 1px solid rgba(255, 255, 255, 0.10);
+                            border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+                        }
+                    }
+                    &:nth-child(1){
+                        padding-left: 0;
+                        @include respond(md){
+                            padding-left: 25px;
+                        }
+                    }
+                    @include respond(md){
+                        width: 100%;
+                    }
+                }
+            }
+        }
+    }
+}
+.tripex-feature-item{
+    padding: 30px 60px;
+    @include respond(xxxl){
+        padding: 20px 15px;
+    }
+    @include respond(md){
+        padding: 30px 25px;
+    }
+    & .icon{
+        font-size: 55px;
+        color: $white-color;
+        margin-bottom: 25px;
+    }
+    & .content{
+        & h4{
+            color: $white-color;
+            margin-bottom: 8px;
+            @include respond(xl){
+                font-size: 18px;
+            }
+        }
+        & p{
+            color: rgba(255, 255, 255, 0.65);
+        }
+    }
+}
+.destination-details-wrapper{
+    & .content{
+        &  h3{
+            font-size: 35px;
+            line-height: 45px;
+            margin-bottom: 15px;
+            @include respond(sm){
+                font-size: 18px;
+                line-height: 30px;
+            }
+        }
+        & p{
+            margin-bottom: 35px;
+        }
+        & .check-list{
+            margin-bottom: 50px;
+            @include respond(lg){
+                margin-bottom: 25px;
+            }
+            &.style-one{
+                & li{
+                    &:not(:last-child){
+                        margin-bottom: 20px;
+                    }
+                }
+            }
+        }
+        & figure{
+            & img{
+                border-radius: 10px;
+            }
+        }
+    }
+    & .faq-accordion{
+        background-color: $white-color;
+        box-shadow: 10px 4px 60px rgba(196, 196, 196, 0.25);
+        border-radius: 1px solid $border-color;
+        & .title-wrap{
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 40px;
+            border-bottom: 1px solid $border-color;
+            & h3{
+                & i{
+                    margin-right: 10px;
+                    color: $secondary-color;
+                }
+            }
+        }
+        & .accordion{
+            padding: 40px;
+            @include respond(md){
+                padding: 30px 20px;
+            }
+        }
+    }
+    & .map-box{
+        & iframe{
+            height: 500px;
+            border-radius: 15px;
+        }
+    }
+}
+
+.tripex-testimonial-sec{
+    position: relative;
+    z-index: 1;
+    border-bottom: 1px solid $border-color;
+    & .shape{
+        position: absolute;
+        z-index: -1;
+        @include respond(xl){
+            display: none;
+        }
+        &.shape-one{
+            top: 140px;
+            left: 75px;
+            @include respond(xxxl){
+                top: 40px;
+                left: 20px;
+            }
+        }
+        &.shape-two{
+            bottom: 100px;
+            left: 75px;
+            @include respond(xxxl){
+                bottom: 40px;
+            }
+        }
+        &.shape-three{
+            top: 120px;
+            right: 140px;
+            @include respond(xxxl){
+                top: 40px;
+                right: 40px;
+            }
+        }
+        &.shape-four{
+            bottom: 100px;
+            right: 85px;
+            @include respond(xxxl){
+                bottom: 40px;
+            }
+        }
+    }
+    & .tripex-image-box{
+        & .tripex-image{
+            &.image-one,
+            &.image-two{
+                & img{
+                    border-radius: 150px;
+                }
+            }
+        }
+        @include respond(md){
+            display: none;
+        }
+    }
+    & .tripex-content-box{
+        padding-left: 60px;
+        @include respond(xl){
+            padding-left: 0;
+        }
+        & .testimonial-dots{
+            display: inline-flex;
+            padding: 15px 25px;
+            border: 1px solid #F29727;
+            box-shadow: 10px 4px 20px 0px rgba(242, 151, 39, 0.20);
+            border-radius: 19px;
+            & .slick-dots{
+                line-height: 0;
+                & li{
+                    margin-left: 5px;
+                    margin-right: 5px;
+                    & button{
+                        width: 7px;
+                        height: 7px;
+                        border-radius: 50%;
+                        background-color: $secondary-color;
+                        transition: all .3s;
+                    }
+                    &.slick-active{
+                        & button{
+                            background-color: $secondary-color;
+                            border-radius: 3.5px;
+                            width: 30px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+.tripex-testimonial-item{
+    & .testimonial-content{
+        & .quote-author-item{
+            padding: 20px 30px;
+            border: 1px solid $border-color;
+            border-radius: 37px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+            & .quote{
+                width: 90px;
+                height: 90px;
+                border-radius: 50%;
+                background-color: $secondary-color;
+                border-color: 3px solid $white-color;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 10px 4px 30px 0px rgba(242, 151, 39, 0.50);
+                font-size: 25px;
+                color: $white-color;
+                margin-right: -13px;
+                z-index: 1;
+                @include respond(sm){
+                    display: none;
+                }
+            }
+            & .author-item{
+                display: flex;
+                align-items: center;
+                & .author-thumb{
+                    width: 90px;
+                    flex: 0 0 auto;
+                    margin-right: 30px;
+                    & img{
+                        width: 100%;
+                        border-radius: 50px 50px 0px 50px;
+                    }
+                }
+            }
+        }
+        & p{
+            font-size: 27px;
+            line-height: 42px;
+            font-weight: 700;
+            font-family: $heading-font;
+            color: $heading-color;
+        }
+    }
+}
+
+
+/*=== 10# Team Page CSS ===*/ 
+
+.team-about-sec{
+    position: relative;
+    z-index: 1;
+    & .shape{
+        position: absolute;
+        z-index: -1;
+        @include respond(xl){
+            display: none;
+        }
+        &.shape-one{
+            left: 55px;
+            top: 27%;
+            @include respond(xxxl){
+                left: 14px;
+                top: 2%;
+            }
+        }
+        &.shape-two{
+            left: 110px;
+            bottom: 12%;
+            @include respond(xxxl){
+                left: 30px;
+            }
+        }
+        &.shape-three{
+            right: 0;
+            top: 50px;
+        }
+    }
+    & .tripex-image-box{
+        position: relative;
+        @include respond(md){
+            text-align: center;
+        }
+        & .tripex-image{
+            &.image-one{
+                position: relative;
+                z-index: 1;
+                margin-bottom: 15px;
+                & img{
+                    border-radius: 120px;
+                }
+            }
+            &.image-two{
+                position: absolute;
+                right: 20px;
+                bottom: 20px;
+                z-index: 2;
+                @include respond(md){
+                    position: relative;
+                    right: 0;
+                    bottom: 0;
+                }
+            }
+            &.image-three{
+                position: absolute;
+                top: 85px;
+                right: 60px;
+                z-index: 1;
+            }
+        }
+        & .tripex-award-card{
+            position: relative;
+            margin-left: 30px;
+            z-index: 3;
+        }
+    }
+    & .tripex-content-box{
+        & .tripex-iconic-list{
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid $border-color;
+        }
+        & .tripex-button-wrap{
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            & .tripex-button{
+                margin-right: 50px;
+                @include respond(xl){
+                    margin-right: 20px;
+                }
+            }
+        }
+    }
+}
+
+
+.tripex-team-page{
+    position: relative;
+    z-index: 1;
+    & .shape{
+        position: absolute;
+        z-index: -1;
+        @include respond(xl){
+            display: none;
+        }
+        &.shape-one{
+            left: 90px;
+            top: 45%;
+            @include respond(xxxl){
+                top: 10%;
+                left: 20px;
+            }
+        }
+        &.shape-two{
+            right: 100px;
+            top: 25%;
+            @include respond(xxxl){
+                top: 10%;
+                right: 20px;
+            }
+        }
+    }
+    & .tripex-team-item{
+        & .member-info{
+            & .social-box{
+                & a{
+                    border: 1px solid $border-color;
+                    &:hover{
+                        border-color: transparent;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.tripex-team-item{
+    & .member-image{
+        & img{
+            width: 100%;
+            border-radius: 15px;
+        }
+    }
+    & .member-info{
+        padding-top: 22px;
+        & span{
+            display: block;
+            margin-bottom: 7px;
+        }
+        & .social-box{
+            position: relative;
+            display: flex;
+            gap: 0 var(--icon-gap);
+            --icon-size: 40px;
+            --icon-gap: 10px;
+            & a{
+                position: relative;
+                flex: 0 0 auto;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all .3s;
+                &:hover{
+                    background-color: $primary-color;
+                    color: $white-color;
+                }
+                &:nth-child(1){
+                    z-index: 1;
+                }
+                &:nth-child(5),
+                &:nth-child(4),
+                &:nth-child(3),
+                &:nth-child(2){
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    visibility: hidden;
+                }
+                &:nth-child(2){
+                    transition: all .35s;
+                }
+                &:nth-child(3){
+                    transition: all .4s;
+                }
+                &:nth-child(4){
+                    transition: all .45s;
+                }
+                &:nth-child(5){
+                    transition: all .5s;
+                }
+            }
+            &:hover{
+                & a{
+                    visibility: visible;
+                    &:nth-child(2){
+                        left: calc((var(--icon-size) + var(--icon-gap))*1);
+                    }
+                    &:nth-child(3){
+                        left: calc((var(--icon-size) + var(--icon-gap))*2);
+                    }
+                    &:nth-child(4){
+                        left: calc((var(--icon-size) + var(--icon-gap))*3);
+                    }
+                    &:nth-child(5){
+                        left: calc((var(--icon-size) + var(--icon-gap))*4);
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+/*=== 11# Gallery Page CSS ===*/ 
+
+.tripex-gallery-item{
+    &:hover{
+        & .thumbnail{
+            & .hover-content{
+                visibility: visible;
+                opacity: 1;
+                top: 50%;
+                transform: translate(-50%,-50%);
+            }
+        }
+    }
+    & .thumbnail{
+        position: relative;
+        & img{
+            width: 100%;
+            border-radius: 15px;
+        }
+        & .hover-content{
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%,-60%);
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background-color: $white-color;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: all .3s;
+        }
+        & .inner-content{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px dashed $secondary-color;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+        & .content{
+            border-radius: 50%;
+            & a{
+                font-weight: 500;
+            }
+            & h4{
+                margin-bottom: 20px;
+            }
+            & .icon-btn{
+                &.style-one{
+                    width: 45px;
+                    height: 45px;
+                    border-radius: 50%;
+                    background-color: $primary-color;
+                    color: $white-color;
+                }
+            }
+        }
+    }
+}
+
+
+
+/*=== 12# Event Page CSS ====*/ 
+
+.tripex-event-item{
+    & .thumbnail{
+        position: relative;
+        & img{
+            border-radius: 10px;
+            width: 100%;
+        }
+        & .date-btn{
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            border-radius: 7px;
+            width: 60px;
+            height: 65px;
+            background-color: $secondary-color;
+            font: 800 30px $heading-font;
+            color: $white-color;
+            text-align: center;
+            line-height: .9;
+            & span.month{
+                font: 500 16px $body-font;
+            }
+        }
+    }
+    & .content{
+        position: relative;
+        width: (calc(100% - 50px));
+        background-color: $white-color;
+        box-shadow: 10px 4px 60px rgba(204, 204, 204, 0.25);
+        border-radius: 15px;
+        margin: -55px auto 0;
+        padding: 23px 30px 20px;
+        @include respond(md){
+            width: (calc(100% - 25px));
+        }
+        & .event-meta{
+            & span{
+                font-weight: 500;
+                &:not(:last-child){
+                    margin-right: 15px;
+                }
+                & i{
+                    color: $secondary-color;
+                    margin-right: 5px;
+                }
+            }
+        }
+        & h4{
+            font-size: 18px;
+            line-height: 30px;
+        }
+    }
+}
+
+
+/*=== 13# Event Details Page CSS ===*/ 
+
+.event-details-wrapper{
+    & .thumbnail{
+        margin-bottom: 30px;
+        & img{
+            border-radius: 15px;
+        }
+    }
+    & .content{
+        & h3{
+            font-size: 35px;
+            line-height: 45px;
+            margin-bottom: 20px;
+            max-width: 75%;
+            @include respond(lg){
+                max-width: 100%;
+            }
+            @include respond(md){
+                font-size: 22px;
+                line-height: 35px;
+            }
+        }
+        & .text-box{
+            & h4{
+                font-weight: 800;
+                font-size: 24px;
+                line-height: 35px;
+                margin-bottom: 30px;
+            }
+            & ul.check-list{
+                &.style-one{
+                    & li{
+                        &:not(:last-child){
+                            margin-bottom: 18px;
+                        }
+                    }
+                }
+            }
+        }
+        & .tripex-image{
+            & img{
+                width: 100%;
+                border-radius: 15px;
+            }
+        }
+        & .event-info-box{
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            background-color: $secondary-color;
+            border-radius: 15px;
+            padding: 40px 50px 85px;
+            @include respond(xl){
+                padding: 40px 30px 55px;
+            }
+            & .map-bg{
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                z-index: -1;
+                & img{
+                    opacity: .2;
+                }
+            }
+            & h4{
+                color: $white-color;
+                font-size: 30px;
+                line-height: 40px;
+                margin-bottom: 32px;
+                &::after{
+                    margin-top: 15px;
+                    display: block;
+                    content: '';
+                    width: 80px;
+                    height: 3px;
+                    background-color: $white-color;
+                }
+            }
+            & .event-info{
+                display: flex;
+                align-items: flex-start;
+                margin-bottom: 25px;
+                & .icon{
+                    color: $white-color;
+                    width: 30px;
+                    flex: 0 0 auto;
+                    margin-right: 20px;
+                }
+                & .content{
+                    & span{
+                        font-weight: 500;
+                        color: $white-color;
+                    }
+                    & p{
+                        color: $white-color;
+                        font-weight: 600;
+                    }
+                }
+            }
+        }
+        & .map-box{
+            & iframe{
+                height: 500px;
+                border-radius: 15px;
+            }
+        }
+    }
+}
+
+
+
+/*====== 14# Faq Page CSS ======*/
+
+.accordion-card{
+    border-radius: 14px;
+    border: 1px solid $border-color;
+    background-color: $white-color;
+    padding: 15px 20px;
+    transition: all .3s;
+    & .accordion-header{
+        & .accordion-title{
+            line-height: 25px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            &  span.icon{
+                flex: 0 0 auto;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background-color: $secondary-color;
+                color: $white-color;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 15px;
+            }
+            &:after{
+                flex: 0 0 auto;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                content: '\f055';
+                font-family: 'Font Awesome 5 Pro';
+                font-weight: 900;
+                font-size: 18px;
+                color: $primary-color;
+                margin-left: auto;
+                transition: all .3s;
+            }
+        }
+        & .accordion-title[aria-expanded=true]{
+            padding-bottom: 20px;
+            border-bottom: 1px solid $border-color;
+            &:after{
+                content: '\f056';
+                color: $secondary-color;
+            }
+        }
+    }
+    & .accordion-content{
+        padding-top: 30px;
+        padding-left: 75px;
+        @include respond(lg){
+            padding-left: 0;
+            padding: 20px 20px 0;
+        }
+        & p{
+            margin-bottom: 20px;
+        }
+    }
+    &.accordion-active{
+        box-shadow: 10px 4px 60px rgba(204, 204, 204, 0.25);
+        padding: 30px 20px 35px;
+    }
+}
+.accordion-card-two{
+    &:not(:last-child){
+        padding-bottom: 20px;
+        border-bottom: 1px solid $border-color;
+        margin-bottom: 20px;
+    }
+    & .accordion-header{
+        & .accordion-title{
+            line-height: 25px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            &  span.icon{
+                flex: 0 0 auto;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background-color: $secondary-color;
+                color: $white-color;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 15px;
+            }
+            &:after{
+                flex: 0 0 auto;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                content: '\f055';
+                font-family: 'Font Awesome 5 Pro';
+                font-weight: 900;
+                font-size: 18px;
+                color: $primary-color;
+                margin-left: auto;
+                transition: all .3s;
+            }
+        }
+        & .accordion-title[aria-expanded=true]{
+            padding-bottom: 20px;
+            border-bottom: 1px solid $border-color;
+            &:after{
+                content: '\f056';
+                color: $secondary-color;
+            }
+        }
+    }
+    & .accordion-content{
+        padding-top: 20px;
+        & img{
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        & p{
+            margin-bottom: 20px;
+        }
+    }
+}
+.accordion-card-three{
+    border: 1px solid $border-color;
+    border-radius: 14px;
+    padding: 14px 20px;
+    & .accordion-title{
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        & .icon{
+            flex: 0 0 auto;
+            margin-right: 15px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: $secondary-color;
+            color: $white-color;
+            font-size: 17px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        &:after{
+            margin-left: auto;
+            content: '\f055';
+            font-family: 'Font Awesome 5 Pro';
+            font-weight: 900;
+            color: $primary-color;
+        }
+    }
+    & .accordion-title[aria-expanded=true]{
+        padding-bottom: 20px;
+        border-bottom: 1px solid $border-color;
+        &:after{
+            content: '\f056';
+            color: $secondary-color;
+        }
+    }
+    & .accordion-content{
+        padding: 20px 70px 10px;
+        & p{
+            margin-bottom: 20px;
+        }
+        & .check-list{
+            &.style-two{
+                & li{
+                    color: $heading-color;
+                    &:not(:last-child){
+                        margin-bottom: 0;
+                    }
+                    &:before{
+                        top: 13px;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/*====== 15# Shop Page CSS ======*/
+
+.quantity-cart{
+    & .quantity-input{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid $border-color;
+        width: 150px;
+        border-radius: 23px;
+        margin: 0 auto;
+        & input{
+            width: 50px;
+            height: 45px;
+            border: none;
+            border-left: 1px solid $border-color;
+            border-right: 1px solid $border-color;
+            text-align: center;
+        }
+        & button{
+            width: 50px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: transparent;
+        }
+    }
+}
+
+.product-sidebar-area{
+    & .product-widget{
+        background-color: $white-color;
+        border: 1px solid $border-color;
+        box-shadow: 10px 4px 60px rgba(205, 205, 205, 0.25);
+        padding: 25px 30px;
+        border-radius: 10px;
+        & h4.widget-title{
+            position: relative;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            &:before,
+            &:after{
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                content: '';
+                height: 3px;
+                border-radius: 1.5px;
+                background-color: $secondary-color;
+            }
+            &:after{
+                width: 30px;
+                left: 22px;
+            }
+            &:before{
+                width: 15px;
+            }
+        }
+    }
+    & .product-search-widget{
+        box-shadow: none;
+        padding: 0;
+        border: none;
+        & .widget-content{
+            & form{
+                & .form_control{
+                    padding: 11px 23px;
+                    width: 100%;
+                    border: 1px solid $border-color;
+                    border-radius: 10px;
+                    box-shadow: 10px 4px 30px 0px rgba(188, 188, 188, 0.20);
+                }
+                & .search-btn{
+                    position: absolute;
+                    top: 4px;
+                    right: 5px;
+                    width: 45px;
+                    height: 45px;
+                    border-radius: 7px;
+                    background-color: $primary-color;
+                    color: $white-color;
+                }
+            }
+        }
+    }
+    & .product-price-filter-widget{
+        & .widget-content{
+            & .widget-title{
+                margin-bottom: 21px;
+            }
+            & .range-labels {
+                display: flex;
+                justify-content: space-between;
+                font-size: 16px;
+                font-weight: 500;
+                margin-bottom: 8px;
+            }
+            & .ui-widget.ui-widget-content{
+                border: none;
+                background-color: rgba(241, 79, 68, 0.10);
+                height: 3px;
+                border-radius: 2.5px;
+            }
+            & .ui-widget-header{
+                background-color: $secondary-color;
+            }
+            & .ui-slider .ui-slider-handle{
+                top: -7.5px;
+                width: 15px;
+                height: 15px;
+                border-radius: 50%;
+                background-color: $secondary-color;
+                border: none;
+                outline: none;
+            }
+        }
+    }
+    & .product-tag-widget{
+        & .widget-content{
+            & a{
+                border: 1px solid $border-color;
+                padding: 7px 15px;
+                line-height: 1;
+                border-radius: 7px;
+                margin-bottom: 10px;
+                margin-right: 5px;
+            }
+        }
+    }
+    & .product-banner-widget{
+        padding: 0;
+        box-shadow: none;
+        overflow: hidden;
+        border-radius: 15px;
+        & .widget-content{
+            padding-top: 50%;
+            position: relative;
+            z-index: 1;
+            & .banner-shape{
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                z-index: -1;
+                width: 100%;
+                max-height: 285px;
+                height: 100%;
+                & img{
+                    width: 100%;
+                    height: 100%;
+                }
+            }
+            & .shape{
+                position: absolute;
+                bottom: 45px;
+                right: 35px;
+                z-index: -1;
+            }
+            & .content{
+                padding: 30px 40px 40px;
+                & span{
+                    font-size: 24px;
+                    line-height: 1;
+                    letter-spacing: 0.02rem;
+                    font-family: $accent-font;
+                    color: $white-color;
+                    margin-bottom: 5px;
+                }
+                & h3{
+                    font-size: 22px;
+                    line-height: 35px;
+                    margin-bottom: 20px;
+                    color: $white-color;
+                    @include respond(xl){
+                        font-size: 24px;
+                        line-height: 37px;
+                    }
+                }
+                & .theme-btn{
+                    &.style-one{
+                        background-color: $secondary-color;
+                        & i{
+                            color: $secondary-color;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    & .product-categories-widget{
+        & .widget-content{
+            & .categories-list{
+                & li{
+                    display: flex;
+                    align-items: center;
+                    &:not(:last-child){
+                        margin-bottom: 10px;
+                    }
+                    &:before{
+                        display: inline-flex;
+                        content: '';
+                        width: 5px;
+                        height: 5px;
+                        border-radius: 50%;
+                        background-color: $text-color;
+                        margin-right: 10px;
+                        flex: 0 0 auto;
+                    }
+                    & a{
+                        display: block;
+                        width: 100%;
+                        & span{
+                            float: right;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    & .product-ratings-widget{
+        & .widget-content{
+            & .form-check{
+                &:not(:last-child){
+                    margin-bottom: 15px;
+                }
+            }
+        }
+    }
+}
+
+.product-filter{
+    & .show-text{
+        margin-bottom: 30px;
+        @include respond(md){
+            margin-bottom: 15px;
+        }
+        & p{
+            & span{
+                font: 600 16px $heading-font;
+                color: $secondary-color;
+                &:nth-child(2){
+                    color: $heading-color;
+                }
+            }
+        }
+    }
+    & .product-sorting{
+        display: flex;
+        align-items: center;
+        justify-self: flex-end;
+        font: 600 16px $heading-font;
+        margin-bottom: 40px;
+        @include respond(md){
+            justify-content: center;
+            margin: 0 auto 30px;
+        }
+        & span{
+            margin-right: 10px;
+        }
+        & .nice-select{
+            width: 150px;
+            color: $heading-color;
+            border: none;
+            font-weight: 600;
+            font-family: $heading-font;
+        }
+    }
+}
+
+.tripex-product-item{
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid $border-color;
+    box-shadow: 10px 4px 60px rgba(205, 205, 205, 0.25);
+    & .product-thumbnail{
+        & img{
+            width: 100%;
+            border-radius: 10px;
+        }
+    }
+    & .product-info{
+        text-align: center;
+        padding: 20px;
+        & h4{
+            font-size: 18px;
+            margin-bottom: 7px;
+        }
+        & p.price{
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+        & .theme-btn{
+            &.style-one{
+                background-color: $gray-color;
+                color: $heading-color;
+                & i{
+                    color: $heading-color
+                }
+                &:hover{
+                    background-color: $primary-color;
+                    color: $white-color;
+                    & i{
+                        color: $primary-color;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/*===== 16# Shop Details Page CSS ======*/ 
+
+.tripex-shop-details-sec{
+    & .page-content{
+        margin-bottom: 105px;
+        & .breadcrumb-link{
+            margin-bottom: 10px;
+            & li{
+                display: inline-block;
+                & i{
+                    margin-right: 10px;
+                    margin-left: 10px;
+                }
+                font-weight: 600;
+                font-size: 22px;
+            }
+        }
+        & h1{
+            font-size: 55px;
+            line-height: 65px;
+            margin-bottom: 25px;
+            @include respond(lg){
+                font-size: 32px;
+                line-height: 45px;
+            }
+        }
+    }
+    & .product-thumb-slider{
+        margin-left: -15px;
+        margin-right: -15px;
+        @include respond(md){
+            margin-left: 12px;
+            margin-right: 12px;
+        }
+        & .slick-slide{
+            margin-left: 15px;
+            margin-right: 15px;
+            cursor: pointer;
+            @include respond(md){
+                margin-left: 12px;
+                margin-right: 12px;
+            }
+        }
+    }
+    & .shop-details-wrapper{
+        & .product-img{
+            & a{
+                display: block;
+            }
+            img{
+                width: 100%;
+                border-radius: 10px;
+            }
+        }
+        & .product-info{
+            padding-left: 70px;
+            @include respond(xl){
+                padding-left: 0;
+            }
+            & .ratings{
+                margin-bottom: 25px;
+            }
+            & h4.title{
+                font-size: 45px;
+                margin-bottom: 20px;
+                @include respond(md){
+                    font-size: 22px;
+                    line-height: 35px;
+                }
+            }
+            & p.price{
+                font-size: 24px;
+                color: $secondary-color;
+                font-family: $heading-font;
+                font-weight: 700;
+            }
+            & p{
+                margin-bottom: 45px;
+                padding-bottom: 45px;
+                border-bottom: 1px solid $border-color;
+                @include respond(md){
+                    margin-bottom: 20px;
+                    padding-bottom: 20px;
+                }
+            }
+            & .product-cart-variation{
+                & ul{
+                    display: inline-flex;
+                    flex-wrap: wrap;
+                    align-items: center;
+                    gap: 0 15px;
+                    & li{
+                        margin-bottom: 15px;
+                    }
+                }
+                & .quantity-input{
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 1px solid $border-color;
+                    width: 150px;
+                    border-radius: 23px;
+                    margin: 0 auto;
+                    & input{
+                        width: 50px;
+                        height: 45px;
+                        border: none;
+                        border-left: 1px solid $border-color;
+                        border-right: 1px solid $border-color;
+                        text-align: center;
+                    }
+                    & button{
+                        width: 50px;
+                        height: 45px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        background-color: transparent;
+                    }
+                }
+            }
+            & .category{
+                & span{
+                    font-weight: 600;
+                    color: $heading-color;
+                    margin-right: 20px;
+                    & a{
+                        color: $text-color;
+                        margin-left: 5px;
+                    }
+                }
+            }
+            & .social-box{
+                & span{
+                    font-weight: 600;
+                    color: $heading-color;
+                    margin-right: 20px;
+                }
+                & a{
+                    width: 36px;
+                    height: 36px;
+                    border: 1px solid $border-color;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    font-size: 14px;
+                    &:hover{
+                        background-color: $primary-color;
+                        color: $white-color;
+                    }
+                    &:not(:last-child){
+                        margin-right: 5px;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+.product-description-info{
+    & .tripex-tabs{
+        & .nav-tabs{
+            border-bottom: none;
+        }
+        & li{
+            margin-right: 25px;
+        }
+        & .nav-link{
+            border: none;
+            font: 500 22px $heading-font;
+            padding-right: 100px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid $border-color;
+            color: $text-color;
+            &.active{
+                color: $heading-color;
+                border-color: $heading-color;
+            }
+            @include respond(md){
+                padding-right: 10px;
+                font-size: 16px;
+            }
+        }
+    }
+    & .tripex-content-box{
+        & h3{
+            margin-bottom: 25px;
+        }
+        & p{
+            margin-bottom: 35px;
+        }
+        & h4{
+            margin-bottom: 30px;
+        }
+        & h6{
+            margin-bottom: 10px;
+            color: $text-color;
+            font-weight: 400;
+            font-family: $body-font;
+        }
+        & ul.check-list{
+            & li{
+                &:not(:last-child){
+                    margin-bottom: 20px;
+                }
+            }
+        }
+        & figure{
+            & img{
+                border-radius: 10px;
+            }
+        }
+        &.rating-content-box{
+            & p{
+                margin-bottom: 120px;
+                @include respond(xxxl){
+                    margin-bottom: 50px;
+                }
+                @include respond(lg){
+                    margin-bottom: 30px;
+                }
+            }
+        }
+    }
+}
+
+.rating-box-wrapper{
+    border-radius: 15px;
+    border: 1px solid rgba(115, 180, 88, 0.20);
+    background-color: $gray-color;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    @include respond(md){
+        flex-direction: column;
+    }
+    & .rating-box{
+        background-color: $white-color;
+        padding: 40px;
+        text-align: center;
+        border-radius: 15px;
+        @include respond(md){
+            width: 100%;
+        }
+        & h2{
+            font-size: 80px;
+            line-height: 1;
+        }
+        & .ratings{
+            margin-bottom: 70px;
+            @include respond(xxxl){
+                margin-bottom: 30px;
+            }
+        }
+    }
+    & .rating-list{
+        width: 100%;
+        padding: 30px;
+        @include respond(xl){
+            padding: 20px 15px;
+        }
+        & ul{
+            width: 100%;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            & li{
+                width: 100%;
+                display: flex;
+                align-items: center;
+                gap: 0 30px;
+                &:not(:last-child){
+                    margin-bottom: 15px;
+                }
+                & .rate{
+                    width: 105px;
+                }
+                & .progress{
+                    width: 80%;
+                    height: 5px;
+                    background-color: $white-color;
+                    & .progress-bar{
+                        background-color: $secondary-color;
+                    }
+                }
+                & .rate-number{
+                    font-size: 22px;
+                    color: $heading-color;
+                    font-weight: 500;
+                    font-family: $body-font;
+                }
+            }
+        }
+    }
+}
+.review-form-area{
+    & .review-form{
+        & label{
+            color: $heading-color;
+            margin-bottom: 10px;
+        }
+        & .form_control{
+            padding: 12px 25px;
+            border: 1px solid $border-color;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+    }
+}
+
+.tripex-related-product{
+    border-top: 1px solid $border-color;
+}
+
+/*===== 17# Cart Page CSS ======*/  
+
+.cart-wrapper{
+    & table{
+        @include respond(xl){
+            width: 1300px;
+        }
+    }
+    & th{
+        &.remove,
+        &.sub-total,
+        &.price,
+        &.quantity{
+            text-align: center;
+        }
+    }
+    & .product-thumb-item{
+        display: flex;
+        align-items: center;
+        & .product-thumbnail{
+            flex: 0 0 auto;
+            width: 150px;
+            margin-right: 50px;
+            & img{
+                border-radius: 10px;
+                width: 100%;
+            }
+        }
+        & .product-info{
+            & h4.title{
+                font-size: 20px;
+                margin-bottom: 3px;
+            }
+        }
+    }
+    & td{
+        padding: 30px 0px;
+        vertical-align: middle;
+        & .cart-remove,
+        & .total-price,
+        & .price{
+            text-align: center;
+            color: $heading-color;
+            font-weight: 600;
+        }
+    }
+    & .cart-bottom{
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        @include respond(md){
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        & .cart-coupon{
+            @include respond(md){
+                margin-bottom: 40px;
+            }
+            & h6{
+                margin-bottom: 20px;
+            }
+            & .form-group{
+                display: flex;
+                align-items: center;
+                & .form_control{
+                    padding: 9px 25px;
+                    width: 315px;
+                    border-radius: 25px;
+                    border: 1px solid $border-color;
+                    @include respond(md){
+                        padding: 9px 15px;
+                        width: 190px;
+                        margin-right: 10px;
+                    }
+                }
+            }
+            
+        }
+    }
+}
+.cart-total-box{
+    background-color: $gray-color;
+    padding: 50px 55px 60px;
+    border-radius: 10px;
+    border: 1px solid $border-color;
+    @include respond(sm){
+        padding: 30px 25px 40px;
+    }
+    & h3{
+        margin-bottom: 10px;
+    }
+    & p{
+        margin-bottom: 45px;
+    }
+    & .cart-list{
+        & li{
+            font-size: 18px;
+            color: $heading-color;
+            font-weight: 700;
+            font-family: $heading-font;
+            padding-bottom: 25px;
+            & .list-item{
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            &:nth-child(2){
+                border-bottom: 1px solid #d1d1d1;
+                margin-bottom: 25px;
+            }
+        }
+    }
+    & .checkout-button{
+        text-align: right;
+    }
+}
+
+/*===== 18# Checkout Page CSS ======*/ 
+
+.tripex-checkout-page{
+    & .checkout-wrapper{
+        & h4{
+            font-size: 35px;
+            line-height: 45px;
+            margin-bottom: 10px;
+        }
+        & P{
+            margin-bottom: 25px;
+        }
+        & label{
+            color: $heading-color;
+            margin-bottom: 5px;
+            font-family: $heading-font;
+        }
+        & .form_control{
+            padding: 10px 25px;
+            border-radius: 7px;
+            border: 1px solid $border-color;
+            margin-bottom: 30px;
+            border-radius: 30px;
+        }
+        & .nice-select{
+            padding: 10px 25px;
+            border-radius: 30px;
+            margin-bottom: 30px;
+            &:after{
+                position: absolute;
+                right: 25px;
+                content: '\f107';
+                font-family: 'Font Awesome 5 Pro';
+            }
+        }
+        & .form-check{
+            & .form-check-input{
+                margin-left: 0;
+                margin-right: 10px;
+                margin-top: 0;
+            }
+            & label{
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+            }
+        }
+    }
+    & .billing-sidebar{
+        background-color: $gray-color;
+        border-radius: 10px;
+        border: 1px solid $border-color;
+        padding: 30px 50px 40px;
+        & .order-summary-wrapper{
+            & h3{
+                margin-bottom: 25px;
+            }
+            & .order-list{
+                & ul{
+                    & li{
+                        &:not(:last-child){
+                            margin-bottom: 30px;
+                            padding-bottom: 30px;
+                            border-bottom: 1px solid #d1d1d1;
+                        }
+                    }
+                }
+                & .product-item,
+                & .list-item{
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    font-size: 18px;
+                    & .product-cost{
+                        color: $heading-color;
+                        font-weight: 600;
+                        font-family: $heading-font;
+                    }
+                }
+                & .product-item{
+                    margin-bottom: 10px;
+                    & .product-name{
+                        & img{
+                            width: 100px;
+                            height: 100px;
+                            margin-right: 35px;
+                            border-radius: 10px;
+                        }
+                        & a{
+                            font-weight: 500;
+                            font-family: $heading-font;
+                            color: $heading-color;
+                            &:hover{
+                                color: $primary-color;
+                            }
+                        }
+                    }
+                }
+                & .total-price,
+                & .total{
+                    font-size: 24px;
+                    font-weight: 600;
+                    font-family: $heading-font;
+                    color: $heading-color;
+                }
+            }
+        }
+        & .payment-method-wrapper{
+            & .form-check{
+                padding-left: 0;
+                margin-bottom: 25px;
+                & p{
+                    margin-bottom: 27px;
+                }
+            }
+            & .form-check-label{
+                width: 100%;
+                padding: 10px 20px;
+                border-radius: 7px;
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+                margin-bottom: 15px;
+                background-color: $white-color;
+                font-weight: 500;
+                color: $heading-color;
+                border-radius: 26px;
+                border: 1px solid rgba(17, 34, 28, 0.10);
+                & .form-check-input{
+                    margin-left: 0;
+                    margin-top: 0;
+                    margin-right: 10px;
+                }
+            }
+            & p{
+                margin-bottom: 32px;
+                & a{
+                    color: $heading-color;
+                }
+            }
+        }
+        & .order-button{
+            & .theme-btn{
+                width: 70%;
+            }
+        }
+    }
+}
+
+
+
+/*===== 19# Blog Grid Page CSS ======*/ 
+
+.blog-post-item{
+    padding: 10px;
+    border-radius: 15px;
+    background-color: $white-color;
+    border: 1px solid $border-color;
+    box-shadow: 10px 4px 60px rgba(115, 180, 88, 0.10);
+    & .thumbnail{
+        position: relative;
+        & img{
+            border-radius: 15px;
+            width: 100%;
+        }
+        & .date-btn{
+            position: absolute;
+            bottom: -30px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            border-radius: 7px;
+            width: 60px;
+            height: 65px;
+            background-color: $secondary-color;
+            font: 800 30px $heading-font;
+            color: $white-color;
+            text-align: center;
+            line-height: .9;
+            & span.month{
+                font: 500 16px $body-font;
+            }
+            @include respond(lg){
+                bottom: 20px;
+            }
+        }
+    }
+    & .content{
+        padding: 10px 30px 30px;
+        @include respond(lg){
+            padding: 10px 20px 30px;
+        }
+        & .post-meta{
+            padding-bottom: 20px;
+            border-bottom: 1px solid $border-color;
+            margin-bottom: 20px;
+            & span{
+                &:not(:last-child){
+                    margin-right: 25px;
+                    @include respond(xxxl){
+                        margin-right: 15px;
+                    }
+                    @include respond(lg){
+                        margin-right: 10px;
+                    }
+                }
+                & i{
+                    margin-right: 7px;
+                }
+            }
+        }
+        & h4{
+            margin-bottom: 20px;
+            &:hover{
+                color: $primary-color;
+            }
+            @include respond(xxxl){
+                font-size: 18px;
+            }
+        }
+        & p{
+            margin-bottom: 20px;
+        }
+        & .theme-btn{
+            &.style-one{
+                background-color: $gray-color;
+                color: $text-color;
+                & i{
+                    color: $text-color;
+                }
+                &:hover{
+                    background-color: $primary-color;
+                    color: $white-color;
+                    & i{
+                        color: $primary-color;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+/*===== 20# Blog List Page CSS ======*/ 
+
+.blog-post-item-two {
+    & .thumbnail{
+        & img{
+            width: 100%;
+            border-radius: 15px;
+        }
+    }
+    & .content{
+        margin-top: -10px;
+        position: relative;
+        & .post-meta{
+            border-bottom: 1px solid $border-color;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            & span{
+                margin-bottom: 10px;
+                @include respond(md){
+                    font-size: 14px;
+                }
+                &:not(:last-child){
+                    &:after{
+                        margin-left: 25px;
+                        margin-right: 25px;
+                        display: inline-block;
+                        content: '';
+                        width: 5px;
+                        height: 5px;
+                        border-radius: 50%;
+                        background-color: $text-color;
+                        vertical-align: middle;
+                        @include respond(md){
+                            margin-left: 5px;
+                            margin-right: 5px;
+                        }
+                    }
+                }
+                & img{
+                    margin-right: 10px;
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 50%;
+                }
+                & i{
+                    margin-right: 7px;
+                }
+            }
+        }
+        padding: 20px 50px 40px;
+        background-color: $white-color;
+        border: 1px solid $border-color;
+        box-shadow: 10px 4px 60px rgba(115, 180, 88, 0.10);
+        border-radius: 15px;
+        @include respond(md){
+            padding: 20px 20px 30px;
+        }
+        & h4.title{
+            font-size: 27px;
+            line-height: 40px;
+            margin-bottom: 25px;
+            &:hover{
+                color: $primary-color;
+            }
+            @include respond(lg){
+                font-size: 22px;
+                line-height: 35px;
+            }
+            @include respond(md){
+                font-size: 18px;
+                line-height: 30px;
+            }
+        }
+    }
+}
+
+/*===== 21# Blog Details Page CSS ======*/
+
+.tripex-blog-details-sec{
+    & .page-content{
+        & .breadcrumb-link{
+            margin-bottom: 10px;
+            & li{
+                display: inline-block;
+                & i{
+                    margin-right: 10px;
+                    margin-left: 10px;
+                }
+                font-weight: 600;
+                font-size: 22px;
+            }
+        }
+        & h1{
+            font-size: 55px;
+            line-height: 65px;
+            margin-bottom: 25px;
+            @include respond(lg){
+                font-size: 32px;
+                line-height: 45px;
+            }
+        }
+        & .post-meta{
+            margin-bottom: 30px;
+            & span{
+                margin-bottom: 10px;
+                @include respond(md){
+                    font-size: 14px;
+                }
+                &:not(:last-child){
+                    &:after{
+                        margin-left: 25px;
+                        margin-right: 25px;
+                        display: inline-block;
+                        content: '';
+                        width: 5px;
+                        height: 5px;
+                        border-radius: 50%;
+                        background-color: $text-color;
+                        vertical-align: middle;
+                        @include respond(md){
+                            margin-left: 5px;
+                            margin-right: 5px;
+                        }
+                    }
+                }
+                & img{
+                    margin-right: 10px;
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 50%;
+                }
+                & i{
+                    margin-right: 7px;
+                }
+            }
+        }
+    }
+    & .blog-post-main{
+        & .blog-post{
+            & .thumbnail{
+                margin-bottom: 42px;
+                & img{
+                    border-radius: 10px;
+                }
+            }
+            & .content{
+                & h4{
+                    font-size: 30px;
+                    line-height: 40px;
+                    margin-bottom: 25px;
+                    @include respond(md){
+                        font-size: 22px;
+                        line-height: 35px;
+                    }
+                }
+                & p{
+                    margin-bottom: 30px;
+                }
+                & blockquote{
+                    background-color: $gray-color;
+                    padding: 30px 40px 30px 100px;
+                    position: relative;
+                    border-radius: 10px;
+                    margin-bottom: 30px;
+                    & .icon{
+                        position: absolute;
+                        top: 40px;
+                        left: 40px;
+                        & i{
+                            color: $secondary-color;
+                            font-size: 30px;
+                        }
+                    }
+                    & h5{
+                        font-size: 18px;
+                        line-height: 28px;
+                        margin-bottom: 20px;
+                    }
+                    & h6{
+                        position: relative;
+                        color: $primary-color;
+                        &:after{
+                            position: absolute;
+                            left: -70px;
+                            top: 8px;
+                            content: "";
+                            width: 40px;
+                            height: 2px;
+                            background-color: $primary-color;
+                        }
+                    }
+                }
+                & figure{
+                    margin-bottom: 30px;
+                    & img{
+                        border-radius: 10px;
+                    }
+                }
+                & .check-list{
+                    &.style-one{
+                        & li{
+                            &:not(:last-child){
+                                margin-bottom: 20px;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        & .entry-footer{
+            margin-top: 30px;
+            padding-top: 45px;
+            border-top: 1px solid $border-color;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            @include respond(md){
+                flex-direction: column;
+            }
+            & h6{
+                margin-bottom: 15px;
+            }
+            & .tag-links{
+                @include respond(md){
+                    text-align: center;
+                }
+                & a{
+                    padding: 7px 15px;
+                    line-height: 1;
+                    border-radius: 20px;
+                    border: 1px solid $border-color;
+                }
+            }
+            & .social-box{
+                @include respond(md){
+                    text-align: center;
+                }
+                & a{
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                    border: 1px solid $border-color;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    &:not(:last-child){
+                        margin-right: 5px;
+                    }
+                    &:hover{
+                        background-color: $primary-color;
+                        color: $white-color;
+                    }
+                }
+            }
+        }
+    }
+    & .post-author-box{
+        display: flex;
+        background-color: $gray-color;
+        border-radius: 15px;
+        padding: 40px 40px 30px;
+        @include respond(md){
+            flex-direction: column;
+        }
+        & .author-thumbnail{
+            flex: 0 0 auto;
+            width: 130px;
+            margin-right: 40px;
+            @include respond(md){
+                margin-bottom: 30px;
+            }
+            & img{
+                border-radius: 50%;
+                width: 100%;
+            }
+        }
+        & .author-info{
+            & h4{
+                margin-bottom: 5px;
+            }
+            & p{
+                margin-bottom: 15px;
+            }
+            & .social-box{
+                display: inline-flex;
+                & a{
+                    &:not(:last-child){
+                        margin-right: 20px;
+                    }
+                    &:hover{
+                        color: $primary-color;
+                    }
+                }
+            }
+        }
+    }
+    & .post-navigation{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        @include respond(md){
+            flex-direction: column;
+        }
+        & .post-nav-item {
+            display: flex;
+            align-items: center;
+            max-width: 330px;
+            & .thumbnail{
+                flex: 0 0 auto;
+                width: 100px;
+                margin-right: 30px;
+                & img{
+                    border-radius: 10px;
+                }
+            }
+            & .content{
+                & span{
+                    & i{
+                        margin-right: 7px;
+                    }
+                }
+                & h6{
+                    line-height: 28px;
+                }
+            }
+        }
+    }
+    & .contact-wrapper{
+        background-color: $gray-color;
+        padding: 60px 50px;
+        border-radius: 15px;
+        @include respond(md){
+            padding: 40px 20px;
+        }
+        & h3{
+            margin-bottom: 5px;
+        }
+        & p{
+            margin-bottom: 30px;
+        }
+        & .form_control{
+            margin-bottom: 30px;
+            padding: 12px 20px;
+            background-color: $white-color;
+            border-radius: 10px;
+            border: none;
+        }
+    }
+}
+.sidebar-widget-area{
+    & .sidebar-widget{
+        padding: 30px 40px;
+        border: 1px solid $border-color;
+        background-color: $white-color;
+        box-shadow: 10px 4px 60px rgba(205, 205, 205, 0.25);
+        border-radius: 10px;
+        @include respond(xxxl){
+            padding: 30px 30px;
+        }
+        @include respond(sm){
+            padding: 30px 20px;
+        }
+        & h4.widget-title{
+            &:after{
+                display: block;
+                width: 50px;
+                height: 2px;
+                background-color: $primary-color;
+                content: '';
+                margin-top: 12px;
+                margin-bottom: 30px;
+            }
+        }
+    }
+    & .sidebar-search-widget{
+        & .widget-content{
+            & .form_control{
+                border-radius: 25px;
+                background-color: $gray-color;
+                padding: 10px 25px;
+                border: none;
+            }
+            & .search-btn{
+                position: absolute;
+                top: -5px;
+                right: 0;
+                width: 60px;
+                height: 60px;
+                border: 3px solid $white-color;
+                border-radius: 50%;
+                background-color: $primary-color;
+                font-size: 20px;
+                color: $white-color;
+            }
+        }
+    }
+    & .sidebar-categories-widget{
+        & .widget-content{
+            & ul{
+                & li{
+                    &:not(:last-child){
+                        margin-bottom: 15px;
+                        & a{
+                            padding-bottom: 15px;
+                            border-bottom: 1px solid $border-color;
+                        }
+                    }
+                    & a{
+                        display: flex;
+                        align-items: center;
+                        font-weight: 500;
+                        color: $heading-color;
+                        & i{
+                            margin-right: 10px;
+                            color: $secondary-color;
+                        }
+                        & span{
+                            width: 35px;
+                            height: 35px;
+                            border-radius: 50%;
+                            color: $heading-color;
+                            background-color: $gray-color;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin-left: auto;
+                            transition: all .3s;
+                        }
+                        &:hover{
+                            color: $primary-color;
+                            & span{
+                                background-color: $primary-color;
+                                color: $white-color;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    & .sidebar-post-widget{
+        & ul{
+            & li{
+                &:not(:last-child){
+                    margin-bottom: 30px;
+                }
+            }
+        }
+        & .post-thumbnail-content{
+            display: flex;
+            align-items: center;
+            & img{
+                flex: 0 0 auto;
+                width: 100px;
+                margin-right: 30px;
+                border-radius: 10px;
+            }
+            & .post-title-date{
+                & span{
+                    margin-bottom: 10px;
+                    & i{
+                        margin-right: 7px;
+                    }
+                }
+                & h6{
+                    line-height: 28px;
+                    @include respond(xxxl){
+                        font-size: 16px;
+                    }
+                    &:hover{
+                        color: $primary-color;
+                    }
+                }
+            }
+        }
+    }
+    & .sidebar-tag-widget{
+        padding-bottom: 20px;
+        & .widget-content{
+            & a{
+                padding: 7px 15px;
+                font: 500 16px $heading-font;
+                border-radius: 20px;
+                line-height: 1;
+                border: 1px solid $border-color;
+                margin-bottom: 10px;
+                margin-right: 5px;
+                &:hover{
+                    background-color: $primary-color;
+                    color: $white-color;
+                }
+            }
+        }
+    }
+    & .sidebar-nav-widget{
+        border-radius: 0;
+        border: none;
+        padding: 0;
+        box-shadow: inherit;
+        & .widget-content{
+            & .tripex-nav-tabs{
+                & .nav-tabs{
+                    border-bottom: none;
+                    flex-direction: column;
+                }
+                & li{
+                    &:not(:last-child){
+                        margin-bottom: 10px;
+                    }
+                }
+                & .nav-link{
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    border: none;
+                    padding: 16px 30px;
+                    width: 100%;
+                    border-radius: 30px;
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: $heading-color;
+                    background-color: $white-color;
+                    border: 1px solid $border-color;
+                    box-shadow: 10px 4px 60px 0px rgba(177, 177, 177, 0.25);
+                    transition: all .3s;
+                    & i{
+                        float: right;
+                    }
+                    &:hover,
+                    &.active{
+                        background-color: $primary-color;
+                        color: $white-color;
+                    }
+                }
+            }
+        }
+    }
+    & .sidebar-banner-widget{
+        padding: 0;
+        box-shadow: inherit;
+        overflow: hidden;
+        & .widget-content{
+            padding-top: 60%;
+            position: relative;
+            z-index: 1;
+            & .banner-shape{
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                z-index: -1;
+                width: 100%;
+                max-height: 340px;
+                & img{
+                    width: 100%;
+                    height: 100%;
+                }
+            }
+            & .shape{
+                position: absolute;
+                bottom: 45px;
+                right: 35px;
+                z-index: -1;
+            }
+            & .content{
+                padding: 30px 50px;
+                & span{
+                    font-size: 30px;
+                    font-family: $accent-font;
+                    color: $white-color;
+                    margin-bottom: 5px;
+                }
+                & h3{
+                    font-size: 30px;
+                    line-height: 40px;
+                    margin-bottom: 20px;
+                    color: $white-color;
+                    @include respond(xl){
+                        font-size: 24px;
+                        line-height: 37px;
+                    }
+                }
+                & .theme-btn{
+                    &.style-one{
+                        background-color: $secondary-color;
+                        & i{
+                            color: $secondary-color;
+                        }
+                        &:hover{
+                            background-color: $white-color;
+                            color: $heading-color;
+                            & i{
+                                background-color: $secondary-color;
+                                color: $white-color;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    & .sidebar-information-widget{
+        & .widget-content{
+            & h4{
+                margin-bottom: 20px;
+            }
+            & ul{
+                margin-bottom: 40px;
+                & li{
+                    padding: 10px 0;
+                    border-bottom: 1px solid $border-color;
+                    &:first-child{
+                        border-top: 1px solid $border-color;
+                    }
+                    & i{
+                        margin-right: 10px;
+                        color: $secondary-color;
+                    }
+                    & span{
+                        color: $primary-color;
+                        float: right;
+                        font-weight: 500;
+                    }
+                }
+            }
+            & h5{
+                margin-bottom: 15px;
+            }
+            & .social-box{
+                & a{
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 1px solid $border-color;
+                    &:hover{
+                        background-color: $primary-color;
+                        color: $white-color;
+                    }
+                    &:not(:last-child){
+                        margin-right: 5px;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/*===== 22#Contact Page CSS ====*/
+
+.tripex-contact-info-sec{
+    & .section-title{
+        & h2{
+            @include respond(xl){
+                font-size: 58px;
+            }
+            @include respond(lg){
+                font-size: 58px;
+                line-height: 65px;
+            }
+            @include respond(md){
+                font-size: 40px;
+                line-height: 55px;
+            }
+        }
+    }
+    & .tripex-image{
+        & img{
+            border-radius: 205px;
+        }
+    }
+}
+
+.tripex-iconic-box-two{
+    background-color: $gray-color;
+    padding: 40px 50px 35px;
+    border-radius: 15px;
+    @include respond(xl){
+        padding: 40px 30px 35px;
+    }
+    & .icon{
+        font-size: 50px;
+        color: $primary-color;
+        margin-bottom: 27px;
+    }
+    & .content{
+        & span{
+            &.title{
+                color: $heading-color;
+                font-size: 20px;
+                font-weight: 700;
+                font-family: $heading-font;
+            }
+        }
+        & p{
+            margin-bottom: 7px;
+        }
+    }
+}
+
+.tripex-map-sec{
+    & .map-box{
+        & iframe{
+            height: 650px;
+            @include respond(lg){
+                height: 450px;
+            }
+        }
+    }
+}
+
+.tripex-contact-form{
+    & .form_control{
+        border-radius: 10px;
+        border: 1px solid rgba(17, 34, 28, 0.10);
+        padding: 12px 20px;
+        margin-bottom: 30px;
+        color: $heading-color;
+        transition: all .3s;
+        &::placeholder{
+            color: $heading-color;
+        }
+        &:focus{
+            box-shadow: 10px 4px 30px 0px rgba(115, 180, 88, 0.30);
+        }
+    }
+}
+
+
+/*===== 23# 404 Page CSS ====*/
+
+.tripex-404-sec{
+    position: relative;
+    z-index: 1;
+    & .shape{
+        position: absolute;
+        z-index: -1;
+        @include respond(lg){
+            display: none;
+        }
+        &.shape-one{
+            left: 60px;
+            top: 120px;
+            @include respond(xxxl){
+                left: 40px;
+                top: 60px;
+            }
+            @include respond(xl){
+                left: 30px;
+                top: 10px;
+            }
+        }
+        &.shape-two{
+            bottom: 170px;
+            right: 110px;
+            @include respond(xxxl){
+                bottom: 80px;
+                right: 40px;
+            }
+            @include respond(xl){
+                bottom: 50px;
+                right: 30px;
+            }
+        }
+    }
+    & .tripex-content-box{
+        & img{
+            margin-bottom: 40px;
+        }
+        & h1{
+            margin-bottom: 20px;
+            letter-spacing: -0.03em;
+            font-size: $h2-font;
+            line-height: 65px;
+            @include respond(md){
+                font-size: 30px;
+                line-height: 40px;
+            }
+        }
+        & p{
+            max-width: 395px;
+            margin: 0 auto 40px;
+            font: 600 18 $heading-font;
+            color: $heading-color;
+        }
+    }
+}

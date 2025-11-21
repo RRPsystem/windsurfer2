@@ -1,0 +1,1343 @@
+
+/*----------------------------------------------------------------------------------- 
+
+Template Name: Tripex - Travel & Tour Booking HTML Template
+URI: pixelfit.agency
+Description: Tripex is a clean and elegant Travel & Tour Booking HTML template designed for travel agencies, tour operators, and booking platforms. With its modern layout and smooth user experience, it allows you to beautifully showcase destinations, tour packages, and booking options all in one place. Perfect for creating a professional online presence with style and simplicity. 
+Author: Pixelfit
+Author URI: https://themeforest.net/user/pixelfit
+Version: 1.0 
+
+
+------------------------------------------------------
+   CSS INDEX
+-----------------------------------------------------
+
+    01# Common CSS
+    02# Hero Section CSS
+    03# Destination Section CSS
+    04# About Section CSS
+    05# Tour Section CSS
+    06# Offer Section CSS
+    07# Service Section CSS
+    08# Gallery Section CSS
+    09# Choose Section CSS
+    10# Testimonial Section CSS
+    11# Blog Section CSS
+    12# Client Section CSS
+
+-------------------------------------------------------    */
+
+@import "../abstract";
+
+.big-text{
+    & h2{
+        font-size: 200px;
+        font-style: normal;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.05em;
+        background: url(../../images/home-one/gallery/footer-text-bg.jpg) no-repeat center;
+        background-size: cover;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        @include respond(xxxl){
+            font-size: 160px;
+        }
+        @include respond(xxl){
+            font-size: 140px;
+        }
+        @include respond(xl){
+            font-size: 120px;
+        }
+        @include respond(lg){
+            font-size: 80px;
+        }
+        @include respond(md){
+            font-size: 40px;
+        }
+    }
+}
+
+.header-four{
+    & .container-fluid{
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+}
+
+/*====  Hero Section  ====*/
+
+.tripex-hero-sec{
+    padding: 100px 0;
+    position: relative;
+    z-index: 1;
+    @include respond(xl){
+        padding: 100px 0 200px;
+    }
+    & .hero-map{
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: -1;
+    }
+    & .big-text{
+        position: absolute;
+        bottom: 170px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        z-index: -1;
+        @include respond(xxxl){
+            bottom: 100px;
+        }
+        @include respond(xl){
+            bottom: 50px;
+        }
+        @include respond(md){
+            display: none;
+        }
+    }
+    & .container-fluid{
+        padding-left: 40px;
+        padding-right: 40px;
+        @include respond(xl){
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+    }
+    & .tripex-image{
+        margin-bottom: 20px;
+        & img{
+            width: 100%;
+            border-radius: 10px;
+        }
+    }
+    & .hero-content{
+        & h1{
+            font-size: 85px;
+            letter-spacing: -0.035em;
+            margin-bottom: 5px;
+            @include respond(xxxl){
+                font-size: 70px;
+                line-height: 85px;
+                margin-bottom: 30px;
+            }
+            @include respond(xxl){
+                font-size: 60px;
+                line-height: 75px;
+            }
+            @include respond(md){
+                font-size: 40px;
+                line-height: 55px;
+            }
+        }
+        & p{
+            font-size: 20px;
+            margin-bottom: 40px;
+            & span{
+                background-color: $primary-color;
+                color: $white-color;
+                padding: 5px 10px;
+                line-height: 1;
+                border-radius: 15px;
+                font-weight: 600;
+            }
+        }
+    }
+    & .hero-search{
+        & .form_control{
+            padding: 19px 30px;
+            background-color: $white-color;
+            box-shadow: 10px 4px 60px rgba(197, 197, 197, 0.25);
+            border: 1px solid $border-color;
+            border-radius: 50px;
+        }
+        & .theme-btn{
+            position: absolute;
+            top: 12px;
+            right: 17px;
+            &.style-one{
+                @include respond(sm){
+                    padding: 5px;
+                }
+                & i{
+                    @include respond(sm){
+                        margin-left: 0;
+                    }
+                }
+                &:hover{
+                    & i{
+                        transform: rotate(0);
+                    }
+                }
+                & span{
+                    @include respond(sm){
+                        display: none;
+                    }
+                }
+            }
+        }
+        & .form-select-wrap{
+            display: flex;
+            align-items: center;
+            justify-content:center;
+            gap: 10px;
+            margin-top: 25px;
+            @include respond(md){
+                flex-wrap: wrap;
+            }
+            & .form-check{
+                & input{
+                    width: 0;
+                    height: 0;
+                }
+                & span{
+                    background-color: $gray-color;
+                    padding: 9px 15px;
+                    border-radius: 30px;
+                    font-size: 14px;
+                    line-height: 1;
+                    & i{
+                        margin-right: 8px;
+                    }
+                    @include respond(xxxl){
+                        padding: 9px 10px;
+                    }
+                    @include respond(xxl){
+                        font-size: 13px;
+                        padding: 9px 7px;
+                    }
+                }
+                & input:checked + span{
+                    background-color: $primary-color;
+                    color: $white-color;
+                }
+            }
+        }
+    }
+}
+
+/*====  Features Section  ====*/ 
+
+.tripex-feature-sec{
+    & .feature-wrapper{
+        display: flex;
+        flex-wrap: wrap;
+        @include respond(xl){
+            flex-direction: column;
+        }
+        & .tripex-image{
+            width: 32%;
+            @include respond(xl){
+                display: none;
+            }
+        }
+        & .feature-content-wrapper{
+            width: calc(68% - 10px);
+            margin-left: auto;
+            @include respond(xl){
+                width: 100%;
+            }
+        }
+        & .feature-content-wrapper{
+            background-color: $primary-black-color;
+            padding: 95px 40px 60px 100px;
+            @include respond(xxxl){
+                padding: 25px 40px 30px;
+            }
+            @include respond(xl){
+                padding: 40px 30px;
+            }
+            & .section-title{
+                margin-bottom: 72px;
+                @include respond(xxxl){
+                    margin-bottom: 30px;
+                }
+                & h2{
+                   @include respond(xxl){
+                        font-size: 40px;
+                        line-height: 50px;
+                    }
+                    @include respond(md){
+                        font-size: 32px;
+                        line-height: 45px;
+                    }
+                }
+            }
+            & .features-items{
+                display: flex;
+                flex-wrap: wrap;
+                @include respond(md){
+                    flex-direction: column;
+                }
+                & .tripex-feature-item{
+                    width: 33.33%;
+                    &:nth-child(2){
+                        border-left: 1px solid rgba(255, 255, 255, 0.10);
+                        border-right: 1px solid rgba(255, 255, 255, 0.10);
+                        @include respond(md){
+                            border-right: none;
+                            border-left: none;
+                            border-top: 1px solid rgba(255, 255, 255, 0.10);
+                            border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+                        }
+                    }
+                    &:nth-child(1){
+                        padding-left: 0;
+                        @include respond(md){
+                            padding-left: 25px;
+                        }
+                    }
+                    @include respond(md){
+                        width: 100%;
+                    }
+                }
+            }
+        }
+    }
+}
+.tripex-feature-item{
+    padding: 30px 60px;
+    @include respond(xxxl){
+        padding: 20px 15px;
+    }
+    @include respond(md){
+        padding: 30px 25px;
+    }
+    & .icon{
+        font-size: 55px;
+        color: $white-color;
+        margin-bottom: 25px;
+    }
+    & .content{
+        & h4{
+            color: $white-color;
+            margin-bottom: 8px;
+            @include respond(xl){
+                font-size: 18px;
+            }
+        }
+        & p{
+            color: rgba(255, 255, 255, 0.65);
+        }
+    }
+}
+
+/*====  About Section  ====*/ 
+
+.tripex-about-sec{
+    & .tripex-text-box{
+        & h4{
+            margin-bottom: 40px;
+        }
+        & .tripex-image{
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+            & img{
+                width: 100%;
+            }
+            & .overlay{
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(17, 34, 28, 0.30);
+            }
+            & .video-popup{
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%,-50%);
+                width: 50px;
+                height: 50px;
+                background-color: $white-color;
+                color: $primary-color;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+        & .check-list{
+            &.style-one{
+                & li{
+                    &:not(:last-child){
+                        margin-bottom: 20px;
+                    }
+                    & i{
+                        color: $secondary-color;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/*====  Tour Section  ====*/ 
+
+.tripex-tour-item{
+    background-color: $gray-color;
+    padding: 15px;
+    border-radius: 15px;
+    border: 1px solid $border-color;
+    padding: 10px 15px;
+    & .thumbnail{
+        position: relative;
+        & img{
+            width: 100%;
+            border-radius: 15px;
+        }
+        & .duration{
+            position: absolute;
+            bottom: -15px;
+            right: 15px;
+            padding: 7px 15px;
+            border-radius: 15px;
+            line-height: 1;
+            background-color: $white-color;
+            color: $heading-color;
+        }
+    }
+    & .content{
+        & h4{
+            margin-bottom: 5px;
+            @include respond(xl){
+                font-size: 20px;
+            }
+        }
+        & .tour-meta{
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            & span{
+                margin-bottom: 10px;
+                & i{
+                    margin-right: 7px;
+                }
+            }
+            & .rate{
+                background-color: $white-color;
+                color: $secondary-color;
+                padding: 5px 10px;
+                font-weight: 500;
+                border-radius: 15px;
+                line-height: 1;
+            }
+        }
+    }
+    & .content-bottom{
+        padding: 30px 15px 10px;
+        & .tour-meta{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            & .icon-btn{
+                &.style-one{
+                    width: 40px;
+                    height: 40px;
+                    background-color: $white-color;
+                    color: $text-color;
+                    &:hover{
+                        background-color: $secondary-color;
+                        color: $white-color;
+                    }
+                }
+            }
+            & .price{
+                color: $heading-color;
+                font-size: 20px;
+                letter-spacing: -0.02em;
+                font-weight: 700;
+                & span{
+                    font-weight: 400;
+                    color: $text-color;
+                    font-size: 16px;
+                }
+            }
+        }
+    }
+}
+
+/*====  CTA Section  ====*/ 
+
+.tripex-cta-sec{
+    position: relative;
+    z-index: 1;
+    margin: 0 20px;
+    background-color: $primary-black-color;
+    border-radius: 15px;
+    @include respond(lg){
+        margin: 0;
+    }
+    & .cta-bg{
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        z-index: -1;
+        width: 100%;
+        height: 100%;
+        background-size: contain;
+    }
+    & .tripex-content-box{
+        & p{
+            color: $white-color;
+        }
+        & .check-list{
+            & li{
+                color: $white-color;
+                &:not(:last-child){
+                    margin-bottom: 20px;
+                }
+                & i{
+                    color: $secondary-color;
+                }
+            }
+        }
+    }
+    & .tripex-image-box{
+        position: relative;
+        padding-left: 100px;
+        @include respond(xl){
+            padding-left: 0;
+        }
+        @include respond(md){
+            text-align: center;
+        }
+        & .tripex-image{
+            & img{
+                border-radius: 15px;
+                width: 100%;
+            }
+        }
+        & .discount-box{
+            width: 150px;
+            height: 150px;
+            background-size: contain;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            right: 15px;
+            bottom: 40%;
+            & .content{
+                & h2{
+                    line-height: 1;
+                    color: $white-color;
+                    & span{
+                        font-size: 16px;
+                    }
+                }
+                & span{
+                    font-family: $heading-font;
+                    font-weight: 600;
+                    color: $white-color;
+                }
+            }
+        }
+    }
+}
+
+/*====  Team Section  ====*/ 
+
+.tripex-team-page{
+    position: relative;
+    z-index: 1;
+    & .shape{
+        position: absolute;
+        z-index: -1;
+        @include respond(xl){
+            display: none;
+        }
+        &.shape-one{
+            left: 90px;
+            top: 45%;
+            @include respond(xxxl){
+                top: 10%;
+                left: 20px;
+            }
+        }
+        &.shape-two{
+            right: 100px;
+            top: 25%;
+            @include respond(xxxl){
+                top: 10%;
+                right: 20px;
+            }
+        }
+    }
+    & .tripex-team-item{
+        & .member-info{
+            & .social-box{
+                & a{
+                    border: 1px solid $border-color;
+                    &:hover{
+                        border-color: transparent;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.tripex-team-item{
+    & .member-image{
+        & img{
+            width: 100%;
+            border-radius: 15px;
+        }
+    }
+    & .member-info{
+        padding-top: 22px;
+        & span{
+            display: block;
+            margin-bottom: 7px;
+        }
+        & .social-box{
+            position: relative;
+            display: flex;
+            gap: 0 var(--icon-gap);
+            --icon-size: 40px;
+            --icon-gap: 10px;
+            & a{
+                position: relative;
+                flex: 0 0 auto;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all .3s;
+                &:hover{
+                    background-color: $primary-color;
+                    color: $white-color;
+                }
+                &:nth-child(1){
+                    z-index: 1;
+                }
+                &:nth-child(5),
+                &:nth-child(4),
+                &:nth-child(3),
+                &:nth-child(2){
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    visibility: hidden;
+                }
+                &:nth-child(2){
+                    transition: all .35s;
+                }
+                &:nth-child(3){
+                    transition: all .4s;
+                }
+                &:nth-child(4){
+                    transition: all .45s;
+                }
+                &:nth-child(5){
+                    transition: all .5s;
+                }
+            }
+            &:hover{
+                & a{
+                    visibility: visible;
+                    &:nth-child(2){
+                        left: calc((var(--icon-size) + var(--icon-gap))*1);
+                    }
+                    &:nth-child(3){
+                        left: calc((var(--icon-size) + var(--icon-gap))*2);
+                    }
+                    &:nth-child(4){
+                        left: calc((var(--icon-size) + var(--icon-gap))*3);
+                    }
+                    &:nth-child(5){
+                        left: calc((var(--icon-size) + var(--icon-gap))*4);
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+/*====  Service Section  ====*/ 
+
+.tripex-service-sec{
+    position: relative;
+    z-index: 1;
+    & .shape{
+        position: absolute;
+        z-index: -1;
+        @include respond(xl){
+            display: none;
+        }
+        &.shape-one{
+            top: 0;
+            left: 0;
+        }
+    }
+    & .service-wrapper{
+        padding: 70px 65px 60px;
+        border-radius: 15px;
+        @include respond(xxxl){
+            padding: 50px 45px 40px;
+        }
+        @include respond(xl){
+            padding: 30px 30px 30px;
+        }
+        @include respond(md){
+            padding: 30px 16px 30px;
+        }
+        .row {
+            --bs-gutter-x: 10px;
+            --bs-gutter-y: 10px;
+        }
+    }
+}
+.tripex-iconic-box{
+    padding: 30px 40px 20px;
+    background-color: $white-color;
+    border-radius: 15px;
+    text-align: center;
+    @include respond(lg){
+        padding: 30px 20px 20px;
+    }
+    & .icon{
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        // background: linear-gradient(180deg, #F4F1EB 0%, rgba(244, 241, 235, 0.00) 100%);
+        background-color: $gray-color;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 45px;
+        color: $heading-color;
+        margin-bottom: 20px;
+        transition: all .3s;
+    }
+    & .content{
+        & h5{
+            font-size: 18px;
+        }
+    }
+    &:hover{
+        & .icon{
+            background: $secondary-color;
+            color: $white-color;
+        }
+    }
+}
+
+
+
+
+/*====  Gallery Section  ====*/ 
+
+.gallery-slider{
+    margin-left: -15px;  
+    margin-right: -15px;
+    @include respond(lg){
+        margin-left: -12px;
+        margin-right: -12px;
+    }
+    & .slick-slide{
+        margin-left: 15px;  
+        margin-right: 15px;
+        @include respond(lg){
+            margin-left: 12px;
+            margin-right: 12px;
+        }
+    }
+    & .tripex-gallery-item{
+        & .gallery-image{
+            & img{
+                border-radius: 15px;
+            }
+        }
+    }
+}
+
+/*====  Features Section  ====*/ 
+
+.tripex-award-card{
+    background-color: $secondary-color;
+    display: inline-block;
+    padding: 30px 30px 25px;
+    border-radius: 30px;
+    text-align: center;
+    max-width: 190px;
+    & .icon{
+        margin-bottom: 20px;
+    }
+    & .content{
+        & h5{
+            font-size: 18px;
+            letter-spacing: -0.02em;
+            color: $white-color;
+        }
+    }
+}
+
+.tripex-title-icon-box{
+    & .content{
+        & h5{
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            & i{
+                flex: 0 0 auto;
+                width: 70px;
+                height: 70px;
+                border-radius: 50%;
+                background-color: $primary-color;
+                font-size: 40px;
+                color: $white-color;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 20px;
+            }
+        }
+        & p{
+            font-weight: 500;
+        }
+    }
+}
+
+
+.features-list{
+    display: flex;
+    border: 1px solid $border-color;
+    border-radius: 15px;
+    @include respond(md){
+        flex-direction: column;
+    }
+    & .check-list{
+        border-right: 1px solid $border-color;
+        padding: 45px 40px;
+        @include respond(xxxl){
+            padding: 35px 18px;
+        }
+        & li{
+            &:not(:last-child){
+                margin-bottom: 25px;
+            }
+        }
+    }
+    & .circle-image{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        max-width: 270px;
+        width: 100%;
+    }
+}
+
+.tripex-features-sec-two{
+    & .tripex-image-box{
+        position: relative;
+        padding-right: 60px;
+        & .section-title{
+            margin-bottom: 90px;
+        }
+        & .tripex-image{
+            & img{
+                border-radius: 15px;
+            }
+        }
+        & .tripex-award-card{
+            position: absolute;
+            right: 30px;
+            top: 33%;
+        }
+    }
+    & .tripex-content-box{
+
+    }
+}
+
+/*====  Destination Section  ====*/ 
+
+.tripex-destination-sec{
+    & .section-title{
+        & h2{
+            & span{
+                background-color: $primary-color;
+                color: $white-color;
+                border-radius: 20px;
+                padding: 0 5px;
+            }
+        }
+    }
+}
+
+.destination-slider{
+    margin-left: -15px;
+    margin-right: -15px;
+    @include respond(lg){
+        margin-left: -12px;
+        margin-right: -12px;
+    }
+    & .slick-slide{
+        margin-left: 15px;
+        margin-right: 15px;
+        @include respond(lg){
+            margin-left: 12px;
+            margin-right: 12px;
+        }
+    }
+    & .slick-dots{
+        text-align: center;
+        & li{
+            margin-left: 5px;
+            margin-right: 5px;
+            & button{
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                background-color: $primary-color;
+                transition: all .3s;
+            }
+            &.slick-active{
+                & button{
+                    width: 30px;
+                    border-radius: 3.5px;
+                }
+            }
+        }
+    }
+}
+
+.tripex-destination-item{
+    & .thumbnail{
+        position: relative;
+        & img{
+            border-radius: 10px;
+        }
+        & .hover-content{
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            padding: 10px;
+        }
+        & .content{
+            background-color: $white-color;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            border-radius: 7px;
+            & h5{
+                font-size: 18px;
+            }
+            & span{
+                background-color: $secondary-color;
+                color: $white-color;
+                border-radius: 14px;
+                font-size: 14px;
+                font-weight: 600;
+                padding: 9px 15px;
+                line-height: 1;
+            }
+        }
+    }
+}
+
+/*====  Testimonial Section  ====*/ 
+
+.tripex-testimonial-sec{
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    & .map-bg{
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        z-index: -1;
+        width: 100%;
+        height: 550px;
+    }
+    & .shape{
+        position: absolute;
+        z-index: -1;
+        @include respond(xl){
+            display: none;
+        }
+        &.shape-one{
+            top: 90px;
+            left: 135px;
+        }
+        &.shape-two{
+            top: 90px;
+            right: 200px;
+        }
+    }
+    & .tripex-image{
+        position: absolute;
+        z-index: -1;
+        @include respond(xxxl){
+            width: 20%;
+        }
+        @include respond(xl){
+            display: none;
+        }
+        &.image-one{
+            bottom: 0;
+            left: 55px;
+        }
+        &.image-two{
+            bottom: 200px;
+            right: 0;
+        }
+    }
+    & .testimonial-slider{
+        & .slick-dots{
+            text-align: center;
+            & li{
+                margin-left: 5px;
+                margin-right: 5px;
+                & button{
+                    width: 7px;
+                    height: 7px;
+                    border-radius: 50%;
+                    background-color: $secondary-color;
+                    transition: all .3s;
+                }
+                &.slick-active{
+                    & button{
+                        width: 30px;
+                        border-radius: 3.5px;
+                    }
+                }
+            }
+        }
+    }
+    & .tripex-testimonial-item{
+        margin-bottom: 53px;
+    }
+}
+
+.tripex-testimonial-item{
+    & .testimonial-content{
+        text-align: center;
+        & .author-thumb-quote{
+            display: inline-flex;
+            align-items: center;
+            & .author-thumb{
+                width: 100px;
+                flex: 0 0 auto;
+                & img{
+                    width: 100px;
+                    height: 100px;
+                    border-radius: 50%;
+                }
+            }
+            & .quote{
+                width: 100px;
+                height: 100px;
+                background-color: $primary-color;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 42px;
+                color: $white-color;
+                margin-left: -15px;
+            }
+        }
+        & h3{
+            font-size: 50px;
+            line-height: 60px;
+            font-family: $heading-font;
+            font-weight: 700;
+            padding-bottom: 40px;
+            border-bottom: 1px solid $border-color;
+            margin-bottom: 40px;
+            @include respond(xxxl){
+                font-size: 30px;
+                line-height: 50px;
+            }
+            @include respond(md){
+                font-size: 20px;
+                line-height: 35px;
+            }
+        }
+        & .author-rating-box{
+            & h5{
+                & span{
+                    font-size: 16px;
+                    color: $text-color;
+                    font-weight: 400;
+                }
+            }
+            & .ratings{
+                & span{
+                    color: $heading-color;
+                    font-weight: 600;
+                    margin-right: 10px;
+                }
+            }
+        }
+    }
+}
+
+/*====  Download Section  ====*/ 
+
+.tripex-download-sec{
+    background-color: $primary-color;
+    margin: 0 20px;
+    border-radius: 15px;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    @include respond(lg){
+        margin: 0;
+    }
+    & .map-bg{
+        position: absolute;
+        top: 0;
+        left: 90px;
+        z-index: -1;
+        & img{
+            opacity: 0.07;
+        }
+        @include respond(xl){
+           top: 0;
+           left: 0;
+        }
+    }
+    & .shape{
+        position: absolute;
+        z-index: -1;
+        @include respond(xxxl){
+            width: 100px;
+        }
+        @include respond(xl){
+            display: none;
+        }
+        &.shape-one{
+            top: 70px;
+            left: 80px;
+            @include respond(xxxl){
+                left: 10px;
+                top: 30px;
+            }
+        }
+        &.shape-two{
+            bottom: 80px;
+            left: 80px;
+            @include respond(xxxl){
+                left: 20px;
+                bottom: 40px;
+            }
+        }
+        &.shape-three{
+            top: 70px;
+            right: 60px;
+            @include respond(xxxl){
+                right: 30px;
+                top: 40px;
+            }
+        }
+        &.shape-four{
+            bottom: 0;
+            right: 90px;
+            @include respond(xxxl){
+                right: 30px;
+            }
+        }
+    }
+    & .tripex-content-box{
+        padding-right: 70px;
+        padding-top: 100px;
+        padding-bottom: 90px;
+        @include respond(xxxl){
+            padding: 70px 0 90px;
+        }
+        @include respond(xl){
+            padding-right: 0;
+            padding: 50px 0 70px;
+        }
+        & .section-title{
+            & span.sub-title{
+                color: $white-color;
+            }
+        }
+        & p{
+            margin-bottom: 35px;
+            font: 600 20px $heading-font;
+            line-height: 35px;
+        }
+        & .tripex-button{
+            & a{
+                margin-bottom: 10px;
+                &:not(:last-child){
+                    margin-right: 15px;
+                    @include respond(md){
+                        margin-right: 5px;
+                    }
+                }
+            }
+        }
+    }
+    & .tripex-image-box{
+        position: relative;
+        z-index: 1;
+        & .discount-box{
+            position: absolute;
+            left: 0;
+            bottom: 170px;
+            width: 140px;
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            & .content{
+                text-align: center;
+                & h3{
+                    font-size: 40px;
+                    letter-spacing: -0.02em;
+                    line-height: 1;
+                    & span{
+                        font-size: 16px;
+                        letter-spacing: 0;
+                    }
+                }
+            }
+            @include respond(md){
+                bottom: 50px;
+            }
+        }
+        & .tripex-image{
+            text-align: right;
+            padding-top: 50px;
+            @include respond(xl){
+                padding-top: 0;
+            }
+        }
+    }
+}
+
+/*====  Blogs Section  ====*/ 
+
+.tripex-blog-sec{
+    position: relative;
+    z-index: 1;
+    & .shape{
+        position: absolute;
+        z-index: -1;
+        @include respond(xl){
+            display: none;
+        }
+        &.shape-one{
+            left: 100px;
+            top: 110px;
+        }
+        &.shape-two{
+            left: 120px;
+            bottom: 100px;
+        }
+        &.shape-three{
+            right: 115px;
+            top: 120px;
+        }
+        &.shape-four{
+            right: 15px;
+            bottom: 20px;
+        }
+    }
+}
+
+.tripex-blog-list{
+    border: 1px solid $border-color;
+    padding: 30px;
+    border-radius: 15px;
+}
+
+.tripex-blog-item{
+    display: flex;
+    align-items: center;
+    @include respond(lg){
+        align-items: flex-start;
+    }
+    @include respond(md){
+        flex-direction: column;
+    }
+    &:not(:last-child){
+        margin-bottom: 30px;
+        padding-bottom: 30px;
+        border-bottom: 1px solid $border-color;
+    }
+    & .thumbnail{
+        max-width: 335px;
+        width: 100%;
+        & img{
+            border-radius: 15px;
+        }
+    }
+    & .post-content-wrap{
+        display: flex;
+        align-items: center;
+        @include respond(lg){
+            flex-direction: column;
+        }
+        & .post-content{
+            padding: 30px 70px;
+            border-right: 1px solid $border-color;
+            @include respond(xxxl){
+                padding: 30px 50px;
+            }
+            @include respond(xl){
+                padding: 15px 20px;
+            }
+            @include respond(lg){
+                border-right: none;
+            }
+            & .post-meta{
+                & span{
+                    margin-bottom: 5px;
+                    & i{
+                        margin-right: 7px;
+                    }
+                }
+            }
+            & h4{
+                margin-bottom: 20px;
+                @include respond(xl){
+                    font-size: 18px;
+                    line-height: 28px;
+                }
+            }
+            & .author-meta{
+                & img{
+                    flex: 0 0 auto;
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 50%;
+                    margin-right: 10px;
+                }
+            }
+        }
+        & .post-button-wrap{
+            padding: 0 70px;
+            @include respond(xxxl){
+                padding: 0 40px;
+            }
+            @include respond(xl){
+                padding: 0 15px;
+            }
+            & p{
+                margin-bottom: 30px;
+            }
+        }
+    }
+}

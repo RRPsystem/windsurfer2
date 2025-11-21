@@ -1,0 +1,39 @@
+
+/*----------------------------------------------------------------------------------- 
+
+Template Name: Tripex - Travel & Tour Booking HTML Template
+URI: pixelfit.agency
+Description: Tripex is a clean and elegant Travel & Tour Booking HTML template designed for travel agencies, tour operators, and booking platforms. With its modern layout and smooth user experience, it allows you to beautifully showcase destinations, tour packages, and booking options all in one place. Perfect for creating a professional online presence with style and simplicity. 
+Author: Pixelfit
+Author URI: https://themeforest.net/user/pixelfit
+Version: 1.0 
+
+
+------------------------------------------------------
+   CSS INDEX
+-----------------------------------------------------
+
+    # Components
+        # Base CSS
+        # Common CSS
+        # Preloader CSS
+        # Offcanvas CSS
+        # Animation CSS
+        # Button CSS
+        # Header CSS
+        # Footer CSS
+-------------------------------------------------------    */
+
+
+// Abstract
+
+@import "abstract";
+
+@import 'components/base';
+@import 'components/common';
+@import 'components/preloader';
+@import 'components/offcanvas';
+@import 'components/animations';
+@import 'components/buttons';
+@import 'components/header';
+@import 'components/footer';
