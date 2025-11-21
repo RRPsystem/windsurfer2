@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template Editor - GrapesJS</title>
+    
+    <!-- GrapesJS Core -->
+    <link rel="stylesheet" href="https://unpkg.com/grapesjs/dist/css/grapes.min.css">
+    <script src="https://unpkg.com/grapesjs"></script>
+    
+    <!-- GrapesJS Plugins -->
+    <link rel="stylesheet" href="https://unpkg.com/grapesjs-preset-webpage/dist/grapesjs-preset-webpage.min.css">
+    <script src="https://unpkg.com/grapesjs-preset-webpage"></script>
+    
+    <!-- JSZip for ZIP file handling -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow: hidden;
+        }
+        
+        /* Header */
+        .editor-header {
+            height: 60px;
+            background: #2c3e50;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        
+        .editor-header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+        
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #229954;
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        /* Upload Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h2 {
+            font-size: 24px;
+            color: #2c3e50;
+        }
+        
+        .upload-area {
+            border: 2px dashed #3498db;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background: #ecf0f1;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area:hover {
+            background: #d5dbdb;
+            border-color: #2980b9;
+        }
+        
+        .upload-area.dragover {
+            background: #3498db;
+            border-color: #2980b9;
+            color: white;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        .upload-text {
+            font-size: 16px;
+            color: #34495e;
+            margin-bottom: 5px;
+        }
+        
+        .upload-hint {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        /* Loading Spinner */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* GrapesJS Container */
+        #gjs {
+            height: calc(100vh - 60px);
+            overflow: hidden;
+        }
+        
+        /* Template Info */
+        .template-info {
+            display: none;
+            padding: 10px 20px;
+            background: #ecf0f1;
+            border-bottom: 1px solid #bdc3c7;
+        }
+        
+        .template-info.active {
+            display: block;
+        }
+        
+        .template-name {
+            font-size: 14px;
+            color: #2c3e50;
+        }
+        
+        .template-name strong {
+            font-weight: 600;
+        }
+        
+        /* Success Message */
+        .success-message {
+            display: none;
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 9999;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .success-message.active {
+            display: block;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="editor-header">
+        <h1>🎨 Template Editor</h1>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="templateEditor.showUploadModal()">
+                📁 Nieuwe Template
+            </button>
+            <button class="btn btn-primary" onclick="templateEditor.saveTemplate()" id="saveBtn" disabled>
+                💾 Opslaan
+            </button>
+            <button class="btn btn-success" onclick="templateEditor.deployToBolt()" id="deployBtn" disabled>
+                🚀 Deploy naar BOLT
+            </button>
+        </div>
+    </div>
+    
+    <!-- Template Info Bar -->
+    <div class="template-info" id="templateInfo">
+        <span class="template-name">
+            <strong>Template:</strong> <span id="templateName">-</span>
+        </span>
+    </div>
+    
+    <!-- GrapesJS Editor -->
+    <div id="gjs"></div>
+    
+    <!-- Upload Modal -->
+    <div class="modal" id="uploadModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📦 Upload ThemeForest Template</h2>
+            </div>
+            
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Sleep ZIP bestand hier of klik om te selecteren</div>
+                <div class="upload-hint">Ondersteunt ThemeForest HTML templates (.zip)</div>
+            </div>
+            
+            <input type="file" id="fileInput" accept=".zip" />
+            
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <div>Template wordt geladen...</div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="templateEditor.closeUploadModal()">
+                    Annuleren
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Success Message -->
+    <div class="success-message" id="successMessage"></div>
+    
+    <script>
+        // Template Editor Class
+        class TemplateEditor {
+            constructor() {
+                this.editor = null;
+                this.currentTemplate = null;
+                this.templateFiles = {};
+                this.supabase = null;
+                this.init();
+            }
+            
+            init() {
+                // Initialize Supabase
+                this.initSupabase();
+                
+                // Initialize GrapesJS
+                this.initGrapesJS();
+                
+                // Setup upload handlers
+                this.setupUploadHandlers();
+                
+                // Check for URL parameters (edit existing template)
+                this.checkUrlParams();
+            }
+            
+            initSupabase() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const apiUrl = urlParams.get('api') || 'https://huaaogdxxdcakxryecnw.supabase.co';
+                const apiKey = urlParams.get('apikey') || '';
+                
+                if (apiKey) {
+                    this.supabase = supabase.createClient(apiUrl, apiKey);
+                    console.log('✅ Supabase initialized');
+                }
+            }
+            
+            initGrapesJS() {
+                this.editor = grapesjs.init({
+                    container: '#gjs',
+                    height: '100%',
+                    width: 'auto',
+                    storageManager: false,
+                    plugins: ['gjs-preset-webpage'],
+                    pluginsOpts: {
+                        'gjs-preset-webpage': {
+                            modalImportTitle: 'Importeer Template',
+                            modalImportLabel: '<div style="margin-bottom: 10px; font-size: 13px;">Plak hier je HTML code</div>',
+                            modalImportContent: function(editor) {
+                                return editor.getHtml() + '<style>' + editor.getCss() + '</style>';
+                            }
+                        }
+                    },
+                    canvas: {
+                        styles: [],
+                        scripts: []
+                    },
+                    assetManager: {
+                        upload: false,
+                        multiUpload: false,
+                        assets: []
+                    },
+                    panels: {
+                        defaults: [
+                            {
+                                id: 'basic-actions',
+                                el: '.panel__basic-actions',
+                                buttons: [
+                                    {
+                                        id: 'visibility',
+                                        active: true,
+                                        className: 'btn-toggle-borders',
+                                        label: '<i class="fa fa-clone"></i>',
+                                        command: 'sw-visibility'
+                                    }
+                                ]
+                            },
+                            {
+                                id: 'panel-devices',
+                                el: '.panel__devices',
+                                buttons: [
+                                    {
+                                        id: 'device-desktop',
+                                        label: '💻',
+                                        command: 'set-device-desktop',
+                                        active: true,
+                                        togglable: false
+                                    },
+                                    {
+                                        id: 'device-tablet',
+                                        label: '📱',
+                                        command: 'set-device-tablet',
+                                        togglable: false
+                                    },
+                                    {
+                                        id: 'device-mobile',
+                                        label: '📱',
+                                        command: 'set-device-mobile',
+                                        togglable: false
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    deviceManager: {
+                        devices: [
+                            {
+                                name: 'Desktop',
+                                width: ''
+                            },
+                            {
+                                name: 'Tablet',
+                                width: '768px',
+                                widthMedia: '992px'
+                            },
+                            {
+                                name: 'Mobile',
+                                width: '375px',
+                                widthMedia: '480px'
+                            }
+                        ]
+                    }
+                });
+                
+                console.log('✅ GrapesJS initialized');
+            }
+            
+            setupUploadHandlers() {
+                const uploadArea = document.getElementById('uploadArea');
+                const fileInput = document.getElementById('fileInput');
+                
+                // Click to upload
+                uploadArea.addEventListener('click', () => {
+                    fileInput.click();
+                });
+                
+                // File selected
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        this.handleZipUpload(e.target.files[0]);
+                    }
+                });
+                
+                // Drag and drop
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('dragover');
+                });
+                
+                uploadArea.addEventListener('dragleave', () => {
+                    uploadArea.classList.remove('dragover');
+                });
+                
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('dragover');
+                    
+                    if (e.dataTransfer.files.length > 0) {
+                        const file = e.dataTransfer.files[0];
+                        if (file.name.endsWith('.zip')) {
+                            this.handleZipUpload(file);
+                        } else {
+                            alert('⚠️ Alleen ZIP bestanden worden ondersteund');
+                        }
+                    }
+                });
+            }
+            
+            async handleZipUpload(file) {
+                console.log('📦 Processing ZIP file:', file.name);
+                
+                // Show loading
+                document.getElementById('loadingIndicator').classList.add('active');
+                document.getElementById('uploadArea').style.display = 'none';
+                
+                try {
+                    const zip = await JSZip.loadAsync(file);
+                    console.log('✅ ZIP loaded, files:', Object.keys(zip.files).length);
+                    
+                    // Find main HTML file (usually index.html or in root)
+                    const htmlFile = this.findMainHtmlFile(zip);
+                    
+                    if (!htmlFile) {
+                        throw new Error('Geen index.html gevonden in ZIP bestand');
+                    }
+                    
+                    console.log('📄 Main HTML file:', htmlFile.name);
+                    
+                    // Extract HTML content
+                    const htmlContent = await htmlFile.async('string');
+                    
+                    // Extract all files for asset management
+                    this.templateFiles = {};
+                    for (let filename in zip.files) {
+                        const file = zip.files[filename];
+                        if (!file.dir) {
+                            // Store file for later use
+                            if (filename.match(/\.(css|js|jpg|jpeg|png|gif|svg|woff|woff2|ttf)$/i)) {
+                                this.templateFiles[filename] = await file.async('base64');
+                            }
+                        }
+                    }
+                    
+                    console.log('✅ Extracted', Object.keys(this.templateFiles).length, 'asset files');
+                    
+                    // Load into GrapesJS
+                    this.loadTemplateIntoEditor(htmlContent, file.name);
+                    
+                    // Close modal
+                    this.closeUploadModal();
+                    
+                    // Show success
+                    this.showSuccess('✅ Template succesvol geladen!');
+                    
+                } catch (error) {
+                    console.error('❌ Error processing ZIP:', error);
+                    alert('Fout bij laden van template: ' + error.message);
+                    
+                    // Reset UI
+                    document.getElementById('loadingIndicator').classList.remove('active');
+                    document.getElementById('uploadArea').style.display = 'block';
+                }
+            }
+            
+            findMainHtmlFile(zip) {
+                // Priority order for finding main HTML file
+                const priorities = [
+                    'index.html',
+                    'home.html',
+                    'main.html',
+                    'index-1.html',
+                    'index-2.html'
+                ];
+                
+                // Check priority files first
+                for (let filename of priorities) {
+                    if (zip.files[filename]) {
+                        return zip.files[filename];
+                    }
+                }
+                
+                // Find any HTML file in root
+                for (let filename in zip.files) {
+                    if (filename.endsWith('.html') && !filename.includes('/')) {
+                        return zip.files[filename];
+                    }
+                }
+                
+                // Find any HTML file anywhere
+                for (let filename in zip.files) {
+                    if (filename.endsWith('.html')) {
+                        return zip.files[filename];
+                    }
+                }
+                
+                return null;
+            }
+            
+            loadTemplateIntoEditor(html, templateName) {
+                // Clean template name
+                const cleanName = templateName.replace('.zip', '');
+                this.currentTemplate = {
+                    name: cleanName,
+                    originalHtml: html
+                };
+                
+                // Parse and clean HTML
+                const cleanedHtml = this.cleanHtmlForEditor(html);
+                
+                // Set components and styles
+                this.editor.setComponents(cleanedHtml);
+                
+                // Update UI
+                document.getElementById('templateName').textContent = cleanName;
+                document.getElementById('templateInfo').classList.add('active');
+                document.getElementById('saveBtn').disabled = false;
+                document.getElementById('deployBtn').disabled = false;
+                
+                console.log('✅ Template loaded into editor');
+            }
+            
+            cleanHtmlForEditor(html) {
+                // Create a temporary DOM to parse HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Extract body content (GrapesJS works with body content)
+                const body = doc.body;
+                
+                // Remove scripts (we'll handle them separately)
+                body.querySelectorAll('script').forEach(script => script.remove());
+                
+                // Convert relative paths to absolute or data URIs
+                // This is simplified - in production you'd want to handle this better
+                body.querySelectorAll('img').forEach(img => {
+                    const src = img.getAttribute('src');
+                    if (src && !src.startsWith('http') && !src.startsWith('data:')) {
+                        // Try to find in extracted files
+                        if (this.templateFiles[src]) {
+                            const ext = src.split('.').pop().toLowerCase();
+                            const mimeTypes = {
+                                'jpg': 'image/jpeg',
+                                'jpeg': 'image/jpeg',
+                                'png': 'image/png',
+                                'gif': 'image/gif',
+                                'svg': 'image/svg+xml'
+                            };
+                            img.src = `data:${mimeTypes[ext] || 'image/jpeg'};base64,${this.templateFiles[src]}`;
+                        }
+                    }
+                });
+                
+                return body.innerHTML;
+            }
+            
+            async saveTemplate() {
+                if (!this.currentTemplate) {
+                    alert('⚠️ Geen template geladen');
+                    return;
+                }
+                
+                console.log('💾 Saving template...');
+                
+                try {
+                    // Get HTML and CSS from editor
+                    const html = this.editor.getHtml();
+                    const css = this.editor.getCss();
+                    
+                    // Combine into full HTML document
+                    const fullHtml = `<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${this.currentTemplate.name}</title>
+    <style>
+${css}
+    </style>
+</head>
+<body>
+${html}
+</body>
+</html>`;
+                    
+                    // Save to Supabase (if available)
+                    if (this.supabase) {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const brandId = urlParams.get('brand_id');
+                        
+                        if (brandId) {
+                            const { data, error } = await this.supabase
+                                .from('templates')
+                                .upsert({
+                                    brand_id: brandId,
+                                    name: this.currentTemplate.name,
+                                    html_content: fullHtml,
+                                    updated_at: new Date().toISOString()
+                                });
+                            
+                            if (error) throw error;
+                            
+                            console.log('✅ Template saved to Supabase');
+                        }
+                    }
+                    
+                    // Also save locally (download)
+                    this.downloadTemplate(fullHtml, this.currentTemplate.name);
+                    
+                    this.showSuccess('✅ Template opgeslagen!');
+                    
+                } catch (error) {
+                    console.error('❌ Error saving template:', error);
+                    alert('Fout bij opslaan: ' + error.message);
+                }
+            }
+            
+            downloadTemplate(html, name) {
+                const blob = new Blob([html], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${name}.html`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+            
+            async deployToBolt() {
+                if (!this.currentTemplate) {
+                    alert('⚠️ Geen template geladen');
+                    return;
+                }
+                
+                console.log('🚀 Deploying to BOLT...');
+                
+                // Get HTML and CSS
+                const html = this.editor.getHtml();
+                const css = this.editor.getCss();
+                
+                // Combine
+                const fullHtml = `<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${this.currentTemplate.name}</title>
+    <style>${css}</style>
+</head>
+<body>${html}</body>
+</html>`;
+                
+                // Get BOLT parameters from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const returnUrl = urlParams.get('return_url');
+                
+                if (returnUrl) {
+                    // Redirect back to BOLT with template data
+                    const params = new URLSearchParams({
+                        template_html: fullHtml,
+                        template_name: this.currentTemplate.name
+                    });
+                    
+                    window.location.href = `${returnUrl}?${params.toString()}`;
+                } else {
+                    // No return URL, just save
+                    await this.saveTemplate();
+                    this.showSuccess('✅ Template klaar voor deployment!');
+                }
+            }
+            
+            showUploadModal() {
+                document.getElementById('uploadModal').classList.add('active');
+            }
+            
+            closeUploadModal() {
+                document.getElementById('uploadModal').classList.remove('active');
+                document.getElementById('loadingIndicator').classList.remove('active');
+                document.getElementById('uploadArea').style.display = 'block';
+                document.getElementById('fileInput').value = '';
+            }
+            
+            showSuccess(message) {
+                const successEl = document.getElementById('successMessage');
+                successEl.textContent = message;
+                successEl.classList.add('active');
+                
+                setTimeout(() => {
+                    successEl.classList.remove('active');
+                }, 3000);
+            }
+            
+            checkUrlParams() {
+                // Check if we should load an existing template
+                const urlParams = new URLSearchParams(window.location.search);
+                const templateId = urlParams.get('template_id');
+                
+                if (templateId && this.supabase) {
+                    this.loadExistingTemplate(templateId);
+                }
+            }
+            
+            async loadExistingTemplate(templateId) {
+                try {
+                    const { data, error } = await this.supabase
+                        .from('templates')
+                        .select('*')
+                        .eq('id', templateId)
+                        .single();
+                    
+                    if (error) throw error;
+                    
+                    if (data) {
+                        this.currentTemplate = {
+                            name: data.name,
+                            originalHtml: data.html_content
+                        };
+                        
+                        this.editor.setComponents(data.html_content);
+                        
+                        document.getElementById('templateName').textContent = data.name;
+                        document.getElementById('templateInfo').classList.add('active');
+                        document.getElementById('saveBtn').disabled = false;
+                        document.getElementById('deployBtn').disabled = false;
+                        
+                        console.log('✅ Existing template loaded');
+                    }
+                } catch (error) {
+                    console.error('❌ Error loading template:', error);
+                }
+            }
+        }
+        
+        // Initialize editor when page loads
+        let templateEditor;
+        window.addEventListener('DOMContentLoaded', () => {
+            templateEditor = new TemplateEditor();
+        });
+    </script>
+</body>
+</html>
