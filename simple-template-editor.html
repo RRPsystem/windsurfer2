@@ -397,18 +397,17 @@
         }, 2000);
     </script>
     
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Media Picker CSS -->
+    <link rel="stylesheet" href="/styles/media-picker.css">
+    
     <!-- Load config (try local first, then prod) -->
     <script src="/js/config.local.js" onerror="console.log('⚠️ config.local.js niet gevonden, probeer config.prod.js')"></script>
     <script src="/js/config.prod.js"></script>
     
-    <!-- Media Picker Script -->
-    <script src="/js/media.js"></script>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Media Picker CSS & JS -->
-    <link rel="stylesheet" href="/styles/media-picker.css">
+    <!-- Media Picker Script (alleen 1x!) -->
     <script src="/js/media.js"></script>
     
     <!-- Supabase -->
@@ -596,12 +595,12 @@
                     // Check if already injected
                     if (doc.getElementById('editor-image-fix')) return;
                     
-                    // Simple global CSS - cover ALL images automatically
+                    // Conservative CSS - only fix when user replaces an image
                     const style = doc.createElement('style');
                     style.id = 'editor-image-fix';
                     style.textContent = `
-                        /* Auto-fit all images to their containers */
-                        img {
+                        /* Only apply object-fit to images that have been edited */
+                        img[data-editor-replaced="true"] {
                             object-fit: cover !important;
                             object-position: center !important;
                         }
@@ -618,7 +617,7 @@
                     doc.head.appendChild(style);
                     
                     const allImages = doc.querySelectorAll('img');
-                    console.log('✅ Auto-fit CSS applied to ' + allImages.length + ' images');
+                    console.log('✅ Image fix CSS ready for ' + allImages.length + ' images');
                 } catch (error) {
                     console.warn('⚠️ Could not inject image fix CSS:', error);
                 }
@@ -791,7 +790,8 @@
                         const media = await MediaPicker.openImage();
                         if (media && media.url) {
                             element.src = media.url;
-                            // Global CSS handles object-fit automatically
+                            // Mark as replaced so CSS can apply object-fit
+                            element.dataset.editorReplaced = 'true';
                             console.log('✅ Image updated:', media.url);
                         }
                     } catch (error) {
@@ -873,6 +873,7 @@
                         element.style.backgroundSize = 'cover';
                         element.style.backgroundPosition = 'center';
                         element.style.backgroundRepeat = 'no-repeat';
+                        element.dataset.editorReplaced = 'true';
                         console.log('✅ Background image updated:', media.url);
                     }
                 } catch (error) {
@@ -896,6 +897,7 @@
                     const newUrl = document.getElementById('editImageUrl').value;
                     if (newUrl) {
                         element.src = newUrl;
+                        element.dataset.editorReplaced = 'true';
                         console.log('✅ Image updated:', newUrl);
                     }
                     
