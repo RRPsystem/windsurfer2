@@ -382,7 +382,10 @@
                     plugins: [],
                     pluginsOpts: {},
                     canvas: {
-                        styles: [],
+                        styles: [
+                            // Fix wrapper to show content
+                            '[data-gjs-type="wrapper"] { min-height: 100vh !important; height: auto !important; display: block !important; }'
+                        ],
                         scripts: []
                     },
                     assetManager: {
