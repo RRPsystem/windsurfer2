@@ -206,6 +206,24 @@
         #gjs {
             height: calc(100vh - 60px);
             overflow: hidden;
+            border: 0;
+        }
+        
+        /* GrapesJS Canvas - Make sure it's visible */
+        .gjs-cv-canvas {
+            background: #ffffff;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* GrapesJS Panels */
+        .gjs-pn-panels {
+            z-index: 10;
+        }
+        
+        /* Make sure blocks panel is visible */
+        .gjs-blocks-c {
+            background: #f8f9fa;
         }
         
         /* Template Info */
@@ -360,16 +378,8 @@
                     height: '100%',
                     width: 'auto',
                     storageManager: false,
-                    plugins: ['gjs-preset-webpage'],
-                    pluginsOpts: {
-                        'gjs-preset-webpage': {
-                            modalImportTitle: 'Importeer Template',
-                            modalImportLabel: '<div style="margin-bottom: 10px; font-size: 13px;">Plak hier je HTML code</div>',
-                            modalImportContent: function(editor) {
-                                return editor.getHtml() + '<style>' + editor.getCss() + '</style>';
-                            }
-                        }
-                    },
+                    plugins: [],
+                    pluginsOpts: {},
                     canvas: {
                         styles: [],
                         scripts: []
@@ -380,46 +390,7 @@
                         assets: []
                     },
                     panels: {
-                        defaults: [
-                            {
-                                id: 'basic-actions',
-                                el: '.panel__basic-actions',
-                                buttons: [
-                                    {
-                                        id: 'visibility',
-                                        active: true,
-                                        className: 'btn-toggle-borders',
-                                        label: '<i class="fa fa-clone"></i>',
-                                        command: 'sw-visibility'
-                                    }
-                                ]
-                            },
-                            {
-                                id: 'panel-devices',
-                                el: '.panel__devices',
-                                buttons: [
-                                    {
-                                        id: 'device-desktop',
-                                        label: '💻',
-                                        command: 'set-device-desktop',
-                                        active: true,
-                                        togglable: false
-                                    },
-                                    {
-                                        id: 'device-tablet',
-                                        label: '📱',
-                                        command: 'set-device-tablet',
-                                        togglable: false
-                                    },
-                                    {
-                                        id: 'device-mobile',
-                                        label: '📱',
-                                        command: 'set-device-mobile',
-                                        togglable: false
-                                    }
-                                ]
-                            }
-                        ]
+                        defaults: []
                     },
                     deviceManager: {
                         devices: [
@@ -551,23 +522,38 @@
                     'index-2.html'
                 ];
                 
-                // Check priority files first
+                // Check priority files first (exact match)
                 for (let filename of priorities) {
                     if (zip.files[filename]) {
                         return zip.files[filename];
                     }
                 }
                 
-                // Find any HTML file in root
+                // Check in subdirectories with priority names
                 for (let filename in zip.files) {
-                    if (filename.endsWith('.html') && !filename.includes('/')) {
+                    const basename = filename.split('/').pop();
+                    if (priorities.includes(basename)) {
                         return zip.files[filename];
                     }
                 }
                 
-                // Find any HTML file anywhere
+                // Find any HTML file in root (not 404 or error pages)
                 for (let filename in zip.files) {
-                    if (filename.endsWith('.html')) {
+                    const basename = filename.split('/').pop();
+                    if (basename.endsWith('.html') && 
+                        !basename.includes('404') && 
+                        !basename.includes('error') &&
+                        !filename.includes('/')) {
+                        return zip.files[filename];
+                    }
+                }
+                
+                // Find any HTML file anywhere (not 404 or error pages)
+                for (let filename in zip.files) {
+                    const basename = filename.split('/').pop();
+                    if (basename.endsWith('.html') && 
+                        !basename.includes('404') && 
+                        !basename.includes('error')) {
                         return zip.files[filename];
                     }
                 }
