@@ -482,17 +482,28 @@
                     
                     // Extract all files for asset management
                     this.templateFiles = {};
+                    this.cssFiles = [];
+                    
                     for (let filename in zip.files) {
                         const file = zip.files[filename];
                         if (!file.dir) {
-                            // Store file for later use
-                            if (filename.match(/\.(css|js|jpg|jpeg|png|gif|svg|woff|woff2|ttf)$/i)) {
+                            // Store CSS files separately as text
+                            if (filename.endsWith('.css')) {
+                                const cssContent = await file.async('string');
+                                this.cssFiles.push({
+                                    filename: filename,
+                                    content: cssContent
+                                });
+                            }
+                            // Store other files as base64
+                            else if (filename.match(/\.(js|jpg|jpeg|png|gif|svg|woff|woff2|ttf)$/i)) {
                                 this.templateFiles[filename] = await file.async('base64');
                             }
                         }
                     }
                     
                     console.log('✅ Extracted', Object.keys(this.templateFiles).length, 'asset files');
+                    console.log('✅ Found', this.cssFiles.length, 'CSS files');
                     
                     // Load into GrapesJS
                     this.loadTemplateIntoEditor(htmlContent, file.name);
@@ -570,11 +581,28 @@
                     originalHtml: html
                 };
                 
-                // Parse and clean HTML
+                // Parse and clean HTML (this also extracts CSS)
                 const cleanedHtml = this.cleanHtmlForEditor(html);
                 
-                // Set components and styles
+                // Set components
                 this.editor.setComponents(cleanedHtml);
+                
+                // Combine all CSS: inline styles + external CSS files
+                let allCss = this.extractedCss || '';
+                
+                // Add external CSS files
+                if (this.cssFiles && this.cssFiles.length > 0) {
+                    this.cssFiles.forEach(cssFile => {
+                        allCss += '\n/* ' + cssFile.filename + ' */\n';
+                        allCss += cssFile.content + '\n';
+                    });
+                }
+                
+                // Set styles
+                if (allCss) {
+                    this.editor.setStyle(allCss);
+                    console.log('✅ CSS loaded:', allCss.length, 'characters from', this.cssFiles.length, 'files');
+                }
                 
                 // Update UI
                 document.getElementById('templateName').textContent = cleanName;
@@ -590,31 +618,52 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 
+                // Extract CSS from style tags and link tags
+                let css = '';
+                doc.querySelectorAll('style').forEach(style => {
+                    css += style.textContent + '\n';
+                });
+                
                 // Extract body content (GrapesJS works with body content)
                 const body = doc.body;
                 
                 // Remove scripts (we'll handle them separately)
                 body.querySelectorAll('script').forEach(script => script.remove());
                 
+                // Remove style tags from body (already extracted)
+                body.querySelectorAll('style').forEach(style => style.remove());
+                
                 // Convert relative paths to absolute or data URIs
-                // This is simplified - in production you'd want to handle this better
                 body.querySelectorAll('img').forEach(img => {
                     const src = img.getAttribute('src');
                     if (src && !src.startsWith('http') && !src.startsWith('data:')) {
                         // Try to find in extracted files
-                        if (this.templateFiles[src]) {
-                            const ext = src.split('.').pop().toLowerCase();
-                            const mimeTypes = {
-                                'jpg': 'image/jpeg',
-                                'jpeg': 'image/jpeg',
-                                'png': 'image/png',
-                                'gif': 'image/gif',
-                                'svg': 'image/svg+xml'
-                            };
-                            img.src = `data:${mimeTypes[ext] || 'image/jpeg'};base64,${this.templateFiles[src]}`;
+                        const possiblePaths = [
+                            src,
+                            src.replace(/^\.\//, ''),
+                            src.replace(/^\//, ''),
+                            'tripix-html/' + src.replace(/^\.\.\//, '').replace(/^\.\//, '').replace(/^\//, '')
+                        ];
+                        
+                        for (let path of possiblePaths) {
+                            if (this.templateFiles[path]) {
+                                const ext = src.split('.').pop().toLowerCase();
+                                const mimeTypes = {
+                                    'jpg': 'image/jpeg',
+                                    'jpeg': 'image/jpeg',
+                                    'png': 'image/png',
+                                    'gif': 'image/gif',
+                                    'svg': 'image/svg+xml'
+                                };
+                                img.src = `data:${mimeTypes[ext] || 'image/jpeg'};base64,${this.templateFiles[path]}`;
+                                break;
+                            }
                         }
                     }
                 });
+                
+                // Store extracted CSS for later use
+                this.extractedCss = css;
                 
                 return body.innerHTML;
             }
