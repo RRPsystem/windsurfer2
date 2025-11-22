@@ -1104,7 +1104,11 @@
                     let page;
                     if (this.apiBase) {
                         // Call edge function
-                        const response = await fetch(`${this.apiBase}/pages-api?id=${this.pageId}`, {
+                        const apiUrl = `${this.apiBase}/pages-api?page_id=${this.pageId}`;
+                        console.log('📡 Calling BOLT API:', apiUrl);
+                        console.log('🔑 Using token:', this.token ? this.token.substring(0, 20) + '...' : 'none');
+                        
+                        const response = await fetch(apiUrl, {
                             headers: {
                                 'Authorization': `Bearer ${this.token}`,
                                 'Content-Type': 'application/json'
@@ -1113,10 +1117,12 @@
                         
                         if (!response.ok) {
                             const errorText = await response.text();
+                            console.error('❌ API Error Response:', errorText);
                             throw new Error(`API error: ${response.status} - ${errorText}`);
                         }
                         
                         const result = await response.json();
+                        console.log('✅ API Response:', result);
                         page = result.data || result;
                     } else {
                         // Fallback to direct Supabase
