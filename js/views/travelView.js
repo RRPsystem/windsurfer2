@@ -755,8 +755,12 @@
           console.error('Status:', response.status);
           console.error('Status Text:', response.statusText);
           console.error('Error Data:', errorData);
+          console.error('Error Data (full JSON):', JSON.stringify(errorData, null, 2));
           console.error('Request URL:', url);
           console.error('Request Params:', { ideaId, micrositeId });
+          console.error('Has upstreamUrl?', errorData.upstreamUrl);
+          console.error('TC Auth Mode?', errorData.authMode);
+          console.error('TC Error Detail?', errorData.detail);
           
           // Show detailed error with all info
           let errorMsg = errorData.error || `HTTP ${response.status}`;
