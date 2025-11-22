@@ -1033,6 +1033,7 @@
                 this.brandId = null;
                 this.token = null;
                 this.apikey = null;
+                this.apiBase = null;
                 this.returnUrl = null;
                 this.supabase = null;
                 
@@ -1141,12 +1142,37 @@
                     console.log('✅ Page loaded:', page);
                     this.brandId = page.brand_id;
                     
+                    // Extract HTML content (support multiple formats)
+                    let htmlContent = null;
+                    
+                    if (page.content) {
+                        // Plain HTML string (preferred)
+                        htmlContent = page.content;
+                        console.log('📄 Using page.content');
+                    } else if (page.body_html) {
+                        // Alternative field name
+                        htmlContent = page.body_html;
+                        console.log('📄 Using page.body_html');
+                    } else if (page.content_json) {
+                        // BOLT format - voor nu tonen we een melding
+                        console.warn('⚠️ Page has content_json but no HTML content field');
+                        console.log('📦 content_json:', page.content_json);
+                        htmlContent = '<div style="padding:40px;text-align:center;"><h1>⚠️ Pagina gevonden!</h1><p>Deze pagina is opgeslagen in BOLT maar heeft nog geen HTML content veld.</p><p>BOLT moet de pages-api aanpassen om een <code>content</code> veld met HTML te returnen.</p></div>';
+                    }
+                    
+                    if (!htmlContent) {
+                        htmlContent = '<h1>No content yet</h1>';
+                    }
+                    
+                    // Store current page data
+                    this.currentPage = page;
+                    
                     // Load existing brand settings
                     await this.loadBrandSettings();
                     
                     // Load page content into iframe
                     const iframe = document.getElementById('previewFrame');
-                    iframe.srcdoc = page.content || '<h1>No content yet</h1>';
+                    iframe.srcdoc = htmlContent;
                     
                     // Update header
                     document.querySelector('.header h1').textContent = 
