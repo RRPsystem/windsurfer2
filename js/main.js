@@ -865,8 +865,8 @@ class WebsiteBuilder {
             if (!ideaId) return;
             try {
                 const base = (window.TC_API_BASE || '').replace(/\/$/, '');
-                const url = `${base}/api/ideas/${encodeURIComponent(ideaId)}`;
-                const resp = await fetch(base ? url : `/api/ideas/${encodeURIComponent(ideaId)}`);
+                const url = `${base}/api/ideas-${encodeURIComponent(ideaId)}`;
+                const resp = await fetch(base ? url : `/api/ideas-${encodeURIComponent(ideaId)}`);
                 if (!resp.ok) throw new Error(await resp.text());
                 const data = await resp.json();
                 this.loadTravelIdea(data);

@@ -963,7 +963,7 @@
       if (!ideaId || !ideaId.trim()) return;
 
       try {
-        const response = await fetch(`/api/ideas/${ideaId.trim()}`);
+        const response = await fetch(`/api/ideas-${ideaId.trim()}`);
         if (!response.ok) throw new Error('Reis niet gevonden');
         
         const data = await response.json();

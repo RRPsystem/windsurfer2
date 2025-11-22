@@ -215,7 +215,7 @@
             </div>`;
           
           // Fetch travel data
-          fetch(`/api/ideas/${ideaId}`)
+          fetch(`/api/ideas-${ideaId}`)
             .then(r => r.json())
             .then(data => {
               window.VideoGeneratorView.mount(view, data);
