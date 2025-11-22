@@ -722,7 +722,7 @@
       try {
         // Determine API endpoint
         const apiBase = this.getApiBase();
-        const url = `${apiBase}/api/ideas/${encodeURIComponent(ideaId)}?micrositeId=${encodeURIComponent(micrositeId)}&lang=NL`;
+        const url = `${apiBase}/api/idea-${encodeURIComponent(ideaId)}?micrositeId=${encodeURIComponent(micrositeId)}&lang=NL`;
 
         console.log('🔍 ===== DEBUG: TRAVEL COMPOSITOR CALL =====');
         console.log('📋 Parameters:', {

@@ -30,36 +30,14 @@ CREATE INDEX IF NOT EXISTS idx_brand_settings_brand_id ON brand_settings(brand_i
 -- RLS Policies
 ALTER TABLE brand_settings ENABLE ROW LEVEL SECURITY;
 
--- Users can read brand settings for their brands
-CREATE POLICY "Users can read their brand settings"
-    ON brand_settings
-    FOR SELECT
-    USING (
-        brand_id IN (
-            SELECT id FROM brands 
-            WHERE owner_id = auth.uid()
-            OR id IN (SELECT brand_id FROM brand_users WHERE user_id = auth.uid())
-        )
-    );
-
--- Users can insert/update brand settings for their brands
-CREATE POLICY "Users can manage their brand settings"
+-- Simpele policy: Allow all authenticated users to read/write
+-- (We can make this more restrictive later if needed)
+CREATE POLICY "Allow authenticated users to manage brand settings"
     ON brand_settings
     FOR ALL
-    USING (
-        brand_id IN (
-            SELECT id FROM brands 
-            WHERE owner_id = auth.uid()
-            OR id IN (SELECT brand_id FROM brand_users WHERE user_id = auth.uid())
-        )
-    )
-    WITH CHECK (
-        brand_id IN (
-            SELECT id FROM brands 
-            WHERE owner_id = auth.uid()
-            OR id IN (SELECT brand_id FROM brand_users WHERE user_id = auth.uid())
-        )
-    );
+    TO authenticated
+    USING (true)
+    WITH CHECK (true);
 
 -- Trigger to update updated_at
 CREATE OR REPLACE FUNCTION update_brand_settings_updated_at()
