@@ -684,7 +684,7 @@
 
       try {
         const apiBase = this.getApiBase();
-        const url = `${apiBase}/api/ideas-test`;
+        const url = `${apiBase}/api/ideas/test`;
 
         console.log('[TravelView] Testing API configuration:', url);
 
@@ -722,7 +722,7 @@
       try {
         // Determine API endpoint
         const apiBase = this.getApiBase();
-        const url = `${apiBase}/api/ideas-${encodeURIComponent(ideaId)}?micrositeId=${encodeURIComponent(micrositeId)}&lang=NL`;
+        const url = `${apiBase}/api/ideas/${encodeURIComponent(ideaId)}?micrositeId=${encodeURIComponent(micrositeId)}&lang=NL`;
 
         console.log('🔍 ===== DEBUG: TRAVEL COMPOSITOR CALL =====');
         console.log('📋 Parameters:', {

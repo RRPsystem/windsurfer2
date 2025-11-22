@@ -6,7 +6,7 @@
 //   Optional info endpoint via ?info=1 -> /resources/travelidea/{micrositeId}/info/{ideaId}
 
 export default async function handler(req, res) {
-  // DEBUG: Return early to test if function even runs
+  // DEBUG: Log invocation
   console.log('[TC API] Function invoked!');
   console.log('[TC API] req.query:', req.query);
   console.log('[TC API] req.url:', req.url);
@@ -21,15 +21,12 @@ export default async function handler(req, res) {
       TC_TENANT_ID = ''
     } = process.env;
 
-    // Extract ID from catch-all slug param (e.g. /api/ideas-37892974 -> slug = ['37892974'])
-    const { slug } = req.query || {};
-    const id = Array.isArray(slug) ? slug[0] : slug;
-    
-    console.log('[TC API] Parsed params:', { slug, id });
+    const { id } = req.query || {};
+    console.log('[TC API] ID from query:', id);
     
     if (!id) {
       console.error('[TC API] Missing ID!');
-      return res.status(400).json({ error: 'Missing id', received: { slug, query: req.query, url: req.url } });
+      return res.status(400).json({ error: 'Missing id', received: { query: req.query, url: req.url } });
     }
     if (!TC_BASE_URL || !TC_MICROSITE_ID) {
       return res.status(500).json({ error: 'Missing TC_BASE_URL or TC_MICROSITE_ID' });
