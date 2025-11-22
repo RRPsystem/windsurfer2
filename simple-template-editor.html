@@ -8,7 +8,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -162,6 +162,44 @@
             box-shadow: 2px 0 10px rgba(0,0,0,0.05);
         }
         
+        .sidebar-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .sidebar-tab {
+            flex: 1;
+            padding: 0.75rem;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .sidebar-tab:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .sidebar-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .sidebar-content {
+            display: none;
+        }
+        
+        .sidebar-content.active {
+            display: block;
+        }
+        
         .sidebar h3 {
             font-size: 1.2rem;
             font-weight: 600;
@@ -200,6 +238,185 @@
             border-color: #667eea;
             background: #667eea;
             color: white;
+        }
+        
+        /* Settings Panel Styles */
+        .settings-section {
+            margin-bottom: 2rem;
+        }
+        
+        .settings-section h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        
+        .logo-upload {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .logo-preview {
+            width: 100%;
+            height: 120px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+        
+        .logo-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .logo-preview.empty::before {
+            content: '📷 Logo Preview';
+            color: #999;
+            font-size: 0.9rem;
+        }
+        
+        .upload-btn {
+            padding: 0.65rem 1rem;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+        }
+        
+        .upload-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .font-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        
+        .font-option {
+            aspect-ratio: 1;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            font-size: 2rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .font-option:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+        
+        .font-option.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+        
+        .color-palettes {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .color-option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .color-option:hover {
+            border-color: #667eea;
+            transform: translateX(2px);
+        }
+        
+        .color-option.active {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .color-dots {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .color-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .color-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .custom-colors {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        
+        .custom-colors input[type="color"] {
+            width: 60px;
+            height: 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .custom-colors label {
+            font-size: 0.8rem;
+            color: #666;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .apply-settings-btn {
+            width: 100%;
+            padding: 0.85rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .apply-settings-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
         
         .preview-container {
@@ -600,12 +817,138 @@
             
     <div class="editor-container">
         <div class="sidebar">
-            <h3 style="margin-bottom: 15px;">Templates</h3>
-            <ul class="template-list" id="templateList"></ul>
+            <!-- Sidebar Tabs -->
+            <div class="sidebar-tabs">
+                <button class="sidebar-tab active" onclick="editor.switchTab('templates')" id="templatesTab">
+                    📄 Templates
+                </button>
+                <button class="sidebar-tab" onclick="editor.switchTab('settings')" id="settingsTab">
+                    ⚙️ Instellingen
+                </button>
+            </div>
             
-            <div style="margin-top: 30px;">
-                <h3 style="margin-bottom: 15px;">Pages</h3>
-                <ul class="template-list" id="pageList"></ul>
+            <!-- Templates Content -->
+            <div class="sidebar-content active" id="templatesContent">
+                <h3 style="margin-bottom: 15px;">Templates</h3>
+                <ul class="template-list" id="templateList"></ul>
+                
+                <div style="margin-top: 30px;">
+                    <h3 style="margin-bottom: 15px;">Pages</h3>
+                    <ul class="template-list" id="pageList"></ul>
+                </div>
+            </div>
+            
+            <!-- Settings Content -->
+            <div class="sidebar-content" id="settingsContent">
+                <!-- Logo Upload -->
+                <div class="settings-section">
+                    <h4>📷 Logo</h4>
+                    <div class="logo-upload">
+                        <div class="logo-preview empty" id="logoPreview"></div>
+                        <input type="file" id="logoInput" accept="image/*" style="display:none;" onchange="editor.handleLogoUpload(event)">
+                        <button class="upload-btn" onclick="document.getElementById('logoInput').click()">
+                            📁 Bestand Uploaden
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Font Selector -->
+                <div class="settings-section">
+                    <h4>🔤 Lettertypepaar</h4>
+                    <div class="font-selector" id="fontSelector">
+                        <div class="font-option active" data-font="inter" onclick="editor.selectFont('inter')" style="font-family: 'Inter', sans-serif;">
+                            Ag
+                        </div>
+                        <div class="font-option" data-font="playfair" onclick="editor.selectFont('playfair')" style="font-family: 'Playfair Display', serif;">
+                            Ag
+                        </div>
+                        <div class="font-option" data-font="montserrat" onclick="editor.selectFont('montserrat')" style="font-family: 'Montserrat', sans-serif;">
+                            Ag
+                        </div>
+                        <div class="font-option" data-font="poppins" onclick="editor.selectFont('poppins')" style="font-family: 'Poppins', sans-serif;">
+                            Ag
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Color Palette -->
+                <div class="settings-section">
+                    <h4>🎨 Kleurenpalet</h4>
+                    <div class="color-palettes" id="colorPalettes">
+                        <div class="color-option active" data-palette="original" onclick="editor.selectPalette('original')">
+                            <div class="color-dots">
+                                <div class="color-dot" style="background: #667eea;"></div>
+                                <div class="color-dot" style="background: #764ba2;"></div>
+                            </div>
+                            <span class="color-label">Origineel</span>
+                        </div>
+                        
+                        <div class="color-option" data-palette="blue" onclick="editor.selectPalette('blue')">
+                            <div class="color-dots">
+                                <div class="color-dot" style="background: #2563eb;"></div>
+                                <div class="color-dot" style="background: #1e40af;"></div>
+                            </div>
+                            <span class="color-label">Blauw</span>
+                        </div>
+                        
+                        <div class="color-option" data-palette="green" onclick="editor.selectPalette('green')">
+                            <div class="color-dots">
+                                <div class="color-dot" style="background: #10b981;"></div>
+                                <div class="color-dot" style="background: #059669;"></div>
+                            </div>
+                            <span class="color-label">Groen</span>
+                        </div>
+                        
+                        <div class="color-option" data-palette="red" onclick="editor.selectPalette('red')">
+                            <div class="color-dots">
+                                <div class="color-dot" style="background: #ef4444;"></div>
+                                <div class="color-dot" style="background: #dc2626;"></div>
+                            </div>
+                            <span class="color-label">Rood</span>
+                        </div>
+                        
+                        <div class="color-option" data-palette="orange" onclick="editor.selectPalette('orange')">
+                            <div class="color-dots">
+                                <div class="color-dot" style="background: #f97316;"></div>
+                                <div class="color-dot" style="background: #ea580c;"></div>
+                            </div>
+                            <span class="color-label">Oranje</span>
+                        </div>
+                        
+                        <div class="color-option" data-palette="purple" onclick="editor.selectPalette('purple')">
+                            <div class="color-dots">
+                                <div class="color-dot" style="background: #a855f7;"></div>
+                                <div class="color-dot" style="background: #9333ea;"></div>
+                            </div>
+                            <span class="color-label">Paars</span>
+                        </div>
+                        
+                        <div class="color-option" data-palette="custom" onclick="editor.selectPalette('custom')">
+                            <div class="color-dots">
+                                <div class="color-dot" id="customColor1Display" style="background: #667eea;"></div>
+                                <div class="color-dot" id="customColor2Display" style="background: #764ba2;"></div>
+                            </div>
+                            <span class="color-label">Custom Brand</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Custom Color Pickers -->
+                    <div class="custom-colors">
+                        <label>
+                            Primair
+                            <input type="color" id="customColor1" value="#667eea" onchange="editor.updateCustomColors()">
+                        </label>
+                        <label>
+                            Secundair
+                            <input type="color" id="customColor2" value="#764ba2" onchange="editor.updateCustomColors()">
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Apply Button -->
+                <button class="apply-settings-btn" onclick="editor.applySettings()">
+                    💾 Instellingen Toepassen
+                </button>
             </div>
         </div>
         
@@ -683,6 +1026,17 @@
                 this.sectionMode = false;
                 this.currentEditElement = null;
                 this.currentSection = null;
+                this.devicePreview = 'desktop';
+                
+                // Settings
+                this.settings = {
+                    logo: null,
+                    font: 'inter',
+                    palette: 'original',
+                    customColor1: '#667eea',
+                    customColor2: '#764ba2'
+                };
+                
                 this.init();
             }
             
@@ -1371,6 +1725,189 @@
                         parent.insertBefore(next, this.currentSection);
                         console.log('✅ Section moved down');
                     }
+                }
+            }
+            
+            // ===== SETTINGS PANEL METHODS =====
+            
+            switchTab(tab) {
+                // Update tab buttons
+                document.querySelectorAll('.sidebar-tab').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.getElementById(tab + 'Tab').classList.add('active');
+                
+                // Update content panels
+                document.querySelectorAll('.sidebar-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(tab + 'Content').classList.add('active');
+                
+                console.log('📑 Switched to tab:', tab);
+            }
+            
+            handleLogoUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.settings.logo = e.target.result;
+                    
+                    // Update preview
+                    const preview = document.getElementById('logoPreview');
+                    preview.classList.remove('empty');
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Logo">`;
+                    
+                    console.log('✅ Logo uploaded');
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            selectFont(fontName) {
+                this.settings.font = fontName;
+                
+                // Update active state
+                document.querySelectorAll('.font-option').forEach(option => {
+                    option.classList.remove('active');
+                });
+                document.querySelector(`[data-font="${fontName}"]`).classList.add('active');
+                
+                console.log('🔤 Font selected:', fontName);
+            }
+            
+            selectPalette(paletteName) {
+                this.settings.palette = paletteName;
+                
+                // Update active state
+                document.querySelectorAll('.color-option').forEach(option => {
+                    option.classList.remove('active');
+                });
+                document.querySelector(`[data-palette="${paletteName}"]`).classList.add('active');
+                
+                console.log('🎨 Palette selected:', paletteName);
+            }
+            
+            updateCustomColors() {
+                const color1 = document.getElementById('customColor1').value;
+                const color2 = document.getElementById('customColor2').value;
+                
+                this.settings.customColor1 = color1;
+                this.settings.customColor2 = color2;
+                
+                // Update display dots
+                document.getElementById('customColor1Display').style.background = color1;
+                document.getElementById('customColor2Display').style.background = color2;
+                
+                // Auto-select custom palette
+                this.selectPalette('custom');
+                
+                console.log('🎨 Custom colors updated:', color1, color2);
+            }
+            
+            applySettings() {
+                const iframe = document.getElementById('previewFrame');
+                if (!iframe.src) {
+                    alert('⚠️ Laad eerst een template pagina');
+                    return;
+                }
+                
+                try {
+                    const doc = iframe.contentDocument || iframe.contentWindow.document;
+                    
+                    // Apply Logo
+                    if (this.settings.logo) {
+                        const logos = doc.querySelectorAll('img[src*="logo"], .logo img, .site-logo img, header img[alt*="logo" i]');
+                        logos.forEach(logo => {
+                            logo.src = this.settings.logo;
+                            console.log('✅ Logo applied to:', logo);
+                        });
+                    }
+                    
+                    // Apply Font
+                    const fontMap = {
+                        'inter': "'Inter', sans-serif",
+                        'playfair': "'Playfair Display', serif",
+                        'montserrat': "'Montserrat', sans-serif",
+                        'poppins': "'Poppins', sans-serif"
+                    };
+                    
+                    if (this.settings.font && fontMap[this.settings.font]) {
+                        const fontFamily = fontMap[this.settings.font];
+                        
+                        // Add Google Fonts link if not exists
+                        if (!doc.querySelector('link[href*="fonts.googleapis"]')) {
+                            const link = doc.createElement('link');
+                            link.href = `https://fonts.googleapis.com/css2?family=${this.settings.font.charAt(0).toUpperCase() + this.settings.font.slice(1)}:wght@400;600;700&display=swap`;
+                            link.rel = 'stylesheet';
+                            doc.head.appendChild(link);
+                        }
+                        
+                        // Apply to body
+                        doc.body.style.fontFamily = fontFamily;
+                        console.log('✅ Font applied:', fontFamily);
+                    }
+                    
+                    // Apply Colors
+                    const colorSchemes = {
+                        'original': ['#667eea', '#764ba2'],
+                        'blue': ['#2563eb', '#1e40af'],
+                        'green': ['#10b981', '#059669'],
+                        'red': ['#ef4444', '#dc2626'],
+                        'orange': ['#f97316', '#ea580c'],
+                        'purple': ['#a855f7', '#9333ea'],
+                        'custom': [this.settings.customColor1, this.settings.customColor2]
+                    };
+                    
+                    const colors = colorSchemes[this.settings.palette];
+                    if (colors) {
+                        // Inject CSS variables
+                        let styleTag = doc.getElementById('custom-brand-colors');
+                        if (!styleTag) {
+                            styleTag = doc.createElement('style');
+                            styleTag.id = 'custom-brand-colors';
+                            doc.head.appendChild(styleTag);
+                        }
+                        
+                        styleTag.textContent = `
+                            :root {
+                                --primary-color: ${colors[0]} !important;
+                                --secondary-color: ${colors[1]} !important;
+                                --brand-primary: ${colors[0]} !important;
+                                --brand-secondary: ${colors[1]} !important;
+                            }
+                            
+                            /* Apply to common elements */
+                            .btn-primary, .primary-btn, button.primary {
+                                background: ${colors[0]} !important;
+                                border-color: ${colors[0]} !important;
+                            }
+                            
+                            .btn-primary:hover, .primary-btn:hover {
+                                background: ${colors[1]} !important;
+                            }
+                            
+                            a, .link {
+                                color: ${colors[0]} !important;
+                            }
+                            
+                            .bg-primary {
+                                background: ${colors[0]} !important;
+                            }
+                            
+                            .gradient-bg {
+                                background: linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 100%) !important;
+                            }
+                        `;
+                        
+                        console.log('✅ Colors applied:', colors);
+                    }
+                    
+                    alert('✅ Instellingen toegepast! Bekijk de preview.');
+                    
+                } catch (error) {
+                    console.error('❌ Error applying settings:', error);
+                    alert('⚠️ Fout bij toepassen instellingen. Check console.');
                 }
             }
         }
