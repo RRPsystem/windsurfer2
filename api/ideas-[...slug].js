@@ -6,6 +6,11 @@
 //   Optional info endpoint via ?info=1 -> /resources/travelidea/{micrositeId}/info/{ideaId}
 
 export default async function handler(req, res) {
+  // DEBUG: Return early to test if function even runs
+  console.log('[TC API] Function invoked!');
+  console.log('[TC API] req.query:', req.query);
+  console.log('[TC API] req.url:', req.url);
+  
   try {
     const {
       TC_BASE_URL = '', // e.g. https://online.travelcompositor.com
@@ -20,9 +25,12 @@ export default async function handler(req, res) {
     const { slug } = req.query || {};
     const id = Array.isArray(slug) ? slug[0] : slug;
     
-    console.log('[TC API] Request params:', { slug, id, query: req.query });
+    console.log('[TC API] Parsed params:', { slug, id });
     
-    if (!id) return res.status(400).json({ error: 'Missing id', received: { slug, query: req.query } });
+    if (!id) {
+      console.error('[TC API] Missing ID!');
+      return res.status(400).json({ error: 'Missing id', received: { slug, query: req.query, url: req.url } });
+    }
     if (!TC_BASE_URL || !TC_MICROSITE_ID) {
       return res.status(500).json({ error: 'Missing TC_BASE_URL or TC_MICROSITE_ID' });
     }
