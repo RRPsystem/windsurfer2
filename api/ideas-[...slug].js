@@ -16,8 +16,13 @@ export default async function handler(req, res) {
       TC_TENANT_ID = ''
     } = process.env;
 
-    const { id } = req.query || {};
-    if (!id) return res.status(400).json({ error: 'Missing id' });
+    // Extract ID from catch-all slug param (e.g. /api/ideas-37892974 -> slug = ['37892974'])
+    const { slug } = req.query || {};
+    const id = Array.isArray(slug) ? slug[0] : slug;
+    
+    console.log('[TC API] Request params:', { slug, id, query: req.query });
+    
+    if (!id) return res.status(400).json({ error: 'Missing id', received: { slug, query: req.query } });
     if (!TC_BASE_URL || !TC_MICROSITE_ID) {
       return res.status(500).json({ error: 'Missing TC_BASE_URL or TC_MICROSITE_ID' });
     }
