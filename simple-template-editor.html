@@ -714,7 +714,8 @@
             <button class="btn btn-danger" onclick="editor.toggleSectionMode()" id="sectionModeBtn">
                 🗑️ Section Mode: OFF
             </button>
-            <button class="btn btn-primary" onclick="editor.saveTemplate()">💾 Download</button>
+            <button class="btn btn-success" onclick="editor.savePageToBolt()" id="saveToBoltBtn" style="display:none">💾 Save to BOLT</button>
+            <button class="btn btn-primary" onclick="editor.saveTemplate()" id="downloadBtn">💾 Download</button>
             <button class="btn btn-success" onclick="editor.openInNewTab()">🚀 Open in New Tab</button>
         </div>
     </div>
@@ -1177,6 +1178,9 @@
                     // Update header
                     document.querySelector('.header h1').textContent = 
                         `🎨 ${page.title} - Brand Settings`;
+                    
+                    // Show Save to BOLT button
+                    document.getElementById('saveToBoltBtn').style.display = 'block';
                     
                     // Show settings tab by default
                     this.switchTab('settings');
@@ -2222,6 +2226,63 @@
                 } catch (error) {
                     console.error('❌ Error saving brand settings:', error);
                     alert('⚠️ Fout bij opslaan: ' + error.message);
+                }
+            }
+            
+            async savePageToBolt() {
+                if (!this.pageId || !this.token || !this.apiBase) {
+                    alert('⚠️ Kan niet opslaan - geen BOLT verbinding');
+                    return;
+                }
+                
+                try {
+                    console.log('💾 Saving page to BOLT...');
+                    
+                    // Get current HTML from iframe
+                    const iframe = document.getElementById('previewFrame');
+                    const htmlContent = iframe.contentDocument.documentElement.outerHTML;
+                    
+                    // Prepare save data
+                    const saveData = {
+                        page_id: this.pageId,
+                        content: htmlContent,
+                        body_html: htmlContent // BOLT expects both
+                    };
+                    
+                    console.log('📤 Sending to BOLT:', { page_id: this.pageId, content_length: htmlContent.length });
+                    
+                    // Call BOLT save API
+                    const response = await fetch(`${this.apiBase}/pages-api/save`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${this.token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(saveData)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('❌ Save Error Response:', errorText);
+                        throw new Error(`Save failed: ${response.status} - ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('✅ Page saved to BOLT:', result);
+                    
+                    alert('✅ Pagina opgeslagen in BOLT!');
+                    
+                    // Ask if user wants to return to BOLT
+                    if (this.returnUrl) {
+                        const goBack = confirm('Wil je terug naar BOLT?');
+                        if (goBack) {
+                            window.location.href = decodeURIComponent(this.returnUrl);
+                        }
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error saving page to BOLT:', error);
+                    alert('⚠️ Fout bij opslaan naar BOLT: ' + error.message);
                 }
             }
         }
