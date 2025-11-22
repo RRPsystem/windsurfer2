@@ -1208,8 +1208,14 @@
                         if (response.ok) {
                             const result = await response.json();
                             data = result.data || result;
-                        } else if (response.status !== 404) {
-                            throw new Error(`API error: ${response.status}`);
+                        } else if (response.status === 404) {
+                            console.log('ℹ️ No existing brand settings found (404)');
+                            // 404 is OK - means no settings yet
+                        } else {
+                            // Log error but don't throw - continue without settings
+                            const errorText = await response.text();
+                            console.warn(`⚠️ Brand settings API error ${response.status}:`, errorText);
+                            console.log('ℹ️ Continuing without existing brand settings');
                         }
                     } else if (this.supabase) {
                         // Fallback to direct Supabase
@@ -1241,7 +1247,9 @@
                         console.log('ℹ️ No existing brand settings found');
                     }
                 } catch (error) {
-                    console.error('❌ Error loading brand settings:', error);
+                    console.warn('⚠️ Error loading brand settings:', error);
+                    console.log('ℹ️ Continuing with default settings');
+                    // Don't throw - just continue without existing settings
                 }
             }
             
