@@ -724,19 +724,41 @@
         const apiBase = this.getApiBase();
         const url = `${apiBase}/api/ideas/${encodeURIComponent(ideaId)}?micrositeId=${encodeURIComponent(micrositeId)}&lang=NL`;
 
-        console.log('[TravelView] Loading travel from:', url);
+        console.log('🔍 ===== DEBUG: TRAVEL COMPOSITOR CALL =====');
+        console.log('📋 Parameters:', {
+          ideaId,
+          micrositeId,
+          template,
+          apiBase,
+          fullUrl: url
+        });
 
         const response = await fetch(url);
         
+        console.log('📡 Response Status:', {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+        
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          console.error('[TravelView] API Error Response:', {
-            status: response.status,
-            statusText: response.statusText,
-            errorData
-          });
+          const errorText = await response.text();
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch (e) {
+            errorData = { rawText: errorText };
+          }
           
-          // Show detailed error
+          console.error('❌ ===== API ERROR DETAILS =====');
+          console.error('Status:', response.status);
+          console.error('Status Text:', response.statusText);
+          console.error('Error Data:', errorData);
+          console.error('Request URL:', url);
+          console.error('Request Params:', { ideaId, micrositeId });
+          
+          // Show detailed error with all info
           let errorMsg = errorData.error || `HTTP ${response.status}`;
           if (errorData.detail) {
             errorMsg += ': ' + (typeof errorData.detail === 'string' ? errorData.detail : JSON.stringify(errorData.detail));
@@ -748,9 +770,21 @@
           throw new Error(errorMsg);
         }
 
-        const data = await response.json();
-        console.log('[TravelView] ===== TC API RESPONSE =====');
-        console.log('[TravelView] Full data:', data);
+        const responseText = await response.text();
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (e) {
+          console.error('❌ Failed to parse JSON response:', responseText);
+          throw new Error('Invalid JSON response from TC API');
+        }
+        
+        console.log('✅ ===== TC API SUCCESS =====');
+        console.log('📦 Response Data:', data);
+        console.log('📊 Data Keys:', Object.keys(data));
+        if (data.destinations) console.log('📍 Destinations:', data.destinations.length);
+        if (data.hotels) console.log('🏨 Hotels:', data.hotels.length);
+        if (data.transports) console.log('✈️ Transports:', data.transports.length);
 
         this.currentIdea = data;
         
