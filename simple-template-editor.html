@@ -1850,7 +1850,6 @@
                     
                     // Apply Colors
                     const colorSchemes = {
-                        'original': ['#667eea', '#764ba2'],
                         'blue': ['#2563eb', '#1e40af'],
                         'green': ['#10b981', '#059669'],
                         'red': ['#ef4444', '#dc2626'],
@@ -1859,48 +1858,58 @@
                         'custom': [this.settings.customColor1, this.settings.customColor2]
                     };
                     
-                    const colors = colorSchemes[this.settings.palette];
-                    if (colors) {
-                        // Inject CSS variables
-                        let styleTag = doc.getElementById('custom-brand-colors');
-                        if (!styleTag) {
-                            styleTag = doc.createElement('style');
-                            styleTag.id = 'custom-brand-colors';
-                            doc.head.appendChild(styleTag);
+                    // Check if "original" is selected - REMOVE custom styles to restore template defaults
+                    if (this.settings.palette === 'original') {
+                        const styleTag = doc.getElementById('custom-brand-colors');
+                        if (styleTag) {
+                            styleTag.remove();
+                            console.log('✅ Reset to original template colors');
                         }
-                        
-                        styleTag.textContent = `
-                            :root {
-                                --primary-color: ${colors[0]} !important;
-                                --secondary-color: ${colors[1]} !important;
-                                --brand-primary: ${colors[0]} !important;
-                                --brand-secondary: ${colors[1]} !important;
+                    } else {
+                        // Apply custom color scheme
+                        const colors = colorSchemes[this.settings.palette];
+                        if (colors) {
+                            // Inject CSS variables
+                            let styleTag = doc.getElementById('custom-brand-colors');
+                            if (!styleTag) {
+                                styleTag = doc.createElement('style');
+                                styleTag.id = 'custom-brand-colors';
+                                doc.head.appendChild(styleTag);
                             }
                             
-                            /* Apply to common elements */
-                            .btn-primary, .primary-btn, button.primary {
-                                background: ${colors[0]} !important;
-                                border-color: ${colors[0]} !important;
-                            }
+                            styleTag.textContent = `
+                                :root {
+                                    --primary-color: ${colors[0]} !important;
+                                    --secondary-color: ${colors[1]} !important;
+                                    --brand-primary: ${colors[0]} !important;
+                                    --brand-secondary: ${colors[1]} !important;
+                                }
+                                
+                                /* Apply to common elements */
+                                .btn-primary, .primary-btn, button.primary {
+                                    background: ${colors[0]} !important;
+                                    border-color: ${colors[0]} !important;
+                                }
+                                
+                                .btn-primary:hover, .primary-btn:hover {
+                                    background: ${colors[1]} !important;
+                                }
+                                
+                                a, .link {
+                                    color: ${colors[0]} !important;
+                                }
+                                
+                                .bg-primary {
+                                    background: ${colors[0]} !important;
+                                }
+                                
+                                .gradient-bg {
+                                    background: linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 100%) !important;
+                                }
+                            `;
                             
-                            .btn-primary:hover, .primary-btn:hover {
-                                background: ${colors[1]} !important;
-                            }
-                            
-                            a, .link {
-                                color: ${colors[0]} !important;
-                            }
-                            
-                            .bg-primary {
-                                background: ${colors[0]} !important;
-                            }
-                            
-                            .gradient-bg {
-                                background: linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 100%) !important;
-                            }
-                        `;
-                        
-                        console.log('✅ Colors applied:', colors);
+                            console.log('✅ Colors applied:', colors);
+                        }
                     }
                     
                     alert('✅ Instellingen toegepast! Bekijk de preview.');
