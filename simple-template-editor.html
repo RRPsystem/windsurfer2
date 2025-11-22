@@ -1028,6 +1028,14 @@
                 this.currentSection = null;
                 this.devicePreview = 'desktop';
                 
+                // BOLT integration
+                this.pageId = null;
+                this.brandId = null;
+                this.token = null;
+                this.apikey = null;
+                this.returnUrl = null;
+                this.supabase = null;
+                
                 // Settings
                 this.settings = {
                     logo: null,
@@ -1040,8 +1048,150 @@
                 this.init();
             }
             
-            init() {
-                this.renderTemplateList();
+            async init() {
+                // Parse URL parameters
+                this.parseUrlParams();
+                
+                // Initialize Supabase
+                if (this.apikey) {
+                    this.initSupabase();
+                }
+                
+                // If coming from BOLT, load page data
+                if (this.pageId) {
+                    await this.loadFromBolt();
+                } else {
+                    // Normal mode - show template list
+                    this.renderTemplateList();
+                }
+            }
+            
+            parseUrlParams() {
+                const params = new URLSearchParams(window.location.search);
+                this.pageId = params.get('page_id');
+                this.brandId = params.get('brand_id');
+                this.token = params.get('token');
+                this.apikey = params.get('apikey');
+                this.returnUrl = params.get('return_url');
+                
+                console.log('📋 URL Params:', {
+                    pageId: this.pageId,
+                    brandId: this.brandId,
+                    hasToken: !!this.token,
+                    hasApikey: !!this.apikey,
+                    returnUrl: this.returnUrl
+                });
+            }
+            
+            initSupabase() {
+                const SUPABASE_URL = 'https://huaaogdxxdcakxryecnw.supabase.co';
+                this.supabase = supabase.createClient(SUPABASE_URL, this.apikey);
+                console.log('✅ Supabase initialized');
+            }
+            
+            async loadFromBolt() {
+                if (!this.supabase || !this.pageId) {
+                    console.error('❌ Cannot load from BOLT - missing supabase or page_id');
+                    return;
+                }
+                
+                try {
+                    console.log('🔄 Loading page from BOLT...');
+                    
+                    // Fetch page data
+                    const { data: page, error: pageError } = await this.supabase
+                        .from('pages')
+                        .select('id, brand_id, title, slug, content')
+                        .eq('id', this.pageId)
+                        .single();
+                    
+                    if (pageError) throw pageError;
+                    if (!page) throw new Error('Page not found');
+                    
+                    console.log('✅ Page loaded:', page);
+                    this.brandId = page.brand_id;
+                    
+                    // Load existing brand settings
+                    await this.loadBrandSettings();
+                    
+                    // Load page content into iframe
+                    const iframe = document.getElementById('previewFrame');
+                    iframe.srcdoc = page.content || '<h1>No content yet</h1>';
+                    
+                    // Update header
+                    document.querySelector('.header h1').textContent = 
+                        `🎨 ${page.title} - Brand Settings`;
+                    
+                    // Show settings tab by default
+                    this.switchTab('settings');
+                    
+                } catch (error) {
+                    console.error('❌ Error loading from BOLT:', error);
+                    alert('⚠️ Fout bij laden pagina: ' + error.message);
+                }
+            }
+            
+            async loadBrandSettings() {
+                if (!this.supabase || !this.brandId) return;
+                
+                try {
+                    const { data, error } = await this.supabase
+                        .from('brand_settings')
+                        .select('*')
+                        .eq('brand_id', this.brandId)
+                        .single();
+                    
+                    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
+                        throw error;
+                    }
+                    
+                    if (data) {
+                        console.log('✅ Existing brand settings loaded:', data);
+                        
+                        // Apply settings to UI
+                        this.settings.logo = data.logo_url;
+                        this.settings.font = data.font_family || 'inter';
+                        this.settings.palette = data.color_palette || 'original';
+                        this.settings.customColor1 = data.color_primary || '#667eea';
+                        this.settings.customColor2 = data.color_secondary || '#764ba2';
+                        
+                        // Update UI elements
+                        this.updateSettingsUI();
+                    } else {
+                        console.log('ℹ️ No existing brand settings found');
+                    }
+                } catch (error) {
+                    console.error('❌ Error loading brand settings:', error);
+                }
+            }
+            
+            updateSettingsUI() {
+                // Update logo preview
+                if (this.settings.logo) {
+                    const preview = document.getElementById('logoPreview');
+                    preview.classList.remove('empty');
+                    preview.innerHTML = `<img src="${this.settings.logo}" alt="Logo">`;
+                }
+                
+                // Update font selection
+                document.querySelectorAll('.font-option').forEach(option => {
+                    option.classList.remove('active');
+                });
+                const fontOption = document.querySelector(`[data-font="${this.settings.font}"]`);
+                if (fontOption) fontOption.classList.add('active');
+                
+                // Update palette selection
+                document.querySelectorAll('.color-option').forEach(option => {
+                    option.classList.remove('active');
+                });
+                const paletteOption = document.querySelector(`[data-palette="${this.settings.palette}"]`);
+                if (paletteOption) paletteOption.classList.add('active');
+                
+                // Update custom color pickers
+                document.getElementById('customColor1').value = this.settings.customColor1;
+                document.getElementById('customColor2').value = this.settings.customColor2;
+                document.getElementById('customColor1Display').style.background = this.settings.customColor1;
+                document.getElementById('customColor2Display').style.background = this.settings.customColor2;
             }
             
             renderTemplateList() {
@@ -1805,7 +1955,7 @@
                 console.log('🎨 Custom colors updated:', color1, color2);
             }
             
-            applySettings() {
+            async applySettings() {
                 const iframe = document.getElementById('previewFrame');
                 if (!iframe.src) {
                     alert('⚠️ Laad eerst een template pagina');
@@ -1912,11 +2062,66 @@
                         }
                     }
                     
-                    alert('✅ Instellingen toegepast! Bekijk de preview.');
+                    // If in BOLT mode, ask to save
+                    if (this.brandId) {
+                        const shouldSave = confirm('✅ Instellingen toegepast!\n\nWil je deze opslaan voor alle paginas van deze brand?');
+                        if (shouldSave) {
+                            await this.saveBrandSettings();
+                        }
+                    } else {
+                        alert('✅ Instellingen toegepast! Bekijk de preview.');
+                    }
                     
                 } catch (error) {
                     console.error('❌ Error applying settings:', error);
                     alert('⚠️ Fout bij toepassen instellingen. Check console.');
+                }
+            }
+            
+            async saveBrandSettings() {
+                if (!this.supabase || !this.brandId) {
+                    alert('⚠️ Kan niet opslaan - geen brand_id gevonden');
+                    return;
+                }
+                
+                try {
+                    console.log('💾 Saving brand settings...');
+                    
+                    const settingsData = {
+                        brand_id: this.brandId,
+                        logo_url: this.settings.logo,
+                        font_family: this.settings.font,
+                        color_palette: this.settings.palette,
+                        color_primary: this.settings.customColor1,
+                        color_secondary: this.settings.customColor2,
+                        updated_at: new Date().toISOString()
+                    };
+                    
+                    // Upsert (insert or update)
+                    const { data, error } = await this.supabase
+                        .from('brand_settings')
+                        .upsert(settingsData, {
+                            onConflict: 'brand_id'
+                        })
+                        .select()
+                        .single();
+                    
+                    if (error) throw error;
+                    
+                    console.log('✅ Brand settings saved:', data);
+                    alert('✅ Brand instellingen opgeslagen!\n\nDeze worden nu gebruikt voor alle paginas.');
+                    
+                    // If return URL exists, offer to go back
+                    if (this.returnUrl) {
+                        const goBack = confirm('Wil je terug naar BOLT?');
+                        if (goBack) {
+                            window.location.href = decodeURIComponent(this.returnUrl);
+                        }
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error saving brand settings:', error);
+                    alert('⚠️ Fout bij opslaan: ' + error.message);
                 }
             }
         }

@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template Selector - GrapesJS</title>
+    
+    <!-- Cache Busting -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- GrapesJS Core -->
+    <link rel="stylesheet" href="https://unpkg.com/grapesjs/dist/css/grapes.min.css">
+    <script src="https://unpkg.com/grapesjs"></script>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow: hidden;
+        }
+        
+        /* Header */
+        .editor-header {
+            height: 60px;
+            background: #2c3e50;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        
+        .editor-header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+        
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #229954;
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        /* Template Selector Modal */
+        .template-selector {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .template-selector.hidden {
+            display: none;
+        }
+        
+        .selector-content {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .selector-header h2 {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .template-card {
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .template-card:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .template-card h3 {
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .template-card .pages {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        .template-card .page-list {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .page-badge {
+            background: #ecf0f1;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #34495e;
+        }
+        
+        /* GrapesJS Container */
+        #gjs {
+            height: calc(100vh - 60px);
+            overflow: hidden;
+            border: 0;
+        }
+        
+        .gjs-cv-canvas {
+            background: #ffffff;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .gjs-pn-panels {
+            z-index: 10;
+        }
+        
+        .gjs-blocks-c {
+            background: #f8f9fa;
+        }
+        
+        /* Force wrapper to be visible */
+        #gjs iframe [data-gjs-type="wrapper"] {
+            min-height: 100vh !important;
+            height: auto !important;
+            display: block !important;
+        }
+        
+        /* Template Info Bar */
+        .template-info {
+            display: none;
+            padding: 10px 20px;
+            background: #ecf0f1;
+            border-bottom: 1px solid #bdc3c7;
+        }
+        
+        .template-info.active {
+            display: block;
+        }
+        
+        .template-name {
+            font-size: 14px;
+            color: #2c3e50;
+        }
+        
+        .template-name strong {
+            font-weight: 600;
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Success Message */
+        .success-message {
+            display: none;
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 9999;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .success-message.active {
+            display: block;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="editor-header">
+        <h1>🎨 Template Editor</h1>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="templateEditor.showTemplateSelector()" id="selectBtn">
+                📁 Kies Template
+            </button>
+            <button class="btn btn-primary" onclick="templateEditor.saveTemplate()" id="saveBtn" disabled>
+                💾 Opslaan
+            </button>
+            <button class="btn btn-success" onclick="templateEditor.deployToBolt()" id="deployBtn" disabled>
+                🚀 Deploy naar BOLT
+            </button>
+        </div>
+    </div>
+    
+    <!-- Template Info Bar -->
+    <div class="template-info" id="templateInfo">
+        <span class="template-name">
+            <strong>Template:</strong> <span id="templateName">-</span>
+        </span>
+    </div>
+    
+    <!-- GrapesJS Editor -->
+    <div id="gjs"></div>
+    
+    <!-- Template Selector Modal -->
+    <div class="template-selector" id="templateSelector">
+        <div class="selector-content">
+            <div class="selector-header">
+                <h2>📂 Selecteer een Template</h2>
+            </div>
+            <div class="template-grid" id="templateGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div>Templates laden...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Success Message -->
+    <div class="success-message" id="successMessage"></div>
+    
+    <script>
+        // Available templates (hardcoded for now, could be dynamic)
+        const AVAILABLE_TEMPLATES = [
+            {
+                id: 'gowild',
+                name: 'Gowild',
+                folder: 'Gowild',
+                mainFile: 'index.html',
+                pages: ['index', 'about', 'destination', 'tour', 'blog-list', 'contact']
+            },
+            {
+                id: 'tripex',
+                name: 'Tripex',
+                folder: 'tripex',
+                mainFile: 'index.html',
+                pages: ['index', 'index-2', 'index-3', 'index-4']
+            }
+        ];
+        
+        class TemplateEditor {
+            constructor() {
+                this.editor = null;
+                this.currentTemplate = null;
+                this.supabase = null;
+                this.init();
+            }
+            
+            init() {
+                this.initSupabase();
+                this.initGrapesJS();
+                this.showTemplateSelector();
+            }
+            
+            initSupabase() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const apiUrl = urlParams.get('api') || 'https://huaaogdxxdcakxryecnw.supabase.co';
+                const apiKey = urlParams.get('apikey') || '';
+                
+                if (apiKey) {
+                    this.supabase = supabase.createClient(apiUrl, apiKey);
+                    console.log('✅ Supabase initialized');
+                }
+            }
+            
+            initGrapesJS() {
+                this.editor = grapesjs.init({
+                    container: '#gjs',
+                    height: '100%',
+                    width: 'auto',
+                    storageManager: false,
+                    plugins: [],
+                    pluginsOpts: {},
+                    canvas: {
+                        styles: [],
+                        scripts: []
+                    },
+                    assetManager: {
+                        upload: false,
+                        multiUpload: false,
+                        assets: []
+                    },
+                    panels: {
+                        defaults: []
+                    },
+                    deviceManager: {
+                        devices: [
+                            {
+                                name: 'Desktop',
+                                width: ''
+                            },
+                            {
+                                name: 'Tablet',
+                                width: '768px',
+                                widthMedia: '992px'
+                            },
+                            {
+                                name: 'Mobile',
+                                width: '375px',
+                                widthMedia: '480px'
+                            }
+                        ]
+                    }
+                });
+                
+                console.log('✅ GrapesJS initialized');
+            }
+            
+            showTemplateSelector() {
+                const selector = document.getElementById('templateSelector');
+                const grid = document.getElementById('templateGrid');
+                
+                // Build template grid
+                grid.innerHTML = '';
+                
+                AVAILABLE_TEMPLATES.forEach(template => {
+                    const card = document.createElement('div');
+                    card.className = 'template-card';
+                    card.onclick = () => this.loadTemplate(template);
+                    
+                    card.innerHTML = `
+                        <h3>${template.name}</h3>
+                        <div class="pages">${template.pages.length} pagina's</div>
+                        <div class="page-list">
+                            ${template.pages.map(page => `<span class="page-badge">${page}</span>`).join('')}
+                        </div>
+                    `;
+                    
+                    grid.appendChild(card);
+                });
+                
+                selector.classList.remove('hidden');
+            }
+            
+            async loadTemplate(template) {
+                console.log('📦 Loading template:', template.name);
+                
+                // Hide selector
+                document.getElementById('templateSelector').classList.add('hidden');
+                
+                try {
+                    // Load HTML file
+                    const htmlPath = `/templates/${template.folder}/${template.mainFile}`;
+                    console.log('📄 Loading:', htmlPath);
+                    
+                    const response = await fetch(htmlPath);
+                    if (!response.ok) {
+                        throw new Error(`Failed to load ${htmlPath}`);
+                    }
+                    
+                    const html = await response.text();
+                    console.log('✅ HTML loaded:', html.length, 'characters');
+                    
+                    // Parse and load into editor
+                    this.loadIntoEditor(html, template);
+                    
+                    this.showSuccess('✅ Template geladen!');
+                    
+                } catch (error) {
+                    console.error('❌ Error loading template:', error);
+                    alert('Fout bij laden van template: ' + error.message);
+                    this.showTemplateSelector();
+                }
+            }
+            
+            async loadIntoEditor(html, template) {
+                // Store current template
+                this.currentTemplate = {
+                    ...template,
+                    originalHtml: html
+                };
+                
+                // Parse HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Extract CSS from style tags
+                let allCss = '';
+                doc.querySelectorAll('style').forEach(style => {
+                    allCss += style.textContent + '\n';
+                    style.remove();
+                });
+                
+                // Extract and load CSS from link tags
+                const cssLinks = [];
+                doc.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href && !href.startsWith('http')) {
+                        cssLinks.push(href);
+                    }
+                    link.remove();
+                });
+                
+                // Load all CSS files
+                console.log('📄 Loading', cssLinks.length, 'CSS files...');
+                for (const cssPath of cssLinks) {
+                    try {
+                        const cssUrl = `/templates/${template.folder}/${cssPath}`;
+                        console.log('  Loading:', cssUrl);
+                        const response = await fetch(cssUrl);
+                        if (response.ok) {
+                            const cssContent = await response.text();
+                            allCss += '\n/* ' + cssPath + ' */\n' + cssContent + '\n';
+                            console.log('  ✅ Loaded:', cssPath, '(' + cssContent.length + ' chars)');
+                        } else {
+                            console.warn('  ⚠️ Failed to load:', cssPath);
+                        }
+                    } catch (err) {
+                        console.warn('  ❌ Error loading CSS:', cssPath, err);
+                    }
+                }
+                
+                console.log('✅ Total CSS loaded:', allCss.length, 'characters');
+                
+                // Remove scripts
+                doc.querySelectorAll('script').forEach(script => script.remove());
+                
+                // Get body content
+                const bodyContent = doc.body.innerHTML;
+                
+                // Fix image paths
+                const fixedContent = bodyContent.replace(
+                    /src="([^"]+)"/g,
+                    (match, src) => {
+                        if (src.startsWith('http') || src.startsWith('data:')) {
+                            return match;
+                        }
+                        return `src="/templates/${template.folder}/${src.replace(/^\.\//, '')}"`;
+                    }
+                );
+                
+                // Set components
+                this.editor.setComponents(fixedContent);
+                
+                // Set ALL CSS
+                if (allCss) {
+                    this.editor.setStyle(allCss);
+                    console.log('✅ CSS applied to editor');
+                }
+                
+                // Fix wrapper height and add base tag for relative paths
+                setTimeout(() => {
+                    const canvas = this.editor.Canvas;
+                    const frame = canvas.getFrameEl();
+                    if (frame) {
+                        const frameDoc = frame.contentDocument || frame.contentWindow.document;
+                        
+                        // Add base tag for relative paths
+                        const base = frameDoc.createElement('base');
+                        base.href = `/templates/${template.folder}/`;
+                        if (frameDoc.head.querySelector('base')) {
+                            frameDoc.head.querySelector('base').remove();
+                        }
+                        frameDoc.head.insertBefore(base, frameDoc.head.firstChild);
+                        
+                        // Fix wrapper
+                        const wrapper = frameDoc.querySelector('[data-gjs-type="wrapper"]');
+                        if (wrapper) {
+                            wrapper.style.minHeight = '100vh';
+                            wrapper.style.height = 'auto';
+                            wrapper.style.display = 'block';
+                            console.log('✅ Wrapper fixed');
+                        }
+                        
+                        console.log('✅ Base tag added for:', `/templates/${template.folder}/`);
+                    }
+                }, 500);
+                
+                // Update UI
+                document.getElementById('templateName').textContent = template.name;
+                document.getElementById('templateInfo').classList.add('active');
+                document.getElementById('saveBtn').disabled = false;
+                document.getElementById('deployBtn').disabled = false;
+                
+                console.log('✅ Template loaded into editor');
+            }
+            
+            async saveTemplate() {
+                if (!this.currentTemplate) {
+                    alert('⚠️ Geen template geladen');
+                    return;
+                }
+                
+                console.log('💾 Saving template...');
+                
+                const html = this.editor.getHtml();
+                const css = this.editor.getCss();
+                
+                const fullHtml = `<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${this.currentTemplate.name}</title>
+    <style>
+${css}
+    </style>
+</head>
+<body>
+${html}
+</body>
+</html>`;
+                
+                // Download
+                this.downloadTemplate(fullHtml, this.currentTemplate.name);
+                
+                this.showSuccess('✅ Template opgeslagen!');
+            }
+            
+            downloadTemplate(html, name) {
+                const blob = new Blob([html], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${name}.html`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+            
+            async deployToBolt() {
+                if (!this.currentTemplate) {
+                    alert('⚠️ Geen template geladen');
+                    return;
+                }
+                
+                console.log('🚀 Deploying to BOLT...');
+                
+                const html = this.editor.getHtml();
+                const css = this.editor.getCss();
+                
+                const fullHtml = `<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${this.currentTemplate.name}</title>
+    <style>${css}</style>
+</head>
+<body>${html}</body>
+</html>`;
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const returnUrl = urlParams.get('return_url');
+                
+                if (returnUrl) {
+                    const params = new URLSearchParams({
+                        template_html: fullHtml,
+                        template_name: this.currentTemplate.name
+                    });
+                    window.location.href = `${returnUrl}?${params.toString()}`;
+                } else {
+                    await this.saveTemplate();
+                    this.showSuccess('✅ Template klaar voor deployment!');
+                }
+            }
+            
+            showSuccess(message) {
+                const successEl = document.getElementById('successMessage');
+                successEl.textContent = message;
+                successEl.classList.add('active');
+                
+                setTimeout(() => {
+                    successEl.classList.remove('active');
+                }, 3000);
+            }
+        }
+        
+        // Initialize
+        let templateEditor;
+        window.addEventListener('DOMContentLoaded', () => {
+            templateEditor = new TemplateEditor();
+        });
+    </script>
+</body>
+</html>
