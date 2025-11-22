@@ -1072,6 +1072,7 @@
                 this.brandId = params.get('brand_id');
                 this.token = params.get('token');
                 this.apikey = params.get('apikey');
+                this.apiBase = params.get('api'); // Edge function base URL
                 this.returnUrl = params.get('return_url');
                 
                 console.log('📋 URL Params:', {
@@ -1079,6 +1080,7 @@
                     brandId: this.brandId,
                     hasToken: !!this.token,
                     hasApikey: !!this.apikey,
+                    apiBase: this.apiBase,
                     returnUrl: this.returnUrl
                 });
             }
@@ -1090,22 +1092,44 @@
             }
             
             async loadFromBolt() {
-                if (!this.supabase || !this.pageId) {
-                    console.error('❌ Cannot load from BOLT - missing supabase or page_id');
+                if (!this.pageId || !this.token) {
+                    console.error('❌ Cannot load from BOLT - missing page_id or token');
                     return;
                 }
                 
                 try {
                     console.log('🔄 Loading page from BOLT...');
                     
-                    // Fetch page data
-                    const { data: page, error: pageError } = await this.supabase
-                        .from('pages')
-                        .select('id, brand_id, title, slug, content')
-                        .eq('id', this.pageId)
-                        .single();
+                    // Use edge function API if available, otherwise fall back to direct Supabase
+                    let page;
+                    if (this.apiBase) {
+                        // Call edge function
+                        const response = await fetch(`${this.apiBase}/pages-api?id=${this.pageId}`, {
+                            headers: {
+                                'Authorization': `Bearer ${this.token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            throw new Error(`API error: ${response.status} - ${errorText}`);
+                        }
+                        
+                        const result = await response.json();
+                        page = result.data || result;
+                    } else {
+                        // Fallback to direct Supabase
+                        const { data, error: pageError } = await this.supabase
+                            .from('pages')
+                            .select('id, brand_id, title, slug, content')
+                            .eq('id', this.pageId)
+                            .single();
+                        
+                        if (pageError) throw pageError;
+                        page = data;
+                    }
                     
-                    if (pageError) throw pageError;
                     if (!page) throw new Error('Page not found');
                     
                     console.log('✅ Page loaded:', page);
@@ -1132,17 +1156,37 @@
             }
             
             async loadBrandSettings() {
-                if (!this.supabase || !this.brandId) return;
+                if (!this.brandId) return;
                 
                 try {
-                    const { data, error } = await this.supabase
-                        .from('brand_settings')
-                        .select('*')
-                        .eq('brand_id', this.brandId)
-                        .single();
-                    
-                    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
-                        throw error;
+                    let data;
+                    if (this.apiBase && this.token) {
+                        // Use edge function
+                        const response = await fetch(`${this.apiBase}/brand-settings-api?brand_id=${this.brandId}`, {
+                            headers: {
+                                'Authorization': `Bearer ${this.token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const result = await response.json();
+                            data = result.data || result;
+                        } else if (response.status !== 404) {
+                            throw new Error(`API error: ${response.status}`);
+                        }
+                    } else if (this.supabase) {
+                        // Fallback to direct Supabase
+                        const { data: result, error } = await this.supabase
+                            .from('brand_settings')
+                            .select('*')
+                            .eq('brand_id', this.brandId)
+                            .single();
+                        
+                        if (error && error.code !== 'PGRST116') {
+                            throw error;
+                        }
+                        data = result;
                     }
                     
                     if (data) {
@@ -2079,7 +2123,7 @@
             }
             
             async saveBrandSettings() {
-                if (!this.supabase || !this.brandId) {
+                if (!this.brandId) {
                     alert('⚠️ Kan niet opslaan - geen brand_id gevonden');
                     return;
                 }
@@ -2097,16 +2141,40 @@
                         updated_at: new Date().toISOString()
                     };
                     
-                    // Upsert (insert or update)
-                    const { data, error } = await this.supabase
-                        .from('brand_settings')
-                        .upsert(settingsData, {
-                            onConflict: 'brand_id'
-                        })
-                        .select()
-                        .single();
-                    
-                    if (error) throw error;
+                    let data;
+                    if (this.apiBase && this.token) {
+                        // Use edge function
+                        const response = await fetch(`${this.apiBase}/brand-settings-api`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${this.token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(settingsData)
+                        });
+                        
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            throw new Error(`API error: ${response.status} - ${errorText}`);
+                        }
+                        
+                        const result = await response.json();
+                        data = result.data || result;
+                    } else if (this.supabase) {
+                        // Fallback to direct Supabase
+                        const { data: result, error } = await this.supabase
+                            .from('brand_settings')
+                            .upsert(settingsData, {
+                                onConflict: 'brand_id'
+                            })
+                            .select()
+                            .single();
+                        
+                        if (error) throw error;
+                        data = result;
+                    } else {
+                        throw new Error('No API available');
+                    }
                     
                     console.log('✅ Brand settings saved:', data);
                     alert('✅ Brand instellingen opgeslagen!\n\nDeze worden nu gebruikt voor alle paginas.');
