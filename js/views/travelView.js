@@ -12,11 +12,30 @@
     mount(container) {
       if (!container) return;
       
+      console.log('[TravelView] Mounting travel view...');
+      console.log('[TravelView] URL params:', window.location.search);
+      console.log('[TravelView] Hash:', window.location.hash);
+      
+      // Check if there's an id in URL params - if not, we're creating NEW travel
+      const urlParams = new URLSearchParams(window.location.search);
+      const tripId = urlParams.get('id');
+      
+      if (tripId) {
+        console.log('[TravelView] Trip ID found in URL, attempting to load:', tripId);
+        // Load existing trip - this will be handled by router/loadTravel
+      } else {
+        console.log('[TravelView] No trip ID - showing new travel form');
+        // Clear any old state
+        this.currentIdea = null;
+      }
+      
       // Get microsite ID from environment or config
       this.micrositeId = this.getMicrositeId();
       
       container.innerHTML = this.renderHTML();
       this.attachEventListeners(container);
+      
+      console.log('[TravelView] Mount complete - formulier should be visible');
     },
 
     getMicrositeId() {
