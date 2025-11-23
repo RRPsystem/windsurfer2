@@ -1197,10 +1197,8 @@
                         console.log('🎨 Iframe loaded, applying brand settings...');
                         this.applySettings();
                         
-                        // Try to reinitialize sliders after a short delay
-                        setTimeout(() => {
-                            this.initializeSliders(iframe);
-                        }, 500);
+                        // Fix slideshows (same as standalone version)
+                        this.fixSlideshows();
                     });
                     
                     // Show settings tab by default
@@ -2318,54 +2316,6 @@
                 } catch (error) {
                     console.error('❌ Error saving page to BOLT:', error);
                     alert('⚠️ Fout bij opslaan naar BOLT: ' + error.message);
-                }
-            }
-            
-            initializeSliders(iframe) {
-                try {
-                    const iframeWindow = iframe.contentWindow;
-                    const iframeDoc = iframe.contentDocument;
-                    
-                    if (!iframeWindow || !iframeDoc) {
-                        console.warn('⚠️ Cannot access iframe window');
-                        return;
-                    }
-                    
-                    console.log('🎬 Attempting to initialize sliders...');
-                    
-                    // Try to reinitialize Slick slider if it exists
-                    if (iframeWindow.$ && iframeWindow.$.fn && iframeWindow.$.fn.slick) {
-                        try {
-                            iframeWindow.$('.hero-slider, .slider, .slick-slider').slick('refresh');
-                            console.log('✅ Slick slider refreshed');
-                        } catch (e) {
-                            console.log('ℹ️ Slick refresh failed:', e.message);
-                        }
-                    }
-                    
-                    // Try to reinitialize Swiper if it exists
-                    if (iframeWindow.Swiper) {
-                        try {
-                            const swiperElements = iframeDoc.querySelectorAll('.swiper-container');
-                            swiperElements.forEach(el => {
-                                new iframeWindow.Swiper(el, {
-                                    loop: true,
-                                    autoplay: { delay: 5000 },
-                                    navigation: {
-                                        nextEl: '.swiper-button-next',
-                                        prevEl: '.swiper-button-prev',
-                                    }
-                                });
-                            });
-                            console.log('✅ Swiper initialized');
-                        } catch (e) {
-                            console.log('ℹ️ Swiper init failed:', e.message);
-                        }
-                    }
-                    
-                    console.log('ℹ️ Slider initialization attempted');
-                } catch (error) {
-                    console.warn('⚠️ Error initializing sliders:', error.message);
                 }
             }
         }
