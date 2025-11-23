@@ -1192,6 +1192,12 @@
                     // Show Save to BOLT button
                     document.getElementById('saveToBoltBtn').style.display = 'block';
                     
+                    // Wait for iframe to fully load, then apply settings
+                    iframe.addEventListener('load', () => {
+                        console.log('🎨 Iframe loaded, applying brand settings...');
+                        this.applySettings();
+                    });
+                    
                     // Show settings tab by default
                     this.switchTab('settings');
                     
