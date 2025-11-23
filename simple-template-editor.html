@@ -2270,6 +2270,8 @@
                     // Prepare save data
                     const saveData = {
                         page_id: this.pageId,
+                        title: this.currentPage?.name || this.currentPage?.title || 'Untitled',
+                        slug: this.currentPage?.slug || this.currentPage?.name?.toLowerCase() || 'page',
                         content: htmlContent,
                         body_html: htmlContent // BOLT expects both
                     };
