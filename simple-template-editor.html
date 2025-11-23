@@ -1175,6 +1175,16 @@
                     const iframe = document.getElementById('previewFrame');
                     iframe.srcdoc = htmlContent;
                     
+                    // Set current page info so editor knows a page is loaded
+                    this.currentPage = {
+                        name: page.title,
+                        id: page.id
+                    };
+                    this.currentTemplate = {
+                        name: page.template_category || 'BOLT Page',
+                        category: page.template_category || 'bolt'
+                    };
+                    
                     // Update header
                     document.querySelector('.header h1').textContent = 
                         `🎨 ${page.title} - Brand Settings`;
@@ -2045,7 +2055,8 @@
             
             async applySettings() {
                 const iframe = document.getElementById('previewFrame');
-                if (!iframe.src) {
+                // Check if iframe has content (either via src or srcdoc)
+                if (!iframe.src && !iframe.srcdoc) {
                     alert('⚠️ Laad eerst een template pagina');
                     return;
                 }
