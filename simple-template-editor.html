@@ -948,7 +948,12 @@
                 
                 <!-- Apply Button -->
                 <button class="apply-settings-btn" onclick="editor.applySettings()">
-                    💾 Instellingen Toepassen
+                    🎨 Instellingen Toepassen
+                </button>
+                
+                <!-- Save to BOLT Button (in settings panel) -->
+                <button class="apply-settings-btn" onclick="editor.savePageToBolt()" id="saveToBoltBtnSettings" style="display:none; background: #10b981; margin-top: 10px;">
+                    💾 Opslaan naar BOLT
                 </button>
             </div>
         </div>
@@ -1189,8 +1194,9 @@
                     document.querySelector('.header h1').textContent = 
                         `🎨 ${page.title} - Brand Settings`;
                     
-                    // Show Save to BOLT button
+                    // Show Save to BOLT buttons (both in header and settings panel)
                     document.getElementById('saveToBoltBtn').style.display = 'block';
+                    document.getElementById('saveToBoltBtnSettings').style.display = 'block';
                     
                     // Wait for iframe to fully load, then apply settings
                     iframe.addEventListener('load', () => {
@@ -2187,6 +2193,16 @@
             }
             
             async saveBrandSettings() {
+                // Try to get brand_id from iframe meta tag if not set
+                if (!this.brandId) {
+                    const iframe = document.getElementById('previewFrame');
+                    const metaTag = iframe.contentDocument?.querySelector('meta[name="brand-id"]');
+                    if (metaTag) {
+                        this.brandId = metaTag.content;
+                        console.log('✅ Brand ID retrieved from meta tag:', this.brandId);
+                    }
+                }
+                
                 if (!this.brandId) {
                     alert('⚠️ Kan niet opslaan - geen brand_id gevonden');
                     return;
@@ -2297,6 +2313,38 @@
                     if (!response.ok) {
                         const errorText = await response.text();
                         console.error('❌ Save Error Response:', errorText);
+                        console.warn('⚠️ BOLT API failed, trying direct Supabase fallback...');
+                        
+                        // Fallback: Direct Supabase update
+                        if (this.supabase) {
+                            const { data: fallbackData, error: fallbackError } = await this.supabase
+                                .from('pages')
+                                .update({
+                                    title: saveData.title,
+                                    slug: saveData.slug,
+                                    body_html: htmlContent,
+                                    updated_at: new Date().toISOString()
+                                })
+                                .eq('id', this.pageId)
+                                .select()
+                                .single();
+                            
+                            if (fallbackError) {
+                                throw new Error(`Fallback save failed: ${fallbackError.message}`);
+                            }
+                            
+                            console.log('✅ Page saved via Supabase fallback:', fallbackData);
+                            alert('✅ Pagina opgeslagen! (via fallback)\n\nℹ️ BOLT\'s save API werkt nog niet, dus we hebben direct naar de database geschreven.');
+                            
+                            if (this.returnUrl) {
+                                const goBack = confirm('Wil je terug naar BOLT?');
+                                if (goBack) {
+                                    window.location.href = decodeURIComponent(this.returnUrl);
+                                }
+                            }
+                            return;
+                        }
+                        
                         throw new Error(`Save failed: ${response.status} - ${errorText}`);
                     }
                     
