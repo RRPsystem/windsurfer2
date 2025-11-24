@@ -1145,23 +1145,16 @@
                     
                     if (!page) throw new Error('Page not found');
                     
-                    console.log('✅ Page loaded:', page);
+                    console.log(' Page loaded:', page);
                     this.brandId = page.brand_id;
                     
                     // Extract HTML content (support multiple formats)
                     let htmlContent = null;
                     
-                    if (page.content) {
-                        // Plain HTML string (preferred)
-                        htmlContent = page.content;
-                        console.log('📄 Using page.content');
-                    } else if (page.body_html) {
-                        // Alternative field name
+                    if (page.body_html) {
                         htmlContent = page.body_html;
-                        console.log('📄 Using page.body_html');
-                    } else if (page.content_json) {
-                        // BOLT format - voor nu tonen we een melding
-                        console.warn('⚠️ Page has content_json but no HTML content field');
+                    } else if (page.content) {
+                        htmlContent = page.content;
                         console.log('📦 content_json:', page.content_json);
                         htmlContent = '<div style="padding:40px;text-align:center;"><h1>⚠️ Pagina gevonden!</h1><p>Deze pagina is opgeslagen in BOLT maar heeft nog geen HTML content veld.</p><p>BOLT moet de pages-api aanpassen om een <code>content</code> veld met HTML te returnen.</p></div>';
                     }
@@ -1411,28 +1404,43 @@
                             console.log('🔧 MagnificPopup not available - creating stub');
                             $.fn.magnificPopup = function() { return this; };
                         }
-                        
-                        // DON'T reinitialize sliders - just let them work
-                        // The theme.js will handle initialization correctly
-                        
-                        // Reload the theme.js to reinitialize everything with CORRECT configs
+
+                        // Attempt to safely refresh Slick sliders (Tripex uses slick/home-one.js)
                         try {
-                            const scripts = doc.querySelectorAll('script[src*="theme.js"], script[src*="main.js"]');
+                            if ($.fn.slick) {
+                                console.log('🎢 Refreshing Slick sliders if present');
+                                $('.hero-slider, .slick-slider').each(function() {
+                                    const $slider = $(this);
+                                    try {
+                                        if ($slider.hasClass('slick-initialized')) {
+                                            $slider.slick('unslick');
+                                        }
+                                        $slider.slick();
+                                    } catch (e) {
+                                        console.warn('⚠️ Slick init/refresh failed on element, ignoring:', e.message);
+                                    }
+                                });
+                            }
+                        } catch (e) {
+                            console.warn('⚠️ Error while handling Slick sliders:', e.message);
+                        }
+                        
+                        // Reload the theme.js / main.js / home-one.js to reinitialize everything with CORRECT configs
+                        try {
+                            const scripts = doc.querySelectorAll('script[src*="theme.js"], script[src*="main.js"], script[src*="home-one.js"]');
                             if (scripts.length > 0) {
-                                // Remove old script to force re-execution
                                 const oldScript = scripts[scripts.length - 1];
                                 const scriptSrc = oldScript.src;
                                 
-                                // Create new script with cache buster
                                 const newScript = doc.createElement('script');
-                                newScript.src = scriptSrc + '?reload=' + Date.now();
+                                newScript.src = scriptSrc + (scriptSrc.includes('?') ? '&' : '?') + 'reload=' + Date.now();
                                 newScript.onload = function() {
-                                    console.log('✅ Theme scripts reloaded - sliders should work now');
+                                    console.log('✅ Theme/slider scripts reloaded - sliders should work now');
                                 };
                                 doc.body.appendChild(newScript);
                             }
                         } catch (e) {
-                            console.warn('⚠️ Could not reload theme scripts:', e);
+                            console.warn('⚠️ Could not reload theme/slider scripts:', e);
                         }
                         
                     }, 1500);
@@ -2176,14 +2184,11 @@
                         }
                     }
                     
-                    // If in BOLT mode, ask to save
+                    // Only apply settings to preview; saving brand settings is now a separate, explicit action
                     if (this.brandId) {
-                        const shouldSave = confirm('✅ Instellingen toegepast!\n\nWil je deze opslaan voor alle paginas van deze brand?');
-                        if (shouldSave) {
-                            await this.saveBrandSettings();
-                        }
+                        console.log('ℹ️ Instellingen toegepast in BOLT mode (brandId aanwezig). Opslaan gebeurt alleen bij expliciete actie.');
                     } else {
-                        alert('✅ Instellingen toegepast! Bekijk de preview.');
+                        console.log('ℹ️ Instellingen toegepast in standalone mode');
                     }
                     
                 } catch (error) {
