@@ -1,6 +1,9 @@
 ﻿// Vercel Serverless Function: GET /api/ideas
 // Proxies Travel Compositor ideas list using env credentials.
 // Updated to match TC docs: authenticate to get Bearer token, then call /resources/travelidea/{micrositeId}
+// Now supports brand_id filtering via Supabase
+
+import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req, res) {
   try {
@@ -10,7 +13,9 @@ export default async function handler(req, res) {
       TC_TOKEN = '', // optional static token
       TC_USERNAME = '',
       TC_PASSWORD = '',
-      TC_TENANT_ID = ''
+      TC_TENANT_ID = '',
+      SUPABASE_URL = '',
+      SUPABASE_SERVICE_ROLE_KEY = ''
     } = process.env;
 
     if (!TC_BASE_URL || !TC_MICROSITE_ID) {
@@ -22,6 +27,32 @@ export default async function handler(req, res) {
     const AUTH_PATH = (process.env.TC_AUTH_PATH || '/resources/authentication/authenticate');
     const IDEAS_PATH = (process.env.TC_TRAVELIDEA_PATH || '/resources/travelidea');
     const ideasUrl = `${base}${IDEAS_PATH}/${encodeURIComponent(micrositeId)}`;
+
+    // Check if brand filtering is requested
+    const brandId = req.query?.brand_id;
+    let brandIdeaIds = null;
+
+    if (brandId && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+      // Fetch active idea_ids for this brand from Supabase
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      const { data: ideas, error } = await supabase
+        .from('brand_travelideas')
+        .select('idea_id')
+        .eq('brand_id', brandId)
+        .eq('provider', 'travel_compositor')
+        .eq('active', true);
+      
+      if (!error && ideas && ideas.length > 0) {
+        brandIdeaIds = ideas.map(i => String(i.idea_id));
+      } else if (error) {
+        console.warn('[ideas] Supabase query error:', error);
+      }
+      
+      // If brand filter requested but no ideas found, return empty
+      if (!brandIdeaIds || brandIdeaIds.length === 0) {
+        return res.status(200).json({ items: [] });
+      }
+    }
 
     // Pass-through selected query params with safe defaults
     const {
@@ -105,6 +136,15 @@ export default async function handler(req, res) {
 
     // Optional: field projection
     let items = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : data?.ideas || [];
+    
+    // Apply brand filtering if requested
+    if (brandIdeaIds && brandIdeaIds.length > 0) {
+      items = items.filter(item => {
+        const itemId = String(item.id || item.ideaId || '');
+        return brandIdeaIds.includes(itemId);
+      });
+    }
+    
     if (fields) {
       const list = String(fields)
         .split(',')

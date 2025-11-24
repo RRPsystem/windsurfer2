@@ -15,10 +15,11 @@
     }
 
     function buildApiUrl(mode, brandId) {
-        const base = `${CONFIG.supabaseUrl}/functions/v1`;
-        if (mode === 'destinations') return `${base}/destinations-api?brand_id=${encodeURIComponent(brandId)}`;
-        if (mode === 'news') return `${base}/news-api?brand_id=${encodeURIComponent(brandId)}`;
-        return `${base}/trips-api?brand_id=${encodeURIComponent(brandId)}`;
+        // Use existing Vercel API endpoints instead of Supabase Edge Functions
+        const base = window.location.origin;
+        if (mode === 'destinations') return `${base}/api/content/destinations?brand_id=${encodeURIComponent(brandId)}`;
+        if (mode === 'news') return `${base}/api/content/news?brand_id=${encodeURIComponent(brandId)}`;
+        return `${base}/api/ideas?brand_id=${encodeURIComponent(brandId)}`;
     }
 
     async function fetchItems(mode, brandId) {
@@ -28,16 +29,10 @@
         }
         const url = buildApiUrl(mode, brandId);
         try {
-            const res = await fetch(url, {
-                headers: {
-                    'apikey': CONFIG.anonKey,
-                    'Authorization': `Bearer ${CONFIG.anonKey}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const res = await fetch(url);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
-            return Array.isArray(data) ? data : (data.data || []);
+            return Array.isArray(data) ? data : (data.items || data.data || []);
         } catch (e) {
             console.error('travel-search: Failed to fetch items', e);
             return [];

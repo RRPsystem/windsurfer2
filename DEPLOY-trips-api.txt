@@ -1,0 +1,205 @@
+// Copy-paste deze code in Supabase Dashboard -> Functions -> trips-api
+
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  try {
+    const url = new URL(req.url);
+    const brandId = url.searchParams.get('brand_id');
+
+    if (!brandId) {
+      return new Response(JSON.stringify({ error: 'Missing brand_id' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('[trips-api] brand_id:', brandId);
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('[trips-api] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env');
+      return new Response(JSON.stringify({ error: 'Server config error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const { data: feed, error: feedError } = await supabase
+      .from('brand_travel_feeds')
+      .select('provider, config')
+      .eq('brand_id', brandId)
+      .eq('active', true)
+      .limit(1)
+      .single();
+
+    if (feedError || !feed) {
+      console.warn('[trips-api] No active travel feed for brand', brandId, feedError);
+      return new Response(JSON.stringify({ items: [] }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (feed.provider !== 'travel_compositor') {
+      console.warn('[trips-api] Unsupported provider for now:', feed.provider);
+      return new Response(JSON.stringify({ items: [] }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const micrositeId = feed.config?.microsite_id;
+    const locale = feed.config?.default_locale ?? 'NL';
+    const currency = feed.config?.default_currency ?? 'EUR';
+
+    if (!micrositeId) {
+      console.error('[trips-api] Missing microsite_id in brand_travel_feeds.config');
+      return new Response(JSON.stringify({ error: 'Missing microsite configuration' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { data: ideas, error: ideasError } = await supabase
+      .from('brand_travelideas')
+      .select('idea_id, sort_order, highlight')
+      .eq('brand_id', brandId)
+      .eq('provider', 'travel_compositor')
+      .eq('active', true)
+      .order('sort_order', { ascending: true, nullsFirst: false })
+      .order('created_at', { ascending: false });
+
+    if (ideasError) {
+      console.error('[trips-api] Error fetching brand_travelideas:', ideasError);
+      return new Response(JSON.stringify({ error: 'Failed to load brand trips' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!ideas || ideas.length === 0) {
+      console.log('[trips-api] No active ideas for brand', brandId);
+      return new Response(JSON.stringify({ items: [] }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('[trips-api] Found active ideas:', ideas.length);
+
+    const tcBaseUrl = Deno.env.get('TC_API_BASE_URL') ?? '';
+    const tcAuthToken = Deno.env.get('TC_AUTH_TOKEN') ?? '';
+
+    if (!tcBaseUrl || !tcAuthToken) {
+      console.error('[trips-api] Missing TC_API_BASE_URL or TC_AUTH_TOKEN env');
+      return new Response(JSON.stringify({ error: 'Travel Compositor not configured' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const items = [];
+
+    for (const idea of ideas) {
+      const ideaId = idea.idea_id;
+      try {
+        const infoUrl = `${tcBaseUrl}/travelidea/${encodeURIComponent(micrositeId)}/info/${encodeURIComponent(ideaId)}?lang=${encodeURIComponent(locale)}&currency=${encodeURIComponent(currency)}`;
+        console.log('[trips-api] Fetching TC idea info:', infoUrl);
+
+        const res = await fetch(infoUrl, {
+          headers: {
+            'auth-token': tcAuthToken,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!res.ok) {
+          console.warn('[trips-api] TC info error for idea', ideaId, 'status', res.status);
+          continue;
+        }
+
+        const ideaVo = await res.json();
+
+        const mapped = mapIdeaVoToItem(ideaVo, micrositeId, idea);
+        items.push(mapped);
+      } catch (err) {
+        console.error('[trips-api] Error fetching TC info for idea', ideaId, err);
+      }
+    }
+
+    console.log('[trips-api] Returning items:', items.length);
+
+    return new Response(JSON.stringify({
+      mode: 'trips',
+      brand_id: brandId,
+      provider: 'travel_compositor',
+      items,
+    }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (err) {
+    console.error('[trips-api] Unexpected error:', err);
+    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});
+
+function mapIdeaVoToItem(ideaVo, micrositeId, ideaRow) {
+  const id = ideaVo.id ?? ideaRow?.idea_id;
+  const title = ideaVo.title ?? ideaVo.largeTitle ?? 'Zonder titel';
+  const subtitle = ideaVo.largeTitle ?? ideaVo.description ?? '';
+  const description = ideaVo.description ?? '';
+
+  const priceFrom = ideaVo.pricePerPerson?.amount ?? ideaVo.totalPrice?.amount ?? null;
+  const currency = ideaVo.pricePerPerson?.currency ?? ideaVo.totalPrice?.currency ?? 'EUR';
+
+  const image = ideaVo.imageUrl ?? '';
+  const ribbonText = ideaVo.ribbonText ?? '';
+
+  let destination = '';
+  if (Array.isArray(ideaVo.destinations) && ideaVo.destinations.length > 0) {
+    destination = ideaVo.destinations[0]?.name ?? '';
+  } else if (Array.isArray(ideaVo.itinerary) && ideaVo.itinerary.length > 0) {
+    destination = ideaVo.itinerary[0]?.name ?? '';
+  }
+
+  const nights = ideaVo.counters?.hotelNights ?? null;
+  const closedTours = ideaVo.counters?.closedTours ?? null;
+  const duration = nights ?? closedTours ?? null;
+
+  const ideaUrl = ideaVo.ideaUrl ?? `/travelidea/${encodeURIComponent(micrositeId)}/${encodeURIComponent(id ?? '')}`;
+
+  return {
+    id,
+    title,
+    summary: description,
+    subtitle,
+    destination,
+    duration,
+    price_from: priceFrom,
+    currency,
+    image_url: image,
+    badge: ribbonText,
+    url: ideaUrl,
+    highlight: ideaRow?.highlight ?? false,
+    sort_order: ideaRow?.sort_order ?? null,
+    created_at: ideaVo.creationDate ?? null,
+  };
+}
