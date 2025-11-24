@@ -23,10 +23,10 @@ export default async function handler(req, res) {
     }
 
     const micrositeId = String(req.query?.micrositeId || TC_MICROSITE_ID);
-    // TC_BASE_URL should be https://online.travelcompositor.com/resources
+    // TC_BASE_URL is https://online.travelcompositor.com (without /resources)
     const base = TC_BASE_URL.replace(/\/$/, '');
-    const AUTH_PATH = (process.env.TC_AUTH_PATH || '/authentication/authenticate');
-    const IDEAS_PATH = (process.env.TC_TRAVELIDEA_PATH || '/travelidea');
+    const AUTH_PATH = (process.env.TC_AUTH_PATH || '/resources/authentication/authenticate');
+    const IDEAS_PATH = (process.env.TC_TRAVELIDEA_PATH || '/resources/travelidea');
     const ideasUrl = `${base}${IDEAS_PATH}/${encodeURIComponent(micrositeId)}`;
 
     // Check if brand filtering is requested
