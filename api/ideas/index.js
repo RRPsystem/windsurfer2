@@ -23,9 +23,10 @@ export default async function handler(req, res) {
     }
 
     const micrositeId = String(req.query?.micrositeId || TC_MICROSITE_ID);
+    // TC_BASE_URL should be https://online.travelcompositor.com/resources
     const base = TC_BASE_URL.replace(/\/$/, '');
-    const AUTH_PATH = (process.env.TC_AUTH_PATH || '/resources/authentication/authenticate');
-    const IDEAS_PATH = (process.env.TC_TRAVELIDEA_PATH || '/resources/travelidea');
+    const AUTH_PATH = (process.env.TC_AUTH_PATH || '/authentication/authenticate');
+    const IDEAS_PATH = (process.env.TC_TRAVELIDEA_PATH || '/travelidea');
     const ideasUrl = `${base}${IDEAS_PATH}/${encodeURIComponent(micrositeId)}`;
 
     // Check if brand filtering is requested
@@ -98,17 +99,14 @@ export default async function handler(req, res) {
       }
       bearer = authJson.token;
     }
-    headers.Authorization = `Bearer ${bearer}`;
-    // Some TC tenants expect custom token headers as well
-    headers['auth-token'] = bearer;      // lowercase
-    headers['Auth-Token'] = bearer;      // capitalized variant
-    headers['X-Auth-Token'] = bearer;    // common alt
+    // TC uses auth-token header (lowercase with dash), not Authorization Bearer
+    headers['auth-token'] = bearer;
 
     // Optional debug to verify auth and target URL without relying on upstream
     if (String(req.query?.debug) === '1') {
       return res.status(200).json({
         ok: true,
-        authMode: 'bearer',
+        authMode: 'auth-token',
         hasToken: !!bearer,
         ideasUrl,
         query: Object.fromEntries(params.entries())
@@ -129,7 +127,7 @@ export default async function handler(req, res) {
         error: 'Upstream error',
         status,
         upstreamUrl,
-        authMode: 'bearer',
+        authMode: 'auth-token',
         detail: data || text || null
       });
     }
