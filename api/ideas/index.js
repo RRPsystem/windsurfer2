@@ -87,7 +87,10 @@ export default async function handler(req, res) {
       if (!TC_USERNAME || !TC_PASSWORD || !micrositeId) {
         return res.status(500).json({ error: 'Missing TC credentials to authenticate' });
       }
-      const authRes = await fetch(`${base}${AUTH_PATH}`, {
+      const authUrl = `${base}${AUTH_PATH}`;
+      console.log('[ideas] Auth URL:', authUrl);
+      console.log('[ideas] TC_BASE_URL:', TC_BASE_URL);
+      const authRes = await fetch(authUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ username: TC_USERNAME, password: TC_PASSWORD, micrositeId })
@@ -95,7 +98,13 @@ export default async function handler(req, res) {
       const authText = await authRes.text();
       let authJson; try { authJson = JSON.parse(authText); } catch (e) { authJson = null; }
       if (!authRes.ok || !authJson?.token) {
-        return res.status(authRes.status || 500).json({ error: 'Auth failed', detail: authJson || authText });
+        return res.status(authRes.status || 500).json({ 
+          error: 'Auth failed', 
+          authUrl,
+          status: authRes.status,
+          TC_BASE_URL,
+          detail: authJson || (authText.length > 500 ? authText.substring(0, 500) + '...' : authText)
+        });
       }
       bearer = authJson.token;
     }
