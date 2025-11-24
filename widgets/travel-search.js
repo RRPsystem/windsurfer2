@@ -19,7 +19,7 @@
         const base = window.location.origin;
         if (mode === 'destinations') return `${base}/api/content/destinations?brand_id=${encodeURIComponent(brandId)}`;
         if (mode === 'news') return `${base}/api/content/news?brand_id=${encodeURIComponent(brandId)}`;
-        return `${base}/api/ideas?brand_id=${encodeURIComponent(brandId)}`;
+        return `${base}/api/trips?brand_id=${encodeURIComponent(brandId)}`;
     }
 
     async function fetchItems(mode, brandId) {
