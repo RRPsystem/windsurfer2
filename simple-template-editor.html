@@ -2436,6 +2436,7 @@
                         template_category: this.currentTemplate?.category || 'custom'
                     } : {
                         page_id: this.pageId,
+                        brand_id: this.brandId,  // Keep brand_id on updates too
                         title: title,
                         slug: slug,
                         content: htmlContent,
@@ -2488,6 +2489,7 @@
                                 const updateResult = await this.supabase
                                     .from('pages')
                                     .update({
+                                        brand_id: this.brandId,  // Ensure brand_id is set
                                         title: saveData.title,
                                         slug: saveData.slug,
                                         body_html: htmlContent,
@@ -2506,6 +2508,13 @@
                             }
                             
                             console.log('✅ Page saved via Supabase fallback:', fallbackData);
+                            
+                            // Update pageId after successful insert
+                            if (isNewPage && fallbackData?.id) {
+                                this.pageId = fallbackData.id;
+                                console.log('📝 Updated pageId to:', this.pageId);
+                            }
+                            
                             alert('✅ Pagina opgeslagen! (via fallback)\n\nℹ️ BOLT\'s save API werkt nog niet, dus we hebben direct naar de database geschreven.');
                             
                             if (this.returnUrl) {
