@@ -1,5 +1,4 @@
-// Supabase Edge Function: pages-api
-// Serves dynamic pages from database with proper CSS/JS
+// Copy-paste deze code in Supabase Dashboard -> Functions -> pages-api -> Code tab
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -117,25 +116,16 @@ function buildHTML(page: any, supabaseUrl: string): string {
     .wb-hero-cta {
       width: 100% !important;
       max-width: 100% !important;
-      margin-left: 0 !important;
-      margin-right: 0 !important;
+      margin: 0 !important;
     }
   </style>
 </head>
 <body>
-  <!-- Page Content -->
-  ${page.html || '<p>Geen content beschikbaar</p>'}
+  ${page.body_html || page.content || ''}
   
-  <!-- Analytics (optional) -->
-  ${page.analytics_id ? `
-  <script async src="https://www.googletagmanager.com/gtag/js?id=${page.analytics_id}"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', '${page.analytics_id}');
-  </script>
-  ` : ''}
+  <!-- JS from Supabase Storage -->
+  <script src="${supabaseUrl}/storage/v1/object/public/assets/js/main.js"></script>
+  <script src="${supabaseUrl}/storage/v1/object/public/assets/js/components.js"></script>
 </body>
 </html>`;
 }

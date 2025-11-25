@@ -1070,6 +1070,13 @@
                 } else {
                     // Normal mode - show template list
                     this.renderTemplateList();
+                    
+                    // If brand_id and token are present (new page from BOLT), show save button
+                    if (this.brandId && this.token) {
+                        console.log('🆕 New page mode - enabling BOLT save');
+                        document.getElementById('saveToBoltBtn').style.display = 'block';
+                        document.getElementById('saveToBoltBtnSettings').style.display = 'block';
+                    }
                 }
             }
             
@@ -2282,25 +2289,48 @@
             }
             
             async savePageToBolt() {
-                if (!this.pageId || !this.token || !this.apiBase) {
+                if (!this.token || !this.apiBase) {
                     alert('⚠️ Kan niet opslaan - geen BOLT verbinding');
                     return;
                 }
                 
+                // Check if this is a new page or update
+                const isNewPage = !this.pageId;
+                
                 try {
-                    console.log('💾 Saving page to BOLT...');
+                    console.log(`💾 ${isNewPage ? 'Creating new' : 'Updating'} page in BOLT...`);
                     
                     // Get current HTML from iframe
                     const iframe = document.getElementById('previewFrame');
                     const htmlContent = iframe.contentDocument.documentElement.outerHTML;
                     
+                    // Prepare title and slug
+                    let title = this.currentPage?.name || this.currentPage?.title || this.currentTemplate?.name || 'Nieuwe Pagina';
+                    let slug = this.currentPage?.slug || title.toLowerCase()
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+                    
+                    // For new pages, ensure unique slug
+                    if (isNewPage) {
+                        const timestamp = Date.now();
+                        slug = `${slug}-${timestamp}`;
+                    }
+                    
                     // Prepare save data
-                    const saveData = {
-                        page_id: this.pageId,
-                        title: this.currentPage?.name || this.currentPage?.title || 'Untitled',
-                        slug: this.currentPage?.slug || this.currentPage?.name?.toLowerCase() || 'page',
+                    const saveData = isNewPage ? {
+                        brand_id: this.brandId,
+                        title: title,
+                        slug: slug,
                         content: htmlContent,
-                        body_html: htmlContent // BOLT expects both
+                        body_html: htmlContent,
+                        is_template: false,
+                        template_category: this.currentTemplate?.category || 'custom'
+                    } : {
+                        page_id: this.pageId,
+                        title: title,
+                        slug: slug,
+                        content: htmlContent,
+                        body_html: htmlContent
                     };
                     
                     console.log('📤 Sending to BOLT:', { page_id: this.pageId, content_length: htmlContent.length });
@@ -2320,19 +2350,47 @@
                         console.error('❌ Save Error Response:', errorText);
                         console.warn('⚠️ BOLT API failed, trying direct Supabase fallback...');
                         
-                        // Fallback: Direct Supabase update
+                        // Fallback: Direct Supabase insert/update
                         if (this.supabase) {
-                            const { data: fallbackData, error: fallbackError } = await this.supabase
-                                .from('pages')
-                                .update({
-                                    title: saveData.title,
-                                    slug: saveData.slug,
-                                    body_html: htmlContent,
-                                    updated_at: new Date().toISOString()
-                                })
-                                .eq('id', this.pageId)
-                                .select()
-                                .single();
+                            let fallbackData, fallbackError;
+                            
+                            if (isNewPage) {
+                                // INSERT new page
+                                const insertResult = await this.supabase
+                                    .from('pages')
+                                    .insert({
+                                        brand_id: this.brandId,
+                                        title: saveData.title,
+                                        slug: saveData.slug,
+                                        body_html: htmlContent,
+                                        is_template: false,
+                                        template_category: saveData.template_category,
+                                        status: 'draft',
+                                        created_at: new Date().toISOString(),
+                                        updated_at: new Date().toISOString()
+                                    })
+                                    .select()
+                                    .single();
+                                
+                                fallbackData = insertResult.data;
+                                fallbackError = insertResult.error;
+                            } else {
+                                // UPDATE existing page
+                                const updateResult = await this.supabase
+                                    .from('pages')
+                                    .update({
+                                        title: saveData.title,
+                                        slug: saveData.slug,
+                                        body_html: htmlContent,
+                                        updated_at: new Date().toISOString()
+                                    })
+                                    .eq('id', this.pageId)
+                                    .select()
+                                    .single();
+                                
+                                fallbackData = updateResult.data;
+                                fallbackError = updateResult.error;
+                            }
                             
                             if (fallbackError) {
                                 throw new Error(`Fallback save failed: ${fallbackError.message}`);
