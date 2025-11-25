@@ -1,0 +1,56 @@
+=== FIX CONTENT-API VOOR TRIPS PRICE & DURATION ===
+
+## Probleem:
+Trips worden opgeslagen maar price en duration_days worden niet getoond in BOLT.
+
+## Oorzaak:
+De content-api Edge Function slaat alleen de standaard velden op (title, slug, content, status).
+Voor trips moeten ook price en duration_days worden opgeslagen.
+
+## Oplossing:
+Update de content-api Edge Function om trips specifieke velden te ondersteunen.
+
+## In Supabase Dashboard:
+
+1. Ga naar: https://supabase.com/dashboard/project/huaaogdxxdcakxryecnw/functions
+2. Open de "content-api" functie
+3. Zoek naar de save handler voor trips
+4. Update de code om deze velden toe te voegen:
+
+```typescript
+// In de save handler, als type === 'trips':
+if (type === 'trips') {
+  const tripData: any = {
+    brand_id: body.brand_id,
+    title: body.title,
+    slug: body.slug,
+    content: body.content || {},
+    status: body.status || 'draft'
+  };
+  
+  // ⚠️ VOEG DEZE REGELS TOE:
+  if (body.description) tripData.description = body.description;
+  if (body.featured_image) tripData.featured_image = body.featured_image;
+  if (body.price !== undefined && body.price !== null) {
+    tripData.price = Number(body.price);
+  }
+  if (body.duration_days !== undefined && body.duration_days !== null) {
+    tripData.duration_days = Number(body.duration_days);
+  }
+  if (body.source) tripData.source = body.source;
+  if (body.tc_idea_id) tripData.tc_idea_id = body.tc_idea_id;
+  
+  // Rest van de save logica...
+}
+```
+
+## Test na deployment:
+
+1. Importeer een reis via Travel Compositor
+2. Check in BOLT dat prijs en duur nu WEL worden getoond
+
+## Als content-api niet bestaat:
+
+Dan moet je hem eerst maken. Laat het me weten, dan maak ik de volledige Edge Function.
+
+===================================================

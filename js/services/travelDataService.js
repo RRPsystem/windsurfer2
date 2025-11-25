@@ -177,48 +177,83 @@
          */
         async saveTravel(travelData) {
             try {
-                // Use the existing BuilderPublishAPI.trips.saveDraft function
-                if (!window.BuilderPublishAPI || !window.BuilderPublishAPI.trips) {
-                    throw new Error('BuilderPublishAPI.trips not loaded - check if publish.js is loaded');
-                }
-
                 // Transform naar database format
                 const dbTravel = this.transformToDb(travelData);
                 
-                console.log('[TravelDataService] Saving via BuilderPublishAPI.trips.saveDraft');
+                console.log('[TravelDataService] Saving travel...');
                 console.log('[TravelDataService] Data to save:', dbTravel);
 
-                // Get brand_id from URL params
+                // Get brand_id and auth from URL params
                 const urlParams = new URLSearchParams(window.location.search);
                 const brand_id = urlParams.get('brand_id') || window.BOLT_DB?.brandId || window.BRAND_ID;
+                const token = urlParams.get('token') || window.BOLT_DB?.token || '';
                 
                 if (!brand_id) {
                     throw new Error('brand_id is required but not found');
                 }
 
-                // Prepare content object for HTML/JSON
-                const contentObj = {
-                    html: dbTravel.content || dbTravel.html || '',
-                    json: dbTravel.content_json || {},
-                    source: dbTravel.source || '',
-                    tc_idea_id: dbTravel.tc_idea_id || ''
-                };
+                // DUAL SAVE STRATEGY:
+                // 1. Save via content-api (for BOLT integration)
+                // 2. Also update direct to trips table (for price/duration)
+                
+                // Method 1: Content-API save
+                let saved;
+                if (window.BuilderPublishAPI && window.BuilderPublishAPI.trips) {
+                    console.log('[TravelDataService] Saving via content-api...');
+                    const contentObj = {
+                        html: dbTravel.content || dbTravel.html || '',
+                        json: dbTravel.content_json || {},
+                        source: dbTravel.source || '',
+                        tc_idea_id: dbTravel.tc_idea_id || ''
+                    };
 
-                // Call the working save function with separate fields
-                const saved = await window.BuilderPublishAPI.trips.saveDraft({
-                    brand_id: brand_id,
-                    id: dbTravel.id || undefined,
-                    title: dbTravel.title,
-                    slug: dbTravel.slug,
-                    description: dbTravel.description || '',
-                    featured_image: dbTravel.featured_image || '',
-                    price: dbTravel.price || 0,
-                    duration_days: dbTravel.duration_days || 0,
-                    content: contentObj,
-                    status: dbTravel.status || 'draft'
-                });
+                    saved = await window.BuilderPublishAPI.trips.saveDraft({
+                        brand_id: brand_id,
+                        id: dbTravel.id || undefined,
+                        title: dbTravel.title,
+                        slug: dbTravel.slug,
+                        description: dbTravel.description || '',
+                        featured_image: dbTravel.featured_image || '',
+                        price: dbTravel.price || 0,
+                        duration_days: dbTravel.duration_days || 0,
+                        content: contentObj,
+                        status: dbTravel.status || 'draft'
+                    });
+                    
+                    console.log('[TravelDataService] Content-API save result:', saved);
+                }
 
-                console.log('[TravelDataService] Travel saved successfully:', saved);
+                // Method 2: Direct update to ensure price/duration are saved
+                if (saved && saved.id && window.BOLT_DB) {
+                    console.log('[TravelDataService] Updating price/duration directly...');
+                    const baseUrl = window.BOLT_DB.url.replace(/\/functions\/v1$/, '');
+                    const updateUrl = `${baseUrl}/rest/v1/trips?id=eq.${saved.id}`;
+                    
+                    const updateData = {
+                        price: dbTravel.price || 0,
+                        duration_days: dbTravel.duration_days || 0,
+                        description: dbTravel.description || '',
+                        featured_image: dbTravel.featured_image || '',
+                        source: dbTravel.source || 'travel-compositor',
+                        tc_idea_id: dbTravel.tc_idea_id || ''
+                    };
+                    
+                    const updateResp = await fetch(updateUrl, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': token ? `Bearer ${token}` : '',
+                            'apikey': window.BOLT_DB.anonKey
+                        },
+                        body: JSON.stringify(updateData)
+                    });
+                    
+                    if (updateResp.ok) {
+                        console.log('[TravelDataService] Direct update successful!');
+                    } else {
+                        console.warn('[TravelDataService] Direct update failed:', await updateResp.text());
+                    }
+                }
 
                 // Clear cache
                 this.clearCache();
