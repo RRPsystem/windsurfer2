@@ -2317,7 +2317,24 @@
                     
                     // Get current HTML from iframe
                     const iframe = document.getElementById('previewFrame');
+                    
+                    // Verify iframe has loaded content
+                    if (!iframe.contentDocument || !iframe.contentDocument.body) {
+                        alert('⚠️ Wacht tot de pagina volledig geladen is voordat je opslaat!');
+                        return;
+                    }
+                    
                     const iframeDoc = iframe.contentDocument;
+                    
+                    // Check if we have actual content (not just empty body)
+                    const bodyContent = iframeDoc.body.innerHTML.trim();
+                    if (bodyContent.length < 100) {
+                        alert('⚠️ De pagina lijkt leeg te zijn. Wacht tot alles geladen is voordat je opslaat!');
+                        console.warn('Body content too short:', bodyContent.length, 'chars');
+                        return;
+                    }
+                    
+                    console.log('✅ Iframe has content:', bodyContent.length, 'chars');
                     
                     // Clone the document to avoid modifying the live iframe
                     const docClone = iframeDoc.cloneNode(true);
