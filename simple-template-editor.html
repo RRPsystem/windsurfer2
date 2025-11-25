@@ -2142,6 +2142,12 @@
                         const logos = doc.querySelectorAll('img[src*="logo"], .logo img, .site-logo img, header img[alt*="logo" i]');
                         logos.forEach(logo => {
                             logo.src = this.settings.logo;
+                            // Constrain logo to reasonable max dimensions
+                            logo.style.maxWidth = '200px';
+                            logo.style.maxHeight = '80px';
+                            logo.style.width = 'auto';
+                            logo.style.height = 'auto';
+                            logo.style.objectFit = 'contain';
                             console.log('✅ Logo applied to:', logo);
                         });
                     }
