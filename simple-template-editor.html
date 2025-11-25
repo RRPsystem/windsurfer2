@@ -2374,13 +2374,27 @@
                     // Ensure <base> tag exists for relative path resolution
                     const templateCategory = this.currentTemplate?.category || 'tripex';
                     const baseUrl = `${window.location.origin}/templates/${templateCategory}`;
+                    const head = docClone.querySelector('head');
                     
-                    if (!docClone.querySelector('base')) {
+                    if (!docClone.querySelector('base') && head) {
                         const baseTag = docClone.createElement('base');
                         baseTag.href = `${baseUrl}/`;
-                        const head = docClone.querySelector('head');
-                        if (head && head.firstChild) {
+                        if (head.firstChild) {
                             head.insertBefore(baseTag, head.firstChild);
+                        } else {
+                            head.appendChild(baseTag);
+                        }
+                    }
+                    
+                    // Ensure brand-id meta tag exists for widgets
+                    if (!docClone.querySelector('meta[name="brand-id"]') && this.brandId && head) {
+                        const brandMeta = docClone.createElement('meta');
+                        brandMeta.setAttribute('name', 'brand-id');
+                        brandMeta.setAttribute('content', this.brandId);
+                        if (head.firstChild) {
+                            head.insertBefore(brandMeta, head.firstChild.nextSibling);
+                        } else {
+                            head.appendChild(brandMeta);
                         }
                     }
                     
