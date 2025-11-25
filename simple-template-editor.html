@@ -1189,8 +1189,11 @@
                     await this.loadBrandSettings();
                     
                     // Load page content into iframe
+                    // Use blob URL to avoid srcdoc escaping issues with special characters
                     const iframe = document.getElementById('previewFrame');
-                    iframe.srcdoc = htmlContent;
+                    const blob = new Blob([htmlContent], { type: 'text/html' });
+                    const blobUrl = URL.createObjectURL(blob);
+                    iframe.src = blobUrl;
                     
                     // Set current page info so editor knows a page is loaded
                     this.currentPage = {
