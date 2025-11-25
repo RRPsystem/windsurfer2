@@ -177,47 +177,55 @@
          */
         async saveTravel(travelData) {
             try {
-                if (!window.BOLT_DB || !window.BOLT_DB.url) {
-                    throw new Error('BOLT_DB not configured');
+                // Use BuilderPublishAPI if available (bypasses RLS via content-api)
+                if (window.BuilderPublishAPI && window.BuilderPublishAPI.trips) {
+                    console.log('[TravelDataService] Using BuilderPublishAPI.trips.saveDraft');
+                    
+                    // Transform naar database format
+                    const dbTravel = this.transformToDb(travelData);
+                    
+                    // Get brand_id
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const brand_id = urlParams.get('brand_id') || window.BOLT_DB?.brandId || window.BRAND_ID;
+                    
+                    if (!brand_id) {
+                        throw new Error('brand_id is required');
+                    }
+                    
+                    console.log('[TravelDataService] Saving via content-api:', {
+                        brand_id,
+                        title: dbTravel.title,
+                        slug: dbTravel.slug,
+                        price: dbTravel.price,
+                        duration_days: dbTravel.duration_days
+                    });
+                    
+                    // Save via content-api with ALL fields as top-level
+                    const saved = await window.BuilderPublishAPI.trips.saveDraft({
+                        brand_id,
+                        id: dbTravel.id,
+                        title: dbTravel.title,
+                        slug: dbTravel.slug,
+                        description: dbTravel.description,
+                        featured_image: dbTravel.featured_image,
+                        price: dbTravel.price,
+                        duration_days: dbTravel.duration_days,
+                        content: { 
+                            html: dbTravel.content || '' 
+                        },
+                        status: dbTravel.status
+                    });
+                    
+                    console.log('[TravelDataService] Saved via content-api:', saved);
+                    
+                    // Clear cache
+                    this.clearCache();
+                    
+                    return saved;
                 }
-
-                // Transform naar database format
-                const dbTravel = this.transformToDb(travelData);
-
-                // Get base URL (remove trailing slash and /functions/v1 if present)
-                const baseUrl = window.BOLT_DB.url.replace(/\/+$/, '').replace(/\/functions\/v1$/, '');
-
-                // Direct insert/upsert to trips table
-                const saveUrl = `${baseUrl}/rest/v1/trips`;
-
-                console.log('[TravelDataService] Saving to URL:', saveUrl);
-                console.log('[TravelDataService] Data to save:', dbTravel);
-
-                const response = await fetch(saveUrl, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': window.BOLT_DB.anonKey,
-                        'Authorization': `Bearer ${window.BOLT_DB.anonKey}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=representation'
-                    },
-                    body: JSON.stringify(dbTravel)
-                });
-
-                if (!response.ok) {
-                    const error = await response.text();
-                    throw new Error(`HTTP ${response.status}: ${error}`);
-                }
-
-                const saved = await response.json();
-                console.log('[TravelDataService] Travel saved:', saved);
-
-                // Clear cache
-                this.clearCache();
-
-                // Handle both array and single object response
-                const savedTrip = Array.isArray(saved) ? saved[0] : saved;
-                return this.transformTravel(savedTrip);
+                
+                // Fallback: Direct to Supabase (may hit RLS)
+                throw new Error('BuilderPublishAPI.trips not available');
 
             } catch (error) {
                 console.error('[TravelDataService] Error saving travel:', error);
