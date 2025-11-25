@@ -196,24 +196,24 @@
                     throw new Error('brand_id is required but not found');
                 }
 
-                // Prepare content object (BuilderPublishAPI expects content as object)
+                // Prepare content object for HTML/JSON
                 const contentObj = {
                     html: dbTravel.content || dbTravel.html || '',
                     json: dbTravel.content_json || {},
-                    description: dbTravel.description || '',
-                    featured_image: dbTravel.featured_image || '',
-                    price: dbTravel.price || 0,
-                    duration_days: dbTravel.duration_days || 0,
                     source: dbTravel.source || '',
                     tc_idea_id: dbTravel.tc_idea_id || ''
                 };
 
-                // Call the working save function
+                // Call the working save function with separate fields
                 const saved = await window.BuilderPublishAPI.trips.saveDraft({
                     brand_id: brand_id,
                     id: dbTravel.id || undefined,
                     title: dbTravel.title,
                     slug: dbTravel.slug,
+                    description: dbTravel.description || '',
+                    featured_image: dbTravel.featured_image || '',
+                    price: dbTravel.price || 0,
+                    duration_days: dbTravel.duration_days || 0,
                     content: contentObj,
                     status: dbTravel.status || 'draft'
                 });

@@ -750,12 +750,12 @@ window.BuilderPublishAPI.destinations = {
 // ==============================
 // Trips (content-api with type=trips, same as destinations)
 // ==============================
-async function tripsSaveDraft({ brand_id, page_id, id, title, slug, content_json, content, status = 'draft' }) {
+async function tripsSaveDraft({ brand_id, page_id, id, title, slug, description, featured_image, price, duration_days, content_json, content, status = 'draft' }) {
   const base = contentApiBase();
   if (!base) throw new Error('content-api base URL ontbreekt');
   const url = `${base}/content-api/save?type=trips`;
   
-  // Use same structure as destinations: content object with json/html
+  // Build body with all trip fields
   const body = { 
     brand_id, 
     title, 
@@ -763,6 +763,12 @@ async function tripsSaveDraft({ brand_id, page_id, id, title, slug, content_json
     content: content || content_json || {},
     status 
   };
+  
+  // Add optional fields if provided
+  if (description) body.description = description;
+  if (featured_image) body.featured_image = featured_image;
+  if (price !== undefined && price !== null) body.price = Number(price);
+  if (duration_days !== undefined && duration_days !== null) body.duration_days = Number(duration_days);
   
   // Add author fields like destinations
   const author_type = readQueryParam('author_type') || (window.CURRENT_AUTHOR_TYPE || null);
