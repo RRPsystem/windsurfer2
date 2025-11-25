@@ -177,41 +177,53 @@
          */
         async saveTravel(travelData) {
             try {
-                if (!window.BOLT_DB || !window.BOLT_DB.url) {
-                    throw new Error('BOLT_DB not configured');
+                // Use the existing BuilderPublishAPI.trips.saveDraft function
+                if (!window.BuilderPublishAPI || !window.BuilderPublishAPI.trips) {
+                    throw new Error('BuilderPublishAPI.trips not loaded - check if publish.js is loaded');
                 }
 
                 // Transform naar database format
                 const dbTravel = this.transformToDb(travelData);
-
-                // Bepaal Edge Function URL voor veilige opslag via service role
-                const functionUrl = window.BOLT_DB.url.replace(/\/functions\/v1$/, '') + '/functions/v1/trips-import';
                 
-                console.log('[TravelDataService] Saving via Edge Function:', functionUrl);
+                console.log('[TravelDataService] Saving via BuilderPublishAPI.trips.saveDraft');
                 console.log('[TravelDataService] Data to save:', dbTravel);
 
-                const response = await fetch(functionUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(dbTravel)
-                });
-
-                if (!response.ok) {
-                    const error = await response.text();
-                    throw new Error(`HTTP ${response.status}: ${error}`);
+                // Get brand_id from URL params
+                const urlParams = new URLSearchParams(window.location.search);
+                const brand_id = urlParams.get('brand_id') || window.BOLT_DB?.brandId || window.BRAND_ID;
+                
+                if (!brand_id) {
+                    throw new Error('brand_id is required but not found');
                 }
 
-                const saved = await response.json();
-                console.log('[TravelDataService] Travel saved:', saved);
+                // Prepare content object (BuilderPublishAPI expects content as object)
+                const contentObj = {
+                    html: dbTravel.content || dbTravel.html || '',
+                    json: dbTravel.content_json || {},
+                    description: dbTravel.description || '',
+                    featured_image: dbTravel.featured_image || '',
+                    price: dbTravel.price || 0,
+                    duration_days: dbTravel.duration_days || 0,
+                    source: dbTravel.source || '',
+                    tc_idea_id: dbTravel.tc_idea_id || ''
+                };
+
+                // Call the working save function
+                const saved = await window.BuilderPublishAPI.trips.saveDraft({
+                    brand_id: brand_id,
+                    id: dbTravel.id || undefined,
+                    title: dbTravel.title,
+                    slug: dbTravel.slug,
+                    content: contentObj,
+                    status: dbTravel.status || 'draft'
+                });
+
+                console.log('[TravelDataService] Travel saved successfully:', saved);
 
                 // Clear cache
                 this.clearCache();
 
-                // Handle both array and single object response
-                const savedTrip = Array.isArray(saved) ? saved[0] : saved;
-                return this.transformTravel(savedTrip);
+                return saved;
 
             } catch (error) {
                 console.error('[TravelDataService] Error saving travel:', error);

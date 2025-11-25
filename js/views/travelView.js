@@ -820,6 +820,7 @@
             const travelData = {
               // Don't set id - let BOLT auto-generate UUID
               title: title,
+              slug: ideaId,  // Use IFD number as slug
               description: firstDestination?.description || '',
               featured_image: firstDestination?.imageUrls?.[0] || firstHotel?.hotelData?.images?.[0]?.url || '',
               price: Math.round(totalPrice),
@@ -828,7 +829,8 @@
               html: htmlContent,
               // Don't set destination_id - BOLT expects UUID, not code
               status: 'draft',
-              source: 'travel-compositor'
+              source: 'travel-compositor',
+              tc_idea_id: ideaId  // Store TC idea ID for reference
             };
             
             console.log('[TravelView] Prepared data for save:', travelData);
