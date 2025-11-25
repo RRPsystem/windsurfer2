@@ -1192,14 +1192,21 @@
                     // Fix relative paths to work in blob URL context
                     const iframe = document.getElementById('previewFrame');
                     
-                    // Add base tag to make relative URLs work
-                    const baseUrl = window.location.origin;
                     let fixedHtml = htmlContent;
                     
-                    // If HTML doesn't have a <base> tag, add one
+                    // Ensure DOCTYPE exists (prevent Quirks Mode)
+                    if (!fixedHtml.trim().toLowerCase().startsWith('<!doctype')) {
+                        fixedHtml = '<!DOCTYPE html>\n' + fixedHtml;
+                    }
+                    
+                    // Determine base URL from template category
+                    const templateCategory = page.template_category || 'tripex';
+                    const baseUrl = `${window.location.origin}/templates/${templateCategory}`;
+                    
+                    // Add base tag to make relative URLs work
                     if (!fixedHtml.includes('<base')) {
                         fixedHtml = fixedHtml.replace(
-                            '<head>',
+                            /<head>/i,
                             `<head>\n    <base href="${baseUrl}/">`
                         );
                     }
@@ -2364,7 +2371,9 @@
                     elementsToRemove.forEach(el => el.remove());
                     
                     // Ensure <base> tag exists for relative path resolution
-                    const baseUrl = window.location.origin;
+                    const templateCategory = this.currentTemplate?.category || 'tripex';
+                    const baseUrl = `${window.location.origin}/templates/${templateCategory}`;
+                    
                     if (!docClone.querySelector('base')) {
                         const baseTag = docClone.createElement('base');
                         baseTag.href = `${baseUrl}/`;
@@ -2374,8 +2383,13 @@
                         }
                     }
                     
-                    // Get clean HTML
-                    const htmlContent = docClone.documentElement.outerHTML;
+                    // Get clean HTML and ensure DOCTYPE
+                    let htmlContent = docClone.documentElement.outerHTML;
+                    
+                    // Ensure DOCTYPE exists
+                    if (!htmlContent.trim().toLowerCase().startsWith('<!doctype')) {
+                        htmlContent = '<!DOCTYPE html>\n' + htmlContent;
+                    }
                     
                     // Debug: log what we're saving
                     console.log('📤 Saving HTML:', {
