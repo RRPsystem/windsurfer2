@@ -187,7 +187,7 @@
                 // Get base URL (remove trailing slash and /functions/v1 if present)
                 const baseUrl = window.BOLT_DB.url.replace(/\/+$/, '').replace(/\/functions\/v1$/, '');
 
-                // Direct insert/upsert to trips table (THIS IS THE WORKING METHOD FROM 8492e76!)
+                // Direct insert/upsert to trips table
                 const saveUrl = `${baseUrl}/rest/v1/trips`;
 
                 console.log('[TravelDataService] Saving to URL:', saveUrl);
