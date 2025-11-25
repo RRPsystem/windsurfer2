@@ -1817,10 +1817,11 @@ class WebsiteBuilder {
                         try { if (window.handleReturnUrl) window.handleReturnUrl(); } catch (e) {}
                     } else if ((mode === 'travel' || mode === 'trips') && window.BuilderPublishAPI.trips) {
                         // Trips/Travel: save via trips helper (same structure as destinations)
-                        const page_id = u.searchParams.get('page_id') || this.currentPageId || undefined;
+                        // Check multiple sources for trip ID to prevent duplicates
+                        const trip_id = u.searchParams.get('id') || u.searchParams.get('trip_id') || u.searchParams.get('page_id') || this.currentPageId || undefined;
                         await window.BuilderPublishAPI.trips.saveDraft({
                             brand_id,
-                            page_id,
+                            id: trip_id,  // Use 'id' instead of 'page_id' for trips
                             title: safeTitle,
                             slug: safeSlug,
                             content: { json: contentJson, html: htmlString },

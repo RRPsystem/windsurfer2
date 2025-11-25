@@ -836,11 +836,26 @@
             const savedTravel = await window.TravelDataService.saveTravel(travelData);
             console.log('[TravelView] Travel saved to BOLT:', savedTravel);
             
+            // Update URL with trip ID to prevent duplicates on next save
+            if (savedTravel && savedTravel.id) {
+              const url = new URL(window.location.href);
+              url.searchParams.set('id', savedTravel.id);
+              url.searchParams.set('trip_id', savedTravel.id);
+              window.history.replaceState({}, '', url);
+              console.log('[TravelView] Updated URL with trip ID:', savedTravel.id);
+              
+              // Also update WebBuilder's currentPageId if available
+              if (window.WebBuilder && window.WebBuilder.currentPageId !== savedTravel.id) {
+                window.WebBuilder.currentPageId = savedTravel.id;
+                console.log('[TravelView] Updated WebBuilder.currentPageId:', savedTravel.id);
+              }
+            }
+            
             // DEBUG: Show success and wait before redirect
             this.showStatus('success', `✅ Importeren gelukt! Reis is opgeslagen - ID: ${savedTravel.id}`);
             
-            // Wait 5 seconds before redirect to see logs
-            await new Promise(resolve => setTimeout(resolve, 5000));
+            // Wait 2 seconds to show success message
+            await new Promise(resolve => setTimeout(resolve, 2000));
           }
         } catch (saveError) {
           console.error('[TravelView] Error saving to BOLT:', saveError);
