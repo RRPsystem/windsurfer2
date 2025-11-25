@@ -177,88 +177,47 @@
          */
         async saveTravel(travelData) {
             try {
+                if (!window.BOLT_DB || !window.BOLT_DB.url) {
+                    throw new Error('BOLT_DB not configured');
+                }
+
                 // Transform naar database format
                 const dbTravel = this.transformToDb(travelData);
-                
-                console.log('[TravelDataService] Saving travel...');
+
+                // Get base URL (remove trailing slash and /functions/v1 if present)
+                const baseUrl = window.BOLT_DB.url.replace(/\/+$/, '').replace(/\/functions\/v1$/, '');
+
+                // Direct insert/upsert to trips table (THIS IS THE WORKING METHOD FROM 8492e76!)
+                const saveUrl = `${baseUrl}/rest/v1/trips`;
+
+                console.log('[TravelDataService] Saving to URL:', saveUrl);
                 console.log('[TravelDataService] Data to save:', dbTravel);
 
-                // Get brand_id and auth from URL params
-                const urlParams = new URLSearchParams(window.location.search);
-                const brand_id = urlParams.get('brand_id') || window.BOLT_DB?.brandId || window.BRAND_ID;
-                const token = urlParams.get('token') || window.BOLT_DB?.token || '';
-                
-                if (!brand_id) {
-                    throw new Error('brand_id is required but not found');
+                const response = await fetch(saveUrl, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': window.BOLT_DB.anonKey,
+                        'Authorization': `Bearer ${window.BOLT_DB.anonKey}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(dbTravel)
+                });
+
+                if (!response.ok) {
+                    const error = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${error}`);
                 }
 
-                // DUAL SAVE STRATEGY:
-                // 1. Save via content-api (for BOLT integration)
-                // 2. Also update direct to trips table (for price/duration)
-                
-                // Method 1: Content-API save
-                let saved;
-                if (window.BuilderPublishAPI && window.BuilderPublishAPI.trips) {
-                    console.log('[TravelDataService] Saving via content-api...');
-                    const contentObj = {
-                        html: dbTravel.content || dbTravel.html || '',
-                        json: dbTravel.content_json || {},
-                        source: dbTravel.source || '',
-                        tc_idea_id: dbTravel.tc_idea_id || ''
-                    };
-
-                    saved = await window.BuilderPublishAPI.trips.saveDraft({
-                        brand_id: brand_id,
-                        id: dbTravel.id || undefined,
-                        title: dbTravel.title,
-                        slug: dbTravel.slug,
-                        description: dbTravel.description || '',
-                        featured_image: dbTravel.featured_image || '',
-                        price: dbTravel.price || 0,
-                        duration_days: dbTravel.duration_days || 0,
-                        content: contentObj,
-                        status: dbTravel.status || 'draft'
-                    });
-                    
-                    console.log('[TravelDataService] Content-API save result:', saved);
-                }
-
-                // Method 2: Direct update to ensure price/duration are saved
-                if (saved && saved.id && window.BOLT_DB) {
-                    console.log('[TravelDataService] Updating price/duration directly...');
-                    const baseUrl = window.BOLT_DB.url.replace(/\/functions\/v1$/, '');
-                    const updateUrl = `${baseUrl}/rest/v1/trips?id=eq.${saved.id}`;
-                    
-                    const updateData = {
-                        price: dbTravel.price || 0,
-                        duration_days: dbTravel.duration_days || 0,
-                        description: dbTravel.description || '',
-                        featured_image: dbTravel.featured_image || '',
-                        source: dbTravel.source || 'travel-compositor',
-                        tc_idea_id: dbTravel.tc_idea_id || ''
-                    };
-                    
-                    const updateResp = await fetch(updateUrl, {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': token ? `Bearer ${token}` : '',
-                            'apikey': window.BOLT_DB.anonKey
-                        },
-                        body: JSON.stringify(updateData)
-                    });
-                    
-                    if (updateResp.ok) {
-                        console.log('[TravelDataService] Direct update successful!');
-                    } else {
-                        console.warn('[TravelDataService] Direct update failed:', await updateResp.text());
-                    }
-                }
+                const saved = await response.json();
+                console.log('[TravelDataService] Travel saved:', saved);
 
                 // Clear cache
                 this.clearCache();
 
-                return saved;
+                // Handle both array and single object response
+                const savedTrip = Array.isArray(saved) ? saved[0] : saved;
+                return this.transformTravel(savedTrip);
 
             } catch (error) {
                 console.error('[TravelDataService] Error saving travel:', error);
