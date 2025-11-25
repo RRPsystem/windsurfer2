@@ -1211,18 +1211,7 @@
                         );
                     }
                     
-                    const blob = new Blob([fixedHtml], { type: 'text/html; charset=utf-8' });
-                    const blobUrl = URL.createObjectURL(blob);
-                    
-                    // Clean up old blob URL to prevent memory leaks
-                    if (this.currentBlobUrl) {
-                        URL.revokeObjectURL(this.currentBlobUrl);
-                    }
-                    this.currentBlobUrl = blobUrl;
-                    
-                    iframe.src = blobUrl;
-                    
-                    // Set current page info so editor knows a page is loaded
+                    // Set current page info BEFORE loading iframe
                     this.currentPage = {
                         name: page.title,
                         id: page.id
@@ -1240,14 +1229,26 @@
                     document.getElementById('saveToBoltBtn').style.display = 'block';
                     document.getElementById('saveToBoltBtnSettings').style.display = 'block';
                     
-                    // Wait for iframe to fully load, then apply settings
-                    iframe.addEventListener('load', () => {
+                    // Set up onload BEFORE setting src
+                    iframe.onload = () => {
                         console.log('🎨 Iframe loaded, applying brand settings...');
                         this.applySettings();
                         
                         // Fix slideshows (same as standalone version)
                         this.fixSlideshows();
-                    });
+                    };
+                    
+                    // Create blob URL and load iframe
+                    const blob = new Blob([fixedHtml], { type: 'text/html; charset=utf-8' });
+                    const blobUrl = URL.createObjectURL(blob);
+                    
+                    // Clean up old blob URL to prevent memory leaks
+                    if (this.currentBlobUrl) {
+                        URL.revokeObjectURL(this.currentBlobUrl);
+                    }
+                    this.currentBlobUrl = blobUrl;
+                    
+                    iframe.src = blobUrl;
                     
                     // Show settings tab by default
                     this.switchTab('settings');
