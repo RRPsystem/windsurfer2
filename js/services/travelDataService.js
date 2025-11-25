@@ -434,7 +434,9 @@
                 duration_days: duration,
                 status: travel.status || 'draft',
                 content: travel.content || travel.html || travel.description || '',
-                slug: slug
+                slug: slug,
+                source: travel.source || null,
+                tc_idea_id: travel.tc_idea_id || travel.tcIdeaId || null
             };
 
             // Add optional fields (only if valid UUID format)
