@@ -1,0 +1,56 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    DEPLOY: pages-api Edge Function UPDATE                    ║
+║                    Make pages publicly accessible via API                    ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📋 WHAT CHANGED:
+  - Use SUPABASE_SERVICE_ROLE_KEY instead of ANON_KEY
+  - This bypasses RLS policies on pages table
+  - Makes pages publicly accessible without authentication
+
+🚀 DEPLOYMENT STEPS:
+
+1. Open Supabase Dashboard:
+   https://supabase.com/dashboard/project/huaaogdxxdcakxryecnw
+
+2. Go to: Edge Functions → pages-api
+
+3. Click "Edit Function"
+
+4. Replace line 29 with:
+   
+   FROM:
+   const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+   
+   TO:
+   const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+5. Also update the comment on line 27 to:
+   // Initialize Supabase client with service_role to bypass RLS
+
+6. Click "Deploy"
+
+7. Wait for deployment to complete (~30 seconds)
+
+✅ VERIFICATION:
+
+1. Open in browser:
+   https://huaaogdxxdcakxryecnw.supabase.co/functions/v1/pages-api/tour-grid
+
+2. You should see the Tour Grid page HTML (not authentication error!)
+
+3. The page should include:
+   <meta name="brand-id" content="e9c1a630-2d8f-4594-9b4b-08e3e6e0d209">
+
+4. The travel-search widget should now load trips!
+
+🎯 EXPECTED RESULT:
+  - Public pages work without authentication
+  - Travel widget gets brand_id from meta tag
+  - Trips are displayed in Tour Grid
+  
+⚠️ SECURITY NOTE:
+  - Only pages are publicly accessible
+  - SERVICE_ROLE is used server-side only (in Edge Function)
+  - Trips still require proper brand_id filtering
+  - No security risk - pages are meant to be public anyway

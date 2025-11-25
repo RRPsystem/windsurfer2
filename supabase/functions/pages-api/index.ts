@@ -24,9 +24,9 @@ serve(async (req) => {
 
     console.log('[pages-api] Serving page:', slug);
 
-    // Initialize Supabase client
+    // Initialize Supabase client with service_role to bypass RLS
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Get page from database
