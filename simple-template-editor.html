@@ -1189,12 +1189,31 @@
                     await this.loadBrandSettings();
                     
                     // Load page content into iframe
-                    // Load via pages-api to ensure all relative paths work correctly
+                    // Fix relative paths to work in blob URL context
                     const iframe = document.getElementById('previewFrame');
-                    const pageSlug = page.slug || page.id;
                     
-                    // Use pages-api to serve the page (this handles all CSS/JS paths correctly)
-                    iframe.src = `${this.apiBase}/pages-api/${pageSlug}`;
+                    // Add base tag to make relative URLs work
+                    const baseUrl = window.location.origin;
+                    let fixedHtml = htmlContent;
+                    
+                    // If HTML doesn't have a <base> tag, add one
+                    if (!fixedHtml.includes('<base')) {
+                        fixedHtml = fixedHtml.replace(
+                            '<head>',
+                            `<head>\n    <base href="${baseUrl}/">`
+                        );
+                    }
+                    
+                    const blob = new Blob([fixedHtml], { type: 'text/html; charset=utf-8' });
+                    const blobUrl = URL.createObjectURL(blob);
+                    
+                    // Clean up old blob URL to prevent memory leaks
+                    if (this.currentBlobUrl) {
+                        URL.revokeObjectURL(this.currentBlobUrl);
+                    }
+                    this.currentBlobUrl = blobUrl;
+                    
+                    iframe.src = blobUrl;
                     
                     // Set current page info so editor knows a page is loaded
                     this.currentPage = {
@@ -2343,6 +2362,17 @@
                     // Remove any Quick Designer injected elements (edit mode overlays, etc.)
                     const elementsToRemove = docClone.querySelectorAll('[data-quickdesigner-injected], .edit-overlay, .edit-indicator');
                     elementsToRemove.forEach(el => el.remove());
+                    
+                    // Ensure <base> tag exists for relative path resolution
+                    const baseUrl = window.location.origin;
+                    if (!docClone.querySelector('base')) {
+                        const baseTag = docClone.createElement('base');
+                        baseTag.href = `${baseUrl}/`;
+                        const head = docClone.querySelector('head');
+                        if (head && head.firstChild) {
+                            head.insertBefore(baseTag, head.firstChild);
+                        }
+                    }
                     
                     // Get clean HTML
                     const htmlContent = docClone.documentElement.outerHTML;
