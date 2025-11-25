@@ -851,8 +851,7 @@
                   trip_id: savedTravel.id,
                   brand_id: brand_id,
                   is_published: true,
-                  priority: 999,
-                  featured: false
+                  priority: 999
                 };
                 
                 const assignmentResp = await fetch(`${baseUrl}/rest/v1/trip_brand_assignments`, {
