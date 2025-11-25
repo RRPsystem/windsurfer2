@@ -96,46 +96,52 @@
         }
         
         .btn {
-            padding: 0.75rem 1.5rem;
+            padding: 0.625rem 1.25rem;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         
         .btn:hover {
-            transform: translateY(-2px);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         
-        .btn-primary { 
-            background: #ff7700;
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-edit { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
         }
-        .btn-primary:hover {
-            filter: brightness(0.95);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        .btn-edit:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #6a4298 100%);
         }
-        .btn-success { 
-            background: #10b981;
+        
+        .btn-delete { 
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
         }
-        .btn-success:hover {
-            filter: brightness(0.95);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        .btn-delete:hover {
+            background: linear-gradient(135deg, #e082ea 0%, #e4465b 100%);
         }
-        .btn-danger { 
-            background: #ef4444;
+        
+        .btn-save { 
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: white;
         }
-        .btn-danger:hover {
-            filter: brightness(0.95);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        .btn-save:hover {
+            background: linear-gradient(135deg, #3e9bed 0%, #00e1ed 100%);
         }
         .btn-secondary { 
             background: rgba(255,255,255,0.2);
@@ -708,15 +714,13 @@
                 </button>
             </div>
             
-            <button class="btn btn-primary" onclick="editor.toggleEditMode()" id="editModeBtn">
+            <button class="btn btn-edit" onclick="editor.toggleEditMode()" id="editModeBtn">
                 ✏️ Edit Mode: OFF
             </button>
-            <button class="btn btn-danger" onclick="editor.toggleSectionMode()" id="sectionModeBtn">
+            <button class="btn btn-delete" onclick="editor.toggleSectionMode()" id="sectionModeBtn">
                 🗑️ Section Mode: OFF
             </button>
-            <button class="btn btn-success" onclick="editor.savePageToBolt()" id="saveToBoltBtn" style="display:none">💾 Save to BOLT</button>
-            <button class="btn btn-primary" onclick="editor.saveTemplate()" id="downloadBtn">💾 Download</button>
-            <button class="btn btn-success" onclick="editor.openInNewTab()">🚀 Open in New Tab</button>
+            <button class="btn btn-save" onclick="editor.savePageToBolt()" id="saveToBoltBtn" style="display:none">💾 Opslaan</button>
         </div>
     </div>
     
@@ -952,7 +956,7 @@
                 </button>
                 
                 <!-- Save to BOLT Button (in settings panel) -->
-                <button class="apply-settings-btn" onclick="editor.savePageToBolt()" id="saveToBoltBtnSettings" style="display:none; background: #10b981; margin-top: 10px;">
+                <button class="apply-settings-btn btn-save" onclick="editor.savePageToBolt()" id="saveToBoltBtnSettings" style="display:none; margin-top: 10px; width: 100%;">
                     💾 Opslaan naar BOLT
                 </button>
             </div>
