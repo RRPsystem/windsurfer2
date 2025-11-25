@@ -838,6 +838,47 @@
             const savedTravel = await window.TravelDataService.saveTravel(travelData);
             console.log('[TravelView] Travel saved to BOLT:', savedTravel);
             
+            // Create trip_brand_assignment to make it visible on website
+            if (savedTravel && savedTravel.id) {
+              try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const brand_id = urlParams.get('brand_id') || window.BOLT_DB?.brandId;
+                const baseUrl = window.BOLT_DB.url.replace(/\/functions\/v1$/, '');
+                
+                console.log('[TravelView] Creating trip assignment for brand:', brand_id);
+                
+                const assignmentData = {
+                  trip_id: savedTravel.id,
+                  brand_id: brand_id,
+                  is_published: true,
+                  priority: 999,
+                  featured: false
+                };
+                
+                const assignmentResp = await fetch(`${baseUrl}/rest/v1/trip_brand_assignments`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': window.BOLT_DB.anonKey,
+                    'Authorization': `Bearer ${window.BOLT_DB.anonKey}`,
+                    'Prefer': 'return=representation'
+                  },
+                  body: JSON.stringify(assignmentData)
+                });
+                
+                if (assignmentResp.ok) {
+                  console.log('[TravelView] Trip assignment created successfully');
+                } else {
+                  const error = await assignmentResp.text();
+                  console.warn('[TravelView] Could not create assignment:', error);
+                  // Don't fail the whole import if assignment fails
+                }
+              } catch (assignError) {
+                console.warn('[TravelView] Assignment creation failed:', assignError);
+                // Continue anyway
+              }
+            }
+            
             // Update URL with trip ID to prevent duplicates on next save
             if (savedTravel && savedTravel.id) {
               const url = new URL(window.location.href);
