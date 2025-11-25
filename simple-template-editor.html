@@ -1174,6 +1174,14 @@
                         htmlContent = '<h1>No content yet</h1>';
                     }
                     
+                    // Debug: log what we're loading
+                    console.log('📥 Loading HTML:', {
+                        length: htmlContent.length,
+                        preview: htmlContent.substring(0, 500),
+                        hasDoctype: htmlContent.trim().toLowerCase().startsWith('<!doctype'),
+                        hasHtmlTag: htmlContent.includes('<html')
+                    });
+                    
                     // Store current page data
                     this.currentPage = page;
                     
@@ -2306,7 +2314,24 @@
                     
                     // Get current HTML from iframe
                     const iframe = document.getElementById('previewFrame');
-                    const htmlContent = iframe.contentDocument.documentElement.outerHTML;
+                    const iframeDoc = iframe.contentDocument;
+                    
+                    // Clone the document to avoid modifying the live iframe
+                    const docClone = iframeDoc.cloneNode(true);
+                    
+                    // Remove any Quick Designer injected elements (edit mode overlays, etc.)
+                    const elementsToRemove = docClone.querySelectorAll('[data-quickdesigner-injected], .edit-overlay, .edit-indicator');
+                    elementsToRemove.forEach(el => el.remove());
+                    
+                    // Get clean HTML
+                    const htmlContent = docClone.documentElement.outerHTML;
+                    
+                    // Debug: log what we're saving
+                    console.log('📤 Saving HTML:', {
+                        length: htmlContent.length,
+                        firstHtml: htmlContent.substring(0, 500),
+                        hasDoctype: htmlContent.trim().toLowerCase().startsWith('<!doctype')
+                    });
                     
                     // Prepare title and slug
                     let title = this.currentPage?.name || this.currentPage?.title || this.currentTemplate?.name || 'Nieuwe Pagina';
