@@ -43,7 +43,7 @@ export default async function handler(req, res) {
       // Fallback: try to get page by slug only (for backward compatibility)
       const { data: page, error } = await supabase
         .from('pages')
-        .select('*')
+        .select('id, brand_id, title, slug, body_html, status, description, analytics_id, template_category')
         .eq('slug', slug)
         .single();
       
@@ -79,7 +79,7 @@ export default async function handler(req, res) {
     // Get page from database for this brand
     const { data: page, error } = await supabase
       .from('pages')
-      .select('*')
+      .select('id, brand_id, title, slug, body_html, status, description, analytics_id, template_category')
       .eq('slug', slug)
       .eq('brand_id', brand.id)
       .single();
@@ -138,9 +138,8 @@ function buildHTML(page, menuItems, supabaseUrl, currentSlug) {
     return `<li class="menu-item ${isActive}"><a href="/${item.slug}">${escapeHtml(item.title)}</a></li>`;
   }).join('');
 
-  // TODO: Add template_category column to brands table
-  // For now, hardcode GoWild for specific brand
-  const templateCategory = page.brand_id === '0766a61a-8f37-4a83-bf28-e15084d764fb' ? 'gowild' : 'tripex';
+  // Use template_category from page, fallback to tripex
+  const templateCategory = page.template_category === 'general' ? 'gowild' : (page.template_category || 'tripex');
   const templateBase = `/templates/${templateCategory}`;
 
   return `<!DOCTYPE html>
@@ -200,7 +199,7 @@ function buildHTML(page, menuItems, supabaseUrl, currentSlug) {
 </head>
 <body>
   <!-- Page Content -->
-  ${page.html || '<p>Geen content beschikbaar</p>'}
+  ${page.body_html || '<p>Geen content beschikbaar</p>'}
   
   <!-- Dynamic Menu Injection -->
   <script>
