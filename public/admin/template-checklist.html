@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template Toevoegen Checklist - AI Website Studio</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .meta {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            border-bottom: 3px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .meta-item strong {
+            color: #667eea;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+        
+        .step h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .checklist {
+            list-style: none;
+            margin: 15px 0;
+        }
+        
+        .checklist li {
+            padding: 8px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .checklist li:before {
+            content: '□';
+            position: absolute;
+            left: 0;
+            font-size: 1.2rem;
+            color: #667eea;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #fff;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .code-block code {
+            color: #68d391;
+        }
+        
+        .alert {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border-left-color: #17a2b8;
+        }
+        
+        .time-estimate {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-left: 10px;
+        }
+        
+        .dependency-badge {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin: 4px;
+            font-size: 0.85rem;
+            font-family: monospace;
+        }
+        
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+        }
+        
+        .print-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; }
+            .print-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Template Toevoegen Checklist</h1>
+            <p>AI Website Studio - Productie Workflow</p>
+        </div>
+        
+        <div class="meta">
+            <div class="meta-item">
+                <strong>⏱️ Tijdsinvestering:</strong> ~2-3 uur per template
+            </div>
+            <div class="meta-item">
+                <strong>📅 Laatst geupdate:</strong> November 2025
+            </div>
+            <div class="meta-item">
+                <strong>📍 URL:</strong> <code>ai-websitestudio.nl/admin/template-checklist.html</code>
+            </div>
+        </div>
+        
+        <div class="content">
+            
+            <div class="alert alert-info">
+                <strong>💡 Tip:</strong> Print deze checklist en vink stappen af tijdens het proces. Of gebruik als digitale referentie.
+            </div>
+            
+            <!-- STAP 1 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">1</span>
+                    Template Upload
+                    <span class="time-estimate">⏱️ 15 min</span>
+                </h2>
+                
+                <ul class="checklist">
+                    <li>ThemeForest template gedownload en uitgepakt</li>
+                    <li>Template naar <code>/templates/[template-slug]/</code> verplaatst</li>
+                    <li>Structuur check: HTML bestanden aanwezig</li>
+                    <li>Structuur check: /assets/css/ folder aanwezig</li>
+                    <li>Structuur check: /assets/js/ folder aanwezig</li>
+                    <li>Template test: opent correct in browser</li>
+                </ul>
+                
+                <div class="code-block">
+<code># Terminal commands:
+cd ~/Downloads
+unzip template-name.zip
+cp -r template-folder/* /templates/[template-slug]/
+ls /templates/[template-slug]/</code>
+                </div>
+            </div>
+            
+            <!-- STAP 2 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">2</span>
+                    Dependency Analyse
+                    <span class="time-estimate">⏱️ 30 min</span>
+                </h2>
+                
+                <p><strong>Zoek in index.html naar dependencies:</strong></p>
+                
+                <div class="alert alert-warning">
+                    <strong>⚠️ Let op:</strong> Noteer exacte versienummers voor reproduceerbare builds!
+                </div>
+                
+                <p><strong>Veelvoorkomende dependencies:</strong></p>
+                <div>
+                    <span class="dependency-badge">jQuery 3.6.0</span>
+                    <span class="dependency-badge">Bootstrap 5.3.0</span>
+                    <span class="dependency-badge">Slick Slider 1.8.1</span>
+                    <span class="dependency-badge">Owl Carousel 2.3.4</span>
+                    <span class="dependency-badge">Swiper 8.4.5</span>
+                    <span class="dependency-badge">AOS 2.3.4</span>
+                    <span class="dependency-badge">Font Awesome 6.0.0</span>
+                </div>
+                
+                <ul class="checklist">
+                    <li>Alle CSS dependencies genoteerd met versienummers</li>
+                    <li>Alle JS dependencies genoteerd met versienummers</li>
+                    <li>jQuery versie gevonden</li>
+                    <li>Main init file gevonden (theme.js / main.js)</li>
+                    <li>DEPENDENCIES.txt aangemaakt in template folder</li>
+                </ul>
+            </div>
+            
+            <!-- STAP 3 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">3</span>
+                    Slider Analyse
+                    <span class="time-estimate">⏱️ 45 min</span>
+                </h2>
+                
+                <p><strong>Vind slider type en alle selectors:</strong></p>
+                
+                <div class="code-block">
+<code># Zoek naar slider init code:
+grep -n "\.slick(" assets/js/theme.js
+grep -n "\.owlCarousel(" assets/js/theme.js
+grep -n "new Swiper(" assets/js/theme.js</code>
+                </div>
+                
+                <ul class="checklist">
+                    <li>Slider type geïdentificeerd (Slick / Owl / Swiper / Anders)</li>
+                    <li>Alle slider selectors gevonden en genoteerd</li>
+                    <li>Complete init code gekopieerd uit theme.js</li>
+                    <li>/widgets/slider-init-[slug].js aangemaakt</li>
+                    <li>Console.log statements toegevoegd voor debugging</li>
+                    <li>Script getest in browser console</li>
+                </ul>
+                
+                <div class="alert alert-info">
+                    <strong>💡 Tip:</strong> Test elke slider afzonderlijk in de browser console voordat je alles combineert.
+                </div>
+            </div>
+            
+            <!-- STAP 4 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">4</span>
+                    Menu Analyse
+                    <span class="time-estimate">⏱️ 30 min</span>
+                </h2>
+                
+                <p><strong>Vind en test menu selector:</strong></p>
+                
+                <div class="code-block">
+<code>// Test in browser console:
+document.querySelector('.main-menu nav ul')
+document.querySelector('.nav-menu ul')
+document.querySelector('nav.main-menu ul')
+// De selector die het UL element vindt is correct!</code>
+                </div>
+                
+                <ul class="checklist">
+                    <li>Menu HTML structuur gevonden in template</li>
+                    <li>Menu selector geïdentificeerd en getest</li>
+                    <li>Menu item structuur genoteerd (&lt;li&gt;&lt;a&gt; format)</li>
+                    <li>Active class gevonden (bijv. "active", "current", etc.)</li>
+                    <li>Selector werkt in browser console</li>
+                </ul>
+            </div>
+            
+            <!-- STAP 5 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">5</span>
+                    Config File Maken
+                    <span class="time-estimate">⏱️ 30 min</span>
+                </h2>
+                
+                <ul class="checklist">
+                    <li>/templates/[slug]/config.json aangemaakt</li>
+                    <li>Template metadata ingevuld (name, slug, version)</li>
+                    <li>Dependencies sectie compleet met versienummers</li>
+                    <li>CDN links toegevoegd voor alle dependencies</li>
+                    <li>Menu config compleet (selector, template, active class)</li>
+                    <li>Alle sliders gedocumenteerd in config</li>
+                    <li>Alle pagina's toegevoegd met menu_order</li>
+                </ul>
+            </div>
+            
+            <!-- STAP 6 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">6</span>
+                    Template API Update
+                    <span class="time-estimate">⏱️ 15 min</span>
+                </h2>
+                
+                <ul class="checklist">
+                    <li>/api/templates/list.js geopend</li>
+                    <li>Nieuwe template toegevoegd aan export object</li>
+                    <li>Alle pagina's correct gedefineerd</li>
+                    <li>Preview URL correct ingesteld</li>
+                    <li>Dependencies sectie compleet</li>
+                </ul>
+                
+                <div class="code-block">
+<code>// Test API na update:
+curl https://www.ai-websitestudio.nl/api/templates/list | jq '.templates["template-slug"]'</code>
+                </div>
+            </div>
+            
+            <!-- STAP 7 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">7</span>
+                    BOLT Documentatie
+                    <span class="time-estimate">⏱️ 15 min</span>
+                </h2>
+                
+                <ul class="checklist">
+                    <li>/docs/BOLT-TEMPLATE-[SLUG].md aangemaakt</li>
+                    <li>Dependencies sectie met CDN links compleet</li>
+                    <li>Menu selector gedocumenteerd</li>
+                    <li>Alle sliders gedocumenteerd met beschrijving</li>
+                    <li>Pagina lijst toegevoegd</li>
+                    <li>Inject snippet voor website viewer toegevoegd</li>
+                </ul>
+            </div>
+            
+            <!-- STAP 8 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">8</span>
+                    Testing
+                    <span class="time-estimate">⏱️ 30 min</span>
+                </h2>
+                
+                <p><strong>Test alle componenten:</strong></p>
+                
+                <ul class="checklist">
+                    <li><strong>API Test:</strong> Template zichtbaar in /api/templates/list</li>
+                    <li><strong>API Test:</strong> HTML content ophaalbaar via API</li>
+                    <li><strong>BOLT Test:</strong> Template importeren in BOLT</li>
+                    <li><strong>Database Test:</strong> Pagina's correct opgeslagen</li>
+                    <li><strong>Database Test:</strong> show_in_menu en menu_order correct</li>
+                    <li><strong>Live Test:</strong> Website laadt zonder errors</li>
+                    <li><strong>Live Test:</strong> Sliders werken (slides bewegen)</li>
+                    <li><strong>Live Test:</strong> Menu is dynamisch en klikbaar</li>
+                    <li><strong>Live Test:</strong> Navigatie tussen pagina's werkt</li>
+                    <li><strong>Console Test:</strong> Geen JavaScript errors</li>
+                    <li><strong>Console Test:</strong> "✅ sliders initialized" zichtbaar</li>
+                    <li><strong>Console Test:</strong> "✅ menu injected" zichtbaar</li>
+                </ul>
+                
+                <div class="alert alert-warning">
+                    <strong>⚠️ Belangrijk:</strong> Test op verschillende browsers (Chrome, Firefox, Safari) en devices (desktop, tablet, mobile).
+                </div>
+            </div>
+            
+            <!-- STAP 9 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">9</span>
+                    Deploy naar Productie
+                    <span class="time-estimate">⏱️ 15 min</span>
+                </h2>
+                
+                <div class="code-block">
+<code># Git workflow:
+git add templates/[template-slug]/
+git add widgets/slider-init-[slug].js
+git add api/templates/list.js
+git add docs/BOLT-TEMPLATE-[SLUG].md
+
+git commit -m "Add [TemplateName] template support"
+git push origin main
+
+# Wait for Vercel deployment (~2 min)</code>
+                </div>
+                
+                <ul class="checklist">
+                    <li>Alle nieuwe files toegevoegd aan git</li>
+                    <li>Commit message beschrijvend en compleet</li>
+                    <li>Gepushed naar GitHub main branch</li>
+                    <li>Vercel deployment succesvol (check dashboard)</li>
+                    <li>Template API werkt in productie</li>
+                    <li>Slider init script bereikbaar via CDN</li>
+                </ul>
+            </div>
+            
+            <!-- FINALE CHECK -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">✓</span>
+                    Finale Productie Check
+                </h2>
+                
+                <div class="alert alert-success">
+                    <strong>✅ Template is production-ready als alle items afgevinkt zijn:</strong>
+                </div>
+                
+                <ul class="checklist">
+                    <li>Config file compleet en getest</li>
+                    <li>Dependencies gedocumenteerd met versienummers</li>
+                    <li>Slider init script werkt foutloos</li>
+                    <li>Menu selector correct en getest</li>
+                    <li>Template API updated en werkend</li>
+                    <li>BOLT documentatie compleet</li>
+                    <li>Alle tests geslaagd (API, BOLT, Live, Console)</li>
+                    <li>Deployed naar productie</li>
+                    <li>BOLT team geïnformeerd via email</li>
+                    <li>Template beschikbaar in BOLT template lijst</li>
+                </ul>
+            </div>
+            
+            <!-- TROUBLESHOOTING -->
+            <div class="alert alert-warning">
+                <h3 style="margin-bottom: 10px;">🔧 Veel Voorkomende Problemen</h3>
+                
+                <p><strong>Sliders werken niet:</strong></p>
+                <ol style="margin-left: 20px; margin-bottom: 10px;">
+                    <li>Check browser console voor errors</li>
+                    <li>Verify: <code>typeof jQuery !== 'undefined'</code></li>
+                    <li>Verify: <code>typeof $.fn.slick !== 'undefined'</code></li>
+                    <li>Check selector: <code>$('.hero-slider').length > 0</code></li>
+                </ol>
+                
+                <p><strong>Menu niet dynamisch:</strong></p>
+                <ol style="margin-left: 20px; margin-bottom: 10px;">
+                    <li>Check console: "✅ Dynamic menu injected"?</li>
+                    <li>Test selector in console</li>
+                    <li>Check database: show_in_menu = true?</li>
+                </ol>
+                
+                <p><strong>Pagina's niet vindbaar:</strong></p>
+                <ol style="margin-left: 20px;">
+                    <li>Check slug in database (geen leading slash!)</li>
+                    <li>Test API direct: /api/page/[slug]</li>
+                    <li>Check status = 'published'</li>
+                </ol>
+            </div>
+            
+            <!-- FOOTER INFO -->
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #e9ecef; text-align: center; color: #6c757d;">
+                <p><strong>📍 Deze pagina:</strong> <code>https://www.ai-websitestudio.nl/admin/template-checklist.html</code></p>
+                <p><strong>📚 Documentatie:</strong> <code>/docs/PRODUCTION-NEW-TEMPLATE-CHECKLIST.md</code></p>
+                <p><strong>🔄 Laatst geupdate:</strong> November 2025 | <strong>📅 Review:</strong> Over 6 maanden</p>
+            </div>
+            
+        </div>
+    </div>
+    
+    <button class="print-btn" onclick="window.print()">🖨️ Print Checklist</button>
+    
+    <script>
+        // Auto-scroll to hash if present
+        if (window.location.hash) {
+            setTimeout(() => {
+                document.querySelector(window.location.hash)?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+    </script>
+</body>
+</html>
