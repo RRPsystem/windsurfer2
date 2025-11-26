@@ -442,7 +442,7 @@
             width: 100%;
             height: fit-content;
             min-height: calc(100vh - 113px);
-            overflow: hidden;
+            overflow: visible;
         }
         
         .preview-wrapper.desktop {
@@ -2572,12 +2572,22 @@
                         htmlContent = '<!DOCTYPE html>\n' + htmlContent;
                     }
                     
-                    // Debug: log what we're saving
+                    // Debug: Check if edited text is in HTML
                     console.log('📤 Saving HTML:', {
                         length: htmlContent.length,
                         firstHtml: htmlContent.substring(0, 500),
-                        hasDoctype: htmlContent.trim().toLowerCase().startsWith('<!doctype')
+                        hasDoctype: htmlContent.trim().toLowerCase().startsWith('<!doctype'),
+                        // Check for common custom markers
+                        hasWelkom: htmlContent.includes('Welkom') || htmlContent.includes('welkom'),
+                        hasBrandName: htmlContent.includes('Del Monde') || htmlContent.includes('brand'),
+                        hasContenteditable: htmlContent.includes('contenteditable')
                     });
+                    
+                    // Extra debug: Log a snippet of body content to verify edits
+                    const bodyMatch = htmlContent.match(/<body[^>]*>([\s\S]{0,1000})/i);
+                    if (bodyMatch) {
+                        console.log('📄 Body snippet:', bodyMatch[1].substring(0, 500));
+                    }
                     
                     // Prepare title and slug
                     let title = this.currentPage?.name || this.currentPage?.title || this.currentTemplate?.name || 'Nieuwe Pagina';
