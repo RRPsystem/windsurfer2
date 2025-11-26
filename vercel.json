@@ -12,6 +12,10 @@
   "cleanUrls": false,
   "trailingSlash": false,
   "rewrites": [
+    {
+      "source": "/:slug((?!api|widgets|templates|js|styles|public)[^/.]+)",
+      "destination": "/api/page/:slug"
+    },
     { 
       "source": "/:brandSlug((?!api)[^/.]+)/:pageSlug",
       "destination": "/api/pages/:brandSlug/:pageSlug"
