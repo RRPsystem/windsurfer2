@@ -1160,9 +1160,10 @@
                     // Normal mode - show template list
                     this.renderTemplateList();
                     
-                    // If brand_id and token are present (new page from BOLT), show save button
+                    // If brand_id and token are present (new page from BOLT), load brand settings and show save button
                     if (this.brandId && this.token) {
                         console.log('🆕 New page mode - enabling BOLT save');
+                        await this.loadBrandSettings();
                         document.getElementById('saveToBoltBtn').style.display = 'block';
                         document.getElementById('saveToBoltBtnSettings').style.display = 'block';
                     }
@@ -1481,7 +1482,7 @@
                 });
             }
             
-            loadPage(page) {
+            async loadPage(page) {
                 if (!this.currentTemplate) return;
                 
                 this.currentPage = page;
@@ -1491,6 +1492,9 @@
                     item.classList.remove('active');
                 });
                 event.target.classList.add('active');
+                
+                // Load existing brand settings
+                await this.loadBrandSettings();
                 
                 // Disable edit mode when loading new page
                 if (this.editMode) {
@@ -1508,6 +1512,11 @@
                 iframe.onload = () => {
                     // Fix slideshows by reinitializing scripts
                     this.fixSlideshows();
+                    
+                    // Apply brand settings after page loads
+                    if (this.brandId) {
+                        setTimeout(() => this.applySettings(), 100);
+                    }
                     
                     if (this.editMode) {
                         setTimeout(() => this.enableEditMode(), 500);
@@ -2292,19 +2301,26 @@
                             
                             styleTag.textContent = `
                                 :root {
+                                    /* Generic variables */
                                     --primary-color: ${colors[0]} !important;
                                     --secondary-color: ${colors[1]} !important;
                                     --brand-primary: ${colors[0]} !important;
                                     --brand-secondary: ${colors[1]} !important;
+                                    
+                                    /* Tripex/Tailwind template variables */
+                                    --primary: ${colors[0]} !important;
+                                    --secondary: ${colors[1]} !important;
+                                    --heading-color: ${colors[0]} !important;
+                                    --body-color: ${colors[0]} !important;
                                 }
                                 
                                 /* Apply to common elements */
-                                .btn-primary, .primary-btn, button.primary {
+                                .btn-primary, .primary-btn, button.primary, .btn {
                                     background: ${colors[0]} !important;
                                     border-color: ${colors[0]} !important;
                                 }
                                 
-                                .btn-primary:hover, .primary-btn:hover {
+                                .btn-primary:hover, .primary-btn:hover, .btn:hover {
                                     background: ${colors[1]} !important;
                                 }
                                 
