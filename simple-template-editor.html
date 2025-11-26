@@ -1323,6 +1323,24 @@
                     // Set up onload BEFORE setting src
                     iframe.onload = () => {
                         console.log('🎨 Iframe loaded, applying brand settings...');
+                        
+                        // Debug: Check iframe content
+                        const doc = iframe.contentDocument;
+                        if (doc) {
+                            console.log('📊 Iframe content check:', {
+                                bodyLength: doc.body?.innerHTML.length || 0,
+                                sections: doc.querySelectorAll('section').length,
+                                bodyHeight: doc.body?.scrollHeight || 0,
+                                hasContent: doc.body?.innerHTML.length > 1000
+                            });
+                            
+                            // Force iframe to show full content
+                            if (doc.body) {
+                                doc.body.style.overflow = 'visible';
+                                doc.body.style.minHeight = 'auto';
+                            }
+                        }
+                        
                         this.applySettings();
                         
                         // Fix slideshows (same as standalone version)
@@ -1330,8 +1348,10 @@
                     };
                     
                     // Create blob URL and load iframe
+                    console.log('📦 Creating blob from HTML:', fixedHtml.length, 'chars');
                     const blob = new Blob([fixedHtml], { type: 'text/html; charset=utf-8' });
                     const blobUrl = URL.createObjectURL(blob);
+                    console.log('🔗 Blob URL created:', blobUrl);
                     
                     // Clean up old blob URL to prevent memory leaks
                     if (this.currentBlobUrl) {
@@ -1339,6 +1359,7 @@
                     }
                     this.currentBlobUrl = blobUrl;
                     
+                    console.log('🚀 Loading iframe with blob URL...');
                     iframe.src = blobUrl;
                     
                     // Show settings tab by default
