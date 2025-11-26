@@ -199,7 +199,7 @@ function buildHTML(page, menuItems, supabaseUrl, currentSlug) {
 </head>
 <body>
   <!-- Page Content -->
-  ${page.body_html || '<p>Geen content beschikbaar</p>'}
+  ${(page.body_html || '<p>Geen content beschikbaar</p>').replace(/<base\s+href="[^"]*">/gi, '').replace(/<meta\s+name="brand-id"[^>]*>/gi, '')}
   
   <!-- Dynamic Menu Injection -->
   <script>
