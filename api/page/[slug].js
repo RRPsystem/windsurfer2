@@ -109,8 +109,20 @@ export default async function handler(req, res) {
       .eq('status', 'published')
       .order('menu_order', { ascending: true });
 
-    // Build HTML with dynamic menu
-    const html = buildHTML(page, menuItems || [], supabaseUrl, slug);
+    // Check if body_html is a complete HTML document or just body content
+    const isCompleteHtml = page.body_html && (
+      page.body_html.trim().toLowerCase().startsWith('<!doctype') ||
+      page.body_html.trim().toLowerCase().startsWith('<html')
+    );
+
+    let html;
+    if (isCompleteHtml) {
+      // Serve complete HTML from database, but fix base href and inject menu
+      html = processCompleteHTML(page, menuItems || [], slug);
+    } else {
+      // Wrap partial content in our HTML template
+      html = buildHTML(page, menuItems || [], supabaseUrl, slug);
+    }
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600');
@@ -129,6 +141,51 @@ export default async function handler(req, res) {
       </html>
     `);
   }
+}
+
+function processCompleteHTML(page, menuItems, currentSlug) {
+  // Generate menu HTML with relative URLs
+  const menuHTML = menuItems.map(item => {
+    const isActive = item.slug === currentSlug ? 'active' : '';
+    return `<li class="menu-item ${isActive}"><a href="/${item.slug}">${escapeHtml(item.title)}</a></li>`;
+  }).join('');
+
+  let html = page.body_html || '';
+  
+  // Remove problematic base href tags that point to wrong paths
+  html = html.replace(/<base\s+href="[^"]*">/gi, '');
+  
+  // Remove duplicate brand-id meta tags (we keep only one in head)
+  html = html.replace(/<meta\s+name="brand-id"[^>]*>/gi, '');
+  
+  // Inject dynamic menu - find the main menu nav and replace its content
+  const menuScript = `
+  <script>
+  (function() {
+    'use strict';
+    const menuHTML = \`${menuHTML}\`;
+    function injectDynamicMenu() {
+      const menuNav = document.querySelector('.main-menu nav ul, .main-menu ul, nav.main-menu ul');
+      if (menuNav && menuHTML) {
+        menuNav.innerHTML = menuHTML;
+        console.log('✅ Dynamic menu injected');
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', injectDynamicMenu);
+    } else {
+      injectDynamicMenu();
+    }
+  })();
+  </script>`;
+  
+  // Inject slider init script before closing body tag
+  const sliderScript = '<script src="/widgets/slider-init-universal.js"></script>';
+  
+  // Add scripts before closing body tag
+  html = html.replace('</body>', `${menuScript}\n${sliderScript}\n</body>`);
+  
+  return html;
 }
 
 function buildHTML(page, menuItems, supabaseUrl, currentSlug) {
