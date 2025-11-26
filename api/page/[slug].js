@@ -158,6 +158,9 @@ function processCompleteHTML(page, menuItems, currentSlug) {
   // Remove duplicate brand-id meta tags (we keep only one in head)
   html = html.replace(/<meta\s+name="brand-id"[^>]*>/gi, '');
   
+  // Remove CSP meta tags that block our scripts
+  html = html.replace(/<meta\s+http-equiv="Content-Security-Policy"[^>]*>/gi, '');
+  
   // Inject dynamic menu using a data attribute (CSP-safe)
   const menuDataDiv = `<div id="wb-menu-data" style="display:none;">${menuHTML}</div>`;
   const menuScript = `
@@ -257,7 +260,10 @@ function buildHTML(page, menuItems, supabaseUrl, currentSlug) {
 </head>
 <body>
   <!-- Page Content -->
-  ${(page.body_html || '<p>Geen content beschikbaar</p>').replace(/<base\s+href="[^"]*">/gi, '').replace(/<meta\s+name="brand-id"[^>]*>/gi, '')}
+  ${(page.body_html || '<p>Geen content beschikbaar</p>')
+    .replace(/<base\s+href="[^"]*">/gi, '')
+    .replace(/<meta\s+name="brand-id"[^>]*>/gi, '')
+    .replace(/<meta\s+http-equiv="Content-Security-Policy"[^>]*>/gi, '')}
   
   <!-- Menu Data (CSP-safe) -->
   <div id="wb-menu-data" style="display:none;">${menuHTML}</div>
