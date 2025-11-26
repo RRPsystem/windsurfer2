@@ -89,5 +89,6 @@
   ],
   "installCommand": "echo Skip install",
   "buildCommand": "echo Skip build",
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "public": true
 }
