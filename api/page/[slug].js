@@ -49,8 +49,17 @@ export default async function handler(req, res) {
 
     console.log('[page-api] Page found:', page.title);
 
-    // Build HTML
-    const html = buildHTML(page, supabaseUrl);
+    // Get menu items for this brand
+    const { data: menuItems } = await supabase
+      .from('pages')
+      .select('id, title, slug, menu_order')
+      .eq('brand_id', page.brand_id)
+      .eq('show_in_menu', true)
+      .eq('status', 'published')
+      .order('menu_order', { ascending: true });
+
+    // Build HTML with dynamic menu
+    const html = buildHTML(page, menuItems || [], supabaseUrl, slug);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600');
@@ -71,7 +80,13 @@ export default async function handler(req, res) {
   }
 }
 
-function buildHTML(page, supabaseUrl) {
+function buildHTML(page, menuItems, supabaseUrl, currentSlug) {
+  // Generate menu HTML
+  const menuHTML = menuItems.map(item => {
+    const isActive = item.slug === currentSlug ? 'active' : '';
+    return `<li class="menu-item ${isActive}"><a href="/api/page/${item.slug}">${escapeHtml(item.title)}</a></li>`;
+  }).join('');
+
   return `<!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -130,6 +145,34 @@ function buildHTML(page, supabaseUrl) {
 <body>
   <!-- Page Content -->
   ${page.html || '<p>Geen content beschikbaar</p>'}
+  
+  <!-- Dynamic Menu Injection -->
+  <script>
+  (function() {
+    'use strict';
+    
+    // Dynamic menu items from database
+    const menuHTML = \`${menuHTML}\`;
+    
+    // Replace hardcoded menu with dynamic menu
+    function injectDynamicMenu() {
+      const menuNav = document.querySelector('.main-menu nav ul, .main-menu ul, nav.main-menu ul');
+      if (menuNav && menuHTML) {
+        menuNav.innerHTML = menuHTML;
+        console.log('✅ Dynamic menu injected');
+      } else {
+        console.warn('⚠️ Menu navigation not found');
+      }
+    }
+    
+    // Run after DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', injectDynamicMenu);
+    } else {
+      injectDynamicMenu();
+    }
+  })();
+  </script>
   
   ${page.analytics_id ? `
   <script async src="https://www.googletagmanager.com/gtag/js?id=${page.analytics_id}"></script>
