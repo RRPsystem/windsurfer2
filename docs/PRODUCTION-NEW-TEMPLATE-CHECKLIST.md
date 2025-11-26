@@ -574,4 +574,4 @@ Alles getest en production ready!
 
 ---
 
-**📍 Online Checklist:** https://www.ai-websitestudio.nl/checklist-new-template.html
+**📍 Online Checklist:** https://www.ai-websitestudio.nl/api/checklist
