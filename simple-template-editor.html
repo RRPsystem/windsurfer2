@@ -1595,13 +1595,16 @@
                         try {
                             if ($.fn.slick) {
                                 console.log('🎢 Refreshing Slick sliders if present');
-                                $('.hero-slider, .slick-slider').each(function() {
+                                // Find all sliders - hero, tour, and generic slick sliders
+                                $('.hero-slider, .slick-slider, .tour-slider, .destination-slider').each(function() {
                                     const $slider = $(this);
                                     try {
                                         if ($slider.hasClass('slick-initialized')) {
+                                            console.log('🔄 Reinitializing slider:', $slider.attr('class'));
                                             $slider.slick('unslick');
                                         }
                                         $slider.slick();
+                                        console.log('✅ Slider initialized:', $slider.attr('class'));
                                     } catch (e) {
                                         console.warn('⚠️ Slick init/refresh failed on element, ignoring:', e.message);
                                     }
