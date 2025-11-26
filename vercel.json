@@ -12,16 +12,8 @@
   "cleanUrls": false,
   "trailingSlash": false,
   "rewrites": [
-    {
-      "source": "/template-checklist",
-      "destination": "/template-checklist.html"
-    },
-    {
-      "source": "/template-checklist.html",
-      "destination": "/template-checklist.html"
-    },
     { 
-      "source": "/:brandSlug((?!api|template-checklist)[^/.]+)/:pageSlug",
+      "source": "/:brandSlug((?!api)[^/.]+)/:pageSlug",
       "destination": "/api/pages/:brandSlug/:pageSlug"
     }
   ],

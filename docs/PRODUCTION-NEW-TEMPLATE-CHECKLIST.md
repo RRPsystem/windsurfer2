@@ -571,3 +571,7 @@ Alles getest en production ready!
 **Versie:** 1.0  
 **Laatst getest:** November 2025  
 **Volgende review:** Over 6 maanden
+
+---
+
+**📍 Online Checklist:** https://www.ai-websitestudio.nl/checklist-new-template.html
