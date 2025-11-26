@@ -138,6 +138,11 @@ function buildHTML(page, menuItems, supabaseUrl, currentSlug) {
     return `<li class="menu-item ${isActive}"><a href="/${item.slug}">${escapeHtml(item.title)}</a></li>`;
   }).join('');
 
+  // TODO: Add template_category column to brands table
+  // For now, hardcode GoWild for specific brand
+  const templateCategory = page.brand_id === '0766a61a-8f37-4a83-bf28-e15084d764fb' ? 'gowild' : 'tripex';
+  const templateBase = `/templates/${templateCategory}`;
+
   return `<!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -148,22 +153,22 @@ function buildHTML(page, menuItems, supabaseUrl, currentSlug) {
   <title>${escapeHtml(page.title || 'Pagina')}</title>
   
   <!-- Favicon -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' ry='18' fill='%234CAF50'/%3E%3Ctext x='50' y='62' font-size='60' text-anchor='middle' fill='white'%3EW%3C/text%3E%3C/svg%3E">
+  <link rel="shortcut icon" href="${templateBase}/assets/images/favicon.ico" type="image/png">
   
-  <!-- CSS from Supabase Storage -->
-  <link rel="stylesheet" href="${supabaseUrl}/storage/v1/object/public/assets/styles/main.css">
-  <link rel="stylesheet" href="${supabaseUrl}/storage/v1/object/public/assets/styles/components.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- CDN Resources -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  
-  <!-- Mapbox GL JS -->
-  <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet">
-  <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
-  
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Template CSS -->
+  <link rel="stylesheet" href="${templateBase}/assets/fonts/flaticon/flaticon_gowilds.css">
+  <link rel="stylesheet" href="${templateBase}/assets/fonts/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="${templateBase}/assets/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="${templateBase}/assets/vendor/magnific-popup/dist/magnific-popup.css">
+  <link rel="stylesheet" href="${templateBase}/assets/vendor/slick/slick.css">
+  <link rel="stylesheet" href="${templateBase}/assets/vendor/jquery-ui/jquery-ui.min.css">
+  <link rel="stylesheet" href="${templateBase}/assets/vendor/nice-select/css/nice-select.css">
+  <link rel="stylesheet" href="${templateBase}/assets/vendor/animate.css">
+  <link rel="stylesheet" href="${templateBase}/assets/css/default.css">
+  <link rel="stylesheet" href="${templateBase}/assets/css/style.css">
   
   <!-- Travel Search Widget -->
   <script src="/widgets/travel-search.js"></script>
@@ -224,6 +229,22 @@ function buildHTML(page, menuItems, supabaseUrl, currentSlug) {
     }
   })();
   </script>
+  
+  <!-- Template JavaScript -->
+  <script src="${templateBase}/assets/vendor/jquery-3.6.0.min.js"></script>
+  <script src="${templateBase}/assets/vendor/popper/popper.min.js"></script>
+  <script src="${templateBase}/assets/vendor/bootstrap/js/bootstrap.min.js"></script>
+  <script src="${templateBase}/assets/vendor/slick/slick.min.js"></script>
+  <script src="${templateBase}/assets/vendor/magnific-popup/dist/jquery.magnific-popup.min.js"></script>
+  <script src="${templateBase}/assets/vendor/jquery.counterup.min.js"></script>
+  <script src="${templateBase}/assets/vendor/jquery.waypoints.js"></script>
+  <script src="${templateBase}/assets/vendor/nice-select/js/jquery.nice-select.min.js"></script>
+  <script src="${templateBase}/assets/vendor/jquery-ui/jquery-ui.min.js"></script>
+  <script src="${templateBase}/assets/vendor/wow.min.js"></script>
+  <script src="${templateBase}/assets/js/theme.js"></script>
+  
+  <!-- Universal Slider Init -->
+  <script src="/widgets/slider-init-universal.js"></script>
   
   ${page.analytics_id ? `
   <script async src="https://www.googletagmanager.com/gtag/js?id=${page.analytics_id}"></script>
