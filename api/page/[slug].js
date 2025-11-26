@@ -39,41 +39,18 @@ export default async function handler(req, res) {
       .single();
 
     if (brandError || !brand) {
-      console.error('[page-api] Brand not found:', brandSlug);
-      // Fallback: try to get page by slug only (for backward compatibility)
-      const { data: page, error } = await supabase
-        .from('pages')
-        .select('id, brand_id, title, slug, body_html, status, description, analytics_id, template_category')
-        .eq('slug', slug)
-        .single();
-      
-      if (error || !page) {
-        return res.status(404).send(`
-          <!DOCTYPE html>
-          <html>
-            <head><title>Page Not Found</title></head>
-            <body>
-              <h1>404 - Page Not Found</h1>
-              <p>Brand "${brandSlug}" or page "${slug}" not found.</p>
-            </body>
-          </html>
-        `);
-      }
-      
-      // Continue with page found
-      console.log('[page-api] Page found (fallback):', page.title);
-      const { data: menuItems } = await supabase
-        .from('pages')
-        .select('id, title, slug, menu_order')
-        .eq('brand_id', page.brand_id)
-        .eq('show_in_menu', true)
-        .eq('status', 'published')
-        .order('menu_order', { ascending: true });
-      
-      const html = buildHTML(page, menuItems || [], supabaseUrl, slug);
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600');
-      return res.status(200).send(html);
+      console.error('[page-api] Brand not found:', brandSlug, brandError);
+      return res.status(404).send(`
+        <!DOCTYPE html>
+        <html>
+          <head><title>Brand Not Found</title></head>
+          <body>
+            <h1>404 - Brand Not Found</h1>
+            <p>Brand "${brandSlug}" does not exist.</p>
+            <p>Host: ${host}</p>
+          </body>
+        </html>
+      `);
     }
 
     // Get page from database for this brand
