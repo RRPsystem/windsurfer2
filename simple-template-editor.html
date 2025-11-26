@@ -1978,6 +1978,8 @@
                 const element = this.currentEditElement;
                 const tagName = element.tagName.toUpperCase();
                 
+                console.log('💾 Saving edit for:', tagName, 'Current text:', element.textContent?.substring(0, 50));
+                
                 // Update based on element type
                 if (tagName === 'IMG') {
                     // Update image
@@ -2010,8 +2012,18 @@
                 } else {
                     // Update text only
                     const newText = document.getElementById('editTextarea').value;
+                    const oldText = element.textContent;
                     element.textContent = newText;
-                    console.log('✅ Text updated');
+                    console.log('✅ Text updated from:', oldText?.substring(0, 30), '→ to:', newText.substring(0, 30));
+                    
+                    // VERIFY: Check if change is in iframe DOM
+                    setTimeout(() => {
+                        const iframe = document.getElementById('previewFrame');
+                        const iframeDoc = iframe.contentDocument;
+                        const bodyText = iframeDoc.body.textContent;
+                        const hasNewText = bodyText.includes(newText.substring(0, 20));
+                        console.log('🔍 VERIFY: New text in iframe?', hasNewText, '(searching for:', newText.substring(0, 20), ')');
+                    }, 100);
                 }
                 
                 this.cancelEdit();
