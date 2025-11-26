@@ -6,21 +6,24 @@ Image sliders in Tripex/GoWild templates staan onder elkaar in plaats van te sli
 ## Oorzaak
 De Slick Slider jQuery plugin vereist initialisatie scripts die niet automatisch worden uitgevoerd wanneer HTML dynamisch wordt geladen.
 
+## ⚠️ BELANGRIJK
+GoWild en Tripex gebruiken **verschillende slider class names**! Gebruik het juiste script per template.
+
 ## Oplossing: JavaScript Snippet voor Website Viewer
 
-Voeg dit script toe **vlak voor de `</body>` tag** in de website-viewer Edge Function:
+Voeg dit **universele script** toe **vlak voor de `</body>` tag** in de website-viewer Edge Function (werkt voor BEIDE templates):
 
 ```javascript
 <script>
-// Tripex/GoWild Slider Initialization
+// Universal Tripex/GoWild Slider Initialization
 (function($) {
     'use strict';
     
     // Wait for DOM and all scripts to load
     $(document).ready(function() {
         
-        // Destroy existing sliders to prevent duplicates
-        $('.destination-slider, .tour-slider, .testimonial-slider, .gallery-slider, .clients-slider, .tour-gallery-slider').filter('.slick-initialized').slick('unslick');
+        // Destroy ALL existing sliders to prevent duplicates
+        $('.slick-initialized').slick('unslick');
         
         // Destination Slider
         if ($('.destination-slider').length && !$('.destination-slider').hasClass('slick-initialized')) {
