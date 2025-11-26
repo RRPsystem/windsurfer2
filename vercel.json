@@ -13,7 +13,7 @@
   "trailingSlash": false,
   "rewrites": [
     { 
-      "source": "/:brandSlug((?!api|admin)[^.]+)/:pageSlug",
+      "source": "/:brandSlug((?!api)[^.]+)/:pageSlug",
       "destination": "/api/pages/:brandSlug/:pageSlug"
     }
   ],
