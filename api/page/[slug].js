@@ -159,6 +159,11 @@ function processCompleteHTML(page, menuItems, currentSlug) {
   // Remove problematic base href tags that point to wrong paths
   html = html.replace(/<base\s+href="[^"]*">/gi, '');
   
+  // Fix absolute URLs with wrong template path or case
+  // Match: https://www.ai-websitestudio.nl/templates/Gowild/ or /templates/general/
+  html = html.replace(/https?:\/\/[^"']+\/templates\/[^"'\/]+\//gi, templatePath);
+  html = html.replace(/\/templates\/general\//gi, templatePath);
+  
   // Fix relative asset paths to absolute paths
   // Match: href="assets/... or src="assets/... (but not already absolute URLs)
   html = html.replace(/href="(?!https?:\/\/|\/)(assets\/[^"]+)"/gi, `href="${templatePath}$1"`);
@@ -273,6 +278,8 @@ function buildHTML(page, menuItems, supabaseUrl, currentSlug) {
     const templatePath = `/templates/${templateCategory}/`;
     return (page.body_html || '<p>Geen content beschikbaar</p>')
       .replace(/<base\s+href="[^"]*">/gi, '')
+      .replace(/https?:\/\/[^"']+\/templates\/[^"'\/]+\//gi, templatePath)
+      .replace(/\/templates\/general\//gi, templatePath)
       .replace(/href="(?!https?:\/\/|\/)(assets\/[^"]+)"/gi, `href="${templatePath}$1"`)
       .replace(/src="(?!https?:\/\/|\/)(assets\/[^"]+)"/gi, `src="${templatePath}$1"`)
       .replace(/<meta\s+name="brand-id"[^>]*>/gi, '')
