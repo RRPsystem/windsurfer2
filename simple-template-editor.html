@@ -1163,9 +1163,14 @@
                     // If brand_id and token are present (new page from BOLT), load brand settings and show save button
                     if (this.brandId && this.token) {
                         console.log('🆕 New page mode - enabling BOLT save');
-                        await this.loadBrandSettings();
+                        const settingsLoaded = await this.loadBrandSettings();
                         document.getElementById('saveToBoltBtn').style.display = 'block';
                         document.getElementById('saveToBoltBtnSettings').style.display = 'block';
+                        
+                        // If settings were loaded, they will be applied when page loads
+                        if (settingsLoaded) {
+                            console.log('ℹ️ Brand settings loaded, will be applied when page loads');
+                        }
                     }
                 }
             }
@@ -1395,10 +1400,14 @@
                         this.settings.customColor1 = data.color_primary || '#667eea';
                         this.settings.customColor2 = data.color_secondary || '#764ba2';
                         
-                        // Update UI elements
+                        // Update UI elements to show selected colors in sidebar
                         this.updateSettingsUI();
+                        
+                        // IMPORTANT: Return true to indicate settings were loaded
+                        return true;
                     } else {
                         console.log('ℹ️ No existing brand settings found');
+                        return false;
                     }
                 } catch (error) {
                     console.warn('⚠️ Error loading brand settings:', error);
@@ -1408,6 +1417,14 @@
             }
             
             updateSettingsUI() {
+                console.log('🎨 Updating settings UI with:', {
+                    palette: this.settings.palette,
+                    customColor1: this.settings.customColor1,
+                    customColor2: this.settings.customColor2,
+                    font: this.settings.font,
+                    logo: this.settings.logo
+                });
+                
                 // Update logo preview
                 if (this.settings.logo) {
                     const preview = document.getElementById('logoPreview');
@@ -1420,20 +1437,40 @@
                     option.classList.remove('active');
                 });
                 const fontOption = document.querySelector(`[data-font="${this.settings.font}"]`);
-                if (fontOption) fontOption.classList.add('active');
+                if (fontOption) {
+                    fontOption.classList.add('active');
+                    console.log('✅ Font option activated:', this.settings.font);
+                } else {
+                    console.warn('⚠️ Font option not found for:', this.settings.font);
+                }
                 
                 // Update palette selection
                 document.querySelectorAll('.color-option').forEach(option => {
                     option.classList.remove('active');
                 });
                 const paletteOption = document.querySelector(`[data-palette="${this.settings.palette}"]`);
-                if (paletteOption) paletteOption.classList.add('active');
+                if (paletteOption) {
+                    paletteOption.classList.add('active');
+                    console.log('✅ Palette option activated:', this.settings.palette);
+                } else {
+                    console.warn('⚠️ Palette option not found for:', this.settings.palette);
+                }
                 
                 // Update custom color pickers
-                document.getElementById('customColor1').value = this.settings.customColor1;
-                document.getElementById('customColor2').value = this.settings.customColor2;
-                document.getElementById('customColor1Display').style.background = this.settings.customColor1;
-                document.getElementById('customColor2Display').style.background = this.settings.customColor2;
+                const color1Input = document.getElementById('customColor1');
+                const color2Input = document.getElementById('customColor2');
+                const color1Display = document.getElementById('customColor1Display');
+                const color2Display = document.getElementById('customColor2Display');
+                
+                if (color1Input && color2Input && color1Display && color2Display) {
+                    color1Input.value = this.settings.customColor1;
+                    color2Input.value = this.settings.customColor2;
+                    color1Display.style.background = this.settings.customColor1;
+                    color2Display.style.background = this.settings.customColor2;
+                    console.log('✅ Custom colors updated in UI');
+                } else {
+                    console.warn('⚠️ Custom color elements not found!');
+                }
             }
             
             renderTemplateList() {
@@ -1493,8 +1530,9 @@
                 });
                 event.target.classList.add('active');
                 
-                // Load existing brand settings
-                await this.loadBrandSettings();
+                // Load existing brand settings FIRST
+                const settingsLoaded = await this.loadBrandSettings();
+                console.log('📦 Brand settings loaded before page load:', settingsLoaded);
                 
                 // Disable edit mode when loading new page
                 if (this.editMode) {
@@ -1510,13 +1548,17 @@
                 
                 // Re-enable edit mode after page loads
                 iframe.onload = () => {
+                    console.log('📄 Page loaded, applying settings...');
+                    
                     // Fix slideshows by reinitializing scripts
                     this.fixSlideshows();
                     
-                    // Apply brand settings after page loads
-                    if (this.brandId) {
-                        setTimeout(() => this.applySettings(), 100);
-                    }
+                    // ALWAYS apply settings after page loads (even if not in BOLT mode)
+                    // This ensures colors/fonts/logo are applied
+                    setTimeout(() => {
+                        this.applySettings();
+                        console.log('✅ Settings applied after page load');
+                    }, 100);
                     
                     if (this.editMode) {
                         setTimeout(() => this.enableEditMode(), 500);
@@ -2222,14 +2264,28 @@
             
             async applySettings() {
                 const iframe = document.getElementById('previewFrame');
+                
                 // Check if iframe has content (either via src or srcdoc)
                 if (!iframe.src && !iframe.srcdoc) {
-                    alert('⚠️ Laad eerst een template pagina');
+                    console.warn('⚠️ Iframe has no source yet, skipping applySettings');
                     return;
                 }
                 
                 try {
                     const doc = iframe.contentDocument || iframe.contentWindow.document;
+                    
+                    if (!doc || !doc.body) {
+                        console.warn('⚠️ Iframe document not ready yet, skipping applySettings');
+                        return;
+                    }
+                    
+                    console.log('🎨 Applying settings to iframe...', {
+                        palette: this.settings.palette,
+                        customColor1: this.settings.customColor1,
+                        customColor2: this.settings.customColor2,
+                        font: this.settings.font,
+                        hasLogo: !!this.settings.logo
+                    });
                     
                     // Apply Logo
                     if (this.settings.logo) {
