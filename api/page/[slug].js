@@ -158,16 +158,17 @@ function processCompleteHTML(page, menuItems, currentSlug) {
   // Remove duplicate brand-id meta tags (we keep only one in head)
   html = html.replace(/<meta\s+name="brand-id"[^>]*>/gi, '');
   
-  // Inject dynamic menu - find the main menu nav and replace its content
+  // Inject dynamic menu using a data attribute (CSP-safe)
+  const menuDataDiv = `<div id="wb-menu-data" style="display:none;">${menuHTML}</div>`;
   const menuScript = `
   <script>
   (function() {
     'use strict';
-    const menuHTML = \`${menuHTML}\`;
     function injectDynamicMenu() {
-      const menuNav = document.querySelector('.main-menu nav ul, .main-menu ul, nav.main-menu ul');
-      if (menuNav && menuHTML) {
-        menuNav.innerHTML = menuHTML;
+      var dataDiv = document.getElementById('wb-menu-data');
+      var menuNav = document.querySelector('.main-menu nav ul, .main-menu ul, nav.main-menu ul');
+      if (menuNav && dataDiv) {
+        menuNav.innerHTML = dataDiv.innerHTML;
         console.log('✅ Dynamic menu injected');
       }
     }
@@ -182,8 +183,8 @@ function processCompleteHTML(page, menuItems, currentSlug) {
   // Inject slider init script before closing body tag
   const sliderScript = '<script src="/widgets/slider-init-universal.js"></script>';
   
-  // Add scripts before closing body tag
-  html = html.replace('</body>', `${menuScript}\n${sliderScript}\n</body>`);
+  // Add menu data and scripts before closing body tag
+  html = html.replace('</body>', `${menuDataDiv}\n${menuScript}\n${sliderScript}\n</body>`);
   
   return html;
 }
@@ -258,19 +259,19 @@ function buildHTML(page, menuItems, supabaseUrl, currentSlug) {
   <!-- Page Content -->
   ${(page.body_html || '<p>Geen content beschikbaar</p>').replace(/<base\s+href="[^"]*">/gi, '').replace(/<meta\s+name="brand-id"[^>]*>/gi, '')}
   
+  <!-- Menu Data (CSP-safe) -->
+  <div id="wb-menu-data" style="display:none;">${menuHTML}</div>
+  
   <!-- Dynamic Menu Injection -->
   <script>
   (function() {
     'use strict';
     
-    // Dynamic menu items from database
-    const menuHTML = \`${menuHTML}\`;
-    
-    // Replace hardcoded menu with dynamic menu
     function injectDynamicMenu() {
-      const menuNav = document.querySelector('.main-menu nav ul, .main-menu ul, nav.main-menu ul');
-      if (menuNav && menuHTML) {
-        menuNav.innerHTML = menuHTML;
+      var dataDiv = document.getElementById('wb-menu-data');
+      var menuNav = document.querySelector('.main-menu nav ul, .main-menu ul, nav.main-menu ul');
+      if (menuNav && dataDiv) {
+        menuNav.innerHTML = dataDiv.innerHTML;
         console.log('✅ Dynamic menu injected');
       } else {
         console.warn('⚠️ Menu navigation not found');
