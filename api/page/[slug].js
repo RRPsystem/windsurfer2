@@ -152,8 +152,17 @@ function processCompleteHTML(page, menuItems, currentSlug) {
 
   let html = page.body_html || '';
   
+  // Determine template path based on template_category
+  const templateCategory = page.template_category === 'general' ? 'gowild' : (page.template_category || 'tripex');
+  const templatePath = `/templates/${templateCategory}/`;
+  
   // Remove problematic base href tags that point to wrong paths
   html = html.replace(/<base\s+href="[^"]*">/gi, '');
+  
+  // Fix relative asset paths to absolute paths
+  // Match: href="assets/... or src="assets/... (but not already absolute URLs)
+  html = html.replace(/href="(?!https?:\/\/|\/)(assets\/[^"]+)"/gi, `href="${templatePath}$1"`);
+  html = html.replace(/src="(?!https?:\/\/|\/)(assets\/[^"]+)"/gi, `src="${templatePath}$1"`);
   
   // Remove duplicate brand-id meta tags (we keep only one in head)
   html = html.replace(/<meta\s+name="brand-id"[^>]*>/gi, '');
@@ -260,10 +269,15 @@ function buildHTML(page, menuItems, supabaseUrl, currentSlug) {
 </head>
 <body>
   <!-- Page Content -->
-  ${(page.body_html || '<p>Geen content beschikbaar</p>')
-    .replace(/<base\s+href="[^"]*">/gi, '')
-    .replace(/<meta\s+name="brand-id"[^>]*>/gi, '')
-    .replace(/<meta\s+http-equiv="Content-Security-Policy"[^>]*>/gi, '')}
+  ${(() => {
+    const templatePath = `/templates/${templateCategory}/`;
+    return (page.body_html || '<p>Geen content beschikbaar</p>')
+      .replace(/<base\s+href="[^"]*">/gi, '')
+      .replace(/href="(?!https?:\/\/|\/)(assets\/[^"]+)"/gi, `href="${templatePath}$1"`)
+      .replace(/src="(?!https?:\/\/|\/)(assets\/[^"]+)"/gi, `src="${templatePath}$1"`)
+      .replace(/<meta\s+name="brand-id"[^>]*>/gi, '')
+      .replace(/<meta\s+http-equiv="Content-Security-Policy"[^>]*>/gi, '');
+  })()}
   
   <!-- Menu Data (CSP-safe) -->
   <div id="wb-menu-data" style="display:none;">${menuHTML}</div>
