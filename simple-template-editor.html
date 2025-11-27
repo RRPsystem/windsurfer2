@@ -2570,6 +2570,22 @@
                     const elementsToRemove = docClone.querySelectorAll('[data-quickdesigner-injected], .edit-overlay, .edit-indicator');
                     elementsToRemove.forEach(el => el.remove());
                     
+                    // Remove editor-added inline styles from body that break layout
+                    const clonedBody = docClone.body;
+                    if (clonedBody) {
+                        // Remove editor-injected inline styles
+                        clonedBody.style.removeProperty('overflow');
+                        clonedBody.style.removeProperty('min-height');
+                        clonedBody.style.removeProperty('font-family');
+                        
+                        // If style attribute is now empty, remove it completely
+                        if (!clonedBody.getAttribute('style') || clonedBody.getAttribute('style').trim() === '') {
+                            clonedBody.removeAttribute('style');
+                        }
+                        
+                        console.log('🧹 Cleaned editor styles from body');
+                    }
+                    
                     // Ensure <base> tag exists for relative path resolution
                     const templateCategory = this.currentTemplate?.category || 'tripex';
                     const baseUrl = `${window.location.origin}/templates/${templateCategory}`;
