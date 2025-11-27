@@ -2573,17 +2573,17 @@
                     // Remove editor-added inline styles from body that break layout
                     const clonedBody = docClone.body;
                     if (clonedBody) {
-                        // Remove editor-injected inline styles
-                        clonedBody.style.removeProperty('overflow');
+                        // Remove ONLY problematic editor-injected inline styles
+                        // KEEP overflow: visible because it prevents content cutoff
                         clonedBody.style.removeProperty('min-height');
                         clonedBody.style.removeProperty('font-family');
                         
-                        // If style attribute is now empty, remove it completely
-                        if (!clonedBody.getAttribute('style') || clonedBody.getAttribute('style').trim() === '') {
-                            clonedBody.removeAttribute('style');
+                        // ENSURE overflow is visible to prevent half-page bug
+                        if (!clonedBody.style.overflow || clonedBody.style.overflow === '') {
+                            clonedBody.style.overflow = 'visible';
                         }
                         
-                        console.log('🧹 Cleaned editor styles from body');
+                        console.log('🧹 Cleaned editor styles from body, kept overflow: visible');
                     }
                     
                     // Ensure <base> tag exists for relative path resolution
