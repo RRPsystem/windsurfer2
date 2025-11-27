@@ -1192,6 +1192,11 @@
                 this.apiBase = params.get('api'); // Edge function base URL
                 this.returnUrl = params.get('return_url');
                 
+                // Start token refresh monitoring
+                if (this.token) {
+                    this.startTokenRefreshMonitoring();
+                }
+                
                 console.log('📋 URL Params:', {
                     pageId: this.pageId,
                     brandId: this.brandId,
@@ -1200,6 +1205,154 @@
                     apiBase: this.apiBase,
                     returnUrl: this.returnUrl
                 });
+            }
+            
+            // 🔄 SLIDING WINDOW: Monitor token expiry and auto-refresh
+            startTokenRefreshMonitoring() {
+                // Check token status every minute
+                this.tokenCheckInterval = setInterval(() => {
+                    this.checkAndRefreshToken();
+                }, 60000); // 60 seconds
+                
+                console.log('🔄 Token refresh monitoring started');
+            }
+            
+            // 🔄 SLIDING WINDOW: Check if token needs refresh
+            async checkAndRefreshToken() {
+                if (!this.token) return;
+                
+                try {
+                    const decoded = this.decodeJWT(this.token);
+                    if (!decoded || !decoded.exp) return;
+                    
+                    const expiresAt = decoded.exp * 1000;
+                    const now = Date.now();
+                    const timeLeft = expiresAt - now;
+                    
+                    // Refresh if less than 10 minutes left
+                    const refreshThreshold = 10 * 60 * 1000; // 10 minutes
+                    
+                    if (timeLeft < refreshThreshold && timeLeft > 0) {
+                        console.log(`🔄 Token expires in ${Math.round(timeLeft/60000)} minutes, refreshing...`);
+                        await this.refreshToken();
+                    } else if (timeLeft < 0) {
+                        console.warn('⚠️ Token expired, attempting refresh with grace period...');
+                        await this.refreshToken();
+                    }
+                } catch (error) {
+                    console.error('❌ Token check failed:', error);
+                }
+            }
+            
+            // 🔄 SLIDING WINDOW: Refresh JWT token
+            async refreshToken() {
+                if (!this.apiBase || !this.token) {
+                    console.warn('⚠️ Cannot refresh token: missing API base or token');
+                    return false;
+                }
+                
+                try {
+                    const response = await fetch(`${this.apiBase}/refresh-token`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${this.token}`,
+                            'Content-Type': 'application/json',
+                            'apikey': this.apikey
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        console.error('❌ Token refresh failed:', response.status);
+                        
+                        // If refresh fails, redirect to BOLT
+                        if (response.status === 401) {
+                            alert('⚠️ Je sessie is verlopen. Je wordt doorgestuurd naar BOLT om opnieuw in te loggen.');
+                            this.redirectToBolt();
+                        }
+                        return false;
+                    }
+                    
+                    const data = await response.json();
+                    const newToken = data.token;
+                    
+                    if (newToken) {
+                        // Update token in memory
+                        this.token = newToken;
+                        
+                        // Update URL without reload
+                        const url = new URL(window.location);
+                        url.searchParams.set('token', newToken);
+                        window.history.replaceState({}, '', url);
+                        
+                        console.log('✅ Token successfully refreshed!');
+                        
+                        // Log security event
+                        await this.logSecurityEvent('token_refreshed', 'info', 'Token automatically refreshed');
+                        
+                        return true;
+                    }
+                } catch (error) {
+                    console.error('❌ Token refresh error:', error);
+                    return false;
+                }
+                
+                return false;
+            }
+            
+            // 🔄 SLIDING WINDOW: Wrapper for API calls with auto-retry
+            async makeAuthenticatedApiCall(url, options = {}) {
+                // Add auth headers
+                const headers = {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json',
+                    'apikey': this.apikey,
+                    ...options.headers
+                };
+                
+                // First attempt
+                let response = await fetch(url, {
+                    ...options,
+                    headers
+                });
+                
+                // If 401, try to refresh token and retry once
+                if (response.status === 401) {
+                    console.log('🔄 Got 401, attempting token refresh...');
+                    
+                    const refreshed = await this.refreshToken();
+                    
+                    if (refreshed) {
+                        // Retry with new token
+                        console.log('🔄 Retrying request with refreshed token...');
+                        response = await fetch(url, {
+                            ...options,
+                            headers: {
+                                'Authorization': `Bearer ${this.token}`,
+                                'Content-Type': 'application/json',
+                                'apikey': this.apikey,
+                                ...options.headers
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            console.log('✅ Retry successful!');
+                        }
+                    } else {
+                        // Refresh failed, redirect to login
+                        alert('⚠️ Je sessie kon niet worden verlengd. Je wordt doorgestuurd naar BOLT.');
+                        this.redirectToBolt();
+                    }
+                }
+                
+                return response;
+            }
+            
+            // 🧹 CLEANUP: Stop token monitoring when page unloads
+            cleanup() {
+                if (this.tokenCheckInterval) {
+                    clearInterval(this.tokenCheckInterval);
+                    console.log('🧹 Token refresh monitoring stopped');
+                }
             }
             
             // 🔐 SECURITY: Generate browser fingerprint (ENHANCED)
@@ -3083,6 +3236,11 @@
         }
         
         const editor = new QuickDesigner();
+        
+        // 🧹 Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            editor.cleanup();
+        });
     </script>
 </body>
 </html>
