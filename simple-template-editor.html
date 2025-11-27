@@ -1601,7 +1601,7 @@
                         // Fallback to direct Supabase
                         const { data, error: pageError } = await this.supabase
                             .from('pages')
-                            .select('id, brand_id, title, slug, content')
+                            .select('id, brand_id, title, slug, body_html, content, template_category')
                             .eq('id', this.pageId)
                             .single();
                         
@@ -1618,15 +1618,24 @@
                     let htmlContent = null;
                     
                     if (page.body_html) {
+                        // Preferred: body_html field (full HTML document)
                         htmlContent = page.body_html;
+                        console.log('✅ Loaded from body_html field');
                     } else if (page.content) {
-                        htmlContent = page.content;
-                        console.log('📦 content_json:', page.content_json);
-                        htmlContent = '<div style="padding:40px;text-align:center;"><h1>⚠️ Pagina gevonden!</h1><p>Deze pagina is opgeslagen in BOLT maar heeft nog geen HTML content veld.</p><p>BOLT moet de pages-api aanpassen om een <code>content</code> veld met HTML te returnen.</p></div>';
+                        // Fallback: content field (could be HTML or JSON)
+                        if (typeof page.content === 'string' && page.content.trim().length > 0) {
+                            htmlContent = page.content;
+                            console.log('✅ Loaded from content field (HTML string)');
+                        } else if (typeof page.content === 'object') {
+                            // Legacy JSON format - not supported anymore
+                            console.warn('⚠️ Page has JSON content format, not HTML');
+                            htmlContent = '<div style="padding:40px;text-align:center;"><h1>⚠️ Oude content formaat</h1><p>Deze pagina gebruikt een oud content formaat (JSON). Herlaad de template om te updaten.</p></div>';
+                        }
                     }
                     
-                    if (!htmlContent) {
-                        htmlContent = '<h1>No content yet</h1>';
+                    if (!htmlContent || htmlContent.trim().length === 0) {
+                        console.warn('⚠️ No HTML content found in page');
+                        htmlContent = '<h1>No content yet</h1><p>This page has no HTML content. Please reload the template.</p>';
                     }
                     
                     // Debug: log what we're loading
