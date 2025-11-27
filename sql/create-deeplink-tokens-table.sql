@@ -68,27 +68,8 @@ BEGIN
 END;
 $$;
 
--- Optional: Auto-cleanup trigger
-CREATE OR REPLACE FUNCTION auto_cleanup_on_access()
-RETURNS trigger
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  -- When checking token, also cleanup old ones (throttled)
-  IF random() < 0.01 THEN -- 1% of the time
-    DELETE FROM deeplink_tokens
-    WHERE expires_at < now() - interval '24 hours'
-    LIMIT 100;
-  END IF;
-  
-  RETURN NEW;
-END;
-$$;
-
-CREATE TRIGGER trigger_auto_cleanup_deeplink_tokens
-  AFTER SELECT ON deeplink_tokens
-  FOR EACH STATEMENT
-  EXECUTE FUNCTION auto_cleanup_on_access();
+-- Note: Auto-cleanup should be run via cron job or manually
+-- Example cron: SELECT cleanup_expired_deeplink_tokens();
 
 -- Comments
 COMMENT ON TABLE deeplink_tokens IS 'One-time use tokens for secure deeplinks to prevent replay attacks';
