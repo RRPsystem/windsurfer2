@@ -1202,7 +1202,7 @@
                 });
             }
             
-            // 🔐 SECURITY: Generate browser fingerprint
+            // 🔐 SECURITY: Generate browser fingerprint (ENHANCED)
             async generateFingerprint() {
                 const data = [
                     navigator.userAgent,
@@ -1212,14 +1212,75 @@
                     screen.colorDepth
                 ].join('|');
                 
-                // Simple hash function (for production, use crypto.subtle.digest)
-                let hash = 0;
-                for (let i = 0; i < data.length; i++) {
-                    const char = data.charCodeAt(i);
-                    hash = ((hash << 5) - hash) + char;
-                    hash = hash & hash; // Convert to 32bit integer
+                // Use Web Crypto API for secure hashing (fallback to simple hash)
+                try {
+                    const encoder = new TextEncoder();
+                    const dataBuffer = encoder.encode(data);
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                    return hashHex.substring(0, 16); // First 16 chars for brevity
+                } catch (error) {
+                    // Fallback to simple hash if crypto API not available
+                    console.warn('⚠️ Crypto API not available, using fallback hash');
+                    let hash = 0;
+                    for (let i = 0; i < data.length; i++) {
+                        const char = data.charCodeAt(i);
+                        hash = ((hash << 5) - hash) + char;
+                        hash = hash & hash;
+                    }
+                    return Math.abs(hash).toString(36);
                 }
-                return Math.abs(hash).toString(36);
+            }
+            
+            // 🔐 SECURITY: Store fingerprint persistently (localStorage for multi-session)
+            async storeFingerprintPersistent(fingerprint, brandId) {
+                const key = `editor_fingerprint_${brandId}`;
+                
+                // Store in both sessionStorage (strict) and localStorage (persistent)
+                sessionStorage.setItem(key, fingerprint);
+                localStorage.setItem(key, JSON.stringify({
+                    fingerprint: fingerprint,
+                    createdAt: Date.now(),
+                    brandId: brandId
+                }));
+                
+                console.log('🔐 Fingerprint stored (session + persistent)');
+            }
+            
+            // 🔐 SECURITY: Get stored fingerprint (check both storages)
+            getStoredFingerprint(brandId) {
+                const key = `editor_fingerprint_${brandId}`;
+                
+                // Priority 1: sessionStorage (same browser session)
+                const sessionFp = sessionStorage.getItem(key);
+                if (sessionFp) {
+                    return { fingerprint: sessionFp, source: 'session' };
+                }
+                
+                // Priority 2: localStorage (persistent across sessions)
+                const localData = localStorage.getItem(key);
+                if (localData) {
+                    try {
+                        const parsed = JSON.parse(localData);
+                        // Check if not too old (max 7 days)
+                        const age = Date.now() - parsed.createdAt;
+                        const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
+                        
+                        if (age < maxAge) {
+                            // Restore to sessionStorage for faster access
+                            sessionStorage.setItem(key, parsed.fingerprint);
+                            return { fingerprint: parsed.fingerprint, source: 'persistent' };
+                        } else {
+                            // Too old, remove
+                            localStorage.removeItem(key);
+                        }
+                    } catch (error) {
+                        console.warn('⚠️ Failed to parse stored fingerprint');
+                    }
+                }
+                
+                return null;
             }
             
             // 🔐 SECURITY: Decode JWT token (without verification, just to read claims)
@@ -1237,15 +1298,16 @@
                 }
             }
             
-            // 🔐 SECURITY: Validate token expiry and browser fingerprint
+            // 🔐 SECURITY: Validate token expiry and browser fingerprint (ENHANCED)
             async validateSecurity() {
-                console.log('🔐 Running security validation...');
+                console.log('🔐 Running enhanced security validation...');
                 
                 // 1. Check JWT token expiry
                 if (this.token) {
                     const decoded = this.decodeJWT(this.token);
                     if (!decoded) {
                         console.error('❌ Invalid JWT token format');
+                        await this.logSecurityEvent('validation_failed', 'error', 'Invalid JWT format');
                         alert('⚠️ Ongeldige authenticatie token. Je wordt doorgestuurd naar BOLT.');
                         this.redirectToBolt();
                         return false;
@@ -1255,6 +1317,7 @@
                     const now = Math.floor(Date.now() / 1000);
                     if (decoded.exp && decoded.exp < now) {
                         console.error('❌ JWT token expired at:', new Date(decoded.exp * 1000));
+                        await this.logSecurityEvent('token_expired', 'warning', `Token expired at ${new Date(decoded.exp * 1000)}`);
                         alert('⚠️ Je sessie is verlopen. Log opnieuw in via BOLT.');
                         this.redirectToBolt();
                         return false;
@@ -1263,26 +1326,76 @@
                     console.log('✅ JWT token is valid, expires:', decoded.exp ? new Date(decoded.exp * 1000) : 'never');
                 }
                 
-                // 2. Browser fingerprint binding
-                const fingerprint = await this.generateFingerprint();
-                const storageKey = `editor_fingerprint_${this.brandId || 'default'}`;
-                const storedFingerprint = sessionStorage.getItem(storageKey);
+                // 2. Enhanced browser fingerprint binding (persistent + session)
+                const currentFingerprint = await this.generateFingerprint();
+                const brandId = this.brandId || 'default';
                 
-                if (!storedFingerprint) {
-                    // First use - store fingerprint
-                    sessionStorage.setItem(storageKey, fingerprint);
-                    console.log('🔐 Browser fingerprint stored:', fingerprint);
-                } else if (storedFingerprint !== fingerprint) {
-                    // Fingerprint mismatch - possible token theft
-                    console.error('❌ Browser fingerprint mismatch!');
-                    console.error('Stored:', storedFingerprint, 'Current:', fingerprint);
-                    alert('⚠️ Beveiligingswaarschuwing: Deze link is al geopend op een ander apparaat.\n\nAls jij dit niet was, log dan opnieuw in via BOLT.');
-                    this.redirectToBolt();
-                    return false;
+                // Check if we have a stored fingerprint
+                const stored = this.getStoredFingerprint(brandId);
+                
+                if (!stored) {
+                    // First use - store fingerprint persistently
+                    await this.storeFingerprintPersistent(currentFingerprint, brandId);
+                    console.log('🔐 Browser fingerprint stored (new):', currentFingerprint);
+                    await this.logSecurityEvent('fingerprint_registered', 'info', 'New fingerprint registered');
+                } else {
+                    // Compare fingerprints
+                    if (stored.fingerprint !== currentFingerprint) {
+                        // Fingerprint mismatch - possible token theft or different device
+                        console.error('❌ Browser fingerprint mismatch!');
+                        console.error('Stored:', stored.fingerprint, `(${stored.source})`);
+                        console.error('Current:', currentFingerprint);
+                        
+                        await this.logSecurityEvent('fingerprint_mismatch', 'error', 
+                            `Stored: ${stored.fingerprint} (${stored.source}), Current: ${currentFingerprint}`);
+                        
+                        alert('⚠️ Beveiligingswaarschuwing: Deze link is al geopend op een ander apparaat.\n\nAls jij dit niet was, log dan opnieuw in via BOLT.');
+                        this.redirectToBolt();
+                        return false;
+                    }
+                    
+                    console.log(`✅ Fingerprint match (${stored.source})`, currentFingerprint);
                 }
                 
-                console.log('✅ Security validation passed');
+                console.log('✅ Enhanced security validation passed');
+                await this.logSecurityEvent('validation_success', 'info', 'All security checks passed');
                 return true;
+            }
+            
+            // 🔐 SECURITY: Log security event (client-side tracking)
+            async logSecurityEvent(eventType, severity, message) {
+                try {
+                    // Log to console always
+                    const emoji = severity === 'error' ? '❌' : severity === 'warning' ? '⚠️' : 'ℹ️';
+                    console.log(`${emoji} [Security] ${eventType}: ${message}`);
+                    
+                    // If we have API access, log to backend (optional)
+                    if (this.apiBase && this.token) {
+                        await fetch(`${this.apiBase}/log-security-event`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${this.token}`,
+                                'Content-Type': 'application/json',
+                                'apikey': this.apikey
+                            },
+                            body: JSON.stringify({
+                                event_type: eventType,
+                                severity: severity,
+                                message: message,
+                                brand_id: this.brandId,
+                                page_id: this.pageId,
+                                user_agent: navigator.userAgent,
+                                timestamp: new Date().toISOString()
+                            })
+                        }).catch(err => {
+                            // Silent fail - don't break app if logging fails
+                            console.warn('Failed to log security event to backend:', err);
+                        });
+                    }
+                } catch (error) {
+                    // Silent fail
+                    console.warn('Security logging error:', error);
+                }
             }
             
             // 🔐 SECURITY: Redirect to BOLT login
