@@ -1,6 +1,6 @@
 // api/pages/[brandSlug]/[pageSlug].js
 // Serverless viewer that serves published HTML by brandSlug/pageSlug
-// Requires Vercel env vars: VITE_BOLT_DB_URL, VITE_BOLT_DB_ANON_KEY
+// Requires Vercel env vars: SUPABASE_URL, SUPABASE_ANON_KEY
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -9,8 +9,8 @@ export default async function handler(req, res) {
     const { brandSlug, pageSlug } = req.query || {};
     if (!brandSlug || !pageSlug) return res.status(400).json({ error: 'Missing slugs' });
 
-    const url = process.env.VITE_BOLT_DB_URL;
-    const anon = process.env.VITE_BOLT_DB_ANON_KEY;
+    const url = process.env.SUPABASE_URL;
+    const anon = process.env.SUPABASE_ANON_KEY;
     if (!url || !anon) return res.status(500).json({ error: 'DB env vars missing' });
 
     const db = createClient(url, anon);
