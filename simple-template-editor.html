@@ -1148,6 +1148,14 @@
                 // Parse URL parameters
                 this.parseUrlParams();
                 
+                // 🔐 SECURITY: Validate token and fingerprint if coming from BOLT
+                if (this.token || this.brandId) {
+                    const securityValid = await this.validateSecurity();
+                    if (!securityValid) {
+                        return; // Security check failed, user redirected
+                    }
+                }
+                
                 // Initialize Supabase
                 if (this.apikey) {
                     this.initSupabase();
@@ -1192,6 +1200,96 @@
                     apiBase: this.apiBase,
                     returnUrl: this.returnUrl
                 });
+            }
+            
+            // 🔐 SECURITY: Generate browser fingerprint
+            async generateFingerprint() {
+                const data = [
+                    navigator.userAgent,
+                    navigator.language,
+                    new Date().getTimezoneOffset(),
+                    screen.width + 'x' + screen.height,
+                    screen.colorDepth
+                ].join('|');
+                
+                // Simple hash function (for production, use crypto.subtle.digest)
+                let hash = 0;
+                for (let i = 0; i < data.length; i++) {
+                    const char = data.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // Convert to 32bit integer
+                }
+                return Math.abs(hash).toString(36);
+            }
+            
+            // 🔐 SECURITY: Decode JWT token (without verification, just to read claims)
+            decodeJWT(token) {
+                try {
+                    const base64Url = token.split('.')[1];
+                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    }).join(''));
+                    return JSON.parse(jsonPayload);
+                } catch (error) {
+                    console.error('❌ Failed to decode JWT:', error);
+                    return null;
+                }
+            }
+            
+            // 🔐 SECURITY: Validate token expiry and browser fingerprint
+            async validateSecurity() {
+                console.log('🔐 Running security validation...');
+                
+                // 1. Check JWT token expiry
+                if (this.token) {
+                    const decoded = this.decodeJWT(this.token);
+                    if (!decoded) {
+                        console.error('❌ Invalid JWT token format');
+                        alert('⚠️ Ongeldige authenticatie token. Je wordt doorgestuurd naar BOLT.');
+                        this.redirectToBolt();
+                        return false;
+                    }
+                    
+                    // Check expiration (exp is in seconds, Date.now() is in milliseconds)
+                    const now = Math.floor(Date.now() / 1000);
+                    if (decoded.exp && decoded.exp < now) {
+                        console.error('❌ JWT token expired at:', new Date(decoded.exp * 1000));
+                        alert('⚠️ Je sessie is verlopen. Log opnieuw in via BOLT.');
+                        this.redirectToBolt();
+                        return false;
+                    }
+                    
+                    console.log('✅ JWT token is valid, expires:', decoded.exp ? new Date(decoded.exp * 1000) : 'never');
+                }
+                
+                // 2. Browser fingerprint binding
+                const fingerprint = await this.generateFingerprint();
+                const storageKey = `editor_fingerprint_${this.brandId || 'default'}`;
+                const storedFingerprint = sessionStorage.getItem(storageKey);
+                
+                if (!storedFingerprint) {
+                    // First use - store fingerprint
+                    sessionStorage.setItem(storageKey, fingerprint);
+                    console.log('🔐 Browser fingerprint stored:', fingerprint);
+                } else if (storedFingerprint !== fingerprint) {
+                    // Fingerprint mismatch - possible token theft
+                    console.error('❌ Browser fingerprint mismatch!');
+                    console.error('Stored:', storedFingerprint, 'Current:', fingerprint);
+                    alert('⚠️ Beveiligingswaarschuwing: Deze link is al geopend op een ander apparaat.\n\nAls jij dit niet was, log dan opnieuw in via BOLT.');
+                    this.redirectToBolt();
+                    return false;
+                }
+                
+                console.log('✅ Security validation passed');
+                return true;
+            }
+            
+            // 🔐 SECURITY: Redirect to BOLT login
+            redirectToBolt() {
+                setTimeout(() => {
+                    window.location.href = this.returnUrl || 'https://www.ai-travelstudio.nl/#/login';
+                }, 3000);
             }
             
             initSupabase() {
