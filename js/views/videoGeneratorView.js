@@ -820,7 +820,63 @@
 
         const result = await response.json();
 
+        // Default success message (may be overwritten by billing message below)
         if (saveStatus) saveStatus.innerHTML = '<span style="color:#22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen! Beschikbaar in "Mijn Video\'s"</span>';
+
+        // Register storage billing (BOLT credits) if we have a brand context
+        try {
+          const urlParams = new URLSearchParams(window.location.search);
+          const brandId = urlParams.get('brand_id') ||
+            window.websiteBuilder?._edgeCtx?.brand_id ||
+            window.edgeCtx?.brand_id ||
+            window.BOLT_DB?.brandId ||
+            window.BRAND_ID ||
+            null;
+
+          if (brandId && result?.video?.videoUrl) {
+            const token = (urlParams.get('token') || window.CURRENT_TOKEN || '').trim();
+            const apiKey = (urlParams.get('apikey') || urlParams.get('api_key') || (window.BOLT_API && window.BOLT_API.apiKey) || '').trim();
+
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers.Authorization = `Bearer ${token}`;
+            if (apiKey) headers['X-API-Key'] = apiKey;
+
+            const billingRes = await fetch('/api/register-video-storage', {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({
+                brandId,
+                videoUrl: result.video.videoUrl
+              })
+            });
+
+            if (billingRes.ok) {
+              const billingData = await billingRes.json();
+              console.log('[VideoGen] Storage registered:', billingData);
+              if (saveStatus) {
+                saveStatus.innerHTML = '<span style="color:#22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen! €1 (100 credits) afgeschreven.</span>';
+              }
+            } else {
+              let billingMsg = 'Billing registratie mislukt';
+              try {
+                const ct = billingRes.headers.get('content-type');
+                if (ct && ct.includes('application/json')) {
+                  const err = await billingRes.json();
+                  billingMsg = err.message || err.error || billingMsg;
+                } else {
+                  billingMsg = (await billingRes.text()).substring(0, 120) || billingMsg;
+                }
+              } catch (e) {}
+
+              console.warn('[VideoGen] Billing failed:', billingRes.status, billingMsg);
+              if (saveStatus) {
+                saveStatus.innerHTML = `<span style="color:#f59e0b;"><i class="fas fa-exclamation-triangle"></i> Video opgeslagen, maar credits afschrijving mislukt: ${billingMsg}</span>`;
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('[VideoGen] Billing call error:', e);
+        }
         
         // Re-enable button
         if (saveBtn) {
