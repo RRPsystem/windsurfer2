@@ -5904,9 +5904,20 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
         if (existingSlider) existingSlider.remove();
         
         // Determine media type and URL
-        const isVideo = res.type === 'video' || res.videoUrl;
-        // For images, prefer fullUrl (highest quality) over url
-        let mediaUrl = res.videoUrl || res.fullUrl || res.regularUrl || res.url || res.dataUrl;
+        const isVideo = res.type === 'video' || res.videoUrl || res.source === 'youtube';
+        
+        // For YouTube videos, use embedUrl or construct from id
+        let mediaUrl;
+        if (res.source === 'youtube') {
+            mediaUrl = res.embedUrl;
+            if (!mediaUrl && res.id) {
+                const start = res.start || 0;
+                mediaUrl = `https://www.youtube.com/embed/${res.id}${start > 0 ? `?start=${start}` : ''}`;
+            }
+        } else {
+            // For other media, prefer fullUrl (highest quality) over url
+            mediaUrl = res.videoUrl || res.fullUrl || res.regularUrl || res.url || res.dataUrl;
+        }
         
         // If Unsplash, force high quality
         if (res.source === 'unsplash' && mediaUrl && !isVideo) {
@@ -5915,26 +5926,38 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
         
         if (!mediaUrl) {
             console.error('[Roadbook] No media URL found in response:', res);
-            alert('Geen media URL gevonden');
+            alert('Geen media URL gevonden. Controleer of de video URL correct is.');
             return;
         }
         
         // Add new media
         if (isVideo) {
-            // Add video
-            const video = document.createElement('video');
-            video.autoplay = true;
-            video.loop = true;
-            video.muted = true;
-            video.playsInline = true;
-            video.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;';
-            video.innerHTML = `<source src="${mediaUrl}" type="video/mp4">`;
-            hero.insertBefore(video, hero.firstChild);
+            // Check if it's a YouTube video (embedUrl contains youtube.com/embed)
+            if (res.source === 'youtube' || mediaUrl.includes('youtube.com/embed')) {
+                // Add YouTube iframe
+                const iframe = document.createElement('iframe');
+                iframe.src = mediaUrl;
+                iframe.allow = 'autoplay; encrypted-media';
+                iframe.allowFullscreen = true;
+                iframe.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: 0;';
+                hero.insertBefore(iframe, hero.firstChild);
+                console.log('[Roadbook] YouTube video added:', mediaUrl);
+            } else {
+                // Add HTML5 video for Pexels/other sources
+                const video = document.createElement('video');
+                video.autoplay = true;
+                video.loop = true;
+                video.muted = true;
+                video.playsInline = true;
+                video.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;';
+                video.innerHTML = `<source src="${mediaUrl}" type="video/mp4">`;
+                hero.insertBefore(video, hero.firstChild);
+                console.log('[Roadbook] HTML5 video added:', mediaUrl);
+            }
             
             // Store in dataset
             component.dataset.heroVideo = mediaUrl;
             delete component.dataset.heroImages;
-            console.log('[Roadbook] Video added:', mediaUrl);
         } else {
             // Add single image
             const img = document.createElement('div');
