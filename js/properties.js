@@ -5934,15 +5934,29 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
         if (isVideo) {
             // Check if it's a YouTube video (embedUrl contains youtube.com/embed)
             if (res.source === 'youtube' || mediaUrl.includes('youtube.com/embed')) {
-                // Add YouTube iframe with cover-like behavior
+                // Add autoplay and mute parameters to URL
+                const url = new URL(mediaUrl);
+                url.searchParams.set('autoplay', '1');
+                url.searchParams.set('mute', '1');
+                url.searchParams.set('loop', '1');
+                url.searchParams.set('controls', '0');
+                url.searchParams.set('showinfo', '0');
+                url.searchParams.set('modestbranding', '1');
+                url.searchParams.set('playsinline', '1');
+                // Get video ID for playlist parameter (needed for loop)
+                const videoId = res.id || url.pathname.split('/').pop();
+                if (videoId) {
+                    url.searchParams.set('playlist', videoId);
+                }
+                
+                // Add YouTube iframe that covers entire hero
                 const iframe = document.createElement('iframe');
-                iframe.src = mediaUrl;
+                iframe.src = url.toString();
                 iframe.allow = 'autoplay; encrypted-media';
-                iframe.allowFullscreen = true;
-                // Use transform scale to make iframe cover like object-fit: cover
-                iframe.style.cssText = 'position: absolute; top: 50%; left: 50%; width: 100vw; height: 56.25vw; min-height: 100vh; min-width: 177.77vh; transform: translate(-50%, -50%); border: none; z-index: 0; pointer-events: none;';
+                iframe.allowFullscreen = false;
+                iframe.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: 0; pointer-events: none;';
                 hero.insertBefore(iframe, hero.firstChild);
-                console.log('[Roadbook] YouTube video added:', mediaUrl);
+                console.log('[Roadbook] YouTube video added with autoplay:', url.toString());
             } else {
                 // Add HTML5 video for Pexels/other sources
                 const video = document.createElement('video');
