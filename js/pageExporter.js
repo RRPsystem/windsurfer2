@@ -301,6 +301,85 @@ ${componentsCSS}
 /* Roadbook Timeline CSS */
 ${roadbookCSS}
 
+/* Critical Roadbook Inline Styles */
+.roadbook-animated-timeline-section {
+    width: 100% !important;
+    background: linear-gradient(to bottom, var(--brand-primary, #84cc16) 300px, #f9fafb 300px) !important;
+    position: relative !important;
+    overflow: visible !important;
+}
+
+.roadbook-timeline-road {
+    position: relative !important;
+    max-width: 1400px !important;
+    margin: 0 auto !important;
+    padding: 0 20px 100px !important;
+    min-height: 500px !important;
+}
+
+.roadbook-road-line {
+    position: absolute !important;
+    left: 50% !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    width: 6px !important;
+    background: #9ca3af !important;
+    transform: translateX(-50%) !important;
+    z-index: 2 !important;
+    pointer-events: none !important;
+    height: 100% !important;
+}
+
+.roadbook-road-line::before {
+    content: '' !important;
+    position: absolute !important;
+    left: 50% !important;
+    top: 0 !important;
+    width: 2px !important;
+    height: 100% !important;
+    background: white !important;
+    transform: translateX(-50%) !important;
+    background-image: repeating-linear-gradient(to bottom, white 0px, white 20px, transparent 20px, transparent 40px) !important;
+}
+
+.roadbook-timeline-car {
+    position: absolute !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 70px !important;
+    height: 100px !important;
+    z-index: 10 !important;
+    filter: drop-shadow(0 6px 20px rgba(0,0,0,0.3)) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    pointer-events: none !important;
+    transition: top 0.3s ease-out !important;
+    background: transparent !important;
+    will-change: top !important;
+    top: 0 !important;
+}
+
+.roadbook-timeline-car img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+}
+
+.roadbook-start-badge {
+    position: absolute !important;
+    left: 50% !important;
+    top: -30px !important;
+    transform: translateX(-50%) !important;
+    background: #4b5563 !important;
+    color: white !important;
+    padding: 8px 20px !important;
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    z-index: 5 !important;
+}
+
 /* Page Specific */
 html, body {
   margin: 0;
