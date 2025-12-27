@@ -198,14 +198,23 @@
       const brandSettings = localStorage.getItem('brandSettings');
       let brandCSS = '';
       let brandLogoHTML = '';
+      console.log('[PageExporter] Brand settings:', brandSettings);
       if (brandSettings) {
         const brand = JSON.parse(brandSettings);
-        if (brand.colors) {
-          brandCSS = `
+        console.log('[PageExporter] Parsed brand:', brand);
+        console.log('[PageExporter] Brand colors:', brand.colors);
+        
+        const primaryColor = (brand.colors && brand.colors.primary) || brand.primaryColor || '#84cc16';
+        const secondaryColor = (brand.colors && brand.colors.secondary) || brand.secondaryColor || '#2196F3';
+        const accentColor = (brand.colors && brand.colors.accent) || brand.accentColor || '#FF9800';
+        
+        console.log('[PageExporter] Using colors:', { primaryColor, secondaryColor, accentColor });
+        
+        brandCSS = `
             :root {
-              --brand-primary: ${brand.colors.primary || '#84cc16'};
-              --brand-secondary: ${brand.colors.secondary || '#2196F3'};
-              --brand-accent: ${brand.colors.accent || '#FF9800'};
+              --brand-primary: ${primaryColor};
+              --brand-secondary: ${secondaryColor};
+              --brand-accent: ${accentColor};
             }
             
             /* Apply brand colors to roadbook elements */
@@ -214,24 +223,28 @@
             .roadbook-card-badge,
             .roadbook-highlight-icon,
             .roadbook-hotel-bar i {
-              background: ${brand.colors.primary || '#84cc16'} !important;
+              background: ${primaryColor} !important;
               color: white !important;
             }
             
             .roadbook-day-item.active .roadbook-day-badge {
-              background: ${brand.colors.primary || '#84cc16'} !important;
-              border-color: ${brand.colors.primary || '#84cc16'} !important;
+              background: ${primaryColor} !important;
+              border-color: ${primaryColor} !important;
               color: white !important;
             }
             
             .roadbook-intro-subtitle,
             .roadbook-day-distance,
             .roadbook-read-more {
-              color: ${brand.colors.primary || '#84cc16'} !important;
+              color: ${primaryColor} !important;
             }
             
             .roadbook-nav-menu a:hover {
-              color: ${brand.colors.primary || '#84cc16'} !important;
+              color: ${primaryColor} !important;
+            }
+            
+            .roadbook-animated-timeline-section {
+              background: linear-gradient(to bottom, ${primaryColor} 180px, #f9fafb 180px) !important;
             }
           `;
         }

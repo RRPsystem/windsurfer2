@@ -540,9 +540,15 @@ class MediaPicker {
         if (ytUseBtn) ytUseBtn.addEventListener('click', () => {
           const urlInput = ytPane ? ytPane.querySelector('.yt-url') : null;
           const url = urlInput && urlInput.value ? urlInput.value.trim() : '';
-          if (!url) return;
+          if (!url) {
+            alert('Plak eerst een YouTube URL');
+            return;
+          }
           const id = MediaPicker.extractYouTubeId(url);
-          if (!id) return;
+          if (!id) {
+            alert('Ongeldige YouTube URL. Gebruik een URL zoals:\n- https://www.youtube.com/watch?v=...\n- https://youtu.be/...\n- https://www.youtube.com/shorts/...');
+            return;
+          }
           const startInput = ytPane ? ytPane.querySelector('.yt-start') : null;
           const startSec = parseInt((startInput && startInput.value) ? startInput.value : '0', 10) || 0;
           const embed = `https://www.youtube.com/embed/${id}${startSec>0?`?start=${startSec}`:''}`;
@@ -792,9 +798,23 @@ class MediaPicker {
   }
 
   static extractYouTubeId(url) {
-    const regex = /(?:youtube\.com\/.*v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/;
-    const match = url.match(regex);
-    return match ? match[1] : '';
+    // Support multiple YouTube URL formats
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=)([A-Za-z0-9_-]{11})/,
+      /(?:youtu\.be\/)([A-Za-z0-9_-]{11})/,
+      /(?:youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/,
+      /(?:youtube\.com\/shorts\/)([A-Za-z0-9_-]{11})/,
+      /(?:youtube\.com\/v\/)([A-Za-z0-9_-]{11})/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+    
+    return '';
   }
 }
 
