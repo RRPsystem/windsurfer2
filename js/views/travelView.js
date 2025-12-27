@@ -252,14 +252,24 @@
       });
     },
 
-    renderTCForm(container) {
+    async renderTCForm(container) {
+      // Load available microsites
+      const microsites = await this.loadAvailableMicrosites();
+      
+      const micrositeOptions = microsites.map(ms => 
+        `<option value="${ms.id}">${ms.name}</option>`
+      ).join('');
+      
       container.innerHTML = `<div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <h3 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700; color: #111827;"><i class="fas fa-link" style="color: #667eea;"></i> Travel Compositor Import</h3>
         <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px;">
           <div style="flex: 1; min-width: 200px;"><label style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 14px;"><i class="fas fa-hashtag"></i> Travel Compositor ID</label>
             <input type="text" id="tcIdeaIdInput" placeholder="Bijv. 12345" style="width: 100%; height: 40px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px;" /></div>
           <div style="flex: 1; min-width: 200px;"><label style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 14px;"><i class="fas fa-building"></i> Microsite ID</label>
-            <input type="text" id="tcMicrositeIdInput" value="${this.micrositeId}" style="width: 100%; height: 40px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px;" /></div>
+            <select id="tcMicrositeIdInput" style="width: 100%; height: 40px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; background: white; cursor: pointer;">
+              ${micrositeOptions}
+            </select>
+          </div>
         </div>
         ${this.renderTemplateSelector()}
         <div style="display: flex; gap: 12px; margin-top: 20px;">
@@ -284,6 +294,21 @@
       }
       if (testBtn) testBtn.addEventListener('click', () => this.testApiConfiguration());
       if (ideaInput) ideaInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') loadBtn?.click(); });
+    },
+
+    async loadAvailableMicrosites() {
+      try {
+        const apiBase = this.getApiBase();
+        const response = await fetch(`${apiBase}/api/config/microsites`);
+        if (response.ok) {
+          const data = await response.json();
+          return data.microsites || [];
+        }
+      } catch (error) {
+        console.warn('[TravelView] Could not load microsites:', error);
+      }
+      // Fallback to default
+      return [{ id: 'rondreis-planner', name: 'Rondreis Planner', hasCredentials: true }];
     },
 
     renderPDFUpload(container) {
