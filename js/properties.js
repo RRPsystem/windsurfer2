@@ -2607,19 +2607,45 @@ class PropertiesPanel {
                         }
                         
                         // Handle YouTube videos (iframe)
-                        if (!res.videoId) return;
+                        const videoId = res.videoId || res.id;
+                        if (!videoId && !res.embedUrl) {
+                            console.error('[Properties] No video ID or embed URL found:', res);
+                            alert('Geen video ID gevonden');
+                            return;
+                        }
                         
                         const iframe = comp.querySelector('iframe');
                         const videoWrap = comp.querySelector('.hero-video');
                         if (iframe && videoWrap) {
-                            const newId = res.videoId;
-                            const start = 0; // Can be extended later
-                            const baseUrl = `https://www.youtube.com/embed/${newId}`;
-                            const common = `${start>0?`&start=${start}`:''}&mute=1&controls=0&playsinline=1`;
-                            const isEditMode = !!(document.body?.dataset?.wbMode === 'edit');
-                            const paramsEdit = `autoplay=0&loop=0${common}`;
-                            const paramsView = `autoplay=1&loop=1&playlist=${newId}${common}`;
-                            const targetSrc = `${baseUrl}?${isEditMode ? paramsEdit : paramsView}`;
+                            let targetSrc;
+                            
+                            // Use embedUrl if available, otherwise construct from videoId
+                            if (res.embedUrl) {
+                                const url = new URL(res.embedUrl);
+                                const isEditMode = !!(document.body?.dataset?.wbMode === 'edit');
+                                url.searchParams.set('mute', '1');
+                                url.searchParams.set('controls', '0');
+                                url.searchParams.set('playsinline', '1');
+                                
+                                if (isEditMode) {
+                                    url.searchParams.set('autoplay', '0');
+                                    url.searchParams.set('loop', '0');
+                                } else {
+                                    url.searchParams.set('autoplay', '1');
+                                    url.searchParams.set('loop', '1');
+                                    url.searchParams.set('playlist', videoId);
+                                }
+                                
+                                targetSrc = url.toString();
+                            } else {
+                                const start = res.start || 0;
+                                const baseUrl = `https://www.youtube.com/embed/${videoId}`;
+                                const common = `${start>0?`&start=${start}`:''}&mute=1&controls=0&playsinline=1`;
+                                const isEditMode = !!(document.body?.dataset?.wbMode === 'edit');
+                                const paramsEdit = `autoplay=0&loop=0${common}`;
+                                const paramsView = `autoplay=1&loop=1&playlist=${videoId}${common}`;
+                                targetSrc = `${baseUrl}?${isEditMode ? paramsEdit : paramsView}`;
+                            }
                             
                             iframe.src = targetSrc;
                             if (iframe.dataset) iframe.dataset.src = targetSrc;
@@ -3244,9 +3270,17 @@ class PropertiesPanel {
                         setTimeout(() => attemptPlay(), 100);
                     }
                     // Handle YouTube videos
-                    else if (r && (r.embedUrl || r.url)) {
-                        const embed = r.embedUrl || r.url;
-                        if (api.setYouTube) api.setYouTube(embed);
+                    else if (r && (r.embedUrl || r.url || r.id)) {
+                        const videoId = r.id || r.videoId;
+                        let embed = r.embedUrl || r.url;
+                        
+                        // If no embedUrl but we have an ID, construct it
+                        if (!embed && videoId) {
+                            const start = r.start || 0;
+                            embed = `https://www.youtube.com/embed/${videoId}${start > 0 ? `?start=${start}` : ''}`;
+                        }
+                        
+                        if (embed && api.setYouTube) api.setYouTube(embed);
                     }
                     
                     renderSlideshowManager(); // hide if was visible
