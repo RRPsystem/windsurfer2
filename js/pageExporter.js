@@ -193,7 +193,14 @@
       // Get CSS files
       const mainCSS = await this.fetchCSS('/styles/main.css');
       const componentsCSS = await this.fetchCSS('/styles/components.css');
-      const roadbookCSS = await this.fetchCSS('/styles/roadbook-timeline.css');
+      
+      // Try to fetch roadbook CSS, but don't fail if it doesn't exist
+      let roadbookCSS = '';
+      try {
+        roadbookCSS = await this.fetchCSS('/styles/roadbook-timeline.css');
+      } catch (e) {
+        console.warn('[PageExporter] Could not load roadbook-timeline.css, using inline styles');
+      }
       
       // Get brand settings
       const brandSettings = localStorage.getItem('brandSettings');
