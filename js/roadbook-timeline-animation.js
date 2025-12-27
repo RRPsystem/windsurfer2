@@ -50,23 +50,33 @@ class RoadbookTimelineAnimation {
             }
         }, 100);
         
-        // Setup scroll listener - listen to document for ALL scroll events
-        document.addEventListener('scroll', () => this.onScroll(), { passive: true, capture: true });
-        window.addEventListener('scroll', () => this.onScroll(), { passive: true });
-        window.addEventListener('resize', () => this.onScroll(), { passive: true });
+        // Setup scroll listener - listen to ALL scroll events
+        const scrollHandler = () => this.onScroll();
+        document.addEventListener('scroll', scrollHandler, { passive: true, capture: true });
+        window.addEventListener('scroll', scrollHandler, { passive: true });
+        window.addEventListener('resize', scrollHandler, { passive: true });
         
         // Also check for scroll on parent containers
         let parent = this.container.parentElement;
         while (parent) {
-            parent.addEventListener('scroll', () => this.onScroll(), { passive: true });
+            parent.addEventListener('scroll', scrollHandler, { passive: true });
             parent = parent.parentElement;
         }
         
         console.log('[Timeline Init] Scroll listeners attached');
         
-        // Initial update
-        this.updateCarPosition();
-        this.onScroll();
+        // Force initial update after a delay to ensure layout is ready
+        setTimeout(() => {
+            this.updateCarPosition();
+            this.onScroll();
+        }, 100);
+        
+        // Also update on any scroll event globally
+        setInterval(() => {
+            if (this.isVisible()) {
+                this.updateCarPosition();
+            }
+        }, 100);
     }
     
     onScroll() {
@@ -131,6 +141,12 @@ class RoadbookTimelineAnimation {
                 day.classList.remove('active');
             }
         });
+    }
+    
+    isVisible() {
+        if (!this.container) return false;
+        const rect = this.container.getBoundingClientRect();
+        return rect.top < window.innerHeight && rect.bottom > 0;
     }
 }
 

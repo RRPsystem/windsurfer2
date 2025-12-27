@@ -197,17 +197,49 @@
       // Get brand settings
       const brandSettings = localStorage.getItem('brandSettings');
       let brandCSS = '';
+      let brandLogoHTML = '';
       if (brandSettings) {
         const brand = JSON.parse(brandSettings);
-        brandCSS = `
-    :root {
-      --brand-primary: ${brand.colors.primary};
-      --brand-secondary: ${brand.colors.secondary};
-      --brand-accent: ${brand.colors.accent};
-      --brand-on-primary: #ffffff;
-      --brand-on-secondary: #ffffff;
-    }
-        `;
+        if (brand.colors) {
+          brandCSS = `
+            :root {
+              --brand-primary: ${brand.colors.primary || '#84cc16'};
+              --brand-secondary: ${brand.colors.secondary || '#2196F3'};
+              --brand-accent: ${brand.colors.accent || '#FF9800'};
+            }
+            
+            /* Apply brand colors to roadbook elements */
+            .roadbook-intro-underline,
+            .roadbook-stat-icon,
+            .roadbook-card-badge,
+            .roadbook-highlight-icon,
+            .roadbook-hotel-bar i,
+            .roadbook-day-badge.active {
+              background: ${brand.colors.primary || '#84cc16'} !important;
+            }
+            
+            .roadbook-intro-subtitle,
+            .roadbook-day-distance,
+            .roadbook-read-more {
+              color: ${brand.colors.primary || '#84cc16'} !important;
+            }
+          `;
+        }
+        
+        // Add logo replacement script
+        if (brand.logo) {
+          brandLogoHTML = `
+            <script>
+              // Replace logo in roadbook navigation
+              document.addEventListener('DOMContentLoaded', function() {
+                const logoImg = document.querySelector('.roadbook-nav-logo img');
+                if (logoImg) {
+                  logoImg.src = '${brand.logo.replace(/'/g, "\\'")}';
+                }
+              });
+            </script>
+          `;
+        }
       }
       
       // Build complete HTML
@@ -262,6 +294,8 @@ body {
 </head>
 <body>
 ${canvasHTML}
+
+${brandLogoHTML}
 
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

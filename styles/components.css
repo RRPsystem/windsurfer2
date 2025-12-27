@@ -4609,7 +4609,9 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .roadbook-day-info {
-    padding: 60px 100px 80px;
+    position: relative;
+    padding: 60px 100px;
+    padding-bottom: 80px;
     background: white;
     display: flex;
     flex-direction: column;
@@ -4704,6 +4706,10 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .roadbook-hotel-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -4712,10 +4718,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     padding: 16px 24px;
     border-radius: 0;
     font-size: 1rem;
-    margin-top: 24px;
-    margin-left: -100px;
-    margin-right: -100px;
-    margin-bottom: -60px;
+    z-index: 5;
 }
 
 .roadbook-hotel-bar i {
