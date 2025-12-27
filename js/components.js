@@ -6984,12 +6984,19 @@ ComponentFactory.createRoadbook = function(options = {}) {
     let brandPrimary = '#99cc34'; // Your green color as default
     try {
         const brandSettings = localStorage.getItem('brandSettings');
-        console.log('[Roadbook] Brand settings from localStorage:', brandSettings);
+        console.log('[Roadbook] Brand settings from localStorage:', brandSettings ? 'Found' : 'Not found');
         if (brandSettings) {
             const brand = JSON.parse(brandSettings);
-            console.log('[Roadbook] Parsed brand:', brand);
-            if (brand.logo) {
+            console.log('[Roadbook] Parsed brand:', {
+                hasLogo: !!brand.logo,
+                logoLength: brand.logo ? brand.logo.length : 0,
+                logoPreview: brand.logo ? brand.logo.substring(0, 50) + '...' : 'none'
+            });
+            if (brand.logo && brand.logo.trim()) {
                 brandLogo = brand.logo;
+                console.log('[Roadbook] ✅ Using brand logo from settings');
+            } else {
+                console.warn('[Roadbook] ⚠️ No logo in brand settings, using placeholder');
             }
             // Check both old and new format
             if (brand.colors && brand.colors.primary) {
@@ -7000,7 +7007,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                 console.log('[Roadbook] Using brand.primaryColor:', brandPrimary);
             }
         } else {
-            console.log('[Roadbook] No brand settings found, using default:', brandPrimary);
+            console.log('[Roadbook] No brand settings found, using defaults');
         }
         // Apply to CSS variable
         document.documentElement.style.setProperty('--brand-primary', brandPrimary);
