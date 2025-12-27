@@ -193,6 +193,7 @@
       // Get CSS files
       const mainCSS = await this.fetchCSS('/styles/main.css');
       const componentsCSS = await this.fetchCSS('/styles/components.css');
+      const roadbookCSS = await this.fetchCSS('/styles/roadbook-timeline.css');
       
       // Get brand settings
       const brandSettings = localStorage.getItem('brandSettings');
@@ -290,6 +291,9 @@ ${mainCSS}
 /* Components CSS */
 ${componentsCSS}
 
+/* Roadbook Timeline CSS */
+${roadbookCSS}
+
 /* Page Specific */
 html, body {
   margin: 0;
@@ -333,11 +337,23 @@ class RoadbookTimelineAnimation {
         this.dayItems = container.querySelectorAll('.roadbook-day-item');
         this.isAnimating = false;
         
+        console.log('[Timeline Preview] Initializing...', {
+            container: !!this.container,
+            car: !!this.car,
+            roadContainer: !!this.roadContainer,
+            dayItemsCount: this.dayItems.length
+        });
+        
         if (!this.car || !this.roadContainer || this.dayItems.length === 0) {
-            console.warn('[Timeline] Missing required elements');
+            console.warn('[Timeline Preview] Missing required elements:', {
+                car: !!this.car,
+                roadContainer: !!this.roadContainer,
+                dayItems: this.dayItems.length
+            });
             return;
         }
         
+        console.log('[Timeline Preview] All elements found, initializing animation');
         this.init();
     }
     
@@ -378,6 +394,16 @@ class RoadbookTimelineAnimation {
         const clampedPosition = Math.max(0, Math.min(relativePosition, containerRect.height));
         
         this.car.style.top = clampedPosition + 'px';
+        
+        // Debug logging (only log occasionally to avoid spam)
+        if (Math.random() < 0.01) {
+            console.log('[Timeline Preview] Car position updated:', {
+                top: clampedPosition,
+                containerHeight: containerRect.height,
+                viewportMiddle: viewportMiddle,
+                containerTop: containerRect.top
+            });
+        }
     }
     
     updateActiveDays() {
