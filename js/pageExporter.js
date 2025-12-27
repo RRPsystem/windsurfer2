@@ -187,8 +187,43 @@
       const title = document.getElementById('pageTitleInput')?.value || 'Pagina';
       const slug = document.getElementById('pageSlugInput')?.value || 'page';
       
-      // Get canvas HTML
-      const canvasHTML = canvas.innerHTML;
+      // Get canvas HTML and add inline styles to roadbook elements
+      let canvasHTML = canvas.innerHTML;
+      
+      // Add inline styles to roadbook elements to ensure they work in preview
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = canvasHTML;
+      
+      // Style road line
+      const roadLine = tempDiv.querySelector('.roadbook-road-line');
+      if (roadLine) {
+        roadLine.style.cssText = 'position: absolute !important; left: 50% !important; top: 0 !important; bottom: 0 !important; width: 6px !important; background: #9ca3af !important; transform: translateX(-50%) !important; z-index: 2 !important; pointer-events: none !important; height: 100% !important;';
+        console.log('[PageExporter] Added inline styles to road line');
+      }
+      
+      // Style timeline road container
+      const timelineRoad = tempDiv.querySelector('.roadbook-timeline-road');
+      if (timelineRoad) {
+        timelineRoad.style.cssText = 'position: relative !important; max-width: 1400px !important; margin: 0 auto !important; padding: 0 20px 100px !important; min-height: 500px !important;';
+        console.log('[PageExporter] Added inline styles to timeline road');
+      }
+      
+      // Style car
+      const car = tempDiv.querySelector('.roadbook-timeline-car');
+      if (car) {
+        car.style.cssText = 'position: absolute !important; left: 50% !important; transform: translateX(-50%) !important; width: 70px !important; height: 100px !important; z-index: 10 !important; filter: drop-shadow(0 6px 20px rgba(0,0,0,0.3)) !important; display: flex !important; align-items: center !important; justify-content: center !important; pointer-events: none !important; transition: top 0.3s ease-out !important; background: transparent !important; will-change: top !important; top: 0 !important;';
+        console.log('[PageExporter] Added inline styles to car');
+      }
+      
+      // Style timeline section
+      const timelineSection = tempDiv.querySelector('.roadbook-animated-timeline-section');
+      if (timelineSection) {
+        const primaryColor = localStorage.getItem('brandSettings') ? JSON.parse(localStorage.getItem('brandSettings')).colors?.primary || '#84cc16' : '#84cc16';
+        timelineSection.style.cssText = `width: 100% !important; background: linear-gradient(to bottom, ${primaryColor} 300px, #f9fafb 300px) !important; position: relative !important; overflow: visible !important;`;
+        console.log('[PageExporter] Added inline styles to timeline section');
+      }
+      
+      canvasHTML = tempDiv.innerHTML;
       
       // Get CSS files
       const mainCSS = await this.fetchCSS('/styles/main.css');
