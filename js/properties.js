@@ -5934,12 +5934,13 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
         if (isVideo) {
             // Check if it's a YouTube video (embedUrl contains youtube.com/embed)
             if (res.source === 'youtube' || mediaUrl.includes('youtube.com/embed')) {
-                // Add YouTube iframe
+                // Add YouTube iframe with cover-like behavior
                 const iframe = document.createElement('iframe');
                 iframe.src = mediaUrl;
                 iframe.allow = 'autoplay; encrypted-media';
                 iframe.allowFullscreen = true;
-                iframe.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: 0;';
+                // Use transform scale to make iframe cover like object-fit: cover
+                iframe.style.cssText = 'position: absolute; top: 50%; left: 50%; width: 100vw; height: 56.25vw; min-height: 100vh; min-width: 177.77vh; transform: translate(-50%, -50%); border: none; z-index: 0; pointer-events: none;';
                 hero.insertBefore(iframe, hero.firstChild);
                 console.log('[Roadbook] YouTube video added:', mediaUrl);
             } else {
