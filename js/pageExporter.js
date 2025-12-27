@@ -211,43 +211,42 @@
         console.log('[PageExporter] Using colors:', { primaryColor, secondaryColor, accentColor });
         
         brandCSS = `
-            :root {
-              --brand-primary: ${primaryColor};
-              --brand-secondary: ${secondaryColor};
-              --brand-accent: ${accentColor};
-            }
-            
-            /* Apply brand colors to roadbook elements */
-            .roadbook-intro-underline,
-            .roadbook-stat-icon,
-            .roadbook-card-badge,
-            .roadbook-highlight-icon,
-            .roadbook-hotel-bar i {
-              background: ${primaryColor} !important;
-              color: white !important;
-            }
-            
-            .roadbook-day-item.active .roadbook-day-badge {
-              background: ${primaryColor} !important;
-              border-color: ${primaryColor} !important;
-              color: white !important;
-            }
-            
-            .roadbook-intro-subtitle,
-            .roadbook-day-distance,
-            .roadbook-read-more {
-              color: ${primaryColor} !important;
-            }
-            
-            .roadbook-nav-menu a:hover {
-              color: ${primaryColor} !important;
-            }
-            
-            .roadbook-animated-timeline-section {
-              background: linear-gradient(to bottom, ${primaryColor} 180px, #f9fafb 180px) !important;
-            }
-          `;
-        }
+          :root {
+            --brand-primary: ${primaryColor};
+            --brand-secondary: ${secondaryColor};
+            --brand-accent: ${accentColor};
+          }
+          
+          /* Apply brand colors to roadbook elements */
+          .roadbook-intro-underline,
+          .roadbook-stat-icon,
+          .roadbook-card-badge,
+          .roadbook-highlight-icon,
+          .roadbook-hotel-bar i {
+            background: ${primaryColor} !important;
+            color: white !important;
+          }
+          
+          .roadbook-day-item.active .roadbook-day-badge {
+            background: ${primaryColor} !important;
+            border-color: ${primaryColor} !important;
+            color: white !important;
+          }
+          
+          .roadbook-intro-subtitle,
+          .roadbook-day-distance,
+          .roadbook-read-more {
+            color: ${primaryColor} !important;
+          }
+          
+          .roadbook-nav-menu a:hover {
+            color: ${primaryColor} !important;
+          }
+          
+          .roadbook-animated-timeline-section {
+            background: linear-gradient(to bottom, ${primaryColor} 180px, #f9fafb 180px) !important;
+          }
+        `;
         
         // Add logo replacement script
         if (brand.logo) {
