@@ -213,14 +213,24 @@
             .roadbook-stat-icon,
             .roadbook-card-badge,
             .roadbook-highlight-icon,
-            .roadbook-hotel-bar i,
-            .roadbook-day-badge.active {
+            .roadbook-hotel-bar i {
               background: ${brand.colors.primary || '#84cc16'} !important;
+              color: white !important;
+            }
+            
+            .roadbook-day-item.active .roadbook-day-badge {
+              background: ${brand.colors.primary || '#84cc16'} !important;
+              border-color: ${brand.colors.primary || '#84cc16'} !important;
+              color: white !important;
             }
             
             .roadbook-intro-subtitle,
             .roadbook-day-distance,
             .roadbook-read-more {
+              color: ${brand.colors.primary || '#84cc16'} !important;
+            }
+            
+            .roadbook-nav-menu a:hover {
               color: ${brand.colors.primary || '#84cc16'} !important;
             }
           `;
@@ -299,6 +309,98 @@ ${brandLogoHTML}
 
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Roadbook Timeline Animation -->
+<script>
+// Roadbook Timeline Animation for Preview
+class RoadbookTimelineAnimation {
+    constructor(container) {
+        this.container = container;
+        this.car = container.querySelector('.roadbook-timeline-car');
+        this.roadContainer = container.querySelector('.roadbook-road-line');
+        this.dayItems = container.querySelectorAll('.roadbook-day-item');
+        this.isAnimating = false;
+        
+        if (!this.car || !this.roadContainer || this.dayItems.length === 0) {
+            console.warn('[Timeline] Missing required elements');
+            return;
+        }
+        
+        this.init();
+    }
+    
+    init() {
+        const scrollHandler = () => this.onScroll();
+        window.addEventListener('scroll', scrollHandler, { passive: true });
+        window.addEventListener('resize', scrollHandler, { passive: true });
+        
+        setTimeout(() => {
+            this.updateCarPosition();
+            this.onScroll();
+        }, 100);
+        
+        setInterval(() => {
+            if (this.isVisible()) {
+                this.updateCarPosition();
+            }
+        }, 100);
+    }
+    
+    onScroll() {
+        if (this.isAnimating) return;
+        this.isAnimating = true;
+        
+        requestAnimationFrame(() => {
+            this.updateCarPosition();
+            this.updateActiveDays();
+            this.isAnimating = false;
+        });
+    }
+    
+    updateCarPosition() {
+        if (!this.car || !this.roadContainer) return;
+        
+        const containerRect = this.roadContainer.getBoundingClientRect();
+        const viewportMiddle = window.innerHeight / 2;
+        const relativePosition = viewportMiddle - containerRect.top;
+        const clampedPosition = Math.max(0, Math.min(relativePosition, containerRect.height));
+        
+        this.car.style.top = clampedPosition + 'px';
+    }
+    
+    updateActiveDays() {
+        const viewportMiddle = window.innerHeight / 2;
+        
+        this.dayItems.forEach(day => {
+            const badge = day.querySelector('.roadbook-day-badge');
+            if (!badge) return;
+            
+            const rect = badge.getBoundingClientRect();
+            const badgeMiddle = rect.top + rect.height / 2;
+            
+            if (Math.abs(badgeMiddle - viewportMiddle) < 100) {
+                day.classList.add('active');
+            } else {
+                day.classList.remove('active');
+            }
+        });
+    }
+    
+    isVisible() {
+        if (!this.container) return false;
+        const rect = this.container.getBoundingClientRect();
+        return rect.top < window.innerHeight && rect.bottom > 0;
+    }
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => {
+    const timelines = document.querySelectorAll('.roadbook-animated-timeline-section');
+    timelines.forEach(timeline => {
+        new RoadbookTimelineAnimation(timeline);
+    });
+});
+</script>
 </body>
 </html>`;
       
