@@ -15,6 +15,7 @@ export default async function handler(req, res) {
     const {
       TC_BASE_URL = '', // e.g. https://online.travelcompositor.com
       TC_MICROSITE_ID = '',
+      TC_MICROSITES = '', // JSON config for multiple microsites
       TC_TOKEN = '', // optional static token
       TC_USERNAME = '',
       TC_PASSWORD = '',
@@ -28,11 +29,30 @@ export default async function handler(req, res) {
       console.error('[TC API] Missing ID!');
       return res.status(400).json({ error: 'Missing id', received: { query: req.query, url: req.url } });
     }
-    if (!TC_BASE_URL || !TC_MICROSITE_ID) {
-      return res.status(500).json({ error: 'Missing TC_BASE_URL or TC_MICROSITE_ID' });
+    if (!TC_BASE_URL) {
+      return res.status(500).json({ error: 'Missing TC_BASE_URL' });
     }
 
     const micrositeId = String(req.query?.micrositeId || TC_MICROSITE_ID);
+    if (!micrositeId) {
+      return res.status(400).json({ error: 'micrositeId parameter is required' });
+    }
+
+    // Get credentials for this specific microsite
+    let username = TC_USERNAME;
+    let password = TC_PASSWORD;
+    
+    if (TC_MICROSITES) {
+      try {
+        const micrositesConfig = JSON.parse(TC_MICROSITES);
+        if (micrositesConfig[micrositeId]) {
+          username = micrositesConfig[micrositeId].username || username;
+          password = micrositesConfig[micrositeId].password || password;
+        }
+      } catch (e) {
+        console.warn('[ideas/id] Failed to parse TC_MICROSITES:', e.message);
+      }
+    }
     const base = TC_BASE_URL.replace(/\/$/, '');
     const AUTH_PATH = (process.env.TC_AUTH_PATH || '/resources/authentication/authenticate');
     const IDEAS_PATH = (process.env.TC_TRAVELIDEA_PATH || '/resources/travelidea');
@@ -54,12 +74,12 @@ export default async function handler(req, res) {
     if (TC_TENANT_ID) headers['X-Tenant-Id'] = String(TC_TENANT_ID);
     let bearer = TC_TOKEN;
     if (!bearer) {
-      if (!TC_USERNAME || !TC_PASSWORD || !micrositeId) {
+      if (!username || !password || !micrositeId) {
         return res.status(500).json({ error: 'Missing TC credentials to authenticate' });
       }
       const authBody = { 
-        username: TC_USERNAME, 
-        password: TC_PASSWORD, 
+        username, 
+        password, 
         micrositeId: parseInt(micrositeId) || micrositeId // Try both string and number
       };
       console.log('[TC API] Attempting auth with:', { 

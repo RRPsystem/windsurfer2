@@ -10,6 +10,7 @@ export default async function handler(req, res) {
     const {
       TC_BASE_URL = '', // e.g. https://online.travelcompositor.com
       TC_MICROSITE_ID = '',
+      TC_MICROSITES = '', // JSON config for multiple microsites
       TC_TOKEN = '', // optional static token
       TC_USERNAME = '',
       TC_PASSWORD = '',
@@ -18,11 +19,30 @@ export default async function handler(req, res) {
       SUPABASE_SERVICE_ROLE_KEY = ''
     } = process.env;
 
-    if (!TC_BASE_URL || !TC_MICROSITE_ID) {
-      return res.status(500).json({ error: 'Missing TC_BASE_URL or TC_MICROSITE_ID' });
+    if (!TC_BASE_URL) {
+      return res.status(500).json({ error: 'Missing TC_BASE_URL' });
     }
 
     const micrositeId = String(req.query?.micrositeId || TC_MICROSITE_ID);
+    if (!micrositeId) {
+      return res.status(400).json({ error: 'micrositeId parameter is required' });
+    }
+
+    // Get credentials for this specific microsite
+    let username = TC_USERNAME;
+    let password = TC_PASSWORD;
+    
+    if (TC_MICROSITES) {
+      try {
+        const micrositesConfig = JSON.parse(TC_MICROSITES);
+        if (micrositesConfig[micrositeId]) {
+          username = micrositesConfig[micrositeId].username || username;
+          password = micrositesConfig[micrositeId].password || password;
+        }
+      } catch (e) {
+        console.warn('[ideas] Failed to parse TC_MICROSITES:', e.message);
+      }
+    }
     // TC_BASE_URL is https://online.travelcompositor.com (without /resources)
     const base = TC_BASE_URL.replace(/\/$/, '');
     const AUTH_PATH = (process.env.TC_AUTH_PATH || '/resources/authentication/authenticate');
@@ -84,16 +104,17 @@ export default async function handler(req, res) {
     // Acquire token: prefer static TC_TOKEN; else authenticate
     let bearer = TC_TOKEN;
     if (!bearer) {
-      if (!TC_USERNAME || !TC_PASSWORD || !micrositeId) {
+      if (!username || !password || !micrositeId) {
         return res.status(500).json({ error: 'Missing TC credentials to authenticate' });
       }
       const authUrl = `${base}${AUTH_PATH}`;
       console.log('[ideas] Auth URL:', authUrl);
       console.log('[ideas] TC_BASE_URL:', TC_BASE_URL);
+      console.log('[ideas] micrositeId:', micrositeId);
       const authRes = await fetch(authUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ username: TC_USERNAME, password: TC_PASSWORD, micrositeId })
+        body: JSON.stringify({ username, password, micrositeId })
       });
       const authText = await authRes.text();
       let authJson; try { authJson = JSON.parse(authText); } catch (e) { authJson = null; }
