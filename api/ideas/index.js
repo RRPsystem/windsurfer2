@@ -32,6 +32,7 @@ export default async function handler(req, res) {
     let username = TC_USERNAME;
     let password = TC_PASSWORD;
     
+    // Method 1: TC_MICROSITES JSON (supports multiple microsites in one variable)
     if (TC_MICROSITES) {
       try {
         const micrositesConfig = JSON.parse(TC_MICROSITES);
@@ -41,6 +42,18 @@ export default async function handler(req, res) {
         }
       } catch (e) {
         console.warn('[ideas] Failed to parse TC_MICROSITES:', e.message);
+      }
+    }
+    
+    // Method 2: Numbered suffix pattern (TC_MICROSITE_ID_2, TC_USERNAME_2, etc.)
+    // Check if this microsite matches a numbered suffix variable
+    for (let i = 2; i <= 10; i++) {
+      const suffixedMicrositeId = process.env[`TC_MICROSITE_ID_${i}`];
+      if (suffixedMicrositeId === micrositeId) {
+        username = process.env[`TC_USERNAME_${i}`] || username;
+        password = process.env[`TC_PASSWORD_${i}`] || password;
+        console.log(`[ideas] Using credentials from TC_*_${i} for microsite:`, micrositeId);
+        break;
       }
     }
     // TC_BASE_URL is https://online.travelcompositor.com (without /resources)

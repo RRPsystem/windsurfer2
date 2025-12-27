@@ -776,18 +776,14 @@
         saveBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Opslaan...';
       }
 
-      if (saveStatus) saveStatus.innerHTML = '<span style="color:#6b7280;"><i class="fas fa-circle-notch fa-spin"></i> Video wordt geüpload...</span>';
+      if (saveStatus) saveStatus.innerHTML = '<span style="color:#6b7280;"><i class="fas fa-circle-notch fa-spin"></i> Video wordt geüpload naar storage...</span>';
 
       try {
-        // Convert video to base64
+        // STAP 1: Upload video naar Vercel Blob Storage
         const videoBlob = await fetch(resultVideo.src).then(r => r.blob());
         const base64Video = await this.blobToBase64(videoBlob);
 
-        // Use placeholder thumbnail (CORS prevents canvas export from Shotstack videos)
-        const thumbnail = null; // Backend will generate thumbnail or use placeholder
-
-        // Upload to Blob Storage
-        const response = await fetch('/api/videos/upload', {
+        const uploadResponse = await fetch('/api/videos/upload', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -797,85 +793,95 @@
             duration: resultVideo.duration || 0,
             width: resultVideo.videoWidth || 1920,
             height: resultVideo.videoHeight || 1080,
-            thumbnail: thumbnail
+            thumbnail: null
           })
         });
 
-        if (!response.ok) {
+        if (!uploadResponse.ok) {
           let errorMessage = 'Upload mislukt';
           try {
-            const contentType = response.headers.get('content-type');
+            const contentType = uploadResponse.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
-              const error = await response.json();
+              const error = await uploadResponse.json();
               errorMessage = error.detail || error.message || error.error || 'Upload mislukt';
             } else {
-              const errorText = await response.text();
-              errorMessage = errorText.substring(0, 100); // First 100 chars
+              const errorText = await uploadResponse.text();
+              errorMessage = errorText.substring(0, 100);
             }
           } catch (e) {
-            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+            errorMessage = `HTTP ${uploadResponse.status}: ${uploadResponse.statusText}`;
           }
           throw new Error(errorMessage);
         }
 
-        const result = await response.json();
+        const uploadResult = await uploadResponse.json();
+        const videoUrl = uploadResult?.video?.videoUrl;
 
-        // Default success message (may be overwritten by billing message below)
-        if (saveStatus) saveStatus.innerHTML = '<span style="color:#22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen! Beschikbaar in "Mijn Video\'s"</span>';
+        if (!videoUrl) {
+          throw new Error('Video URL niet ontvangen van storage');
+        }
 
-        // Register storage billing (BOLT credits) if we have a brand context
-        try {
-          const urlParams = new URLSearchParams(window.location.search);
-          const brandId = urlParams.get('brand_id') ||
-            window.websiteBuilder?._edgeCtx?.brand_id ||
-            window.edgeCtx?.brand_id ||
-            window.BOLT_DB?.brandId ||
-            window.BRAND_ID ||
-            null;
+        console.log('[VideoGen] Video uploaded to storage:', videoUrl);
+        if (saveStatus) saveStatus.innerHTML = '<span style="color:#6b7280;"><i class="fas fa-circle-notch fa-spin"></i> Credits registreren...</span>';
 
-          if (brandId && result?.video?.videoUrl) {
-            const token = (urlParams.get('token') || window.CURRENT_TOKEN || '').trim();
-            const apiKey = (urlParams.get('apikey') || urlParams.get('api_key') || (window.BOLT_API && window.BOLT_API.apiKey) || '').trim();
+        // STAP 2: Registreer credits bij BOLT (alleen URL, geen video data!)
+        const urlParams = new URLSearchParams(window.location.search);
+        const brandId = urlParams.get('brand_id') ||
+          window.websiteBuilder?._edgeCtx?.brand_id ||
+          window.edgeCtx?.brand_id ||
+          window.BOLT_DB?.brandId ||
+          window.BRAND_ID ||
+          null;
 
-            const headers = { 'Content-Type': 'application/json' };
-            if (token) headers.Authorization = `Bearer ${token}`;
-            if (apiKey) headers['X-API-Key'] = apiKey;
+        if (!brandId) {
+          // Geen brand context, video is opgeslagen maar geen credits afschrijving
+          if (saveStatus) saveStatus.innerHTML = '<span style="color:#22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen! (Geen brand context voor credits)</span>';
+        } else {
+          const token = (urlParams.get('token') || window.CURRENT_TOKEN || '').trim();
+          const apiKey = (urlParams.get('apikey') || urlParams.get('api_key') || (window.BOLT_API && window.BOLT_API.apiKey) || '').trim();
 
-            const billingRes = await fetch('/api/register-video-storage', {
-              method: 'POST',
-              headers,
-              body: JSON.stringify({
-                brandId,
-                videoUrl: result.video.videoUrl
-              })
-            });
+          const headers = { 'Content-Type': 'application/json' };
+          if (token) headers.Authorization = `Bearer ${token}`;
+          if (apiKey) headers['X-API-Key'] = apiKey;
 
-            if (billingRes.ok) {
-              const billingData = await billingRes.json();
-              console.log('[VideoGen] Storage registered:', billingData);
-              if (saveStatus) {
-                saveStatus.innerHTML = '<span style="color:#22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen! €1 (100 credits) afgeschreven.</span>';
+          const billingRes = await fetch('/api/register-video-storage', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              brandId,
+              videoUrl,
+              videoTitle: videoName,
+              fileSizeBytes: videoBlob.size,
+              durationSeconds: Math.round(resultVideo.duration || 0)
+            })
+          });
+
+          if (billingRes.ok) {
+            const billingData = await billingRes.json();
+            console.log('[VideoGen] Credits deducted:', billingData);
+            const creditsDeducted = billingData.costCredits || 100;
+            const creditsRemaining = billingData.creditsRemaining;
+            
+            if (saveStatus) {
+              saveStatus.innerHTML = `<span style="color:#22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen! ${creditsDeducted} credits afgeschreven${creditsRemaining !== undefined ? ` (${creditsRemaining} resterend)` : ''}.</span>`;
+            }
+          } else {
+            let billingMsg = 'Credits afschrijving mislukt';
+            try {
+              const ct = billingRes.headers.get('content-type');
+              if (ct && ct.includes('application/json')) {
+                const err = await billingRes.json();
+                billingMsg = err.error || err.message || billingMsg;
+              } else {
+                billingMsg = (await billingRes.text()).substring(0, 120) || billingMsg;
               }
-            } else {
-              let billingMsg = 'Billing registratie mislukt';
-              try {
-                const ct = billingRes.headers.get('content-type');
-                if (ct && ct.includes('application/json')) {
-                  const err = await billingRes.json();
-                  billingMsg = err.message || err.error || billingMsg;
-                } else {
-                  billingMsg = (await billingRes.text()).substring(0, 120) || billingMsg;
-                }
-              } catch (e) {}
+            } catch (e) {}
 
-              console.warn('[VideoGen] Billing failed:', billingRes.status, billingMsg);
-              if (saveStatus) {
-                saveStatus.innerHTML = `<span style="color:#f59e0b;"><i class="fas fa-exclamation-triangle"></i> Video opgeslagen, maar credits afschrijving mislukt: ${billingMsg}</span>`;
-              }
+            console.warn('[VideoGen] Billing failed:', billingRes.status, billingMsg);
+            if (saveStatus) {
+              saveStatus.innerHTML = `<span style="color:#f59e0b;"><i class="fas fa-exclamation-triangle"></i> Video opgeslagen, maar credits afschrijving mislukt: ${billingMsg}</span>`;
             }
           }
-        } catch (e) {
-          console.warn('[VideoGen] Billing call error:', e);
         }
         
         // Re-enable button
@@ -887,7 +893,7 @@
           saveBtn.style.background = '#22c55e';
         }
 
-        console.log('[VideoGen] Video saved:', result.video);
+        console.log('[VideoGen] Video saved successfully');
 
       } catch (error) {
         console.error('[VideoGen] Save error:', error);

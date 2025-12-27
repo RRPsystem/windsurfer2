@@ -6,38 +6,60 @@ Je hebt "reisbureaunederland" als tweede microsite toegevoegd in Vercel, maar kr
 ## Oorzaak
 Het systeem heeft aparte credentials nodig voor elke microsite. Momenteel gebruikt het alleen de credentials van de eerste microsite.
 
-## Oplossing: Voeg TC_MICROSITES toe in Vercel
+## ✅ Oplossing: Numbered Suffix Pattern (Aanbevolen)
 
-### Stap 1: Ga naar Vercel Environment Variables
+Het systeem ondersteunt nu automatisch genummerde environment variables!
+
+### Wat je al hebt (Microsite 1):
+```
+TC_MICROSITE_ID = rondreis-planner
+TC_USERNAME = [jouw username]
+TC_PASSWORD = [jouw password]
+```
+
+### Wat je moet toevoegen (Microsite 2):
+```
+TC_MICROSITE_ID_2 = reisbureaunederland
+TC_USERNAME_2 = [username voor reisbureaunederland]
+TC_PASSWORD_2 = [password voor reisbureaunederland]
+```
+
+### Voor Microsite 3, 4, etc.:
+```
+TC_MICROSITE_ID_3 = derde-microsite
+TC_USERNAME_3 = [username]
+TC_PASSWORD_3 = [password]
+```
+
+**Het systeem herkent automatisch `_2`, `_3`, `_4` tot `_10`!**
+
+## Stappen in Vercel
 
 1. Open https://vercel.com/dashboard
 2. Selecteer je project: **ai-websitestudio**
 3. Ga naar **Settings** → **Environment Variables**
+4. Klik **"Add New"** voor elke variable:
+   - `TC_MICROSITE_ID_2` → waarde: `reisbureaunederland`
+   - `TC_USERNAME_2` → waarde: [jouw username]
+   - `TC_PASSWORD_2` → waarde: [jouw password]
+5. Vink bij elke variable alle environments aan (Production, Preview, Development)
+6. Ga naar **Deployments** → **Redeploy**
 
-### Stap 2: Voeg TC_MICROSITES toe
+## Alternatieve Methode: JSON Format
 
-Klik op **"Add New"** en vul in:
+Je kunt ook één `TC_MICROSITES` variable gebruiken met JSON:
 
 **Name:**
 ```
 TC_MICROSITES
 ```
 
-**Value:** (vervang de placeholders met je echte credentials)
+**Value:**
 ```json
-{"rondreis-planner":{"username":"BESTAANDE_USERNAME","password":"BESTAANDE_PASSWORD"},"reisbureaunederland":{"username":"NIEUWE_USERNAME","password":"NIEUWE_PASSWORD"}}
+{"rondreis-planner":{"username":"user1","password":"pass1"},"reisbureaunederland":{"username":"user2","password":"pass2"}}
 ```
 
-**Belangrijk:**
-- Vervang `BESTAANDE_USERNAME` en `BESTAANDE_PASSWORD` met je huidige TC_USERNAME en TC_PASSWORD
-- Vervang `NIEUWE_USERNAME` en `NIEUWE_PASSWORD` met de credentials voor reisbureaunederland
-- Alles moet op **één regel** staan
-- Gebruik **dubbele quotes** (geen enkele quotes)
-
-**Environment:** Vink alle drie aan:
-- ✅ Production
-- ✅ Preview  
-- ✅ Development
+**Environment:** Alle drie aanvinken
 
 ### Stap 3: Redeploy
 

@@ -1148,8 +1148,18 @@
                 // Parse URL parameters
                 this.parseUrlParams();
                 
+                // 🔐 SESSION SECURITY: Exchange JWT for session token
+                if (this.token && this.apiBase) {
+                    const exchanged = await this.exchangeForSessionToken();
+                    if (!exchanged) {
+                        console.error('❌ Failed to exchange token for session token');
+                        this.redirectToBolt('Token exchange failed');
+                        return;
+                    }
+                }
+                
                 // 🔐 SECURITY: Validate token and fingerprint if coming from BOLT
-                if (this.token || this.brandId) {
+                if (this.getSessionToken() || this.brandId) {
                     const securityValid = await this.validateSecurity();
                     if (!securityValid) {
                         return; // Security check failed, user redirected
@@ -1187,15 +1197,10 @@
                 const params = new URLSearchParams(window.location.search);
                 this.pageId = params.get('page_id');
                 this.brandId = params.get('brand_id');
-                this.token = params.get('token');
+                this.token = params.get('token'); // JWT from BOLT (will be exchanged for session token)
                 this.apikey = params.get('apikey');
                 this.apiBase = params.get('api'); // Edge function base URL
                 this.returnUrl = params.get('return_url');
-                
-                // Start token refresh monitoring
-                if (this.token) {
-                    this.startTokenRefreshMonitoring();
-                }
                 
                 console.log('📋 URL Params:', {
                     pageId: this.pageId,
@@ -1205,6 +1210,157 @@
                     apiBase: this.apiBase,
                     returnUrl: this.returnUrl
                 });
+            }
+            
+            // 🔐 SESSION SECURITY: Exchange JWT for session token
+            async exchangeForSessionToken() {
+                if (!this.token || !this.apiBase) {
+                    console.warn('⚠️ Missing token or API base, skipping exchange');
+                    return false;
+                }
+                
+                try {
+                    console.log('🔄 Exchanging JWT for session token...');
+                    
+                    const response = await fetch(`${this.apiBase}/exchange-builder-token`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.token}`,
+                            'apikey': this.apikey
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        console.error('❌ Token exchange failed:', response.status);
+                        return false;
+                    }
+                    
+                    const data = await response.json();
+                    const sessionToken = data.session_token;
+                    
+                    if (!sessionToken) {
+                        console.error('❌ No session token received');
+                        return false;
+                    }
+                    
+                    // Store session token in sessionStorage
+                    sessionStorage.setItem('builder_session_token', sessionToken);
+                    sessionStorage.setItem('builder_brand_id', this.brandId);
+                    sessionStorage.setItem('builder_api_base', this.apiBase);
+                    sessionStorage.setItem('builder_apikey', this.apikey);
+                    if (this.pageId) sessionStorage.setItem('builder_page_id', this.pageId);
+                    if (this.returnUrl) sessionStorage.setItem('builder_return_url', this.returnUrl);
+                    
+                    console.log('✅ Session token stored in sessionStorage');
+                    
+                    // Clear JWT from memory (no longer needed)
+                    this.token = null;
+                    
+                    // Remove sensitive params from URL without reload
+                    const url = new URL(window.location);
+                    url.searchParams.delete('token');
+                    url.searchParams.delete('apikey');
+                    window.history.replaceState({}, '', url);
+                    
+                    console.log('🔒 JWT removed from URL for security');
+                    
+                    // Start session token refresh monitoring
+                    this.startSessionTokenRefreshMonitoring();
+                    
+                    return true;
+                } catch (error) {
+                    console.error('❌ Token exchange error:', error);
+                    return false;
+                }
+            }
+            
+            // 🔐 Get session token from sessionStorage
+            getSessionToken() {
+                return sessionStorage.getItem('builder_session_token');
+            }
+            
+            // 🔄 SESSION SECURITY: Monitor session token expiry
+            startSessionTokenRefreshMonitoring() {
+                // Check session token status every minute
+                this.sessionTokenCheckInterval = setInterval(() => {
+                    this.checkAndRefreshSessionToken();
+                }, 60000); // 60 seconds
+                
+                console.log('🔄 Session token refresh monitoring started');
+            }
+            
+            // 🔄 SESSION SECURITY: Check and refresh session token
+            async checkAndRefreshSessionToken() {
+                const sessionToken = this.getSessionToken();
+                if (!sessionToken) return;
+                
+                try {
+                    const decoded = this.decodeJWT(sessionToken);
+                    if (!decoded || !decoded.exp) return;
+                    
+                    const expiresAt = decoded.exp * 1000;
+                    const now = Date.now();
+                    const timeLeft = expiresAt - now;
+                    
+                    // Refresh if less than 10 minutes left
+                    const refreshThreshold = 10 * 60 * 1000;
+                    
+                    if (timeLeft < refreshThreshold && timeLeft > 0) {
+                        console.log(`🔄 Session token expires in ${Math.round(timeLeft/60000)} minutes, refreshing...`);
+                        await this.refreshSessionToken();
+                    } else if (timeLeft < 0) {
+                        console.warn('⚠️ Session token expired!');
+                        this.redirectToBolt('Session expired');
+                    }
+                } catch (error) {
+                    console.error('❌ Session token check failed:', error);
+                }
+            }
+            
+            // 🔄 SESSION SECURITY: Refresh session token
+            async refreshSessionToken() {
+                const apiBase = sessionStorage.getItem('builder_api_base');
+                const sessionToken = this.getSessionToken();
+                const apikey = sessionStorage.getItem('builder_apikey');
+                
+                if (!apiBase || !sessionToken) {
+                    console.warn('⚠️ Cannot refresh session token: missing data');
+                    return false;
+                }
+                
+                try {
+                    const response = await fetch(`${apiBase}/refresh-session-token`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${sessionToken}`,
+                            'Content-Type': 'application/json',
+                            'apikey': apikey
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        console.error('❌ Session token refresh failed:', response.status);
+                        if (response.status === 401) {
+                            this.redirectToBolt('Session invalid');
+                        }
+                        return false;
+                    }
+                    
+                    const data = await response.json();
+                    const newSessionToken = data.session_token;
+                    
+                    if (newSessionToken) {
+                        sessionStorage.setItem('builder_session_token', newSessionToken);
+                        console.log('✅ Session token successfully refreshed!');
+                        return true;
+                    }
+                } catch (error) {
+                    console.error('❌ Session token refresh error:', error);
+                    return false;
+                }
+                
+                return false;
             }
             
             // 🔄 SLIDING WINDOW: Monitor token expiry and auto-refresh
@@ -1255,7 +1411,7 @@
                     const response = await fetch(`${this.apiBase}/refresh-token`, {
                         method: 'POST',
                         headers: {
-                            'Authorization': `Bearer ${this.token}`,
+                            'Authorization': `Bearer ${this.getCurrentToken()}`,
                             'Content-Type': 'application/json',
                             'apikey': this.apikey
                         }
@@ -1299,13 +1455,25 @@
                 return false;
             }
             
+            // 🔐 Get current authentication token (session or JWT)
+            getCurrentToken() {
+                // Prefer session token if available
+                const sessionToken = this.getSessionToken();
+                return sessionToken || this.token;
+            }
+            
+            // 🔐 Get API key (from sessionStorage or memory)
+            getCurrentApiKey() {
+                return sessionStorage.getItem('builder_apikey') || this.apikey;
+            }
+            
             // 🔄 SLIDING WINDOW: Wrapper for API calls with auto-retry
             async makeAuthenticatedApiCall(url, options = {}) {
-                // Add auth headers
+                // Add auth headers using session token
                 const headers = {
-                    'Authorization': `Bearer ${this.token}`,
+                    'Authorization': `Bearer ${this.getCurrentToken()}`,
                     'Content-Type': 'application/json',
-                    'apikey': this.apikey,
+                    'apikey': this.getCurrentApiKey(),
                     ...options.headers
                 };
                 
@@ -1319,17 +1487,18 @@
                 if (response.status === 401) {
                     console.log('🔄 Got 401, attempting token refresh...');
                     
-                    const refreshed = await this.refreshToken();
+                    // Try to refresh session token
+                    const refreshed = await this.refreshSessionToken();
                     
                     if (refreshed) {
                         // Retry with new token
-                        console.log('🔄 Retrying request with refreshed token...');
+                        console.log('🔄 Retrying request with refreshed session token...');
                         response = await fetch(url, {
                             ...options,
                             headers: {
-                                'Authorization': `Bearer ${this.token}`,
+                                'Authorization': `Bearer ${this.getCurrentToken()}`,
                                 'Content-Type': 'application/json',
-                                'apikey': this.apikey,
+                                'apikey': this.getCurrentApiKey(),
                                 ...options.headers
                             }
                         });
@@ -1523,13 +1692,13 @@
                     console.log(`${emoji} [Security] ${eventType}: ${message}`);
                     
                     // If we have API access, log to backend (optional)
-                    if (this.apiBase && this.token) {
+                    if (this.apiBase && this.getCurrentToken()) {
                         await fetch(`${this.apiBase}/log-security-event`, {
                             method: 'POST',
                             headers: {
-                                'Authorization': `Bearer ${this.token}`,
+                                'Authorization': `Bearer ${this.getCurrentToken()}`,
                                 'Content-Type': 'application/json',
-                                'apikey': this.apikey
+                                'apikey': this.getCurrentApiKey()
                             },
                             body: JSON.stringify({
                                 event_type: eventType,
@@ -1583,7 +1752,7 @@
                         
                         const response = await fetch(apiUrl, {
                             headers: {
-                                'Authorization': `Bearer ${this.token}`,
+                                'Authorization': `Bearer ${this.getCurrentToken()}`,
                                 'Content-Type': 'application/json'
                             }
                         });
@@ -1749,11 +1918,11 @@
                 
                 try {
                     let data;
-                    if (this.apiBase && this.token) {
+                    if (this.apiBase && this.getCurrentToken()) {
                         // Use edge function
                         const response = await fetch(`${this.apiBase}/brand-settings-api?brand_id=${this.brandId}`, {
                             headers: {
-                                'Authorization': `Bearer ${this.token}`,
+                                'Authorization': `Bearer ${this.getCurrentToken()}`,
                                 'Content-Type': 'application/json'
                             }
                         });
@@ -3047,7 +3216,7 @@
                     const response = await fetch(`${this.apiBase}/pages-api/save`, {
                         method: 'POST',
                         headers: {
-                            'Authorization': `Bearer ${this.token}`,
+                            'Authorization': `Bearer ${this.getCurrentToken()}`,
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify(saveData)
