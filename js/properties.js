@@ -5953,14 +5953,47 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
                     url.searchParams.set('playlist', videoId);
                 }
                 
-                // Add YouTube iframe that covers entire hero
+                // Add YouTube iframe with wrapper (same as normal hero)
+                let videoWrap = hero.querySelector('.hero-video');
+                if (!videoWrap) {
+                    videoWrap = document.createElement('div');
+                    videoWrap.className = 'hero-video';
+                    videoWrap.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 0;';
+                    hero.insertBefore(videoWrap, hero.firstChild);
+                }
+                
                 const iframe = document.createElement('iframe');
-                iframe.className = 'roadbook-hero-video';
+                iframe.setAttribute('title', 'Hero Background Video');
+                iframe.setAttribute('frameborder', '0');
+                iframe.setAttribute('allow', 'autoplay; encrypted-media');
+                iframe.setAttribute('allowfullscreen', '');
+                iframe.style.position = 'absolute';
+                iframe.style.top = '50%';
+                iframe.style.left = '50%';
+                iframe.style.transform = 'translate(-50%, -50%)';
                 iframe.src = url.toString();
-                iframe.allow = 'autoplay; encrypted-media';
-                iframe.allowFullscreen = false;
-                // Let CSS handle positioning and sizing for proper viewport-based scaling
-                hero.insertBefore(iframe, hero.firstChild);
+                
+                // Fit video to cover entire hero (same logic as normal hero)
+                const fitVideo = () => {
+                    const w = hero.offsetWidth;
+                    const h = hero.offsetHeight;
+                    if (!w || !h) return;
+                    const containerRatio = w / h;
+                    const videoRatio = 16 / 9;
+                    if (containerRatio < videoRatio) {
+                        // container is taller -> match height, expand width
+                        iframe.style.height = '100%';
+                        iframe.style.width = `${Math.ceil(h * videoRatio)}px`;
+                    } else {
+                        // container is wider -> match width, expand height
+                        iframe.style.width = '100%';
+                        iframe.style.height = `${Math.ceil(w / videoRatio)}px`;
+                    }
+                };
+                
+                videoWrap.innerHTML = '';
+                videoWrap.appendChild(iframe);
+                fitVideo();
                 
                 // Store embed URL in dataset for export
                 component.dataset.heroVideoEmbed = url.toString();
