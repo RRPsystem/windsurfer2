@@ -5899,9 +5899,13 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
         
         // Remove existing media
         const existingVideo = hero.querySelector('video');
+        const existingIframe = hero.querySelector('iframe');
         const existingSlider = hero.querySelector('.hero-slider');
+        const existingPlaceholder = hero.querySelector('.wb-media-ph');
         if (existingVideo) existingVideo.remove();
+        if (existingIframe) existingIframe.remove();
         if (existingSlider) existingSlider.remove();
+        if (existingPlaceholder) existingPlaceholder.remove();
         
         // Determine media type and URL
         const isVideo = res.type === 'video' || res.videoUrl || res.source === 'youtube';
