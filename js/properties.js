@@ -5938,11 +5938,13 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
             return;
         }
         
+        console.log('[Roadbook] Media response received:', { type: res.type, source: res.source, isVideo, mediaUrl });
+        
         // Add new media
         if (isVideo) {
             // Check if it's a video playlist (multiple videos)
             if (res.type === 'video-playlist' && res.playlist && res.playlist.length > 0) {
-                console.log('[Roadbook] Video playlist selected:', res.playlist.length, 'videos');
+                console.log('[Roadbook] ✅ Video playlist detected:', res.playlist.length, 'videos');
                 
                 // Create video element for playlist
                 const video = document.createElement('video');

@@ -36,7 +36,7 @@ class MediaPicker {
           <button class="btn btn-secondary tab-btn active" data-tab="upload"><i class="fas fa-upload"></i> Upload</button>
           <button class="btn btn-secondary tab-btn" data-tab="unsplash"><i class="fab fa-unsplash"></i> Unsplash</button>
           <button class="btn btn-secondary tab-btn" data-tab="pexels"><i class="fas fa-video"></i> Pexels</button>
-          <button class="btn btn-secondary tab-btn" data-tab="storyblocks"><i class="fas fa-film"></i> Storyblocks</button>
+          <button class="btn tab-btn" data-tab="storyblocks" style="background: #eab308; color: #000; font-weight: 600; border: 2px solid #eab308;"><i class="fas fa-film"></i> Storyblocks</button>
           <button class="btn btn-secondary tab-btn" data-tab="my-videos"><i class="fas fa-film"></i> Mijn Video's</button>
         </div>
 
