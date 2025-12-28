@@ -3424,6 +3424,7 @@ box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 
 /* Hero background media */
 .roadbook-hero video,
+.roadbook-hero iframe,
 .roadbook-hero .hero-slider {
     position: absolute;
     top: 0;
