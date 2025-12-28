@@ -223,6 +223,13 @@
         console.log('[PageExporter] Added inline styles to timeline section');
       }
       
+      // Remove YouTube placeholder divs (edit-mode only)
+      const placeholders = tempDiv.querySelectorAll('.hero-video-ph, .wb-media-ph');
+      placeholders.forEach(ph => {
+        console.log('[PageExporter] Removing YouTube placeholder:', ph.className);
+        ph.remove();
+      });
+      
       // Ensure YouTube iframes have autoplay in preview
       const youtubeIframes = tempDiv.querySelectorAll('.hero-video iframe, .roadbook-hero iframe');
       youtubeIframes.forEach(iframe => {
