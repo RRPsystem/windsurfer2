@@ -5954,7 +5954,7 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
                 iframe.src = url.toString();
                 iframe.allow = 'autoplay; encrypted-media';
                 iframe.allowFullscreen = false;
-                iframe.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: 0; pointer-events: none;';
+                iframe.style.cssText = 'position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; border: none !important; z-index: 0 !important; pointer-events: none !important; object-fit: cover !important;';
                 hero.insertBefore(iframe, hero.firstChild);
                 console.log('[Roadbook] YouTube video added with autoplay:', url.toString());
             } else {
