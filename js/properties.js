@@ -5965,12 +5965,13 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
                 const iframe = document.createElement('iframe');
                 iframe.setAttribute('title', 'Hero Background Video');
                 iframe.setAttribute('frameborder', '0');
-                iframe.setAttribute('allow', 'autoplay; encrypted-media');
-                iframe.setAttribute('allowfullscreen', '');
+                iframe.setAttribute('allow', 'autoplay; encrypted-media; accelerometer; gyroscope; picture-in-picture');
+                iframe.setAttribute('allowfullscreen', 'true');
                 iframe.style.position = 'absolute';
                 iframe.style.top = '50%';
                 iframe.style.left = '50%';
                 iframe.style.transform = 'translate(-50%, -50%)';
+                iframe.style.border = 'none';
                 iframe.src = url.toString();
                 
                 // Fit video to cover entire hero (same logic as normal hero)
