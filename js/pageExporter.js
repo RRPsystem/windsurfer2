@@ -232,6 +232,7 @@
       
       // Generate video playlists and YouTube iframes from dataset attributes for roadbook heroes
       const roadbookComponents = tempDiv.querySelectorAll('.wb-roadbook');
+      console.log('[PageExporter] Found roadbook components:', roadbookComponents.length);
       roadbookComponents.forEach(component => {
         const videoType = component.dataset.heroVideoType;
         const hero = component.querySelector('.roadbook-hero');
