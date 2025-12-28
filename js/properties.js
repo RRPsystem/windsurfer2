@@ -5959,7 +5959,7 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
                 iframe.src = url.toString();
                 iframe.allow = 'autoplay; encrypted-media';
                 iframe.allowFullscreen = false;
-                iframe.style.cssText = 'position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; border: none !important; z-index: 0 !important; pointer-events: none !important; object-fit: cover !important;';
+                // Let CSS handle positioning and sizing for proper viewport-based scaling
                 hero.insertBefore(iframe, hero.firstChild);
                 
                 // Store embed URL in dataset for export
