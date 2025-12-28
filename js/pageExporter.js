@@ -247,14 +247,29 @@
               hero.insertBefore(videoWrap, hero.firstChild);
             }
             
-            // Create iframe
+            // Create iframe with proper sizing for cover effect
             const iframe = document.createElement('iframe');
             iframe.setAttribute('title', 'Hero Background Video');
             iframe.setAttribute('frameborder', '0');
             iframe.setAttribute('allow', 'autoplay; encrypted-media; accelerometer; gyroscope; picture-in-picture');
             iframe.setAttribute('allowfullscreen', 'true');
-            iframe.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: none; width: 100%; height: 100%;';
             iframe.src = embedUrl;
+            
+            // Apply fitVideo logic for cover effect
+            const heroWidth = 1200; // Default width assumption
+            const heroHeight = 400; // From CSS fixed height
+            const containerRatio = heroWidth / heroHeight;
+            const videoRatio = 16 / 9;
+            
+            let iframeStyles = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: none;';
+            if (containerRatio < videoRatio) {
+              // Container is taller -> match height, expand width
+              iframeStyles += ` height: 100%; width: ${Math.ceil(heroHeight * videoRatio)}px;`;
+            } else {
+              // Container is wider -> match width, expand height
+              iframeStyles += ` width: 100%; height: ${Math.ceil(heroWidth / videoRatio)}px;`;
+            }
+            iframe.style.cssText = iframeStyles;
             
             videoWrap.innerHTML = '';
             videoWrap.appendChild(iframe);
