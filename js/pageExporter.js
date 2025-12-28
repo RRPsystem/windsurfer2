@@ -241,7 +241,10 @@
         // Handle video playlists
         if (videoType === 'playlist' && component.dataset.heroVideoPlaylist) {
           try {
+            console.log('[PageExporter] Found playlist dataset:', component.dataset.heroVideoPlaylist);
             const playlist = JSON.parse(component.dataset.heroVideoPlaylist);
+            console.log('[PageExporter] Parsed playlist:', playlist);
+            
             if (playlist && playlist.length > 0) {
               // Create video element for playlist
               const video = document.createElement('video');
@@ -253,6 +256,7 @@
               
               // Set first video as source
               video.src = playlist[0];
+              console.log('[PageExporter] First video URL:', playlist[0]);
               
               // Add playlist logic
               video.dataset.playlist = JSON.stringify(playlist);
@@ -260,20 +264,30 @@
               
               // Add event listener for playlist progression
               video.addEventListener('ended', function() {
+                console.log('[Preview] Video ended, playing next...');
                 const pl = JSON.parse(this.dataset.playlist);
                 let idx = parseInt(this.dataset.currentIndex) + 1;
-                if (idx >= pl.length) idx = 0; // Loop back to start
+                if (idx >= pl.length) {
+                  console.log('[Preview] Playlist complete, looping back to start');
+                  idx = 0;
+                }
+                console.log('[Preview] Loading video', idx + 1, 'of', pl.length);
                 this.src = pl[idx];
                 this.dataset.currentIndex = idx.toString();
-                this.play().catch(e => console.warn('Playlist play error:', e));
+                this.play().catch(e => console.warn('[Preview] Playlist play error:', e));
               });
               
               hero.insertBefore(video, hero.firstChild);
-              console.log('[PageExporter] Generated video playlist for roadbook hero:', playlist.length, 'videos');
+              console.log('[PageExporter] ✅ Generated video playlist for roadbook hero:', playlist.length, 'videos');
+            } else {
+              console.warn('[PageExporter] Playlist is empty or invalid');
             }
           } catch (e) {
             console.error('[PageExporter] Failed to parse playlist:', e);
+            console.error('[PageExporter] Dataset value:', component.dataset.heroVideoPlaylist);
           }
+        } else {
+          console.log('[PageExporter] No playlist found. VideoType:', videoType, 'Has dataset:', !!component.dataset.heroVideoPlaylist);
         }
         // Handle YouTube iframes
         else if (videoType === 'youtube') {

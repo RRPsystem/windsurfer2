@@ -5979,10 +5979,12 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
                 hero.insertBefore(video, hero.firstChild);
                 
                 // Store playlist in dataset for export
-                component.dataset.heroVideoPlaylist = JSON.stringify(res.playlist.map(v => v.videoUrl));
+                const playlistUrls = res.playlist.map(v => v.videoUrl);
+                component.dataset.heroVideoPlaylist = JSON.stringify(playlistUrls);
                 component.dataset.heroVideoType = 'playlist';
                 
                 console.log('[Roadbook] Video playlist initialized');
+                console.log('[Roadbook] Playlist URLs saved to dataset:', playlistUrls);
             } else if (res.source === 'youtube' || mediaUrl.includes('youtube.com/embed')) {
                 // Build YouTube URL with all parameters
                 const url = new URL(mediaUrl);
