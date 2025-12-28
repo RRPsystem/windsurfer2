@@ -5955,11 +5955,17 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
                 
                 // Add YouTube iframe that covers entire hero
                 const iframe = document.createElement('iframe');
+                iframe.className = 'roadbook-hero-video';
                 iframe.src = url.toString();
                 iframe.allow = 'autoplay; encrypted-media';
                 iframe.allowFullscreen = false;
                 iframe.style.cssText = 'position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; border: none !important; z-index: 0 !important; pointer-events: none !important; object-fit: cover !important;';
                 hero.insertBefore(iframe, hero.firstChild);
+                
+                // Store embed URL in dataset for export
+                component.dataset.heroVideoEmbed = url.toString();
+                component.dataset.heroVideoType = 'youtube';
+                
                 console.log('[Roadbook] YouTube video added with autoplay:', url.toString());
             } else {
                 // Add HTML5 video for Pexels/other sources
