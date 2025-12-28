@@ -292,6 +292,51 @@
               });
               
               hero.insertBefore(video, hero.firstChild);
+              
+              // Add inline script to force play after page load
+              const script = document.createElement('script');
+              script.textContent = `
+                (function() {
+                  console.log('[Preview Init] Setting up video autoplay...');
+                  
+                  function tryAutoplay() {
+                    const videos = document.querySelectorAll('.roadbook-hero video');
+                    videos.forEach(function(video) {
+                      if (video.paused) {
+                        console.log('[Preview Init] Attempting to play video...');
+                        video.play().then(function() {
+                          console.log('[Preview Init] ✅ Video playing');
+                        }).catch(function(e) {
+                          console.warn('[Preview Init] ⚠️ Autoplay failed:', e.message);
+                          // Add click-to-play overlay
+                          const overlay = document.createElement('div');
+                          overlay.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;';
+                          overlay.innerHTML = '<div style="background:white;padding:20px 40px;border-radius:8px;font-size:18px;font-weight:600;">▶ Klik om video te starten</div>';
+                          overlay.onclick = function() {
+                            video.play();
+                            overlay.remove();
+                          };
+                          video.parentElement.appendChild(overlay);
+                        });
+                      }
+                    });
+                  }
+                  
+                  // Try immediately
+                  if (document.readyState === 'complete') {
+                    tryAutoplay();
+                  } else {
+                    window.addEventListener('load', tryAutoplay);
+                  }
+                  
+                  // Also try on any user interaction
+                  document.addEventListener('click', function() {
+                    tryAutoplay();
+                  }, { once: true });
+                })();
+              `;
+              tempDiv.appendChild(script);
+              
               console.log('[PageExporter] ✅ Generated video playlist for roadbook hero:', playlist.length, 'videos');
             } else {
               console.warn('[PageExporter] Playlist is empty or invalid');
