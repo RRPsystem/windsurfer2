@@ -5938,7 +5938,7 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
         if (isVideo) {
             // Check if it's a YouTube video (embedUrl contains youtube.com/embed)
             if (res.source === 'youtube' || mediaUrl.includes('youtube.com/embed')) {
-                // Add autoplay and mute parameters to URL
+                // Build YouTube URL with all parameters
                 const url = new URL(mediaUrl);
                 url.searchParams.set('autoplay', '1');
                 url.searchParams.set('mute', '1');
@@ -5960,54 +5960,79 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
                     url.searchParams.set('playlist', videoId);
                 }
                 
-                // Add YouTube iframe with wrapper (same as normal hero)
-                let videoWrap = hero.querySelector('.hero-video');
-                if (!videoWrap) {
-                    videoWrap = document.createElement('div');
-                    videoWrap.className = 'hero-video';
-                    videoWrap.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 0;';
-                    hero.insertBefore(videoWrap, hero.firstChild);
-                }
-                
-                const iframe = document.createElement('iframe');
-                iframe.setAttribute('title', 'Hero Background Video');
-                iframe.setAttribute('frameborder', '0');
-                iframe.setAttribute('allow', 'autoplay; encrypted-media; accelerometer; gyroscope; picture-in-picture');
-                iframe.setAttribute('allowfullscreen', 'true');
-                iframe.style.position = 'absolute';
-                iframe.style.top = '50%';
-                iframe.style.left = '50%';
-                iframe.style.transform = 'translate(-50%, -50%)';
-                iframe.style.border = 'none';
-                iframe.src = url.toString();
-                
-                // Fit video to cover entire hero (same logic as normal hero)
-                const fitVideo = () => {
-                    const w = hero.offsetWidth;
-                    const h = hero.offsetHeight;
-                    if (!w || !h) return;
-                    const containerRatio = w / h;
-                    const videoRatio = 16 / 9;
-                    if (containerRatio < videoRatio) {
-                        // container is taller -> match height, expand width
-                        iframe.style.height = '100%';
-                        iframe.style.width = `${Math.ceil(h * videoRatio)}px`;
-                    } else {
-                        // container is wider -> match width, expand height
-                        iframe.style.width = '100%';
-                        iframe.style.height = `${Math.ceil(w / videoRatio)}px`;
-                    }
-                };
-                
-                videoWrap.innerHTML = '';
-                videoWrap.appendChild(iframe);
-                fitVideo();
-                
-                // Store embed URL in dataset for export
+                // Store URL for export
                 component.dataset.heroVideoEmbed = url.toString();
                 component.dataset.heroVideoType = 'youtube';
+                component.dataset.heroVideoId = videoId;
                 
-                console.log('[Roadbook] YouTube video added with autoplay:', url.toString());
+                // In edit mode, show thumbnail placeholder
+                const isEditMode = !!(document.body?.dataset?.wbMode === 'edit');
+                if (isEditMode) {
+                    // Show placeholder with thumbnail
+                    let placeholder = hero.querySelector('.wb-media-ph');
+                    if (!placeholder) {
+                        placeholder = document.createElement('div');
+                        placeholder.className = 'wb-media-ph';
+                        placeholder.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 0; cursor: pointer;';
+                        hero.insertBefore(placeholder, hero.firstChild);
+                    }
+                    placeholder.style.backgroundImage = `url(https://img.youtube.com/vi/${videoId}/hqdefault.jpg)`;
+                    
+                    // Add play button overlay
+                    let playBtn = placeholder.querySelector('.play-overlay');
+                    if (!playBtn) {
+                        playBtn = document.createElement('div');
+                        playBtn.className = 'play-overlay';
+                        playBtn.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 68px; height: 48px; background: rgba(0,0,0,.45); border-radius: 8px; pointer-events: none;';
+                        playBtn.innerHTML = '<svg viewBox="0 0 68 48" style="width:100%;height:100%"><path d="M66.52 7.74a8 8 0 0 0-5.65-5.66C56.5 1 34 1 34 1S11.5 1 7.13 2.08A8 8 0 0 0 1.48 7.74 83.3 83.3 0 0 0 0 24a83.3 83.3 0 0 0 1.48 16.26 8 8 0 0 0 5.65 5.66C11.5 47 34 47 34 47s22.5 0 26.87-1.08a8 8 0 0 0 5.65-5.66A83.3 83.3 0 0 0 68 24a83.3 83.3 0 0 0-1.48-16.26Z" fill="#212121" fill-opacity=".8"/><path d="M45 24 27 14v20" fill="#fff"/></svg>';
+                        placeholder.appendChild(playBtn);
+                    }
+                    
+                    console.log('[Roadbook] YouTube placeholder added for edit mode');
+                } else {
+                    // In preview mode, add actual iframe
+                    let videoWrap = hero.querySelector('.hero-video');
+                    if (!videoWrap) {
+                        videoWrap = document.createElement('div');
+                        videoWrap.className = 'hero-video';
+                        videoWrap.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 0;';
+                        hero.insertBefore(videoWrap, hero.firstChild);
+                    }
+                    
+                    const iframe = document.createElement('iframe');
+                    iframe.setAttribute('title', 'Hero Background Video');
+                    iframe.setAttribute('frameborder', '0');
+                    iframe.setAttribute('allow', 'autoplay; encrypted-media; accelerometer; gyroscope; picture-in-picture');
+                    iframe.setAttribute('allowfullscreen', 'true');
+                    iframe.style.position = 'absolute';
+                    iframe.style.top = '50%';
+                    iframe.style.left = '50%';
+                    iframe.style.transform = 'translate(-50%, -50%)';
+                    iframe.style.border = 'none';
+                    iframe.src = url.toString();
+                    
+                    // Fit video to cover entire hero
+                    const fitVideo = () => {
+                        const w = hero.offsetWidth;
+                        const h = hero.offsetHeight;
+                        if (!w || !h) return;
+                        const containerRatio = w / h;
+                        const videoRatio = 16 / 9;
+                        if (containerRatio < videoRatio) {
+                            iframe.style.height = '100%';
+                            iframe.style.width = `${Math.ceil(h * videoRatio)}px`;
+                        } else {
+                            iframe.style.width = '100%';
+                            iframe.style.height = `${Math.ceil(w / videoRatio)}px`;
+                        }
+                    };
+                    
+                    videoWrap.innerHTML = '';
+                    videoWrap.appendChild(iframe);
+                    fitVideo();
+                    
+                    console.log('[Roadbook] YouTube iframe added for preview mode:', url.toString());
+                }
             } else {
                 // Add HTML5 video for Pexels/other sources
                 const video = document.createElement('video');
