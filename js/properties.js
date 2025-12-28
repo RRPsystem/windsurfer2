@@ -5908,11 +5908,15 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
         if (existingPlaceholder) existingPlaceholder.remove();
         
         // Determine media type and URL
-        const isVideo = res.type === 'video' || res.videoUrl || res.source === 'youtube';
+        const isVideo = res.type === 'video' || res.type === 'video-playlist' || res.videoUrl || res.source === 'youtube';
         
-        // For YouTube videos, use embedUrl or construct from id
-        let mediaUrl;
-        if (res.source === 'youtube') {
+        // For playlists, skip URL validation (handled separately)
+        let mediaUrl = null;
+        if (res.type === 'video-playlist') {
+            // Playlist will be handled in the video section
+            mediaUrl = 'playlist'; // Dummy value to pass validation
+        } else if (res.source === 'youtube') {
+            // For YouTube videos, use embedUrl or construct from id
             mediaUrl = res.embedUrl;
             if (!mediaUrl && res.id) {
                 const start = res.start || 0;
