@@ -248,6 +248,9 @@
             if (playlist && playlist.length > 0) {
               // Create video element for playlist
               const video = document.createElement('video');
+              video.setAttribute('autoplay', '');
+              video.setAttribute('muted', '');
+              video.setAttribute('playsinline', '');
               video.autoplay = true;
               video.loop = false;
               video.muted = true;
@@ -262,6 +265,17 @@
               video.dataset.playlist = JSON.stringify(playlist);
               video.dataset.currentIndex = '0';
               
+              // Force play after load
+              video.addEventListener('loadeddata', function() {
+                console.log('[Preview] Video loaded, attempting autoplay...');
+                this.play().then(() => {
+                  console.log('[Preview] ✅ Autoplay successful');
+                }).catch(e => {
+                  console.warn('[Preview] ⚠️ Autoplay blocked:', e.message);
+                  console.warn('[Preview] User interaction required to start video');
+                });
+              }, { once: true });
+              
               // Add event listener for playlist progression
               video.addEventListener('ended', function() {
                 console.log('[Preview] Video ended, playing next...');
@@ -274,7 +288,7 @@
                 console.log('[Preview] Loading video', idx + 1, 'of', pl.length);
                 this.src = pl[idx];
                 this.dataset.currentIndex = idx.toString();
-                this.play().catch(e => console.warn('[Preview] Playlist play error:', e));
+                // Play will be triggered by loadeddata event
               });
               
               hero.insertBefore(video, hero.firstChild);
