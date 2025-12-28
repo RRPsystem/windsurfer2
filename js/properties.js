@@ -5936,8 +5936,48 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
         
         // Add new media
         if (isVideo) {
-            // Check if it's a YouTube video (embedUrl contains youtube.com/embed)
-            if (res.source === 'youtube' || mediaUrl.includes('youtube.com/embed')) {
+            // Check if it's a video playlist (multiple videos)
+            if (res.type === 'video-playlist' && res.playlist && res.playlist.length > 0) {
+                console.log('[Roadbook] Video playlist selected:', res.playlist.length, 'videos');
+                
+                // Create video element for playlist
+                const video = document.createElement('video');
+                video.autoplay = true;
+                video.loop = false; // Don't loop, we'll handle playlist
+                video.muted = true;
+                video.playsInline = true;
+                video.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;';
+                
+                let currentIndex = 0;
+                const playNext = () => {
+                    if (currentIndex < res.playlist.length) {
+                        const currentVideo = res.playlist[currentIndex];
+                        video.src = currentVideo.videoUrl;
+                        video.load();
+                        video.play().catch(e => console.warn('[Roadbook] Playlist play error:', e));
+                        console.log('[Roadbook] Playing video', currentIndex + 1, 'of', res.playlist.length);
+                        currentIndex++;
+                    } else {
+                        // Restart playlist from beginning
+                        currentIndex = 0;
+                        playNext();
+                    }
+                };
+                
+                // When video ends, play next
+                video.addEventListener('ended', playNext);
+                
+                // Start first video
+                playNext();
+                
+                hero.insertBefore(video, hero.firstChild);
+                
+                // Store playlist in dataset for export
+                component.dataset.heroVideoPlaylist = JSON.stringify(res.playlist.map(v => v.videoUrl));
+                component.dataset.heroVideoType = 'playlist';
+                
+                console.log('[Roadbook] Video playlist initialized');
+            } else if (res.source === 'youtube' || mediaUrl.includes('youtube.com/embed')) {
                 // Build YouTube URL with all parameters
                 const url = new URL(mediaUrl);
                 url.searchParams.set('autoplay', '1');

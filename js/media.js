@@ -370,9 +370,18 @@ class MediaPicker {
               let hoverTimeout = null;
               
               // Preload video on first hover
+              // Multi-select state
+              let isSelected = false;
+              const selectedCheckmark = document.createElement('div');
+              selectedCheckmark.style.cssText = 'position:absolute; top:8px; left:8px; width:28px; height:28px; background:#22c55e; border-radius:50%; display:none; align-items:center; justify-content:center; z-index:4; box-shadow:0 2px 8px rgba(34,197,94,0.4);';
+              selectedCheckmark.innerHTML = '<i class="fas fa-check" style="color:white; font-size:14px;"></i>';
+              tile.appendChild(selectedCheckmark);
+              
               tile.addEventListener('mouseenter', () => {
-                tile.style.transform = 'scale(1.02)';
-                tile.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                if (!isSelected) {
+                  tile.style.transform = 'scale(1.02)';
+                  tile.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                }
                 hoverOverlay.style.opacity = '1';
                 videoInfo.style.opacity = '1';
                 playIcon.style.opacity = '0';
@@ -407,24 +416,57 @@ class MediaPicker {
                 videoPreview.currentTime = 0;
                 videoPreview.style.display = 'none';
                 thumbnail.style.display = 'block';
-                tile.style.transform = 'scale(1)';
-                tile.style.boxShadow = 'none';
+                if (!isSelected) {
+                  tile.style.transform = 'scale(1)';
+                  tile.style.boxShadow = 'none';
+                }
+                hoverOverlay.style.opacity = '0';
+                videoInfo.style.opacity = '0';
                 playIcon.style.opacity = '1';
               });
               
+              // Multi-select click handler
               tile.onclick = () => {
-                resolve({ 
-                  source: 'pexels', 
-                  type: 'video', 
-                  url: hdFile.link,
-                  videoUrl: hdFile.link,
-                  thumbnail: video.image,
-                  duration: video.duration,
-                  width: hdFile.width,
-                  height: hdFile.height,
-                  id: video.id
-                });
-                close();
+                isSelected = !isSelected;
+                
+                if (isSelected) {
+                  // Add to selection
+                  tile.style.border = '3px solid #22c55e';
+                  tile.style.transform = 'scale(0.98)';
+                  tile.style.boxShadow = '0 0 0 3px rgba(34,197,94,0.2)';
+                  selectedCheckmark.style.display = 'flex';
+                  
+                  if (!window._pexelsSelectedVideos) window._pexelsSelectedVideos = [];
+                  window._pexelsSelectedVideos.push({
+                    source: 'pexels',
+                    type: 'video',
+                    url: hdFile.link,
+                    videoUrl: hdFile.link,
+                    thumbnail: video.image,
+                    duration: video.duration,
+                    width: hdFile.width,
+                    height: hdFile.height,
+                    id: video.id
+                  });
+                } else {
+                  // Remove from selection
+                  tile.style.border = '1px solid #e5e7eb';
+                  tile.style.transform = 'scale(1)';
+                  tile.style.boxShadow = 'none';
+                  selectedCheckmark.style.display = 'none';
+                  
+                  if (window._pexelsSelectedVideos) {
+                    window._pexelsSelectedVideos = window._pexelsSelectedVideos.filter(v => v.id !== video.id);
+                  }
+                }
+                
+                // Update counter and button
+                const count = window._pexelsSelectedVideos ? window._pexelsSelectedVideos.length : 0;
+                const counterEl = pexelsPane ? pexelsPane.querySelector('.pexels-selected-count') : null;
+                const useBtn = pexelsPane ? pexelsPane.querySelector('.pexels-use-selected') : null;
+                
+                if (counterEl) counterEl.textContent = `${count} video's geselecteerd`;
+                if (useBtn) useBtn.disabled = count === 0;
               };
               if (grid) grid.appendChild(tile);
             });
@@ -444,6 +486,22 @@ class MediaPicker {
         const pexelsSearchBtn = pexelsPane ? pexelsPane.querySelector('.pexels-search') : null;
         if (pexelsSearchBtn) pexelsSearchBtn.addEventListener('click', () => runPexelsSearch(false));
         if (moreBtnPexels) moreBtnPexels.addEventListener('click', () => { currentPage += 1; runPexelsSearch(true); });
+        
+        // Use Selected button handler
+        const useSelectedBtn = pexelsPane ? pexelsPane.querySelector('.pexels-use-selected') : null;
+        if (useSelectedBtn) {
+          useSelectedBtn.addEventListener('click', () => {
+            if (window._pexelsSelectedVideos && window._pexelsSelectedVideos.length > 0) {
+              resolve({
+                source: 'pexels',
+                type: 'video-playlist',
+                playlist: window._pexelsSelectedVideos,
+                count: window._pexelsSelectedVideos.length
+              });
+              close();
+            }
+          });
+        }
         
         // Auto-focus search input when tab opens
         const pexelsTabBtn = tabs.find(b => b.getAttribute('data-tab')==='pexels');
