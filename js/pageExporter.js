@@ -230,14 +230,56 @@
         ph.remove();
       });
       
-      // Generate YouTube iframes from dataset attributes for roadbook heroes
+      // Generate video playlists and YouTube iframes from dataset attributes for roadbook heroes
       const roadbookComponents = tempDiv.querySelectorAll('.wb-roadbook');
       roadbookComponents.forEach(component => {
-        const embedUrl = component.dataset.heroVideoEmbed;
-        const videoId = component.dataset.heroVideoId;
-        if (embedUrl && videoId) {
-          const hero = component.querySelector('.roadbook-hero');
-          if (hero) {
+        const videoType = component.dataset.heroVideoType;
+        const hero = component.querySelector('.roadbook-hero');
+        
+        if (!hero) return;
+        
+        // Handle video playlists
+        if (videoType === 'playlist' && component.dataset.heroVideoPlaylist) {
+          try {
+            const playlist = JSON.parse(component.dataset.heroVideoPlaylist);
+            if (playlist && playlist.length > 0) {
+              // Create video element for playlist
+              const video = document.createElement('video');
+              video.autoplay = true;
+              video.loop = false;
+              video.muted = true;
+              video.playsInline = true;
+              video.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;';
+              
+              // Set first video as source
+              video.src = playlist[0];
+              
+              // Add playlist logic
+              video.dataset.playlist = JSON.stringify(playlist);
+              video.dataset.currentIndex = '0';
+              
+              // Add event listener for playlist progression
+              video.addEventListener('ended', function() {
+                const pl = JSON.parse(this.dataset.playlist);
+                let idx = parseInt(this.dataset.currentIndex) + 1;
+                if (idx >= pl.length) idx = 0; // Loop back to start
+                this.src = pl[idx];
+                this.dataset.currentIndex = idx.toString();
+                this.play().catch(e => console.warn('Playlist play error:', e));
+              });
+              
+              hero.insertBefore(video, hero.firstChild);
+              console.log('[PageExporter] Generated video playlist for roadbook hero:', playlist.length, 'videos');
+            }
+          } catch (e) {
+            console.error('[PageExporter] Failed to parse playlist:', e);
+          }
+        }
+        // Handle YouTube iframes
+        else if (videoType === 'youtube') {
+          const embedUrl = component.dataset.heroVideoEmbed;
+          const videoId = component.dataset.heroVideoId;
+          if (embedUrl && videoId) {
             // Create video wrapper
             let videoWrap = hero.querySelector('.hero-video');
             if (!videoWrap) {
