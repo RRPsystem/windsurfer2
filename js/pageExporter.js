@@ -286,8 +286,6 @@
             console.error('[PageExporter] Failed to parse playlist:', e);
             console.error('[PageExporter] Dataset value:', component.dataset.heroVideoPlaylist);
           }
-        } else {
-          console.log('[PageExporter] No playlist found. VideoType:', videoType, 'Has dataset:', !!component.dataset.heroVideoPlaylist);
         }
         // Handle YouTube iframes
         else if (videoType === 'youtube') {
