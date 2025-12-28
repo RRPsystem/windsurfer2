@@ -265,7 +265,7 @@
               video.dataset.playlist = JSON.stringify(playlist);
               video.dataset.currentIndex = '0';
               
-              // Force play after load
+              // Force play after load (for every video in playlist)
               video.addEventListener('loadeddata', function() {
                 console.log('[Preview] Video loaded, attempting autoplay...');
                 this.play().then(() => {
@@ -274,7 +274,7 @@
                   console.warn('[Preview] ⚠️ Autoplay blocked:', e.message);
                   console.warn('[Preview] User interaction required to start video');
                 });
-              }, { once: true });
+              });
               
               // Add event listener for playlist progression
               video.addEventListener('ended', function() {
