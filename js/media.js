@@ -82,10 +82,12 @@ class MediaPicker {
             <p class="yt-note"></p>
             <button class="btn btn-primary btn-lg yt-more" disabled>Laad meer video’s</button>
           </div>
-          <div class="mp-help">Geen API key? Plak een URL hieronder:</div>
-          <div class="mp-row">
-            <input type="text" class="form-control yt-url" placeholder="Plak YouTube URL (https://youtu.be/...)" />
-            <button class="btn btn-secondary yt-use">Gebruik URL</button>
+          <div class="mp-help" style="margin-top: 20px; padding: 12px; background: #f0f9ff; border-left: 3px solid #3b82f6; border-radius: 4px;">
+            <strong>💡 Geen API key?</strong> Plak een YouTube URL hieronder:
+          </div>
+          <div class="mp-row" style="gap: 8px; margin-top: 12px;">
+            <input type="text" class="form-control yt-url" placeholder="Plak YouTube URL (https://youtu.be/...)" style="flex: 1;" />
+            <button class="btn btn-primary yt-use" style="white-space: nowrap; padding: 8px 20px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Gebruiken</button>
           </div>
         </div>
 
