@@ -223,6 +223,27 @@
         console.log('[PageExporter] Added inline styles to timeline section');
       }
       
+      // Ensure YouTube iframes have autoplay in preview
+      const youtubeIframes = tempDiv.querySelectorAll('.hero-video iframe, .roadbook-hero iframe');
+      youtubeIframes.forEach(iframe => {
+        const src = iframe.getAttribute('src');
+        if (src && src.includes('youtube.com/embed')) {
+          try {
+            const url = new URL(src);
+            // Ensure autoplay parameters are set for preview
+            if (!url.searchParams.has('autoplay')) url.searchParams.set('autoplay', '1');
+            if (!url.searchParams.has('mute')) url.searchParams.set('mute', '1');
+            if (!url.searchParams.has('loop')) url.searchParams.set('loop', '1');
+            if (!url.searchParams.has('controls')) url.searchParams.set('controls', '0');
+            if (!url.searchParams.has('playsinline')) url.searchParams.set('playsinline', '1');
+            iframe.setAttribute('src', url.toString());
+            console.log('[PageExporter] Updated YouTube iframe with autoplay:', url.toString());
+          } catch (e) {
+            console.warn('[PageExporter] Could not parse YouTube URL:', src);
+          }
+        }
+      });
+      
       canvasHTML = tempDiv.innerHTML;
       
       // Get CSS files
