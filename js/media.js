@@ -81,16 +81,16 @@ class MediaPicker {
             <input type="text" class="form-control storyblocks-query" placeholder="Zoek premium video's (bv. aerial city, nature)" />
             <button class="btn btn-primary btn-lg storyblocks-search"><i class="fas fa-search"></i></button>
           </div>
-          <div class="mp-help" style="margin-bottom: 12px; padding: 10px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 4px;">
+          <div class="mp-help" style="margin-bottom: 12px; padding: 10px; background: #fefce8; border-left: 3px solid #eab308; border-radius: 4px;">
             <strong>🎬 Premium Content:</strong> Storyblocks biedt professionele stock video's. Multi-select voor playlists!
           </div>
           <div class="storyblocks-grid"></div>
           <div class="mp-row mp-between mp-more-row">
             <p class="storyblocks-note"></p>
             <div style="display: flex; gap: 12px; align-items: center;">
-              <span class="storyblocks-selected-count" style="font-size: 14px; color: #3b82f6; font-weight: 600;">0 video's geselecteerd</span>
-              <button class="btn btn-primary storyblocks-use-selected" disabled>Gebruik Geselecteerde</button>
-              <button class="btn btn-primary btn-lg storyblocks-more" disabled>Laad meer</button>
+              <span class="storyblocks-selected-count" style="font-size: 14px; color: #eab308; font-weight: 600;">0 video's geselecteerd</span>
+              <button class="btn storyblocks-use-selected" disabled style="background: #eab308; color: #000; font-weight: 600;">Gebruik Geselecteerde</button>
+              <button class="btn btn-lg storyblocks-more" disabled style="background: #eab308; color: #000; font-weight: 600;">Laad meer</button>
             </div>
           </div>
         </div>
@@ -596,14 +596,14 @@ class MediaPicker {
               
               // Premium badge
               const premiumBadge = document.createElement('div');
-              premiumBadge.style.cssText = 'position:absolute; top:8px; left:8px; background:#3b82f6; color:white; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700; z-index:2;';
+              premiumBadge.style.cssText = 'position:absolute; top:8px; left:8px; background:#eab308; color:#000; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700; z-index:2;';
               premiumBadge.textContent = 'PREMIUM';
               
               // Multi-select state
               let isSelected = false;
               const selectedCheckmark = document.createElement('div');
-              selectedCheckmark.style.cssText = 'position:absolute; top:8px; left:8px; width:28px; height:28px; background:#3b82f6; border-radius:50%; display:none; align-items:center; justify-content:center; z-index:4; box-shadow:0 2px 8px rgba(59,130,246,0.4);';
-              selectedCheckmark.innerHTML = '<i class="fas fa-check" style="color:white; font-size:14px;"></i>';
+              selectedCheckmark.style.cssText = 'position:absolute; top:8px; left:8px; width:28px; height:28px; background:#eab308; border-radius:50%; display:none; align-items:center; justify-content:center; z-index:4; box-shadow:0 2px 8px rgba(234,179,8,0.4);';
+              selectedCheckmark.innerHTML = '<i class="fas fa-check" style="color:#000; font-size:14px;"></i>';
               
               tile.appendChild(thumbnailImg);
               tile.appendChild(badge);
@@ -629,9 +629,9 @@ class MediaPicker {
                 isSelected = !isSelected;
                 
                 if (isSelected) {
-                  tile.style.border = '3px solid #3b82f6';
+                  tile.style.border = '3px solid #eab308';
                   tile.style.transform = 'scale(0.98)';
-                  tile.style.boxShadow = '0 0 0 3px rgba(59,130,246,0.2)';
+                  tile.style.boxShadow = '0 0 0 3px rgba(234,179,8,0.2)';
                   selectedCheckmark.style.display = 'flex';
                   premiumBadge.style.display = 'none';
                   
