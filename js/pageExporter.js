@@ -230,6 +230,39 @@
         ph.remove();
       });
       
+      // Generate YouTube iframes from dataset attributes for roadbook heroes
+      const roadbookComponents = tempDiv.querySelectorAll('.wb-roadbook');
+      roadbookComponents.forEach(component => {
+        const embedUrl = component.dataset.heroVideoEmbed;
+        const videoId = component.dataset.heroVideoId;
+        if (embedUrl && videoId) {
+          const hero = component.querySelector('.roadbook-hero');
+          if (hero) {
+            // Create video wrapper
+            let videoWrap = hero.querySelector('.hero-video');
+            if (!videoWrap) {
+              videoWrap = document.createElement('div');
+              videoWrap.className = 'hero-video';
+              videoWrap.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 0;';
+              hero.insertBefore(videoWrap, hero.firstChild);
+            }
+            
+            // Create iframe
+            const iframe = document.createElement('iframe');
+            iframe.setAttribute('title', 'Hero Background Video');
+            iframe.setAttribute('frameborder', '0');
+            iframe.setAttribute('allow', 'autoplay; encrypted-media; accelerometer; gyroscope; picture-in-picture');
+            iframe.setAttribute('allowfullscreen', 'true');
+            iframe.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: none; width: 100%; height: 100%;';
+            iframe.src = embedUrl;
+            
+            videoWrap.innerHTML = '';
+            videoWrap.appendChild(iframe);
+            console.log('[PageExporter] Generated YouTube iframe for roadbook hero:', embedUrl);
+          }
+        }
+      });
+      
       // Ensure YouTube iframes have autoplay in preview
       const youtubeIframes = tempDiv.querySelectorAll('.hero-video iframe, .roadbook-hero iframe');
       youtubeIframes.forEach(iframe => {
