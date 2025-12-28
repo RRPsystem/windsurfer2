@@ -5947,6 +5947,13 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
                 url.searchParams.set('showinfo', '0');
                 url.searchParams.set('modestbranding', '1');
                 url.searchParams.set('playsinline', '1');
+                
+                // Add start parameter if specified
+                const startSec = parseInt(res.start, 10) || 0;
+                if (startSec > 0) {
+                    url.searchParams.set('start', startSec.toString());
+                }
+                
                 // Get video ID for playlist parameter (needed for loop)
                 const videoId = res.id || url.pathname.split('/').pop();
                 if (videoId) {
