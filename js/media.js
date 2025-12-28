@@ -35,7 +35,8 @@ class MediaPicker {
         <div class="media-tabs">
           <button class="btn btn-secondary tab-btn active" data-tab="upload"><i class="fas fa-upload"></i> Upload</button>
           <button class="btn btn-secondary tab-btn" data-tab="unsplash"><i class="fab fa-unsplash"></i> Unsplash</button>
-          <button class="btn btn-secondary tab-btn" data-tab="pexels"><i class="fas fa-video"></i> Pexels (Multi-select)</button>
+          <button class="btn btn-secondary tab-btn" data-tab="pexels"><i class="fas fa-video"></i> Pexels</button>
+          <button class="btn btn-secondary tab-btn" data-tab="storyblocks"><i class="fas fa-film"></i> Storyblocks</button>
           <button class="btn btn-secondary tab-btn" data-tab="my-videos"><i class="fas fa-film"></i> Mijn Video's</button>
         </div>
 
@@ -75,6 +76,24 @@ class MediaPicker {
           </div>
         </div>
 
+        <div class="tab-content" data-tab="storyblocks" style="display:none;">
+          <div class="mp-row">
+            <input type="text" class="form-control storyblocks-query" placeholder="Zoek premium video's (bv. aerial city, nature)" />
+            <button class="btn btn-primary btn-lg storyblocks-search"><i class="fas fa-search"></i></button>
+          </div>
+          <div class="mp-help" style="margin-bottom: 12px; padding: 10px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 4px;">
+            <strong>🎬 Premium Content:</strong> Storyblocks biedt professionele stock video's. Multi-select voor playlists!
+          </div>
+          <div class="storyblocks-grid"></div>
+          <div class="mp-row mp-between mp-more-row">
+            <p class="storyblocks-note"></p>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <span class="storyblocks-selected-count" style="font-size: 14px; color: #3b82f6; font-weight: 600;">0 video's geselecteerd</span>
+              <button class="btn btn-primary storyblocks-use-selected" disabled>Gebruik Geselecteerde</button>
+              <button class="btn btn-primary btn-lg storyblocks-more" disabled>Laad meer</button>
+            </div>
+          </div>
+        </div>
 
         <div class="tab-content" data-tab="my-videos" style="display:none;">
           <div class="mp-row mp-between">
