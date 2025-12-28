@@ -35,8 +35,7 @@ class MediaPicker {
         <div class="media-tabs">
           <button class="btn btn-secondary tab-btn active" data-tab="upload"><i class="fas fa-upload"></i> Upload</button>
           <button class="btn btn-secondary tab-btn" data-tab="unsplash"><i class="fab fa-unsplash"></i> Unsplash</button>
-          <button class="btn btn-secondary tab-btn" data-tab="pexels"><i class="fas fa-video"></i> Pexels</button>
-          <button class="btn btn-secondary tab-btn" data-tab="youtube"><i class="fab fa-youtube"></i> YouTube</button>
+          <button class="btn btn-secondary tab-btn" data-tab="pexels"><i class="fas fa-video"></i> Pexels (Multi-select)</button>
           <button class="btn btn-secondary tab-btn" data-tab="my-videos"><i class="fas fa-film"></i> Mijn Video's</button>
         </div>
 
@@ -62,34 +61,20 @@ class MediaPicker {
             <input type="text" class="form-control pexels-query" placeholder="Zoek video's (bv. Paris travel, beach sunset)" />
             <button class="btn btn-primary btn-lg pexels-search"><i class="fas fa-search"></i></button>
           </div>
+          <div class="mp-help" style="margin-bottom: 12px; padding: 10px; background: #f0fdf4; border-left: 3px solid #22c55e; border-radius: 4px;">
+            <strong>✨ Multi-select:</strong> Klik op meerdere video's om een playlist te maken. Ze spelen automatisch achter elkaar af!
+          </div>
           <div class="pexels-grid"></div>
           <div class="mp-row mp-between mp-more-row">
             <p class="pexels-note"></p>
-            <button class="btn btn-primary btn-lg pexels-more" disabled>Laad meer video's</button>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <span class="pexels-selected-count" style="font-size: 14px; color: #22c55e; font-weight: 600;">0 video's geselecteerd</span>
+              <button class="btn btn-success pexels-use-selected" disabled style="background: #22c55e;">Gebruik Geselecteerde</button>
+              <button class="btn btn-primary btn-lg pexels-more" disabled>Laad meer</button>
+            </div>
           </div>
         </div>
 
-        <div class="tab-content" data-tab="youtube" style="display:none;">
-          <div class="mp-row">
-            <input type="text" class="form-control yt-query" placeholder="Zoek op YouTube (bv. travel vlog)" />
-            <button class="btn btn-primary btn-lg yt-search"><i class="fas fa-search"></i></button>
-            <div style="flex:1"></div>
-            <label style="font-size:12px;color:#555;">Start (s)</label>
-            <input type="number" class="form-control yt-start" value="0" min="0" step="1" style="width:80px;" />
-          </div>
-          <div class="yt-grid"></div>
-          <div class="mp-row mp-between mp-more-row">
-            <p class="yt-note"></p>
-            <button class="btn btn-primary btn-lg yt-more" disabled>Laad meer video’s</button>
-          </div>
-          <div class="mp-help" style="margin-top: 20px; padding: 12px; background: #f0f9ff; border-left: 3px solid #3b82f6; border-radius: 4px;">
-            <strong>💡 Geen API key?</strong> Plak een YouTube URL hieronder:
-          </div>
-          <div class="mp-row" style="gap: 8px; margin-top: 12px;">
-            <input type="text" class="form-control yt-url" placeholder="Plak YouTube URL (https://youtu.be/...)" style="flex: 1;" />
-            <button class="btn btn-primary yt-use" style="white-space: nowrap; padding: 8px 20px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Gebruiken</button>
-          </div>
-        </div>
 
         <div class="tab-content" data-tab="my-videos" style="display:none;">
           <div class="mp-row mp-between">
