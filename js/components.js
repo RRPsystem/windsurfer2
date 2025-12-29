@@ -7364,8 +7364,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
         
         // Set tube and line height based on itinerary content height
         const itineraryWrap = document.getElementById('itinerary-wrap');
-        const tube = document.querySelector('.roadbook-tube');
-        const line = document.querySelector('.roadbook-line');
+        const tube = document.querySelector('.tube');
+        const line = document.querySelector('.line');
         const itinerary = document.querySelector('#itinerary-wrap .itinerary');
         
         console.log('[Roadbook] Road elements found:', {
