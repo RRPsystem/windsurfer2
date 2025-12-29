@@ -7298,15 +7298,30 @@ ComponentFactory.createRoadbook = function(options = {}) {
         }
         
         // Set tube and line height based on itinerary content height
-        const itineraryWrap = section.querySelector('#itinerary-wrap');
-        const tube = section.querySelector('.roadbook-tube');
-        const line = section.querySelector('.roadbook-line');
-        const itinerary = section.querySelector('.itinerary');
+        const itineraryWrap = document.getElementById('itinerary-wrap');
+        const tube = document.querySelector('.roadbook-tube');
+        const line = document.querySelector('.roadbook-line');
+        const itinerary = document.querySelector('#itinerary-wrap .itinerary');
+        
+        console.log('[Roadbook] Road elements found:', {
+            wrap: !!itineraryWrap,
+            tube: !!tube,
+            line: !!line,
+            itinerary: !!itinerary
+        });
         
         if (itineraryWrap && tube && line && itinerary) {
             const updateRoadHeight = () => {
-                const height = itinerary.offsetHeight;
-                console.log('[Roadbook] Setting road height to:', height);
+                // Get the total height of all day items
+                const days = itinerary.querySelectorAll('.day');
+                let totalHeight = 0;
+                days.forEach(day => {
+                    totalHeight += day.offsetHeight;
+                });
+                
+                // Use scrollHeight as fallback
+                const height = Math.max(totalHeight, itinerary.scrollHeight, itinerary.offsetHeight, 500);
+                console.log('[Roadbook] Setting road height to:', height, '(days:', days.length, ')');
                 tube.style.height = height + 'px';
                 line.style.height = height + 'px';
             };
@@ -7316,9 +7331,12 @@ ComponentFactory.createRoadbook = function(options = {}) {
             setTimeout(updateRoadHeight, 500);
             setTimeout(updateRoadHeight, 1000);
             setTimeout(updateRoadHeight, 2000);
+            setTimeout(updateRoadHeight, 3000);
             
             // Also update on window resize
             window.addEventListener('resize', updateRoadHeight);
+        } else {
+            console.warn('[Roadbook] Could not find road elements');
         }
     }, 500);
     
