@@ -7193,7 +7193,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         #itinerary-wrap {
                             position: relative !important;
                         }
-                        /* WordPress exact: tube z-index 98 */
+                        /* WordPress exact: tube */
                         .tube {
                             position: absolute !important;
                             top: 0 !important;
@@ -7201,13 +7201,30 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             bottom: 0 !important;
                             width: 4.65em !important;
                             background: #6b7280 !important;
-                            margin-left: -2.325em !important;
+                            margin-left: -2.15em !important;
                             border-radius: 10em !important;
                             z-index: 98 !important;
-                            pointer-events: none !important;
                         }
-                        /* WordPress exact: line z-index 98 */
-                        .line {
+                        .tube .start {
+                            position: absolute !important;
+                            top: 1.5em !important;
+                            left: 0 !important;
+                            right: 0 !important;
+                            text-align: center !important;
+                            color: #fff !important;
+                            font-weight: 600 !important;
+                        }
+                        .tube .end {
+                            position: absolute !important;
+                            bottom: 1.5em !important;
+                            left: 0 !important;
+                            right: 0 !important;
+                            text-align: center !important;
+                            color: #fff !important;
+                            font-weight: 600 !important;
+                        }
+                        /* WordPress exact: line (inside itinerary) */
+                        .itinerary .line {
                             position: absolute !important;
                             top: 0 !important;
                             left: 50% !important;
@@ -7215,7 +7232,6 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             width: 1px !important;
                             border-left: 3px dashed #fff !important;
                             z-index: 98 !important;
-                            pointer-events: none !important;
                         }
                         .itinerary {
                             position: relative !important;
@@ -7255,17 +7271,20 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         }
                     </style>
                     
-                    <!-- Itinerary Wrap -->
+                    <!-- Itinerary Wrap (WordPress exact structure) -->
                     <div id="itinerary-wrap">
-                        <!-- TUBE: Gray road background (WordPress exact) -->
-                        <div class="tube"></div>
-                        <!-- LINE: White dashed center line (WordPress exact) -->
-                        <div class="line"></div>
+                        <!-- TUBE: Gray road background -->
+                        <div class="tube">
+                            <span class="start">START</span>
+                            <span class="end">END</span>
+                        </div>
                         <!-- CAR: Animated car -->
                         <div id="car"><img src="images/auto.png" alt="Car" style="width: 100%; height: auto;" onerror="this.parentElement.innerHTML='🚗';"></div>
                         
-                        <!-- ITINERARY: Contains days -->
-                        <div class="itinerary" style="position: relative; z-index: 5;">
+                        <!-- ITINERARY: Contains line and days -->
+                        <div class="itinerary">
+                            <!-- LINE: White dashed center line (inside itinerary like WordPress) -->
+                            <div class="line"></div>
                             <!-- DAYS -->
                             ${data.itinerary.map((day, i) => {
                                 const location = day.title || day.destination || 'Bestemming';
@@ -7365,7 +7384,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
         // Set tube and line height based on itinerary content height
         const itineraryWrap = document.getElementById('itinerary-wrap');
         const tube = document.querySelector('.tube');
-        const line = document.querySelector('.line');
+        const line = document.querySelector('.itinerary .line');
         const itinerary = document.querySelector('#itinerary-wrap .itinerary');
         
         console.log('[Roadbook] Road elements found:', {
