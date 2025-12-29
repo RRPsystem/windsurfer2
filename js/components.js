@@ -7185,8 +7185,42 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         <p class="editable" contenteditable="true">Highlights Of Your Journey</p>
                     </div>
                     
-                    <!-- Itinerary Wrap - WordPress Structure (road via CSS pseudo-elements) -->
+                    <!-- Inline styles for road - guaranteed to work -->
+                    <style>
+                        #itinerary-wrap {
+                            position: relative !important;
+                        }
+                        #itinerary-wrap > .roadbook-road {
+                            position: absolute !important;
+                            top: 0 !important;
+                            left: 50% !important;
+                            bottom: 0 !important;
+                            width: 74px !important;
+                            background: #6b7280 !important;
+                            margin-left: -37px !important;
+                            border-radius: 100px !important;
+                            z-index: 0 !important;
+                            pointer-events: none !important;
+                        }
+                        #itinerary-wrap > .roadbook-road-line {
+                            position: absolute !important;
+                            top: 0 !important;
+                            left: 50% !important;
+                            bottom: 0 !important;
+                            width: 3px !important;
+                            margin-left: -1.5px !important;
+                            background-image: repeating-linear-gradient(to bottom, #fff 0px, #fff 15px, transparent 15px, transparent 30px) !important;
+                            z-index: 1 !important;
+                            pointer-events: none !important;
+                        }
+                    </style>
+                    
+                    <!-- Itinerary Wrap -->
                     <div id="itinerary-wrap">
+                        <!-- ROAD: Gray background -->
+                        <div class="roadbook-road"></div>
+                        <!-- ROAD LINE: White dashed -->
+                        <div class="roadbook-road-line"></div>
                         <!-- CAR: Animated car -->
                         <div id="car" style="position: absolute; left: 50%; top: 80px; width: 50px; transform: translateX(-50%); z-index: 10; pointer-events: none;"><img src="images/auto.png" alt="Car" style="width: 100%; height: auto;" onerror="this.parentElement.innerHTML='🚗';"></div>
                         
