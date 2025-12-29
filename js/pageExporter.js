@@ -102,7 +102,189 @@
       `;
       
       document.body.appendChild(modal);
-      this.addExportStyles();
+    },
+    
+    async downloadRoadbookHTML() {
+      try {
+        console.log('[PageExporter] Starting roadbook HTML download...');
+        
+        // Get canvas content
+        const canvas = document.getElementById('canvas');
+        if (!canvas) {
+          alert('Geen content gevonden om te exporteren');
+          return;
+        }
+        
+        // Clone and process
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = canvas.innerHTML;
+        
+        // Process roadbook videos
+        this.processRoadbookVideosSync(tempDiv);
+        
+        // Get CSS files
+        const mainCSS = await this.fetchCSS('/styles/main.css');
+        const componentsCSS = await this.fetchCSS('/styles/components.css');
+        let roadbookCSS = '';
+        try {
+          roadbookCSS = await this.fetchCSS('/styles/roadbook-timeline.css');
+        } catch (e) {
+          console.warn('[PageExporter] Could not load roadbook-timeline.css');
+        }
+        
+        // Get brand settings
+        const brandSettings = localStorage.getItem('brandSettings');
+        let brandCSS = '';
+        let primaryColor = '#003d6b';
+        
+        if (brandSettings) {
+          const brand = JSON.parse(brandSettings);
+          primaryColor = brand.colors?.primary || '#003d6b';
+          
+          brandCSS = `
+            :root {
+              --brand-primary: ${primaryColor};
+            }
+            
+            .roadbook-intro-underline,
+            .roadbook-stat-icon,
+            .roadbook-card-badge,
+            .roadbook-highlight-icon {
+              background: ${primaryColor} !important;
+            }
+            
+            .roadbook-animated-timeline-section {
+              background: linear-gradient(to bottom, ${primaryColor} 300px, #f9fafb 300px) !important;
+            }
+          `;
+        }
+        
+        // Generate complete HTML
+        const html = `<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roadbook</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Main CSS */
+    ${mainCSS}
+    
+    /* Components CSS */
+    ${componentsCSS}
+    
+    /* Roadbook CSS */
+    ${roadbookCSS}
+    
+    /* Brand CSS */
+    ${brandCSS}
+    
+    /* Ensure video is visible */
+    .roadbook-hero {
+      position: relative !important;
+      width: 100% !important;
+      height: 400px !important;
+      overflow: hidden !important;
+    }
+    
+    .roadbook-hero video {
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      z-index: 0 !important;
+    }
+    
+    /* Roadbook timeline inline styles */
+    .roadbook-road-line {
+      position: absolute !important;
+      left: 50% !important;
+      top: 0 !important;
+      bottom: 0 !important;
+      width: 6px !important;
+      background: #9ca3af !important;
+      transform: translateX(-50%) !important;
+      z-index: 2 !important;
+      pointer-events: none !important;
+      height: 100% !important;
+    }
+    
+    .roadbook-timeline-car {
+      position: absolute !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      width: 70px !important;
+      height: 100px !important;
+      z-index: 10 !important;
+      filter: drop-shadow(0 6px 20px rgba(0,0,0,0.3)) !important;
+      transition: top 0.3s ease-out !important;
+      top: 0 !important;
+    }
+  </style>
+</head>
+<body>
+  ${tempDiv.innerHTML}
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script>
+    // Roadbook timeline animation
+    (function() {
+      const timelineSection = document.querySelector('.roadbook-animated-timeline-section');
+      if (!timelineSection) return;
+      
+      const roadLine = timelineSection.querySelector('.roadbook-road-line');
+      const car = timelineSection.querySelector('.roadbook-timeline-car');
+      const cards = timelineSection.querySelectorAll('.roadbook-timeline-card');
+      
+      if (!roadLine || !car || cards.length === 0) return;
+      
+      function updateCarPosition() {
+        const scrollY = window.scrollY;
+        const sectionTop = timelineSection.offsetTop;
+        const sectionHeight = timelineSection.offsetHeight;
+        const relativeScroll = scrollY - sectionTop;
+        const scrollProgress = Math.max(0, Math.min(1, relativeScroll / (sectionHeight - window.innerHeight)));
+        
+        const roadLineHeight = roadLine.offsetHeight;
+        const carHeight = car.offsetHeight;
+        const maxCarTop = roadLineHeight - carHeight;
+        const carTop = scrollProgress * maxCarTop;
+        
+        car.style.top = carTop + 'px';
+      }
+      
+      window.addEventListener('scroll', updateCarPosition);
+      window.addEventListener('resize', updateCarPosition);
+      updateCarPosition();
+    })();
+  </script>
+</body>
+</html>`;
+        
+        // Download file
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'roadbook.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        console.log('[PageExporter] ✅ Roadbook HTML downloaded');
+        
+        // Close modal
+        document.querySelector('.export-modal-overlay')?.remove();
+        
+      } catch (error) {
+        console.error('[PageExporter] Download failed:', error);
+        alert('Download mislukt: ' + error.message);
+      }
     },
     
     addExportStyles() {
