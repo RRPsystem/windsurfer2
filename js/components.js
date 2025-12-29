@@ -7193,8 +7193,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         #itinerary-wrap {
                             position: relative !important;
                         }
-                        /* WordPress exact: tube z-index 98, line z-index 98 */
-                        #itinerary-wrap > .roadbook-road {
+                        /* WordPress exact: tube z-index 98 */
+                        .tube {
                             position: absolute !important;
                             top: 0 !important;
                             left: 50% !important;
@@ -7206,21 +7206,16 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             z-index: 98 !important;
                             pointer-events: none !important;
                         }
-                        /* Hide the separate line div - use border on road instead */
-                        #itinerary-wrap > .roadbook-road-line {
-                            display: none !important;
-                        }
-                        /* Add dashed line via pseudo-element on road */
-                        #itinerary-wrap > .roadbook-road::after {
-                            content: '' !important;
+                        /* WordPress exact: line z-index 98 */
+                        .line {
                             position: absolute !important;
                             top: 0 !important;
                             left: 50% !important;
-                            bottom: 0 !important;
+                            bottom: -3em !important;
                             width: 1px !important;
                             border-left: 3px dashed #fff !important;
-                            margin-left: -1.5px !important;
                             z-index: 98 !important;
+                            pointer-events: none !important;
                         }
                         .itinerary {
                             position: relative !important;
