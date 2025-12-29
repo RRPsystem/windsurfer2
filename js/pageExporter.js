@@ -230,13 +230,13 @@
         ph.remove();
       });
       
-      // Process roadbook videos
-      this.processRoadbookVideos(tempDiv);
+      // Process roadbook videos (inline to avoid async issues)
+      this.processRoadbookVideosSync(tempDiv);
       
       return tempDiv.innerHTML;
     },
     
-    processRoadbookVideos(tempDiv) {
+    processRoadbookVideosSync(tempDiv) {
       // Generate video playlists and YouTube iframes from dataset attributes for roadbook heroes
       const roadbookComponents = tempDiv.querySelectorAll('.wb-roadbook');
       console.log('[PageExporter] Found roadbook components:', roadbookComponents.length);
@@ -422,16 +422,6 @@
     },
     
     async exportFullHTML() {
-      const canvas = document.getElementById('canvas');
-      if (!canvas) return '';
-      
-      // Clone and process
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = canvas.innerHTML;
-      
-      // Process roadbook videos
-      this.processRoadbookVideos(tempDiv);
-      
       // Get CSS files
       const mainCSS = await this.fetchCSS('/styles/main.css');
       const componentsCSS = await this.fetchCSS('/styles/components.css');

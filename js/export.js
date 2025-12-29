@@ -34,9 +34,9 @@ class ExportManager {
                 tempDiv.innerHTML = canvas.innerHTML;
                 
                 // Run PageExporter processing
-                if (window.PageExporter && typeof window.PageExporter.processRoadbookVideos === 'function') {
+                if (window.PageExporter && typeof window.PageExporter.processRoadbookVideosSync === 'function') {
                     console.log('[Export] Processing roadbook videos...');
-                    window.PageExporter.processRoadbookVideos(tempDiv);
+                    window.PageExporter.processRoadbookVideosSync(tempDiv);
                 }
                 
                 // Save processed content
