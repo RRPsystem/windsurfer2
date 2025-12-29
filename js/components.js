@@ -7186,20 +7186,20 @@ ComponentFactory.createRoadbook = function(options = {}) {
                     </div>
                     
                     <!-- Itinerary Wrap - WordPress Structure -->
-                    <div id="itinerary-wrap">
+                    <div id="itinerary-wrap" style="position: relative;">
                         <!-- ITINERARY: Contains road and days -->
-                        <div class="itinerary">
+                        <div class="itinerary" style="position: relative;">
                             <!-- TUBE: Gray road background -->
-                            <div class="tube">
-                                <span class="start">START</span>
-                                <span class="end">END</span>
+                            <div class="tube" style="position: absolute; top: 0; left: 50%; bottom: 0; width: 74px; background: #6b7280; margin-left: -37px; border-radius: 100px; z-index: 1; pointer-events: none;">
+                                <span class="start" style="position: absolute; top: 24px; left: 0; right: 0; text-align: center; color: #fff; font-weight: 600; font-size: 14px;">START</span>
+                                <span class="end" style="position: absolute; bottom: 24px; left: 0; right: 0; text-align: center; color: #fff; font-weight: 600; font-size: 14px;">END</span>
                             </div>
                             
                             <!-- LINE: White dashed center line -->
-                            <div class="line"></div>
+                            <div class="line" style="position: absolute; top: 0; left: 50%; bottom: 0; width: 3px; margin-left: -1.5px; background: repeating-linear-gradient(to bottom, #fff 0px, #fff 15px, transparent 15px, transparent 30px); z-index: 2; pointer-events: none;"></div>
                             
                             <!-- CAR: Animated car -->
-                            <div id="car"><img src="images/auto.png" alt="Car" onerror="this.parentElement.innerHTML='🚗';"></div>
+                            <div id="car" style="position: absolute; left: 50%; top: 80px; width: 50px; transform: translateX(-50%); z-index: 10; pointer-events: none;"><img src="images/auto.png" alt="Car" style="width: 100%; height: auto;" onerror="this.parentElement.innerHTML='🚗';"></div>
                             
                             <!-- DAYS -->
                             ${data.itinerary.map((day, i) => {
