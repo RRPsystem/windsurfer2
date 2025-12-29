@@ -45,6 +45,41 @@
     padding-bottom: 100px;
 }
 
+/* Road as background on itinerary-wrap */
+#itinerary-wrap::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    bottom: 0;
+    width: 74px;
+    background: #6b7280;
+    margin-left: -37px;
+    border-radius: 100px;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* White dashed line as second pseudo-element */
+#itinerary-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    bottom: 0;
+    width: 3px;
+    margin-left: -1.5px;
+    background-image: repeating-linear-gradient(
+        to bottom,
+        #fff 0px,
+        #fff 15px,
+        transparent 15px,
+        transparent 30px
+    );
+    z-index: 1;
+    pointer-events: none;
+}
+
 /* ===========================================
    TUBE - Gray Road Background
    =========================================== */
@@ -151,7 +186,7 @@
    =========================================== */
 .day {
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     z-index: 5;
 }
 

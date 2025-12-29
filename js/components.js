@@ -7185,17 +7185,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         <p class="editable" contenteditable="true">Highlights Of Your Journey</p>
                     </div>
                     
-                    <!-- Itinerary Wrap - WordPress Structure -->
-                    <div id="itinerary-wrap" style="position: relative;">
-                        <!-- TUBE: Gray road background - positioned in wrap -->
-                        <div class="roadbook-tube" style="position: absolute; top: 0; left: 50%; width: 74px; background: #6b7280; margin-left: -37px; border-radius: 100px; z-index: 1; pointer-events: none; min-height: 100%;">
-                            <span style="position: absolute; top: 24px; left: 0; right: 0; text-align: center; color: #fff; font-weight: 600; font-size: 14px;">START</span>
-                            <span style="position: absolute; bottom: 24px; left: 0; right: 0; text-align: center; color: #fff; font-weight: 600; font-size: 14px;">END</span>
-                        </div>
-                        
-                        <!-- LINE: White dashed center line -->
-                        <div class="roadbook-line" style="position: absolute; top: 0; left: 50%; width: 3px; margin-left: -1.5px; background: repeating-linear-gradient(to bottom, #fff 0px, #fff 15px, transparent 15px, transparent 30px); z-index: 2; pointer-events: none; min-height: 100%;"></div>
-                        
+                    <!-- Itinerary Wrap - WordPress Structure (road via CSS pseudo-elements) -->
+                    <div id="itinerary-wrap">
                         <!-- CAR: Animated car -->
                         <div id="car" style="position: absolute; left: 50%; top: 80px; width: 50px; transform: translateX(-50%); z-index: 10; pointer-events: none;"><img src="images/auto.png" alt="Car" style="width: 100%; height: auto;" onerror="this.parentElement.innerHTML='🚗';"></div>
                         
