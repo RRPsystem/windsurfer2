@@ -75,6 +75,28 @@
                 <i class="fas fa-link"></i> Genereer
               </button>
             </div>
+            
+            <div class="export-option">
+              <div class="export-option-icon">🌐</div>
+              <div class="export-option-info">
+                <h3>Publiceer naar Website</h3>
+                <p>Publiceer deze pagina naar je live website</p>
+              </div>
+              <button class="btn btn-primary" onclick="window.PageExporter.publishToWebsite()">
+                Publiceren
+              </button>
+            </div>
+            
+            <div class="export-option">
+              <div class="export-option-icon">📄</div>
+              <div class="export-option-info">
+                <h3>Download als HTML</h3>
+                <p>Download complete standalone HTML bestand (roadbook)</p>
+              </div>
+              <button class="btn btn-secondary" onclick="window.PageExporter.downloadRoadbookHTML()">
+                Download HTML
+              </button>
+            </div>
           </div>
         </div>
       `;
