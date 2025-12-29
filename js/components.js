@@ -7193,14 +7193,14 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             <span class="end">END</span>
                         </div>
                         
+                        <!-- LINE: White dashed center line (outside itinerary for z-index) -->
+                        <div class="line"></div>
+                        
                         <!-- CAR: Animated car -->
                         <div id="car"><img src="images/auto.png" alt="Car" onerror="this.parentElement.innerHTML='🚗';"></div>
                         
-                        <!-- ITINERARY: Contains line and days -->
+                        <!-- ITINERARY: Contains days -->
                         <div class="itinerary">
-                            <!-- LINE: White dashed center line -->
-                            <div class="line"></div>
-                            
                             <!-- DAYS -->
                             ${data.itinerary.map((day, i) => {
                                 const location = day.title || day.destination || 'Bestemming';

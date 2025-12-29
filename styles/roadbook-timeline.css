@@ -56,7 +56,7 @@
     bottom: 0;
     width: 4.65em;
     background: #6b7280;
-    z-index: 50;
+    z-index: 1;
     margin-left: -2.325em;
     border-radius: 10em;
     pointer-events: none;
@@ -100,7 +100,7 @@
         transparent 15px,
         transparent 30px
     );
-    z-index: 55;
+    z-index: 2;
     pointer-events: none;
     margin-left: -1.5px;
 }
@@ -109,21 +109,15 @@
    CAR - Animated Car
    =========================================== */
 #car {
-    display: none;
+    display: block;
     width: 50px;
     height: auto;
     position: absolute;
     left: 50%;
-    top: 0;
-    z-index: 100;
+    top: 50px;
+    z-index: 5;
     transform: translateX(-50%);
     pointer-events: none;
-}
-
-/* Only show car when inside timeline section */
-.roadbook-animated-timeline-section #car,
-#itinerary-wrap #car {
-    display: block;
 }
 
 #car img {
@@ -146,6 +140,7 @@
 .day {
     position: relative;
     overflow: hidden;
+    z-index: 11;
 }
 
 .day .left {
@@ -223,7 +218,7 @@
     background: var(--brand-primary, #84cc16);
     margin-top: -3em;
     box-shadow: 0 0 5px 1px rgba(0, 0, 0, 0.3);
-    z-index: 60;
+    z-index: 20;
 }
 
 .day .right .dayNum {
