@@ -1,13 +1,16 @@
-/* Roadbook Animated Timeline - Full Width */
+/* ===========================================
+   ROADBOOK TIMELINE - WordPress Travellers Style
+   =========================================== */
 
+/* Main Section */
 .roadbook-animated-timeline-section {
     width: 100%;
     background: linear-gradient(to bottom, var(--brand-primary, #84cc16) 300px, #f9fafb 300px);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
-/* Header Section */
+/* Header */
 .roadbook-timeline-header {
     text-align: center;
     padding: 60px 20px 80px;
@@ -32,298 +35,341 @@
     margin: 0;
 }
 
-/* Timeline Road Container */
-.roadbook-timeline-road {
+/* ===========================================
+   ITINERARY WRAP - Main Container
+   =========================================== */
+#itinerary-wrap {
     position: relative;
-    max-width: 1400px;
+    max-width: 100%;
     margin: 0 auto;
-    padding: 0 20px 100px;
+    padding-bottom: 100px;
 }
 
-/* TUBE - WordPress Style Gray Road */
-.roadbook-road-line {
+/* ===========================================
+   TUBE - Gray Road Background
+   =========================================== */
+.tube {
     position: absolute;
-    left: 50%;
     top: 0;
-    bottom: 0;
+    left: 50%;
+    bottom: 1.65em;
     width: 4.65em;
     background: #6b7280;
+    z-index: 98;
     margin-left: -2.325em;
     border-radius: 10em;
+}
+
+.tube .start {
+    position: absolute;
+    top: 1.5em;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+.tube .end {
+    position: absolute;
+    bottom: 1.5em;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+/* ===========================================
+   LINE - White Dashed Center Line
+   =========================================== */
+.line {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    bottom: -3em;
+    width: 1px;
+    border-left: 3px dashed #fff;
     z-index: 98;
 }
 
-/* White dashed center line on tube */
-.roadbook-road-line::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    transform: translateX(-50%);
-    border-left: 3px dashed rgba(255,255,255,0.5);
-}
-
-/* Animated Car */
-.roadbook-timeline-car {
+/* ===========================================
+   CAR - Animated Car
+   =========================================== */
+#car {
+    display: block;
+    width: 39px;
+    height: 75px;
     position: fixed;
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%);
-    width: 40px;
-    height: 60px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    transition: all 0.3s ease;
+    z-index: 999;
+    margin-left: -18px;
+    margin-top: -37px;
+    font-size: 40px;
+    text-align: center;
+    line-height: 75px;
 }
 
-/* START Badge - Inside Tube */
-.roadbook-start-badge {
-    position: absolute;
-    left: 50%;
-    top: 1.5em;
-    transform: translateX(-50%);
-    background: transparent;
-    color: white;
-    padding: 8px 20px;
-    font-weight: 600;
-    font-size: 0.9rem;
+/* ===========================================
+   ITINERARY - Contains Days
+   =========================================== */
+.itinerary {
+    position: relative;
     z-index: 99;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-    border-radius: 20px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    z-index: 2;
 }
 
-/* Day Item */
-.roadbook-day-item {
+/* ===========================================
+   DAY - Each Day Item
+   =========================================== */
+.day {
     position: relative;
-    margin-bottom: 100px;
-    opacity: 0.5;
-    transition: opacity 0.5s ease;
-}
-
-.roadbook-day-item.active {
-    opacity: 1;
-}
-
-/* Day Badge (Circle on road) */
-.roadbook-day-badge {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 80px;
-    height: 80px;
-    background: white;
-    border: 6px solid #9ca3af;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: #4b5563;
-    z-index: 3;
-    transition: all 0.3s ease;
-}
-
-.roadbook-day-item.active .roadbook-day-badge {
-    background: var(--brand-primary, #84cc16);
-    border-color: var(--brand-primary, #84cc16);
-    color: white;
-    transform: translate(-50%, -50%) scale(1.1);
-}
-
-/* Day Content - Alternating Layout */
-.roadbook-day-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 60px;
-    align-items: center;
-}
-
-/* Left Side (Photo) */
-.roadbook-day-item:nth-child(odd) .roadbook-day-photo {
-    grid-column: 1;
-    grid-row: 1;
-}
-
-.roadbook-day-item:nth-child(odd) .roadbook-day-info {
-    grid-column: 2;
-    grid-row: 1;
-}
-
-/* Right Side (Photo) */
-.roadbook-day-item:nth-child(even) .roadbook-day-photo {
-    grid-column: 2;
-    grid-row: 1;
-}
-
-.roadbook-day-item:nth-child(even) .roadbook-day-info {
-    grid-column: 1;
-    grid-row: 1;
-}
-
-/* Photo Container */
-.roadbook-day-photo {
-    position: relative;
-    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-    aspect-ratio: 4/3;
 }
 
-.roadbook-day-photo img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.5s ease;
+.day .left {
+    display: block;
+    position: relative;
+    float: left;
+    width: 50%;
 }
 
-.roadbook-day-item.active .roadbook-day-photo img {
-    transform: scale(1.05);
+.day .right {
+    display: block;
+    position: relative;
+    float: right;
+    width: 50%;
 }
 
-/* Info Container */
-.roadbook-day-info {
-    padding: 20px;
+/* Clear floats */
+.clear {
+    clear: both;
 }
 
-.roadbook-day-location {
-    font-size: 2rem;
+/* ===========================================
+   PLACE INFO - Text Content Side
+   =========================================== */
+.day .placeInfo {
+    background-color: #fff;
+    min-height: 400px;
+}
+
+.day .right.placeInfo {
+    padding: 3.5em 3.5em 7em 5.65em;
+}
+
+.day .left.placeInfo {
+    padding: 3.5em 5.65em 7em 3.5em;
+}
+
+.day .placeInfo h3 {
+    font-size: 1.8em;
     font-weight: 700;
     color: #111827;
-    margin: 0 0 8px 0;
+    margin: 0 0 0.5em 0;
 }
 
-.roadbook-day-subtitle {
-    font-size: 1rem;
+.day .placeInfo > span {
+    display: block;
     color: #6b7280;
-    margin: 0 0 4px 0;
+    margin-bottom: 1em;
+    font-size: 1em;
 }
 
-.roadbook-day-distance {
-    font-size: 0.9rem;
-    color: var(--brand-primary, #84cc16);
-    font-weight: 600;
-    margin: 0 0 20px 0;
-}
-
-.roadbook-day-description {
-    font-size: 1rem;
+.day .placeInfo p {
+    font-size: 1em;
     line-height: 1.7;
     color: #4b5563;
-    margin: 0 0 20px 0;
+    margin-bottom: 1.5em;
 }
 
-.roadbook-read-more {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--brand-primary, #84cc16);
+/* ===========================================
+   DAY NUMBER BADGE - Circle on Road
+   =========================================== */
+.day .dayNum {
+    display: block;
+    position: absolute;
+    top: 50%;
+    width: 6em;
+    height: 6em;
+    line-height: 4.65em;
+    font-size: 1.15em;
     font-weight: 600;
-    text-decoration: none;
-    transition: gap 0.3s ease;
-}
-
-.roadbook-read-more:hover {
-    gap: 12px;
-}
-
-/* Highlights Grid */
-.roadbook-day-highlights {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    margin-top: 24px;
-}
-
-.roadbook-highlight-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-}
-
-.roadbook-highlight-icon {
-    width: 40px;
-    height: 40px;
+    border: 0.65em solid #fff;
+    border-radius: 50%;
+    text-align: center;
+    color: #fff;
     background: var(--brand-primary, #84cc16);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 20px;
-    flex-shrink: 0;
+    margin-top: -3em;
+    box-shadow: 0 0 5px 1px rgba(0, 0, 0, 0.3);
+    z-index: 100;
 }
 
-.roadbook-highlight-content h4 {
-    font-size: 0.9rem;
+.day .right .dayNum {
+    left: -3em;
+    right: auto;
+}
+
+.day .left .dayNum {
+    right: -3em;
+    left: auto;
+}
+
+/* ===========================================
+   HIGHLIGHTS LIST
+   =========================================== */
+.day ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.day ul li {
+    display: block;
+    float: left;
+    width: 50%;
+    position: relative;
+    padding: 1.5em 1.5em 1.5em 3em;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+}
+
+.day ul li:first-child,
+.day ul li:nth-child(2) {
+    border: none;
+}
+
+.day ul li i {
+    position: absolute;
+    left: 0;
+    top: 1.55em;
+    font-size: 1.65em;
+    color: var(--brand-primary, #84cc16);
+}
+
+.day ul li h6 {
+    text-transform: capitalize;
+    margin-bottom: 0.35em;
+    font-size: 1em;
     font-weight: 600;
     color: #111827;
-    margin: 0 0 4px 0;
 }
 
-.roadbook-highlight-content p {
-    font-size: 0.85rem;
+.day ul li span {
+    font-size: 0.9em;
     color: #6b7280;
-    margin: 0;
 }
 
-/* Hotel Bar */
-.roadbook-hotel-bar {
-    background: #374151;
-    color: white;
-    padding: 16px 24px;
-    border-radius: 8px;
-    margin-top: 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+/* ===========================================
+   TOUR DELIGHT BANNER
+   =========================================== */
+.day .delight {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--brand-primary, #84cc16);
+    color: #fff;
+    padding: 1.65em 1.5em;
 }
 
-.roadbook-hotel-bar i {
-    font-size: 20px;
-    color: var(--brand-primary, #84cc16);
+.day .right .delight {
+    padding-left: 8.50em;
 }
 
-.roadbook-hotel-bar strong {
+.day .left .delight {
+    padding-left: 6.15em;
+}
+
+.day .delight i {
+    position: absolute;
+    top: 0.95em;
+    font-size: 1.65em;
+    color: #fff;
+}
+
+.day .right .delight i {
+    left: 3.35em;
+}
+
+.day .left .delight i {
+    left: 2.15em;
+}
+
+.day .delight h6 {
+    display: inline-block;
+    color: #fff;
+    margin: 0 0.5em 0 0;
     font-weight: 600;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .roadbook-day-content {
-        grid-template-columns: 1fr;
-        gap: 30px;
+.day .delight span {
+    color: #fff;
+}
+
+/* ===========================================
+   PLACE IMAGE - Photo Side
+   =========================================== */
+.day .placeImg {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+.day .placeImg img {
+    height: 100%;
+    width: auto;
+    min-width: 100%;
+    object-fit: cover;
+}
+
+.day .left.placeImg {
+    left: 0;
+}
+
+.day .right.placeImg {
+    right: 0;
+}
+
+/* ===========================================
+   RESPONSIVE
+   =========================================== */
+@media (max-width: 968px) {
+    .day .left,
+    .day .right {
+        width: 100%;
+        float: none;
     }
     
-    .roadbook-day-item:nth-child(odd) .roadbook-day-photo,
-    .roadbook-day-item:nth-child(even) .roadbook-day-photo {
-        grid-column: 1;
-        grid-row: 1;
+    .day .placeImg {
+        position: relative;
+        height: 300px;
     }
     
-    .roadbook-day-item:nth-child(odd) .roadbook-day-info,
-    .roadbook-day-item:nth-child(even) .roadbook-day-info {
-        grid-column: 1;
-        grid-row: 2;
+    .day .placeInfo {
+        padding: 2em !important;
     }
     
-    .roadbook-road-line {
-        left: 30px;
+    .day .dayNum {
+        left: 50% !important;
+        right: auto !important;
+        margin-left: -3em;
     }
     
-    .roadbook-day-badge {
-        left: 30px;
+    .tube {
+        display: none;
+    }
+    
+    .line {
+        display: none;
+    }
+    
+    #car {
+        display: none;
     }
 }

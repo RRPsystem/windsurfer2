@@ -7176,7 +7176,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
             
             <!-- Hotels are now in the timeline above, no separate section needed -->
             
-            <!-- Animated Timeline: Dag bij Dag -->
+            <!-- Animated Timeline: Dag bij Dag - WordPress Style -->
             ${data.itinerary.length > 0 ? `
                 <div id="itinerary" class="roadbook-animated-timeline-section">
                     <!-- Header -->
@@ -7185,94 +7185,90 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         <p class="editable" contenteditable="true">Highlights Of Your Journey</p>
                     </div>
                     
-                    <!-- Timeline Road -->
-                    <div class="roadbook-timeline-road">
-                        <!-- Start Badge -->
-                        <div class="roadbook-start-badge">START</div>
-                        
-                        <!-- Vertical Road Line -->
-                        <div class="roadbook-road-line"></div>
-                        
-                        <!-- Animated Car -->
-                        <div class="roadbook-timeline-car">
-                            <img src="images/auto.png" alt="Car" onerror="console.error('Auto image failed to load'); this.parentElement.innerHTML='<i class=\\'fas fa-car\\'></i>';">
+                    <!-- Itinerary Wrap - WordPress Structure -->
+                    <div id="itinerary-wrap">
+                        <!-- TUBE: Gray road background -->
+                        <div class="tube">
+                            <span class="start">START</span>
+                            <span class="end">END</span>
                         </div>
                         
-                        <!-- Days -->
-                        ${data.itinerary.map((day, i) => {
-                            // Check if this is first occurrence of this location
-                            const location = day.title || day.destination || 'Bestemming';
-                            const prevDay = i > 0 ? data.itinerary[i - 1] : null;
-                            const prevLocation = prevDay ? (prevDay.title || prevDay.destination || '') : '';
-                            const isNewLocation = location !== prevLocation;
+                        <!-- CAR: Animated car -->
+                        <div id="car">🚗</div>
+                        
+                        <!-- ITINERARY: Contains line and days -->
+                        <div class="itinerary">
+                            <!-- LINE: White dashed center line -->
+                            <div class="line"></div>
                             
-                            // Skip if not a new location (already rendered)
-                            if (!isNewLocation) return '';
-                            
-                            // Find how many consecutive days at this location
-                            let dayCount = 1;
-                            for (let j = i + 1; j < data.itinerary.length; j++) {
-                                const nextLoc = data.itinerary[j].title || data.itinerary[j].destination || '';
-                                if (nextLoc === location) dayCount++;
-                                else break;
-                            }
-                            
-                            const dayRange = dayCount > 1 ? `${i + 1}-${i + dayCount}` : `${i + 1}`;
-                            
-                            return `
-                            <div class="roadbook-day-item" data-day="${i + 1}">
-                                <!-- Day Badge -->
-                                <div class="roadbook-day-badge">Stop ${i + 1}</div>
+                            <!-- DAYS -->
+                            ${data.itinerary.map((day, i) => {
+                                const location = day.title || day.destination || 'Bestemming';
+                                const prevDay = i > 0 ? data.itinerary[i - 1] : null;
+                                const prevLocation = prevDay ? (prevDay.title || prevDay.destination || '') : '';
+                                const isNewLocation = location !== prevLocation;
                                 
-                                <!-- Day Content -->
-                                <div class="roadbook-day-content">
-                                    <!-- Photo -->
-                                    <div class="roadbook-day-photo">
-                                        <img src="${day.image || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800'}" alt="${day.title || 'Dag ' + (i + 1)}">
-                                    </div>
-                                    
-                                    <!-- Info -->
-                                    <div class="roadbook-day-info">
-                                        <h3 class="roadbook-day-location editable" contenteditable="true">${location}${dayCount > 1 ? ` (Dag ${dayRange})` : ''}</h3>
-                                        <p class="roadbook-day-subtitle editable" contenteditable="true">${day.subtitle || day.location || 'Provincie / Stad'}</p>
-                                        ${day.distance ? `<p class="roadbook-day-distance editable" contenteditable="true">${day.distance}</p>` : ''}
-                                        
-                                        <p class="roadbook-day-description editable" contenteditable="true">${day.description || 'Beschrijving van deze dag...'}</p>
-                                        
-                                        <a href="#" class="roadbook-read-more" onclick="event.preventDefault(); alert('Open slide panel met meer info');">
-                                            Lees verder <i class="fas fa-arrow-right"></i>
-                                        </a>
-                                        
-                                        <!-- Highlights -->
-                                        <div class="roadbook-day-highlights">
-                                            ${(day.highlights && day.highlights.length > 0 ? day.highlights : [
-                                                { icon: 'fa-map-marker-alt', title: 'Tourist Attraction:', text: 'Bezienswaardigheden' },
-                                                { icon: 'fa-shopping-bag', title: 'Best Buy:', text: 'Lokale producten' },
-                                                { icon: 'fa-utensils', title: 'Food Speciality:', text: 'Lokale gerechten' },
-                                                { icon: 'fa-hiking', title: 'Activity:', text: 'Activiteiten' }
-                                            ]).slice(0, 4).map(h => `
-                                                <div class="roadbook-highlight-item">
-                                                    <div class="roadbook-highlight-icon">
-                                                        <i class="fas ${h.icon || 'fa-star'}"></i>
-                                                    </div>
-                                                    <div class="roadbook-highlight-content">
-                                                        <h4 class="editable" contenteditable="true">${h.title || 'Highlight'}</h4>
-                                                        <p class="editable" contenteditable="true">${h.text || h.description || ''}</p>
-                                                    </div>
-                                                </div>
-                                            `).join('')}
-                                        </div>
-                                        
-                                        <!-- Hotel Bar -->
-                                        <div class="roadbook-hotel-bar">
-                                            <i class="fas fa-hotel"></i>
-                                            <span class="editable" contenteditable="true">${day.hotel || day.accommodation || 'Hotel naam'}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        }).join('')}
+                                if (!isNewLocation) return '';
+                                
+                                let dayCount = 1;
+                                for (let j = i + 1; j < data.itinerary.length; j++) {
+                                    const nextLoc = data.itinerary[j].title || data.itinerary[j].destination || '';
+                                    if (nextLoc === location) dayCount++;
+                                    else break;
+                                }
+                                
+                                const isEven = i % 2 === 0;
+                                const dayLabel = dayCount > 1 ? 'Day ' + (i + 1) + '-' + (i + dayCount) : 'Day ' + (i + 1);
+                                const imgSrc = day.image || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800';
+                                const subtitle = day.subtitle || day.location || 'Provincie / Stad';
+                                const description = day.description || 'Beschrijving van deze dag...';
+                                const delight = day.delight || 'Special experience';
+                                
+                                if (isEven) {
+                                    // Photo LEFT, Info RIGHT
+                                    return '<div class="day">' +
+                                        '<div class="left placeImg">' +
+                                            '<img src="' + imgSrc + '" alt="' + location + '">' +
+                                        '</div>' +
+                                        '<div class="right placeInfo">' +
+                                            '<div class="dayNum">' + dayLabel + '</div>' +
+                                            '<h3 class="editable" contenteditable="true">' + location + '</h3>' +
+                                            '<span class="editable" contenteditable="true">' + subtitle + '</span>' +
+                                            '<p class="editable" contenteditable="true">' + description + '</p>' +
+                                            '<ul>' +
+                                                '<li><i class="fas fa-map-marker-alt"></i><h6>Tourist Attraction:</h6><span class="editable" contenteditable="true">Bezienswaardigheden</span></li>' +
+                                                '<li><i class="fas fa-shopping-bag"></i><h6>Best Buy:</h6><span class="editable" contenteditable="true">Lokale producten</span></li>' +
+                                                '<li><i class="fas fa-utensils"></i><h6>Food Speciality:</h6><span class="editable" contenteditable="true">Lokale gerechten</span></li>' +
+                                                '<li><i class="fas fa-hiking"></i><h6>Activity:</h6><span class="editable" contenteditable="true">Activiteiten</span></li>' +
+                                            '</ul>' +
+                                            '<div class="delight"><i class="fas fa-star"></i><h6>TOUR DELIGHT:</h6><span class="editable" contenteditable="true">' + delight + '</span></div>' +
+                                        '</div>' +
+                                        '<div class="clear"></div>' +
+                                    '</div><div class="clear"></div>';
+                                } else {
+                                    // Info LEFT, Photo RIGHT
+                                    return '<div class="day">' +
+                                        '<div class="left placeInfo">' +
+                                            '<div class="dayNum">' + dayLabel + '</div>' +
+                                            '<h3 class="editable" contenteditable="true">' + location + '</h3>' +
+                                            '<span class="editable" contenteditable="true">' + subtitle + '</span>' +
+                                            '<p class="editable" contenteditable="true">' + description + '</p>' +
+                                            '<ul>' +
+                                                '<li><i class="fas fa-map-marker-alt"></i><h6>Tourist Attraction:</h6><span class="editable" contenteditable="true">Bezienswaardigheden</span></li>' +
+                                                '<li><i class="fas fa-shopping-bag"></i><h6>Best Buy:</h6><span class="editable" contenteditable="true">Lokale producten</span></li>' +
+                                                '<li><i class="fas fa-utensils"></i><h6>Food Speciality:</h6><span class="editable" contenteditable="true">Lokale gerechten</span></li>' +
+                                                '<li><i class="fas fa-hiking"></i><h6>Activity:</h6><span class="editable" contenteditable="true">Activiteiten</span></li>' +
+                                            '</ul>' +
+                                            '<div class="delight"><i class="fas fa-star"></i><h6>TOUR DELIGHT:</h6><span class="editable" contenteditable="true">' + delight + '</span></div>' +
+                                        '</div>' +
+                                        '<div class="right placeImg">' +
+                                            '<img src="' + imgSrc + '" alt="' + location + '">' +
+                                        '</div>' +
+                                        '<div class="clear"></div>' +
+                                    '</div><div class="clear"></div>';
+                                }
+                            }).join('')}
+                        </div>
                     </div>
                 </div>
             ` : ''}
