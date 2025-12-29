@@ -7222,44 +7222,54 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             return `
                             <div class="roadbook-day-item" data-day="${i + 1}">
                                 <!-- Day Badge -->
-                                <div class="roadbook-day-badge">Day ${i + 1}</div>
+                                <div class="roadbook-day-badge">Stop ${i + 1}</div>
                                 
-                                <!-- Photo -->
-                                <div class="roadbook-day-photo">
-                                    <img src="${day.image || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800'}" alt="${day.title || 'Dag ' + (i + 1)}">
-                                </div>
-                                
-                                <!-- Info -->
-                                <div class="roadbook-day-info">
-                                    <h2 class="roadbook-day-location editable" contenteditable="true">${location}</h2>
-                                    <span class="roadbook-day-subtitle editable" contenteditable="true">${day.subtitle || day.location || 'Provincie / Stad'}</span>
+                                <!-- Day Content -->
+                                <div class="roadbook-day-content">
+                                    <!-- Photo -->
+                                    <div class="roadbook-day-photo">
+                                        <img src="${day.image || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800'}" alt="${day.title || 'Dag ' + (i + 1)}">
+                                    </div>
                                     
-                                    <p class="roadbook-day-description editable" contenteditable="true">${day.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed scelerisque purus sit amet elementum blandit.'}</p>
-                                    
-                                    <!-- Highlights -->
-                                    <ul class="roadbook-day-highlights">
-                                        ${(day.highlights && day.highlights.length > 0 ? day.highlights : [
-                                            { icon: 'fa-map-marker-alt', title: 'Tourist Attraction:', text: 'Bezienswaardigheden' },
-                                            { icon: 'fa-shopping-bag', title: 'Best Buy:', text: 'Lokale producten' },
-                                            { icon: 'fa-utensils', title: 'Food Speciality:', text: 'Lokale gerechten' },
-                                            { icon: 'fa-hiking', title: 'Activity:', text: 'Activiteiten' }
-                                        ]).slice(0, 4).map(h => `
-                                            <li>
-                                                <i class="fas ${h.icon || 'fa-star'}"></i>
-                                                <h6 class="editable" contenteditable="true">${h.title || 'Highlight'}</h6>
-                                                <p class="editable" contenteditable="true">${h.text || h.description || ''}</p>
-                                            </li>
-                                        `).join('')}
-                                    </ul>
-                                    
-                                    <!-- Tour Delight Banner -->
-                                    <div class="roadbook-tour-delight">
-                                        <i class="fa fa-star"></i>
-                                        <h6>TOUR DELIGHT:</h6>
-                                        <span class="editable" contenteditable="true">${day.delight || day.hotel || 'Dinner with Ice Cream Treat'}</span>
+                                    <!-- Info -->
+                                    <div class="roadbook-day-info">
+                                        <h3 class="roadbook-day-location editable" contenteditable="true">${location}${dayCount > 1 ? ` (Dag ${dayRange})` : ''}</h3>
+                                        <p class="roadbook-day-subtitle editable" contenteditable="true">${day.subtitle || day.location || 'Provincie / Stad'}</p>
+                                        ${day.distance ? `<p class="roadbook-day-distance editable" contenteditable="true">${day.distance}</p>` : ''}
+                                        
+                                        <p class="roadbook-day-description editable" contenteditable="true">${day.description || 'Beschrijving van deze dag...'}</p>
+                                        
+                                        <a href="#" class="roadbook-read-more" onclick="event.preventDefault(); alert('Open slide panel met meer info');">
+                                            Lees verder <i class="fas fa-arrow-right"></i>
+                                        </a>
+                                        
+                                        <!-- Highlights -->
+                                        <div class="roadbook-day-highlights">
+                                            ${(day.highlights && day.highlights.length > 0 ? day.highlights : [
+                                                { icon: 'fa-map-marker-alt', title: 'Tourist Attraction:', text: 'Bezienswaardigheden' },
+                                                { icon: 'fa-shopping-bag', title: 'Best Buy:', text: 'Lokale producten' },
+                                                { icon: 'fa-utensils', title: 'Food Speciality:', text: 'Lokale gerechten' },
+                                                { icon: 'fa-hiking', title: 'Activity:', text: 'Activiteiten' }
+                                            ]).slice(0, 4).map(h => `
+                                                <div class="roadbook-highlight-item">
+                                                    <div class="roadbook-highlight-icon">
+                                                        <i class="fas ${h.icon || 'fa-star'}"></i>
+                                                    </div>
+                                                    <div class="roadbook-highlight-content">
+                                                        <h4 class="editable" contenteditable="true">${h.title || 'Highlight'}</h4>
+                                                        <p class="editable" contenteditable="true">${h.text || h.description || ''}</p>
+                                                    </div>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                        
+                                        <!-- Hotel Bar -->
+                                        <div class="roadbook-hotel-bar">
+                                            <i class="fas fa-hotel"></i>
+                                            <span class="editable" contenteditable="true">${day.hotel || day.accommodation || 'Hotel naam'}</span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div style="clear: both;"></div>
                             </div>
                         `;
                         }).join('')}
