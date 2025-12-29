@@ -1,11 +1,11 @@
-/* Roadbook Timeline - Simple Working Version */
+/* Roadbook Timeline - WordPress Travellers Style */
 
 /* Container */
 .roadbook-animated-timeline-section {
     width: 100%;
     background: linear-gradient(to bottom, var(--brand-primary, #84cc16) 300px, #f9fafb 300px);
     position: relative;
-    overflow: visible;
+    overflow: hidden;
     padding-bottom: 100px;
 }
 
@@ -37,23 +37,20 @@
 /* Timeline Road Container */
 .roadbook-timeline-road {
     position: relative;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 60px 20px 100px;
+    padding: 4em 20px 100px;
 }
 
-/* VERTICAL ROAD LINE - ALWAYS VISIBLE */
+/* VERTICAL ROAD LINE - WordPress Style */
 .roadbook-road-line {
     position: absolute;
-    left: 50%;
     top: 0;
-    bottom: 0;
-    width: 8px;
-    background: #6b7280;
-    border-left: 3px dashed white;
-    border-right: 3px dashed white;
-    transform: translateX(-50%);
-    z-index: 1;
+    left: 50%;
+    bottom: -3em;
+    width: 1px;
+    border-left: 3px dashed #fff;
+    z-index: 98;
 }
 
 /* START/END Badges */
@@ -96,82 +93,95 @@
     object-fit: contain;
 }
 
-/* DAY ITEM - SIMPLE LAYOUT */
+/* DAY ITEM - WordPress Float Layout */
 .roadbook-day-item {
     position: relative;
-    margin-bottom: 80px;
-    min-height: 400px;
+    overflow: hidden;
+    margin-bottom: 0;
 }
 
-/* DAY BADGE - ON THE LINE */
-.roadbook-day-badge {
-    position: absolute;
-    left: 50%;
-    top: 200px;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 80px;
-    background: white;
-    border: 4px solid #d1d5db;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: #6b7280;
-    z-index: 10;
+.roadbook-day-item::after {
+    content: "";
+    display: table;
+    clear: both;
 }
 
-.roadbook-day-item.active .roadbook-day-badge {
-    background: var(--brand-primary, #84cc16);
-    border-color: var(--brand-primary, #84cc16);
-    color: white;
+/* Left and Right Containers */
+.roadbook-day-photo,
+.roadbook-day-info {
+    display: block;
+    position: relative;
+    float: left;
+    width: 50%;
 }
 
-/* PHOTO - LEFT OR RIGHT */
+/* Photo Container */
 .roadbook-day-photo {
     position: absolute;
     top: 0;
-    width: 45%;
-    height: 400px;
-    border-radius: 12px;
+    bottom: 0;
+    height: 100%;
     overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
 }
 
 .roadbook-day-item:nth-child(odd) .roadbook-day-photo {
-    right: 52%;
+    left: 0;
 }
 
 .roadbook-day-item:nth-child(even) .roadbook-day-photo {
-    left: 52%;
+    right: 0;
 }
 
 .roadbook-day-photo img {
-    width: 100%;
     height: 100%;
+    width: auto;
     object-fit: cover;
 }
 
-/* INFO - OPPOSITE SIDE */
+/* Info Container */
 .roadbook-day-info {
-    position: absolute;
-    top: 0;
-    width: 45%;
-    padding: 20px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    background-color: #fff;
     min-height: 400px;
 }
 
 .roadbook-day-item:nth-child(odd) .roadbook-day-info {
-    left: 52%;
+    padding: 3.5em 3.5em 7em 5.65em;
 }
 
 .roadbook-day-item:nth-child(even) .roadbook-day-info {
-    right: 52%;
+    padding: 3.5em 5.65em 7em 3.5em;
+}
+
+/* DAY BADGE - WordPress Style */
+.roadbook-day-badge {
+    display: block;
+    position: absolute;
+    top: 50%;
+    width: 6em;
+    height: 6em;
+    line-height: 4.65em;
+    font-size: 1.15em;
+    font-weight: 600;
+    border: 0.65em solid #fff;
+    border-radius: 50%;
+    text-align: center;
+    color: #fff;
+    background: #9ca3af;
+    margin-top: -3.65em;
+    box-shadow: 0 0 5px 1px rgba(0, 0, 0, 0.3);
+    z-index: 99;
+}
+
+.roadbook-day-item:nth-child(odd) .roadbook-day-badge {
+    left: -2.85em;
+}
+
+.roadbook-day-item:nth-child(even) .roadbook-day-badge {
+    right: -3.15em;
+}
+
+.roadbook-day-item.active .roadbook-day-badge {
+    background: var(--brand-primary, #84cc16);
 }
 
 /* Content Styling */
@@ -232,67 +242,75 @@
     margin: 0;
 }
 
-/* Tour Delight */
+/* Tour Delight - WordPress Style */
 .roadbook-tour-delight {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: var(--brand-primary, #84cc16);
-    color: white;
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin-top: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    color: #fff;
+    padding: 1.65em 1.5em;
+}
+
+.roadbook-day-item:nth-child(odd) .roadbook-tour-delight {
+    padding-left: 8.50em;
+}
+
+.roadbook-day-item:nth-child(even) .roadbook-tour-delight {
+    padding-left: 6.15em;
 }
 
 .roadbook-tour-delight i {
-    font-size: 18px;
+    position: absolute;
+    top: 0.95em;
+    font-size: 1.65em;
+    color: #fff;
+}
+
+.roadbook-day-item:nth-child(odd) .roadbook-tour-delight i {
+    left: 3.35em;
+}
+
+.roadbook-day-item:nth-child(even) .roadbook-tour-delight i {
+    left: 2.15em;
 }
 
 .roadbook-tour-delight h6 {
+    display: inline-block;
+    color: #fff;
+    margin: 0 0.5em 0 0;
     font-weight: 600;
-    margin: 0 8px 0 0;
-    font-size: 0.9rem;
 }
 
 .roadbook-tour-delight span {
-    font-size: 0.9rem;
-}
-
-/* Hotel Bar */
-.roadbook-hotel-bar {
-    background: #374151;
-    color: white;
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin-top: 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.roadbook-hotel-bar i {
-    font-size: 18px;
-    color: var(--brand-primary, #84cc16);
+    color: #fff;
 }
 
 /* Responsive */
-@media (max-width: 968px) {
+@media (max-width: 768px) {
     .roadbook-day-photo,
     .roadbook-day-info {
-        position: relative !important;
-        width: 100% !important;
-        left: 0 !important;
-        right: 0 !important;
-        margin-bottom: 20px;
+        width: 100%;
+        float: none;
+        position: relative;
     }
     
-    .roadbook-day-badge {
-        left: 30px;
-        transform: translateX(0);
+    .roadbook-day-photo {
+        height: 300px;
+    }
+    
+    .roadbook-day-item:nth-child(odd) .roadbook-day-info,
+    .roadbook-day-item:nth-child(even) .roadbook-day-info {
+        padding: 2em 1.5em 5em;
     }
     
     .roadbook-road-line {
         left: 30px;
-        transform: translateX(0);
+    }
+    
+    .roadbook-day-badge {
+        left: 30px !important;
+        right: auto !important;
     }
 }
