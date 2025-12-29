@@ -62,11 +62,18 @@ class RoadbookTimelineAnimation {
         const isOnRoad = viewportMiddle >= this.tubeTop && viewportMiddle <= this.tubeBottom;
         
         if (isOnRoad) {
-            // Show car when on road
-            this.car.classList.add('visible');
+            // Add trigger class - makes car fixed in center
+            this.car.classList.add('trigger');
         } else {
-            // Hide car when not on road
-            this.car.classList.remove('visible');
+            // Remove trigger class - car goes back to absolute
+            this.car.classList.remove('trigger');
+            
+            // Position car at top or bottom of tube
+            if (viewportMiddle < this.tubeTop) {
+                this.car.style.top = '0px';
+            } else {
+                this.car.style.top = (this.tubeBottom - this.tubeTop - 75) + 'px';
+            }
         }
         
         // Update active days
