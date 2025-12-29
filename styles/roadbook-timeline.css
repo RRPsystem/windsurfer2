@@ -46,10 +46,10 @@
     left: 50%;
     top: 0;
     bottom: 0;
-    width: 6px;
-    background: #9ca3af;
+    width: 8px;
+    background: #6b7280;
     transform: translateX(-50%);
-    z-index: 1;
+    z-index: 5;
 }
 
 .roadbook-road-line::before {
