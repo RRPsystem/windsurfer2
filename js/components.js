@@ -7187,20 +7187,20 @@ ComponentFactory.createRoadbook = function(options = {}) {
                     
                     <!-- Itinerary Wrap - WordPress Structure -->
                     <div id="itinerary-wrap">
-                        <!-- TUBE: Gray road background -->
-                        <div class="tube">
-                            <span class="start">START</span>
-                            <span class="end">END</span>
-                        </div>
-                        
-                        <!-- LINE: White dashed center line (outside itinerary for z-index) -->
-                        <div class="line"></div>
-                        
-                        <!-- CAR: Animated car -->
-                        <div id="car"><img src="images/auto.png" alt="Car" onerror="this.parentElement.innerHTML='🚗';"></div>
-                        
-                        <!-- ITINERARY: Contains days -->
+                        <!-- ITINERARY: Contains road and days -->
                         <div class="itinerary">
+                            <!-- TUBE: Gray road background -->
+                            <div class="tube">
+                                <span class="start">START</span>
+                                <span class="end">END</span>
+                            </div>
+                            
+                            <!-- LINE: White dashed center line -->
+                            <div class="line"></div>
+                            
+                            <!-- CAR: Animated car -->
+                            <div id="car"><img src="images/auto.png" alt="Car" onerror="this.parentElement.innerHTML='🚗';"></div>
+                            
                             <!-- DAYS -->
                             ${data.itinerary.map((day, i) => {
                                 const location = day.title || day.destination || 'Bestemming';

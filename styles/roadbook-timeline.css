@@ -52,7 +52,7 @@
     position: absolute;
     top: 0;
     left: 50%;
-    height: 100%;
+    bottom: 0;
     width: 4.65em;
     background: #6b7280;
     z-index: 1;
@@ -90,7 +90,7 @@
     position: absolute;
     top: 0;
     left: 50%;
-    height: 100%;
+    bottom: 0;
     width: 3px;
     background-image: repeating-linear-gradient(
         to bottom,
@@ -130,7 +130,6 @@
    =========================================== */
 .itinerary {
     position: relative;
-    z-index: 10;
 }
 
 /* ===========================================
@@ -139,7 +138,7 @@
 .day {
     position: relative;
     overflow: hidden;
-    z-index: 11;
+    z-index: 5;
 }
 
 .day .left {
@@ -217,7 +216,7 @@
     background: var(--brand-primary, #84cc16);
     margin-top: -3em;
     box-shadow: 0 0 5px 1px rgba(0, 0, 0, 0.3);
-    z-index: 20;
+    z-index: 10;
 }
 
 .day .right .dayNum {
