@@ -1,0 +1,78 @@
+/* +=+=+=+=+=+=+=+=+=+=+=+=+=+=+= \
+----- PRIMARY 
+\ +=+=+=+=+=+=+=+=+=+=+=+=+=+=+= */
+#error-page h3,
+#error-page h2 i,
+a:hover, a:focus, .theme-clr, #location .theme-clr, #location iframe + small a, #location iframe + small a *, #imptips .fa, #imptips li:before, 
+#about-contact .fa, #about-contact a, .navbar-default .navbar-nav li .fa-home, .timerwrap div::before, .subscribe .btn-box::before, .item-info h6 strong, 
+.svg.arrPrime, .day ul li i, .prime, .day .delight i, #testimonial .heading h4, #testimonial .heading::before, #testimonial .heading::after, .subscribe .submit::before,
+.price-list .pricing-table-default:hover .price, .price-list .pricing-table-default:hover .btn, .price-list .pricing-table-default:hover .price-digit {
+  color: var(--primary);
+}
+.svg.arrPrime path, #galleryCarousel .zoom .svg path {
+  fill:var(--primary);
+}
+/* Background PRIMARY */
+span.sticky-post,
+.woocommerce span.onsale,
+.woocommerce #respond input#submit.alt, .woocommerce a.button.alt, .woocommerce button.button.alt, .woocommerce input.button.alt,
+.theme-clrbg, #itinerary .panel-heading .panel-title, .btn-primary, .navbar-default .navbar-nav > li:hover > a, .navbar-default .navbar-nav > li.active > a, 
+.navbar-default .navbar-nav .dropdown-menu > li > a:hover, .navbar-default .navbar-nav .dropdown-menu > li > a:focus, .price-list .pricing-head .price, .price-list .pricing-table-default:hover,
+.BGprime, .btn-light:hover, .owl-theme .owl-controls .owl-buttons div, .day:hover .dayNum, .owl-carousel .item .item-header i, .bgcolor, #upcoming .item a, #upcoming.owl-theme .owl-controls .owl-buttons div, ul.social li a:hover, .additional-info span i, .modal-header, .btn-default:hover, .round, .opt .day .delight, .info-box.option.color .counter .timerwrap, #image-slider .carousel-caption h3, #travelInfo.BGprime, h1 small::before, .subscribe .right, .item a.zoom {
+  background-color:var(--primary);
+}
+/* use rgba values here */
+.BGprime.opaque, .square1.opaque, #image-slider a.carousel-control, .pic_box:hover > h4  {
+  background-color: rgba(var(--primary-rgb), .7);
+}
+#contact .form-control:focus {
+  border-color:var(--primary);
+}
+
+::-moz-selection {
+ background: var(--primary);
+ color: #fff;
+}
+::selection {
+  background: var(--primary);
+  color: #fff;
+}
+/* +=+=+=+=+=+=+=+=+=+=+=+=+=+=+= \
+----- DARK 
+\ +=+=+=+=+=+=+=+=+=+=+=+=+=+=+= */
+h1, h2, h3, h4, h5, h6, h1 small, a, .navbar-default .navbar-nav li a, #upcoming .item .name h1 span, .counter .date::after, .owl-carousel .item .item-info div.right strong, .owl-carousel .item .item-info div.left strong {
+  color: #3c4251;
+}
+/* Background Color4 */
+.woocommerce #respond input#submit.alt:hover, .woocommerce a.button.alt:hover, .woocommerce button.button.alt:hover, .woocommerce input.button.alt:hover,
+.BGdark, .BGprime .owl-theme .owl-controls .owl-buttons div, .btn-sec:hover, .day .delight, #galleryCarousel .item, #upcoming .item, #travelInfo.BGdark, .btn:hover, #itinarary2.dark .day .right.placeInfo, #itinarary2.dark .day .left.placeInfo {
+  background-color: #3c4251;
+}
+/* use rgba values here */
+.BGdark.opaque, ul.social li a {
+  background-color: rgba(60, 66, 81, 0.7);
+}
+/* +=+=+=+=+=+=+=+=+=+=+=+=+=+=+= \
+----- MEDIUM DARK 
+\ +=+=+=+=+=+=+=+=+=+=+=+=+=+=+= */
+.Mdark, .timerwrap div, h5 small, .owl-carousel .item .item-info div.left, .owl-carousel .item .item-info div.right, h1 span, .day span, #travelInfo .item .item-info .info p {
+  color: #878a94;
+}
+/* Background Color4 */
+.BGMdark, .day .placeInfo::before, .day .dayNum, .tube {
+  background-color: #878a94;
+}
+/* use rgba values here */
+.BGMdark.opaque {
+  background-color: rgba(135, 138, 148, 0.7);
+}
+/* +=+=+=+=+=+=+=+=+=+=+=+=+=+=+= \
+----- LIGHT
+\ +=+=+=+=+=+=+=+=+=+=+=+=+=+=+= */
+/* Background LIGHT */
+.BGlight {
+  background-color: #eff1f6;
+}
+.BGlight.opaque, #itinarary2.light .day .right.placeInfo, #itinarary2.light .day .left.placeInfo {
+  background-color: rgba(239, 241, 246, 0.7);
+}

@@ -1,0 +1,212 @@
+1.6.1 - 8th October 2024
+Changelog:
+1. Tested up to WordPress Version 6.6.2
+2. Updated WooCommerce outdated templates
+3. Updated theme-required plugins
+4. Fixed PHP version compatibility issues
+6. Added TheBooking plugin
+5. Updated CSS files
+
+1.5.3.3 - 16th November 2023
+Changelog:
+1. Tested up to WordPress version 6.4.1
+2. Updated WooCommerce outdated templates 
+
+
+1.5.3.1 - 7th March 2023
+Changelog:
+1. Updated WooCommerce outdated templates
+2. Fixed cart count update issue
+3. Updated CSS files 
+4. Updated JS files
+
+1.5.3 - 19th January 2023
+Changelog:
+1. Updated WooCommerce outdated templates
+2. Updated CSS files 
+
+1.5.2 - 13th November 2022
+Changelog:
+1. Updated WooCommerce backdated templates
+2. Tested upto WordPress version 6.1  
+3. Demo Data Update  
+
+1.5.1 - 26th August, 2022
+Changelog:
+1. Updated fontawesome
+2. Fixed CSS
+3. Fixed JS
+4. Fixed vc section 
+
+1.5.0 - 6th June, 2022
+Changelog:
+1. Updated Option tree 
+2. Updated footer template parts
+3. Added Contact info template
+4. Fixed upload media button issues
+5. Fixed Counter responsive issues
+6. Updated Destination templates
+7. Added Bootstrap 5+ grid css
+8. Updated fontawesome 5.15+
+9. Fixed CSS
+10. Fixed JS
+
+1.4.9 - 14th May, 2022
+Changelog:
+1. Theme required plugins updated
+2. Demo data updated
+3. CSS fixed
+
+1.4.8.1 - 20th January, 2022
+Changelog:
+1. WPBakery Page Builder plugin updated
+2. convertplug plugin updated
+
+1.4.8 - 05th December, 2021
+Changelog:
+1. PHP 8.0 issues fixed
+2. Demo data updated
+3. CSS fixed
+
+1.4.7 - 12th August, 2021
+Changelog:
+1. Mobile menu issue fixed
+2. Default widgets issues fixed
+3. Owl-carousel issue fixed
+4. CSS fixed
+5. JS fixed
+
+1.4.6 - 27th July, 2021
+Changelog:
+1. WP 5.8 compatible issues fixed
+2. CSS fixed
+
+1.4.5 - 24th July, 2021
+Changelog:
+1. Theme options updated
+2. Tour, location layout options added
+3. Sidebar issues fixed
+4. CSS fixed
+
+1.4.4 - 14th July, 2021
+Changelog:
+1. JS Composer plugins updated
+2. Convertplug plugins updated
+3. Sidebar issues fixed
+4. CSS fixed
+
+1.4.3 - 11th May, 2021
+Changelog:
+1. Theme required plugins updated
+2. Convertplug plugins updated
+3. CSS fixed
+
+1.4.2 - 24th February, 2021
+Changelog:
+1. Theme required plugins updated
+2. JS fixed
+
+1.4.1 - 9th February, 2021
+Changelog:
+1. Footer widget Issues fixed
+2. CSS fixed
+
+1.4.0 - 3rd February, 2021
+Changelog:
+1. Color Picker Issues fixed
+2. CSS fixed
+
+1.3.9 - 15th January, 2021
+Changelog:
+1. Theme required plugins updated
+2. CSS fixed
+
+1.3.8 - 06th January, 2021
+Changelog:
+1. Theme required plugins updated
+2. Convertplug plugins updated
+3. JS Composer plugins updated.
+4. CSS fixed
+
+1.3.7 - 2nd December, 2020
+Changelog:
+1. Theme required plugins updated
+2. Convertplug plugins updated
+3. JS Composer plugins updated.
+4. CSS fixed
+
+1.3.6 - 05th October, 2020
+Changelog:
+1. Theme required plugins updated
+2. CSS fixed
+
+1.3.5 - 10th September, 2020
+Changelog:
+1. Headers & Footers scripts added in settings
+2. Theme required plugins updated
+3 . CSS fixed
+
+1.3.4 - 21th August, 2020
+Changelog:
+1. WPBakery Page Builder update
+2. Slider Revolution Updated
+3. JS console issues fixed
+4. Option tree updated
+5. CSS fixed
+
+1.3.3 - 13th August, 2020
+Changelog:
+1. WP 5.5 compatibility issues fixed
+2. JS issues fixed
+3. CSS fixed
+
+1.3.2 - 2nd May, 2020
+Changelog:
+1. JS Composer plugin Updated
+2. Woocommerce template files updated
+3. CSS fixed
+
+1.3.1- 11th January, 2020
+Changelog:
+1. JS Composer plugin Updated
+2. Backtotop on-off options added
+3. CSS fixed
+
+1.3.0- 8th December, 2022
+Changelog:
+1. Theme required plugin added
+2. Js fixed
+ 
+1.2.9- 13th November, 2022
+Changelog:
+1. JS Composer plugin Updated
+2. Post tag options added
+3. Newsletter bug fixed
+4. Admin interface updated
+5. Default contact form added.
+6. CSS fixed 
+
+1.2.8- 22th July, 2022
+Changelog:
+1.JS Composer plugin Updated
+2.CSS fixed 
+
+1.2.7- 20th June, 2022
+Changelog:
+1. JS Composer Fatal issue fixed .
+2. JS Composer plugin Updated .
+3. Woocommerce template files updated
+4. CSS fixed
+
+1.2.6- 22th May, 2022
+Changelog:
+1. JS Composer Fatal issue fixed .
+2. JS Composer Update .
+
+1.2.5 - 14th March, 2022
+Changelog:
+1. Plugins updated
+2. Demo data updated
+3. Woocommerce issues updated
+4. CSS fixed
+5. JS file updated
