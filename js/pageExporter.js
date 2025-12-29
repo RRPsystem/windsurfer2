@@ -419,8 +419,18 @@
           }
         }
       });
+    },
+    
+    async exportFullHTML() {
+      const canvas = document.getElementById('canvas');
+      if (!canvas) return '';
       
-      canvasHTML = tempDiv.innerHTML;
+      // Clone and process
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = canvas.innerHTML;
+      
+      // Process roadbook videos
+      this.processRoadbookVideos(tempDiv);
       
       // Get CSS files
       const mainCSS = await this.fetchCSS('/styles/main.css');
