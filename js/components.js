@@ -7236,27 +7236,32 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         .itinerary {
                             position: relative !important;
                         }
+                        /* placeInfo cards should not cover the road */
+                        .day .placeInfo {
+                            position: relative !important;
+                            z-index: 1 !important;
+                        }
+                        .day .placeImg {
+                            position: relative !important;
+                            z-index: 1 !important;
+                        }
                         /* Car - WordPress exact styling */
                         #car {
                             display: block !important;
                             width: 39px !important;
                             height: 75px !important;
-                            position: absolute !important;
-                            left: 50% !important;
-                            z-index: 99 !important;
-                            margin-left: -18px !important;
-                            pointer-events: none !important;
-                        }
-                        #car.trigger {
-                            display: block !important;
                             position: fixed !important;
-                            width: 39px !important;
-                            height: 75px !important;
-                            top: 50% !important;
                             left: 50% !important;
-                            z-index: 999999999 !important;
+                            top: 50% !important;
+                            z-index: 9999 !important;
                             margin-left: -18px !important;
                             margin-top: -37px !important;
+                            pointer-events: none !important;
+                            opacity: 0 !important;
+                            transition: opacity 0.3s ease !important;
+                        }
+                        #car.visible {
+                            opacity: 1 !important;
                         }
                         /* Day badge - WordPress exact styling */
                         .day .dayNum {

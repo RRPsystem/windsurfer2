@@ -800,28 +800,24 @@ ${roadbookCSS}
     display: none !important;
 }
 
-/* Car - WordPress exact styling */
+/* Car - fixed in center, visibility controlled by JS */
 #car {
     display: block !important;
     width: 39px !important;
     height: 75px !important;
-    position: absolute !important;
-    left: 50% !important;
-    z-index: 99 !important;
-    margin-left: -18px !important;
-    pointer-events: none !important;
-}
-
-#car.trigger {
-    display: block !important;
     position: fixed !important;
-    width: 39px !important;
-    height: 75px !important;
-    top: 50% !important;
     left: 50% !important;
-    z-index: 999999999 !important;
+    top: 50% !important;
+    z-index: 9999 !important;
     margin-left: -18px !important;
     margin-top: -37px !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
+    transition: opacity 0.3s ease !important;
+}
+
+#car.visible {
+    opacity: 1 !important;
 }
 
 #car img {
@@ -832,7 +828,6 @@ ${roadbookCSS}
 
 .itinerary {
     position: relative !important;
-    z-index: 10 !important;
 }
 
 .day {
@@ -859,6 +854,13 @@ ${roadbookCSS}
 .day .placeInfo {
     background-color: #fff !important;
     min-height: 400px !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+.day .placeImg {
+    position: relative !important;
+    z-index: 1 !important;
 }
 
 .day .right.placeInfo { padding: 3.5em 3.5em 7em 5.65em !important; }
@@ -1024,18 +1026,11 @@ class RoadbookTimelineAnimation {
         const isOnRoad = viewportMiddle >= this.tubeTop && viewportMiddle <= this.tubeBottom;
         
         if (isOnRoad) {
-            // Add trigger class - makes car fixed in center
-            this.car.classList.add('trigger');
+            // Show car when on road
+            this.car.classList.add('visible');
         } else {
-            // Remove trigger class - car goes back to absolute
-            this.car.classList.remove('trigger');
-            
-            // Position car at top or bottom of tube
-            if (viewportMiddle < this.tubeTop) {
-                this.car.style.top = '0px';
-            } else {
-                this.car.style.top = (this.tubeBottom - this.tubeTop - 75) + 'px';
-            }
+            // Hide car when not on road
+            this.car.classList.remove('visible');
         }
         
         // Update active days
