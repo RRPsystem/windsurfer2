@@ -26,10 +26,21 @@ class ExportManager {
     async showPreview(evt) {
         // Open full web-based preview in a new tab using preview.html
         try {
-            // Save canvas content to sessionStorage for preview
+            // Process canvas with PageExporter first (for roadbook videos, etc.)
             const canvas = document.getElementById('canvas');
             if (canvas && canvas.innerHTML) {
-                sessionStorage.setItem('wb_preview_content', canvas.innerHTML);
+                // Clone canvas to avoid modifying the editor
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = canvas.innerHTML;
+                
+                // Run PageExporter processing
+                if (window.PageExporter && typeof window.PageExporter.processRoadbookVideos === 'function') {
+                    console.log('[Export] Processing roadbook videos...');
+                    window.PageExporter.processRoadbookVideos(tempDiv);
+                }
+                
+                // Save processed content
+                sessionStorage.setItem('wb_preview_content', tempDiv.innerHTML);
                 console.log('✅ Saved canvas content to sessionStorage');
             }
             

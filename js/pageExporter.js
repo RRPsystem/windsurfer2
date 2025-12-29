@@ -230,6 +230,13 @@
         ph.remove();
       });
       
+      // Process roadbook videos
+      this.processRoadbookVideos(tempDiv);
+      
+      return tempDiv.innerHTML;
+    },
+    
+    processRoadbookVideos(tempDiv) {
       // Generate video playlists and YouTube iframes from dataset attributes for roadbook heroes
       const roadbookComponents = tempDiv.querySelectorAll('.wb-roadbook');
       console.log('[PageExporter] Found roadbook components:', roadbookComponents.length);
