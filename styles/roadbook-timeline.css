@@ -56,10 +56,10 @@
     bottom: 0;
     width: 4.65em;
     background: #6b7280;
-    z-index: 1;
+    z-index: 50;
     margin-left: -2.325em;
     border-radius: 10em;
-    min-height: 100%;
+    pointer-events: none;
 }
 
 .tube .start {
@@ -94,7 +94,8 @@
     bottom: 0;
     width: 1px;
     border-left: 3px dashed #fff;
-    z-index: 2;
+    z-index: 51;
+    pointer-events: none;
 }
 
 /* ===========================================
@@ -123,7 +124,7 @@
    =========================================== */
 .itinerary {
     position: relative;
-    z-index: 99;
+    z-index: 10;
 }
 
 /* ===========================================
