@@ -7178,7 +7178,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
             
             <!-- Animated Timeline: Dag bij Dag - WordPress Style -->
             ${data.itinerary.length > 0 ? `
-                <div id="itinerary" class="roadbook-animated-timeline-section">
+                <div id="itinerary" class="roadbook-animated-timeline-section" style="background: linear-gradient(to bottom, ${brandPrimary} 300px, #f9fafb 300px) !important;">
                     <!-- Header -->
                     <div class="roadbook-timeline-header">
                         <h2 class="editable" contenteditable="true">DE REIS <strong>DAG BIJ DAG</strong></h2>
@@ -7187,6 +7187,9 @@ ComponentFactory.createRoadbook = function(options = {}) {
                     
                     <!-- Inline styles for road - guaranteed to work -->
                     <style>
+                        :root {
+                            --brand-primary: ${brandPrimary} !important;
+                        }
                         #itinerary-wrap {
                             position: relative !important;
                         }
@@ -7199,7 +7202,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             background: #6b7280 !important;
                             margin-left: -37px !important;
                             border-radius: 100px !important;
-                            z-index: 0 !important;
+                            z-index: 6 !important;
                             pointer-events: none !important;
                         }
                         #itinerary-wrap > .roadbook-road-line {
@@ -7210,8 +7213,27 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             width: 3px !important;
                             margin-left: -1.5px !important;
                             background-image: repeating-linear-gradient(to bottom, #fff 0px, #fff 15px, transparent 15px, transparent 30px) !important;
-                            z-index: 1 !important;
+                            z-index: 7 !important;
                             pointer-events: none !important;
+                        }
+                        #car {
+                            position: fixed !important;
+                            left: 50% !important;
+                            top: 50% !important;
+                            transform: translate(-50%, -50%) !important;
+                            z-index: 100 !important;
+                            width: 50px !important;
+                            pointer-events: none !important;
+                            transition: opacity 0.3s ease !important;
+                        }
+                        .day .dayNum {
+                            background: ${brandPrimary} !important;
+                        }
+                        .day .delight {
+                            background: ${brandPrimary} !important;
+                        }
+                        .day ul li i {
+                            color: ${brandPrimary} !important;
                         }
                     </style>
                     
@@ -7221,8 +7243,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         <div class="roadbook-road"></div>
                         <!-- ROAD LINE: White dashed -->
                         <div class="roadbook-road-line"></div>
-                        <!-- CAR: Animated car -->
-                        <div id="car" style="position: absolute; left: 50%; top: 80px; width: 50px; transform: translateX(-50%); z-index: 10; pointer-events: none;"><img src="images/auto.png" alt="Car" style="width: 100%; height: auto;" onerror="this.parentElement.innerHTML='🚗';"></div>
+                        <!-- CAR: Animated car (fixed position, stays in center while scrolling) -->
+                        <div id="car"><img src="images/auto.png" alt="Car" style="width: 100%; height: auto;" onerror="this.parentElement.innerHTML='🚗';"></div>
                         
                         <!-- ITINERARY: Contains days -->
                         <div class="itinerary" style="position: relative; z-index: 5;">

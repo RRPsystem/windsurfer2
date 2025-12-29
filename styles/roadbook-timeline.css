@@ -125,12 +125,13 @@
     display: block;
     width: 50px;
     height: auto;
-    position: absolute;
+    position: fixed;
     left: 50%;
-    top: 50px;
-    z-index: 5;
-    transform: translateX(-50%);
+    top: 50%;
+    z-index: 100;
+    transform: translate(-50%, -50%);
     pointer-events: none;
+    transition: opacity 0.3s ease;
 }
 
 #car img {
@@ -157,7 +158,7 @@
     background: #6b7280;
     margin-left: -2.325em;
     border-radius: 10em;
-    z-index: 0;
+    z-index: 6;
     pointer-events: none;
 }
 
@@ -177,7 +178,7 @@
         transparent 30px
     );
     margin-left: -1.5px;
-    z-index: 1;
+    z-index: 7;
     pointer-events: none;
 }
 
