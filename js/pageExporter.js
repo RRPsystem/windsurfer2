@@ -818,7 +818,7 @@ ${roadbookCSS}
 
 .day {
     position: relative !important;
-    overflow: hidden !important;
+    overflow: visible !important;
 }
 
 .day .left {
@@ -1009,11 +1009,20 @@ class RoadbookTimelineAnimation {
         if (!this.car || !this.itineraryWrap) return;
         
         const wrapRect = this.itineraryWrap.getBoundingClientRect();
-        const isInView = wrapRect.top < window.innerHeight && wrapRect.bottom > 0;
+        const viewportHeight = window.innerHeight;
         
-        // Show car only when itinerary-wrap is in view
-        this.car.style.opacity = isInView ? '1' : '0';
-        this.car.style.visibility = isInView ? 'visible' : 'hidden';
+        // Car should only be visible when the road (itinerary-wrap) is in the viewport
+        // AND the viewport middle is within the road bounds
+        const roadTop = wrapRect.top;
+        const roadBottom = wrapRect.bottom;
+        const viewportMiddle = viewportHeight / 2;
+        
+        // Check if viewport middle is within the road area
+        const isCarOnRoad = roadTop <= viewportMiddle && roadBottom >= viewportMiddle;
+        
+        // Show car only when it would be on the road
+        this.car.style.opacity = isCarOnRoad ? '1' : '0';
+        this.car.style.visibility = isCarOnRoad ? 'visible' : 'hidden';
     }
     
     updateActiveDays() {

@@ -88,11 +88,14 @@ class RoadbookTimelineAnimation {
         
         const wrapRect = this.itineraryWrap.getBoundingClientRect();
         const viewportHeight = window.innerHeight;
+        const viewportMiddle = viewportHeight / 2;
         
-        // Show car only when itinerary-wrap is in view
-        const isInView = wrapRect.top < viewportHeight && wrapRect.bottom > 0;
+        // Car should only be visible when viewport middle is within the road bounds
+        const roadTop = wrapRect.top;
+        const roadBottom = wrapRect.bottom;
+        const isCarOnRoad = roadTop <= viewportMiddle && roadBottom >= viewportMiddle;
         
-        if (isInView) {
+        if (isCarOnRoad) {
             this.car.style.opacity = '1';
             this.car.style.visibility = 'visible';
         } else {
