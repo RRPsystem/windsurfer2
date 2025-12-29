@@ -7187,20 +7187,20 @@ ComponentFactory.createRoadbook = function(options = {}) {
                     
                     <!-- Itinerary Wrap - WordPress Structure -->
                     <div id="itinerary-wrap" style="position: relative;">
-                        <!-- ITINERARY: Contains road and days -->
-                        <div class="itinerary" style="position: relative;">
-                            <!-- TUBE: Gray road background -->
-                            <div class="tube" style="position: absolute; top: 0; left: 50%; bottom: 0; width: 74px; background: #6b7280; margin-left: -37px; border-radius: 100px; z-index: 1; pointer-events: none;">
-                                <span class="start" style="position: absolute; top: 24px; left: 0; right: 0; text-align: center; color: #fff; font-weight: 600; font-size: 14px;">START</span>
-                                <span class="end" style="position: absolute; bottom: 24px; left: 0; right: 0; text-align: center; color: #fff; font-weight: 600; font-size: 14px;">END</span>
-                            </div>
-                            
-                            <!-- LINE: White dashed center line -->
-                            <div class="line" style="position: absolute; top: 0; left: 50%; bottom: 0; width: 3px; margin-left: -1.5px; background: repeating-linear-gradient(to bottom, #fff 0px, #fff 15px, transparent 15px, transparent 30px); z-index: 2; pointer-events: none;"></div>
-                            
-                            <!-- CAR: Animated car -->
-                            <div id="car" style="position: absolute; left: 50%; top: 80px; width: 50px; transform: translateX(-50%); z-index: 10; pointer-events: none;"><img src="images/auto.png" alt="Car" style="width: 100%; height: auto;" onerror="this.parentElement.innerHTML='🚗';"></div>
-                            
+                        <!-- TUBE: Gray road background - positioned in wrap -->
+                        <div class="roadbook-tube" style="position: absolute; top: 0; left: 50%; width: 74px; background: #6b7280; margin-left: -37px; border-radius: 100px; z-index: 1; pointer-events: none; min-height: 100%;">
+                            <span style="position: absolute; top: 24px; left: 0; right: 0; text-align: center; color: #fff; font-weight: 600; font-size: 14px;">START</span>
+                            <span style="position: absolute; bottom: 24px; left: 0; right: 0; text-align: center; color: #fff; font-weight: 600; font-size: 14px;">END</span>
+                        </div>
+                        
+                        <!-- LINE: White dashed center line -->
+                        <div class="roadbook-line" style="position: absolute; top: 0; left: 50%; width: 3px; margin-left: -1.5px; background: repeating-linear-gradient(to bottom, #fff 0px, #fff 15px, transparent 15px, transparent 30px); z-index: 2; pointer-events: none; min-height: 100%;"></div>
+                        
+                        <!-- CAR: Animated car -->
+                        <div id="car" style="position: absolute; left: 50%; top: 80px; width: 50px; transform: translateX(-50%); z-index: 10; pointer-events: none;"><img src="images/auto.png" alt="Car" style="width: 100%; height: auto;" onerror="this.parentElement.innerHTML='🚗';"></div>
+                        
+                        <!-- ITINERARY: Contains days -->
+                        <div class="itinerary" style="position: relative; z-index: 5;">
                             <!-- DAYS -->
                             ${data.itinerary.map((day, i) => {
                                 const location = day.title || day.destination || 'Bestemming';
@@ -7295,6 +7295,30 @@ ComponentFactory.createRoadbook = function(options = {}) {
                 section: !!timelineSection,
                 animation: !!window.RoadbookTimelineAnimation
             });
+        }
+        
+        // Set tube and line height based on itinerary content height
+        const itineraryWrap = section.querySelector('#itinerary-wrap');
+        const tube = section.querySelector('.roadbook-tube');
+        const line = section.querySelector('.roadbook-line');
+        const itinerary = section.querySelector('.itinerary');
+        
+        if (itineraryWrap && tube && line && itinerary) {
+            const updateRoadHeight = () => {
+                const height = itinerary.offsetHeight;
+                console.log('[Roadbook] Setting road height to:', height);
+                tube.style.height = height + 'px';
+                line.style.height = height + 'px';
+            };
+            
+            // Update immediately and after images load
+            updateRoadHeight();
+            setTimeout(updateRoadHeight, 500);
+            setTimeout(updateRoadHeight, 1000);
+            setTimeout(updateRoadHeight, 2000);
+            
+            // Also update on window resize
+            window.addEventListener('resize', updateRoadHeight);
         }
     }, 500);
     
