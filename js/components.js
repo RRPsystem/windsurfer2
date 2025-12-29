@@ -7194,7 +7194,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         </div>
                         
                         <!-- CAR: Animated car -->
-                        <div id="car">🚗</div>
+                        <div id="car"><img src="images/auto.png" alt="Car" onerror="this.parentElement.innerHTML='🚗';"></div>
                         
                         <!-- ITINERARY: Contains line and days -->
                         <div class="itinerary">
