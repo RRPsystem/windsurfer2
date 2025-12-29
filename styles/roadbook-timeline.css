@@ -40,34 +40,29 @@
     padding: 0 20px 100px;
 }
 
-/* Vertical Road Line */
+/* TUBE - WordPress Style Gray Road */
 .roadbook-road-line {
     position: absolute;
     left: 50%;
     top: 0;
     bottom: 0;
-    width: 8px;
+    width: 4.65em;
     background: #6b7280;
-    transform: translateX(-50%);
-    z-index: 5;
+    margin-left: -2.325em;
+    border-radius: 10em;
+    z-index: 98;
 }
 
+/* White dashed center line on tube */
 .roadbook-road-line::before {
     content: '';
     position: absolute;
     left: 50%;
     top: 0;
-    width: 2px;
-    height: 100%;
-    background: white;
+    bottom: 0;
+    width: 3px;
     transform: translateX(-50%);
-    background-image: repeating-linear-gradient(
-        to bottom,
-        white 0px,
-        white 20px,
-        transparent 20px,
-        transparent 40px
-    );
+    border-left: 3px dashed rgba(255,255,255,0.5);
 }
 
 /* Animated Car */
@@ -89,15 +84,19 @@
     transition: all 0.3s ease;
 }
 
-/* START Badge */
+/* START Badge - Inside Tube */
 .roadbook-start-badge {
     position: absolute;
     left: 50%;
-    top: -40px;
+    top: 1.5em;
     transform: translateX(-50%);
-    background: #4b5563;
+    background: transparent;
     color: white;
     padding: 8px 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    z-index: 99;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
     border-radius: 20px;
     font-weight: 600;
     font-size: 0.9rem;
