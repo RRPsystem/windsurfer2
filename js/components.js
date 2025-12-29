@@ -7193,32 +7193,37 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         #itinerary-wrap {
                             position: relative !important;
                         }
+                        /* WordPress exact: tube z-index 98, line z-index 98 */
                         #itinerary-wrap > .roadbook-road {
                             position: absolute !important;
                             top: 0 !important;
                             left: 50% !important;
                             bottom: 0 !important;
-                            width: 74px !important;
+                            width: 4.65em !important;
                             background: #6b7280 !important;
-                            margin-left: -37px !important;
-                            border-radius: 100px !important;
-                            z-index: 1 !important;
+                            margin-left: -2.325em !important;
+                            border-radius: 10em !important;
+                            z-index: 98 !important;
                             pointer-events: none !important;
                         }
+                        /* Hide the separate line div - use border on road instead */
                         #itinerary-wrap > .roadbook-road-line {
+                            display: none !important;
+                        }
+                        /* Add dashed line via pseudo-element on road */
+                        #itinerary-wrap > .roadbook-road::after {
+                            content: '' !important;
                             position: absolute !important;
                             top: 0 !important;
                             left: 50% !important;
                             bottom: 0 !important;
-                            width: 3px !important;
+                            width: 1px !important;
+                            border-left: 3px dashed #fff !important;
                             margin-left: -1.5px !important;
-                            background-image: repeating-linear-gradient(to bottom, #fff 0px, #fff 15px, transparent 15px, transparent 30px) !important;
-                            z-index: 2 !important;
-                            pointer-events: none !important;
+                            z-index: 98 !important;
                         }
                         .itinerary {
                             position: relative !important;
-                            z-index: 10 !important;
                         }
                         /* Car - WordPress exact styling */
                         #car {
@@ -7257,11 +7262,11 @@ ComponentFactory.createRoadbook = function(options = {}) {
                     
                     <!-- Itinerary Wrap -->
                     <div id="itinerary-wrap">
-                        <!-- ROAD: Gray background -->
-                        <div class="roadbook-road"></div>
-                        <!-- ROAD LINE: White dashed -->
-                        <div class="roadbook-road-line"></div>
-                        <!-- CAR: Animated car (fixed position, stays in center while scrolling) -->
+                        <!-- TUBE: Gray road background (WordPress exact) -->
+                        <div class="tube"></div>
+                        <!-- LINE: White dashed center line (WordPress exact) -->
+                        <div class="line"></div>
+                        <!-- CAR: Animated car -->
                         <div id="car"><img src="images/auto.png" alt="Car" style="width: 100%; height: auto;" onerror="this.parentElement.innerHTML='🚗';"></div>
                         
                         <!-- ITINERARY: Contains days -->

@@ -15,7 +15,7 @@ class RoadbookTimelineAnimation {
     init() {
         // Get elements - WordPress structure
         this.car = document.getElementById('car');
-        this.tube = this.container.querySelector('.roadbook-road') || this.container.querySelector('.tube');
+        this.tube = this.container.querySelector('.tube') || this.container.querySelector('.roadbook-road');
         this.dayItems = Array.from(this.container.querySelectorAll('.day'));
         
         console.log('[Timeline] Init:', {

@@ -764,43 +764,39 @@ ${roadbookCSS}
     padding-bottom: 100px !important;
 }
 
-/* Road elements - inline divs - LOWER z-index than itinerary */
-#itinerary-wrap > .roadbook-road {
+/* WordPress exact: tube z-index 98 */
+.tube, .roadbook-road, #itinerary-wrap > .roadbook-road {
     position: absolute !important;
     top: 0 !important;
     left: 50% !important;
     bottom: 0 !important;
-    width: 74px !important;
+    width: 4.65em !important;
     background: #6b7280 !important;
-    margin-left: -37px !important;
-    border-radius: 100px !important;
-    z-index: 1 !important;
+    margin-left: -2.325em !important;
+    border-radius: 10em !important;
+    z-index: 98 !important;
     pointer-events: none !important;
 }
 
-#itinerary-wrap > .roadbook-road-line {
+/* WordPress exact: line z-index 98 */
+.line {
     position: absolute !important;
     top: 0 !important;
     left: 50% !important;
-    bottom: 0 !important;
-    width: 3px !important;
-    margin-left: -1.5px !important;
-    background-image: repeating-linear-gradient(to bottom, #fff 0px, #fff 15px, transparent 15px, transparent 30px) !important;
-    z-index: 2 !important;
-    pointer-events: none !important;
+    bottom: -3em !important;
+    width: 1px !important;
+    border-left: 3px dashed #fff !important;
+    z-index: 98 !important;
+}
+
+/* Hide separate line div */
+.roadbook-road-line, #itinerary-wrap > .roadbook-road-line {
+    display: none !important;
 }
 
 /* Hide pseudo-elements - using inline divs instead */
 .itinerary::before,
 .itinerary::after {
-    display: none !important;
-}
-
-.tube {
-    display: none !important;
-}
-
-.line {
     display: none !important;
 }
 
@@ -988,7 +984,7 @@ class RoadbookTimelineAnimation {
     constructor(container) {
         this.container = container;
         this.car = document.getElementById('car');
-        this.tube = container.querySelector('.roadbook-road') || container.querySelector('.tube');
+        this.tube = container.querySelector('.tube') || container.querySelector('.roadbook-road');
         this.dayItems = container.querySelectorAll('.day');
         this.tubeTop = 0;
         this.tubeBottom = 0;

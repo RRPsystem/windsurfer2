@@ -121,7 +121,42 @@
 /* ===========================================
    CAR - Animated Car
    =========================================== */
-/* Car - WordPress exact styling */
+/* ===========================================
+   TUBE - Gray Road Background (WordPress exact)
+   =========================================== */
+.tube, .roadbook-road {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    bottom: 0;
+    width: 4.65em;
+    background: #6b7280;
+    z-index: 98;
+    margin-left: -2.325em;
+    border-radius: 10em;
+}
+
+/* ===========================================
+   LINE - White Dashed Center Line (WordPress exact)
+   =========================================== */
+.line {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    bottom: -3em;
+    width: 1px;
+    border-left: 3px dashed #fff;
+    z-index: 98;
+}
+
+/* Hide separate line div if using pseudo-element */
+.roadbook-road-line {
+    display: none;
+}
+
+/* ===========================================
+   CAR - Animated Car (WordPress exact)
+   =========================================== */
 #car {
     display: block;
     width: 39px;
@@ -154,7 +189,7 @@
 /* ===========================================
    ITINERARY - Contains Days
    =========================================== */
-.itinerary {
+#itinerary, .itinerary {
     position: relative;
 }
 
@@ -165,7 +200,7 @@
 }
 
 /* ===========================================
-   DAY - Each Day Item (WordPress exact copy)
+   DAY - Each Day Item (WordPress exact)
    =========================================== */
 .day {
     position: relative;
