@@ -5951,10 +5951,15 @@ PropertiesPanel.prototype.createRoadbookProperties = function(component) {
           video.muted = true;
           video.playsInline = true;
           video.loop = false;
+          video.preload = 'metadata'; // Load first frame
           video.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;';
           
           // Set first video as source (just show first frame in builder)
           video.src = res.playlist[0];
+          
+          // Load video to show first frame (but don't play)
+          video.load();
+          
           console.log('[Roadbook] Video preview loaded (1 of', res.playlist.length, ')');
           
           // DON'T autoplay in builder - just show first frame as preview

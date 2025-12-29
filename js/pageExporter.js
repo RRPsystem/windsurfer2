@@ -488,20 +488,21 @@
                 });
               });
               
-              // Add event listener for playlist progression
-              video.addEventListener('ended', function() {
-                console.log('[Preview] Video ended, playing next...');
-                const pl = JSON.parse(this.dataset.playlist);
-                let idx = parseInt(this.dataset.currentIndex) + 1;
-                if (idx >= pl.length) {
-                  console.log('[Preview] Playlist complete, looping back to start');
-                  idx = 0;
-                }
-                console.log('[Preview] Loading video', idx + 1, 'of', pl.length);
-                this.src = pl[idx];
-                this.dataset.currentIndex = idx.toString();
-                // Play will be triggered by loadeddata event
-              });
+              // Add event listener for playlist progression (inline for better compatibility)
+              video.setAttribute('onended', `
+                (function() {
+                  console.log('[Preview] Video ended, playing next...');
+                  const pl = JSON.parse(this.dataset.playlist);
+                  let idx = parseInt(this.dataset.currentIndex) + 1;
+                  if (idx >= pl.length) {
+                    console.log('[Preview] Playlist complete, looping back to start');
+                    idx = 0;
+                  }
+                  console.log('[Preview] Loading video ' + (idx + 1) + ' of ' + pl.length);
+                  this.src = pl[idx];
+                  this.dataset.currentIndex = idx.toString();
+                }).call(this);
+              `);
               
               hero.insertBefore(video, hero.firstChild);
               
