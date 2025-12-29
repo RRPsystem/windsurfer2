@@ -43,6 +43,7 @@
     max-width: 100%;
     margin: 0 auto;
     padding-bottom: 100px;
+    min-height: 500px;
 }
 
 /* ===========================================
@@ -52,12 +53,13 @@
     position: absolute;
     top: 0;
     left: 50%;
-    bottom: 1.65em;
+    bottom: 0;
     width: 4.65em;
     background: #6b7280;
-    z-index: 98;
+    z-index: 1;
     margin-left: -2.325em;
     border-radius: 10em;
+    min-height: 100%;
 }
 
 .tube .start {
@@ -89,10 +91,10 @@
     position: absolute;
     top: 0;
     left: 50%;
-    bottom: -3em;
+    bottom: 0;
     width: 1px;
     border-left: 3px dashed #fff;
-    z-index: 98;
+    z-index: 2;
 }
 
 /* ===========================================
