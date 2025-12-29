@@ -7228,6 +7228,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         }
                         .day .dayNum {
                             background: ${brandPrimary} !important;
+                            z-index: 20 !important;
                         }
                         .day .delight {
                             background: ${brandPrimary} !important;

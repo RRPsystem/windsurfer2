@@ -147,39 +147,10 @@
     position: relative;
 }
 
-/* Road using pseudo-elements - always visible */
-.itinerary::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    bottom: 0;
-    width: 4.65em;
-    background: #6b7280;
-    margin-left: -2.325em;
-    border-radius: 10em;
-    z-index: 6;
-    pointer-events: none;
-}
-
-/* White dashed line on road */
+/* Road using pseudo-elements - DISABLED, using inline divs instead */
+.itinerary::before,
 .itinerary::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    bottom: 0;
-    width: 3px;
-    background-image: repeating-linear-gradient(
-        to bottom,
-        #fff 0px,
-        #fff 15px,
-        transparent 15px,
-        transparent 30px
-    );
-    margin-left: -1.5px;
-    z-index: 7;
-    pointer-events: none;
+    display: none !important;
 }
 
 /* ===========================================
@@ -189,6 +160,11 @@
     position: relative;
     overflow: visible;
     z-index: 5;
+}
+
+/* Day badge must be above the road */
+.day .dayNum {
+    z-index: 20 !important;
 }
 
 .day .left {

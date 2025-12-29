@@ -753,39 +753,44 @@ ${roadbookCSS}
     padding-bottom: 100px !important;
 }
 
-.tube {
+/* Road elements - inline divs */
+#itinerary-wrap > .roadbook-road {
     position: absolute !important;
     top: 0 !important;
     left: 50% !important;
-    bottom: 1.65em !important;
-    width: 4.65em !important;
+    bottom: 0 !important;
+    width: 74px !important;
     background: #6b7280 !important;
-    z-index: 98 !important;
-    margin-left: -2.325em !important;
-    border-radius: 10em !important;
+    margin-left: -37px !important;
+    border-radius: 100px !important;
+    z-index: 6 !important;
+    pointer-events: none !important;
 }
 
-.tube .start, .tube .end {
+#itinerary-wrap > .roadbook-road-line {
     position: absolute !important;
-    left: 0 !important;
-    right: 0 !important;
-    text-align: center !important;
-    color: #fff !important;
-    font-weight: 600 !important;
-    font-size: 0.9em !important;
+    top: 0 !important;
+    left: 50% !important;
+    bottom: 0 !important;
+    width: 3px !important;
+    margin-left: -1.5px !important;
+    background-image: repeating-linear-gradient(to bottom, #fff 0px, #fff 15px, transparent 15px, transparent 30px) !important;
+    z-index: 7 !important;
+    pointer-events: none !important;
 }
 
-.tube .start { top: 1.5em !important; }
-.tube .end { bottom: 1.5em !important; }
+/* Hide pseudo-elements - using inline divs instead */
+.itinerary::before,
+.itinerary::after {
+    display: none !important;
+}
+
+.tube {
+    display: none !important;
+}
 
 .line {
-    position: absolute !important;
-    top: 0 !important;
-    left: 50% !important;
-    bottom: -3em !important;
-    width: 1px !important;
-    border-left: 3px dashed #fff !important;
-    z-index: 98 !important;
+    display: none !important;
 }
 
 #car {
@@ -959,18 +964,18 @@ class RoadbookTimelineAnimation {
     constructor(container) {
         this.container = container;
         this.car = document.getElementById('car');
-        this.tube = container.querySelector('.tube');
+        this.itineraryWrap = document.getElementById('itinerary-wrap');
         this.dayItems = container.querySelectorAll('.day');
         this.isAnimating = false;
         
-        console.log('[Timeline Preview] Initializing WordPress structure...', {
+        console.log('[Timeline Preview] Initializing...', {
             container: !!this.container,
             car: !!this.car,
-            tube: !!this.tube,
+            itineraryWrap: !!this.itineraryWrap,
             dayItemsCount: this.dayItems.length
         });
         
-        if (!this.car || !this.tube || this.dayItems.length === 0) {
+        if (!this.car || !this.itineraryWrap || this.dayItems.length === 0) {
             console.warn('[Timeline Preview] Missing required elements');
             return;
         }
@@ -985,7 +990,7 @@ class RoadbookTimelineAnimation {
         
         setTimeout(() => this.onScroll(), 100);
         setInterval(() => {
-            if (this.isVisible()) this.updateCarVisibility();
+            this.updateCarVisibility();
         }, 100);
     }
     
@@ -1001,13 +1006,14 @@ class RoadbookTimelineAnimation {
     }
     
     updateCarVisibility() {
-        if (!this.car || !this.tube) return;
+        if (!this.car || !this.itineraryWrap) return;
         
-        const tubeRect = this.tube.getBoundingClientRect();
-        const isInView = tubeRect.top < window.innerHeight && tubeRect.bottom > 0;
+        const wrapRect = this.itineraryWrap.getBoundingClientRect();
+        const isInView = wrapRect.top < window.innerHeight && wrapRect.bottom > 0;
         
-        // Show car only when tube is in view
+        // Show car only when itinerary-wrap is in view
         this.car.style.opacity = isInView ? '1' : '0';
+        this.car.style.visibility = isInView ? 'visible' : 'hidden';
     }
     
     updateActiveDays() {
