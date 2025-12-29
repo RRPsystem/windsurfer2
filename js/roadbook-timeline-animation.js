@@ -1,151 +1,82 @@
-// Roadbook Animated Timeline - Car Animation
+// Roadbook Animated Timeline - Car Animation (WordPress ScrollMagic style)
 
 class RoadbookTimelineAnimation {
     constructor(container) {
         this.container = container;
         this.car = null;
+        this.tube = null;
         this.dayItems = [];
-        this.roadLine = null;
-        this.roadContainer = null;
-        this.isAnimating = false;
-        this.itineraryWrap = null;
+        this.tubeTop = 0;
+        this.tubeBottom = 0;
         
         this.init();
     }
     
     init() {
-        console.log('[Timeline Init] ===== STARTING INITIALIZATION =====');
-        // Get all day items - support both old and new class names
-        this.dayItems = Array.from(this.container.querySelectorAll('.roadbook-day-item, .day'));
-        this.roadContainer = this.container.querySelector('.roadbook-timeline-road, #itinerary-wrap');
-        this.roadLine = this.container.querySelector('.roadbook-road-line');
-        this.car = this.container.querySelector('.roadbook-timeline-car, #car');
-        this.itineraryWrap = this.container.querySelector('#itinerary-wrap');
+        // Get elements - WordPress structure
+        this.car = document.getElementById('car');
+        this.tube = this.container.querySelector('.roadbook-road') || this.container.querySelector('.tube');
+        this.dayItems = Array.from(this.container.querySelectorAll('.day'));
         
-        console.log('[Timeline Init]', {
-            container: !!this.container,
-            dayItems: this.dayItems.length,
-            roadContainer: !!this.roadContainer,
-            roadLine: !!this.roadLine,
+        console.log('[Timeline] Init:', {
             car: !!this.car,
-            itineraryWrap: !!this.itineraryWrap
+            tube: !!this.tube,
+            days: this.dayItems.length
         });
         
-        if (!this.car || this.dayItems.length === 0) {
-            console.warn('[Timeline Init] Cannot initialize - missing car or days:', {
-                hasCar: !!this.car,
-                dayCount: this.dayItems.length
-            });
+        if (!this.car || !this.tube) {
+            console.warn('[Timeline] Missing car or tube');
             return;
         }
         
-        console.log('[Timeline Init] ✅ All elements found, setting up animation...');
+        // Calculate tube bounds
+        this.calculateBounds();
         
-        // Position car at START badge initially (relative to road container)
-        setTimeout(() => {
-            const startBadge = this.container.querySelector('.roadbook-start-badge');
-            if (startBadge && this.roadContainer) {
-                const containerRect = this.roadContainer.getBoundingClientRect();
-                const badgeRect = startBadge.getBoundingClientRect();
-                const badgeMiddle = badgeRect.top + badgeRect.height / 2;
-                const relativeTop = badgeMiddle - containerRect.top - (this.car.offsetHeight / 2);
-                this.car.style.top = `${Math.max(0, relativeTop)}px`;
-            }
-        }, 100);
+        // Setup scroll listener
+        window.addEventListener('scroll', () => this.onScroll(), { passive: true });
+        window.addEventListener('resize', () => this.calculateBounds(), { passive: true });
         
-        // Setup scroll listener - listen to ALL scroll events
-        const scrollHandler = () => this.onScroll();
-        document.addEventListener('scroll', scrollHandler, { passive: true, capture: true });
-        window.addEventListener('scroll', scrollHandler, { passive: true });
-        window.addEventListener('resize', scrollHandler, { passive: true });
-        
-        // Also check for scroll on parent containers
-        let parent = this.container.parentElement;
-        while (parent) {
-            parent.addEventListener('scroll', scrollHandler, { passive: true });
-            parent = parent.parentElement;
-        }
-        
-        console.log('[Timeline Init] Scroll listeners attached');
-        
-        // Force initial update after a delay to ensure layout is ready
-        setTimeout(() => {
-            this.updateCarPosition();
-            this.onScroll();
-        }, 100);
-        
-        // Also update on any scroll event globally and control car visibility
-        setInterval(() => {
-            this.updateCarVisibility();
-            if (this.isVisible()) {
-                this.updateCarPosition();
-            }
-        }, 100);
+        // Initial check
+        setTimeout(() => this.onScroll(), 100);
     }
     
-    updateCarVisibility() {
-        if (!this.car || !this.itineraryWrap) return;
+    calculateBounds() {
+        if (!this.tube) return;
         
-        const wrapRect = this.itineraryWrap.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        const viewportMiddle = viewportHeight / 2;
+        const rect = this.tube.getBoundingClientRect();
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
         
-        // Car should only be visible when viewport middle is within the road bounds
-        const roadTop = wrapRect.top;
-        const roadBottom = wrapRect.bottom;
-        const isCarOnRoad = roadTop <= viewportMiddle && roadBottom >= viewportMiddle;
+        this.tubeTop = scrollY + rect.top;
+        this.tubeBottom = scrollY + rect.bottom;
         
-        if (isCarOnRoad) {
-            this.car.style.opacity = '1';
-            this.car.style.visibility = 'visible';
-        } else {
-            this.car.style.opacity = '0';
-            this.car.style.visibility = 'hidden';
-        }
+        console.log('[Timeline] Tube bounds:', this.tubeTop, 'to', this.tubeBottom);
     }
     
     onScroll() {
-        console.log('[Timeline] onScroll called, isAnimating:', this.isAnimating);
-        if (this.isAnimating) return;
+        if (!this.car || !this.tube) return;
         
-        requestAnimationFrame(() => {
-            console.log('[Timeline] Updating car position...');
-            // Move car with scroll and update active day styling
-            this.updateCarPosition();
-            this.updateActiveDays();
-            this.isAnimating = false;
-        });
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        const viewportMiddle = scrollY + (window.innerHeight / 2);
         
-        this.isAnimating = true;
-    }
-    
-    updateCarPosition() {
-        console.log('[Car] updateCarPosition called');
-        if (!this.car || this.dayItems.length === 0 || !this.roadContainer) {
-            console.warn('[Car] Cannot update - missing elements');
-            return;
+        // Check if viewport middle is within tube bounds
+        const isOnRoad = viewportMiddle >= this.tubeTop && viewportMiddle <= this.tubeBottom;
+        
+        if (isOnRoad) {
+            // Add trigger class - makes car fixed in center
+            this.car.classList.add('trigger');
+        } else {
+            // Remove trigger class - car goes back to absolute
+            this.car.classList.remove('trigger');
+            
+            // Position car at top or bottom of tube
+            if (viewportMiddle < this.tubeTop) {
+                this.car.style.top = '0px';
+            } else {
+                this.car.style.top = (this.tubeBottom - this.tubeTop - 75) + 'px';
+            }
         }
         
-        // Get scroll position
-        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-        const containerRect = this.roadContainer.getBoundingClientRect();
-        const containerTop = scrollY + containerRect.top;
-        
-        // Calculate car position based on scroll
-        // Car should be at viewport middle
-        const viewportMiddle = window.innerHeight / 2;
-        const carPositionInViewport = scrollY + viewportMiddle;
-        
-        // Convert to position relative to container
-        let relativeTop = carPositionInViewport - containerTop - (this.car.offsetHeight / 2);
-        
-        // Clamp within container bounds
-        relativeTop = Math.max(0, Math.min(relativeTop, this.roadContainer.offsetHeight - this.car.offsetHeight));
-        
-        console.log('[Car] ScrollY:', scrollY, 'RelativeTop:', relativeTop.toFixed(2));
-        this.car.style.setProperty('top', `${relativeTop}px`, 'important');
-        
-        // Find and highlight closest day
+        // Update active days
         this.updateActiveDays();
     }
     
@@ -153,25 +84,18 @@ class RoadbookTimelineAnimation {
         const viewportMiddle = window.innerHeight / 2;
         
         this.dayItems.forEach(day => {
-            const badge = day.querySelector('.roadbook-day-badge');
-            if (!badge) return;
+            const dayNum = day.querySelector('.dayNum');
+            if (!dayNum) return;
             
-            const rect = badge.getBoundingClientRect();
+            const rect = dayNum.getBoundingClientRect();
             const badgeMiddle = rect.top + rect.height / 2;
             
-            // Check if badge is near viewport middle (where car is)
-            if (Math.abs(badgeMiddle - viewportMiddle) < 100) {
+            if (Math.abs(badgeMiddle - viewportMiddle) < 150) {
                 day.classList.add('active');
             } else {
                 day.classList.remove('active');
             }
         });
-    }
-    
-    isVisible() {
-        if (!this.container) return false;
-        const rect = this.container.getBoundingClientRect();
-        return rect.top < window.innerHeight && rect.bottom > 0;
     }
 }
 

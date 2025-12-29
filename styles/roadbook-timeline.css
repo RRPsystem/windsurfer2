@@ -121,17 +121,28 @@
 /* ===========================================
    CAR - Animated Car
    =========================================== */
+/* Car - WordPress exact styling */
 #car {
     display: block;
-    width: 50px;
-    height: auto;
-    position: fixed;
+    width: 39px;
+    height: 75px;
+    position: absolute;
     left: 50%;
-    top: 50%;
-    z-index: 100;
-    transform: translate(-50%, -50%);
+    z-index: 99;
+    margin-left: -18px;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+}
+
+#car.trigger {
+    display: block;
+    position: fixed;
+    width: 39px;
+    height: 75px;
+    top: 50%;
+    left: 50%;
+    z-index: 999999999;
+    margin-left: -18px;
+    margin-top: -37px;
 }
 
 #car img {
@@ -154,17 +165,31 @@
 }
 
 /* ===========================================
-   DAY - Each Day Item
+   DAY - Each Day Item (WordPress exact copy)
    =========================================== */
 .day {
     position: relative;
     overflow: visible;
-    z-index: 5;
 }
 
-/* Day badge must be above the road */
+/* Day badge - WordPress exact styling */
 .day .dayNum {
-    z-index: 20 !important;
+    display: block;
+    position: absolute;
+    top: 50%;
+    width: 6em;
+    height: 6em;
+    line-height: 4.65em;
+    font-size: 1.15em;
+    font-weight: 600;
+    border: 0.65em solid #fff;
+    border-radius: 50%;
+    text-align: center;
+    color: #fff;
+    background: var(--brand-primary, #84cc16);
+    margin-top: -3.65em;
+    box-shadow: 0 0 5px 1px rgba(0, 0, 0, 0.3);
+    z-index: 99;
 }
 
 .day .left {

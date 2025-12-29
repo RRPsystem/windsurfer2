@@ -7202,7 +7202,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             background: #6b7280 !important;
                             margin-left: -37px !important;
                             border-radius: 100px !important;
-                            z-index: 6 !important;
+                            z-index: 1 !important;
                             pointer-events: none !important;
                         }
                         #itinerary-wrap > .roadbook-road-line {
@@ -7213,22 +7213,39 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             width: 3px !important;
                             margin-left: -1.5px !important;
                             background-image: repeating-linear-gradient(to bottom, #fff 0px, #fff 15px, transparent 15px, transparent 30px) !important;
-                            z-index: 7 !important;
+                            z-index: 2 !important;
                             pointer-events: none !important;
                         }
+                        .itinerary {
+                            position: relative !important;
+                            z-index: 10 !important;
+                        }
+                        /* Car - WordPress exact styling */
                         #car {
-                            position: fixed !important;
+                            display: block !important;
+                            width: 39px !important;
+                            height: 75px !important;
+                            position: absolute !important;
                             left: 50% !important;
-                            top: 50% !important;
-                            transform: translate(-50%, -50%) !important;
-                            z-index: 100 !important;
-                            width: 50px !important;
+                            z-index: 99 !important;
+                            margin-left: -18px !important;
                             pointer-events: none !important;
-                            transition: opacity 0.3s ease !important;
                         }
+                        #car.trigger {
+                            display: block !important;
+                            position: fixed !important;
+                            width: 39px !important;
+                            height: 75px !important;
+                            top: 50% !important;
+                            left: 50% !important;
+                            z-index: 999999999 !important;
+                            margin-left: -18px !important;
+                            margin-top: -37px !important;
+                        }
+                        /* Day badge - WordPress exact styling */
                         .day .dayNum {
                             background: ${brandPrimary} !important;
-                            z-index: 20 !important;
+                            z-index: 99 !important;
                         }
                         .day .delight {
                             background: ${brandPrimary} !important;
