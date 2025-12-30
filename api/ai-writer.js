@@ -31,6 +31,8 @@ export default async function handler(req, res) {
     page_title = '',
     section_title = '',
     currentText = '',
+    trip_title = '',
+    travel_context = '',
   } = body || {};
 
   // Use destination if provided, otherwise use country
@@ -76,10 +78,18 @@ export default async function handler(req, res) {
         const topic = (page_title || location || country || '').trim();
         const instruction = (section_title || '').trim();
         const hasCurrent = !!String(currentText || '').trim();
+        const hasCtx = !!String(travel_context || '').trim();
+        const trip = String(trip_title || '').trim();
         const base = topic ? `Context: ${topic}.` : '';
         const instr = instruction ? `Opdracht: ${instruction}` : 'Opdracht: Schrijf een aantrekkelijke, concrete tekst voor een reisprogramma.';
         const rewrite = hasCurrent ? `\n\nHuidige tekst (mag je verbeteren en herschrijven):\n"""\n${String(currentText || '').trim()}\n"""` : '';
-        return `${base}\n${instr}\n\nVereisten:\n- Schrijf 80-140 woorden (tenzij de opdracht duidelijk anders vraagt)\n- Vermijd clichés en vage claims\n- Gebruik concrete details, sfeer en (indien passend) 1-2 praktische tips\n- Geen opsommingen tenzij de opdracht erom vraagt\n- Geen aanhalingstekens om de output\n\nGeef alleen de uiteindelijke tekst.${rewrite}`;
+        const ctxBlock = hasCtx ? `\n\nReiscontext (gebruik dit om specifiek te schrijven):\n"""\n${String(travel_context || '').trim()}\n"""` : '';
+        const specRule = hasCtx ?
+          '\n- Gebruik minimaal 2 concrete details uit de reiscontext (plaatsnamen, dag-indeling, hotel/activiteiten/vervoer)'
+          : '\n- Als er geen reiscontext is: schrijf neutraal maar nog steeds concreet (geen algemene vage reis-clichés)';
+        const tripRule = trip ? `\n- Het gaat om deze reis: ${trip}` : '';
+
+        return `${base}\n${instr}${ctxBlock}\n\nVereisten:\n- Schrijf 80-140 woorden (tenzij de opdracht duidelijk anders vraagt)\n- Vermijd clichés en vage claims${tripRule}${specRule}\n- Gebruik concrete details, sfeer en (indien passend) 1-2 praktische tips\n- Geen opsommingen tenzij de opdracht erom vraagt\n- Geen aanhalingstekens om de output\n\nGeef alleen de uiteindelijke tekst.${rewrite}`;
       }
       case 'intro':
         let introPrompt = `Schrijf een concrete, informatieve inleiding van ongeveer 200 woorden over ${location}. 

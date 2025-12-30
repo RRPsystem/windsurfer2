@@ -249,6 +249,99 @@
       return '';
     }
 
+    function _cleanText(s){
+      try {
+        return String(s || '')
+          .replace(/\s+/g, ' ')
+          .replace(/[\u0000-\u001f\u007f]/g, '')
+          .trim();
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function getTravelContextForElement(el){
+      try {
+        const rb = (el && el.closest) ? el.closest('.wb-roadbook') : null;
+        const root = rb || document.querySelector('.wb-roadbook');
+        const data = root && root._roadbookData ? root._roadbookData : null;
+        if (!data) return { trip_title: '', travel_context: '' };
+
+        const tripTitle = _cleanText(data.title || '');
+        const dep = _cleanText(data.departureDate || '');
+        const duration = _cleanText(data.duration || (data.itinerary && data.itinerary.length) || '');
+
+        const lines = [];
+        if (tripTitle) lines.push(`Titel: ${tripTitle}`);
+        if (dep) lines.push(`Vertrekdatum: ${dep}`);
+        if (duration) lines.push(`Duur: ${duration}`);
+
+        const itinerary = Array.isArray(data.itinerary) ? data.itinerary : [];
+        if (itinerary.length) {
+          lines.push('Itinerary:');
+          itinerary.slice(0, 14).forEach((d, idx) => {
+            const t = _cleanText(d.title || d.destination || '') || `Dag ${idx + 1}`;
+            const desc = _cleanText(d.description || '').slice(0, 140);
+            lines.push(`- Dag ${idx + 1}: ${t}${desc ? ` — ${desc}` : ''}`);
+          });
+        }
+
+        const hotels = Array.isArray(data.hotels) ? data.hotels : [];
+        if (hotels.length) {
+          lines.push('Hotels:');
+          hotels.slice(0, 8).forEach((h) => {
+            const name = _cleanText(h.name || '');
+            const loc = _cleanText(h.location || '');
+            const ci = _cleanText(h.checkIn || '');
+            const co = _cleanText(h.checkOut || '');
+            lines.push(`- ${name}${loc ? ` (${loc})` : ''}${(ci || co) ? ` ${ci}${co ? `–${co}` : ''}` : ''}`.trim());
+          });
+        }
+
+        const transports = Array.isArray(data.transports) ? data.transports : [];
+        if (transports.length) {
+          lines.push('Transport:');
+          transports.slice(0, 8).forEach((t) => {
+            const type = _cleanText(t.type || '');
+            const from = _cleanText(t.from || t.fromCity || '');
+            const to = _cleanText(t.to || t.toCity || '');
+            const date = _cleanText(t.date || t.departureDate || '');
+            lines.push(`- ${type ? `${type}: ` : ''}${from}${to ? ` → ${to}` : ''}${date ? ` (${date})` : ''}`.trim());
+          });
+        }
+
+        const cars = Array.isArray(data.cars) ? data.cars : [];
+        if (cars.length) {
+          lines.push('Huurauto:');
+          cars.slice(0, 4).forEach((c) => {
+            const veh = _cleanText(c.vehicle || '');
+            const pu = _cleanText(c.pickupLocation || '');
+            const pd = _cleanText(c.pickupDate || '');
+            const dd = _cleanText(c.dropoffDate || '');
+            lines.push(`- ${veh}${pu ? `, ophalen: ${pu}` : ''}${pd ? ` (${pd}${dd ? `–${dd}` : ''})` : ''}`.trim());
+          });
+        }
+
+        const acts = Array.isArray(data.activities) ? data.activities : [];
+        if (acts.length) {
+          lines.push('Activiteiten/Excursies:');
+          acts.slice(0, 10).forEach((a) => {
+            const name = _cleanText(a.name || '');
+            const loc = _cleanText(a.location || '');
+            const date = _cleanText(a.date || a.startDate || '');
+            lines.push(`- ${name}${loc ? ` (${loc})` : ''}${date ? ` (${date})` : ''}`.trim());
+          });
+        }
+
+        // Keep payload small to avoid token bloat
+        let ctx = lines.join('\n');
+        if (ctx.length > 2200) ctx = ctx.slice(0, 2200) + '…';
+        return { trip_title: tripTitle, travel_context: ctx };
+      } catch (e) {
+        return { trip_title: '', travel_context: '' };
+      }
+    }
+
     function ensureButton(){
       if (btn) return btn;
       btn = document.createElement('button');
@@ -326,6 +419,8 @@
       const tone = (opts.tone || 'inspiring').trim();
       const language = (opts.language || 'nl').trim();
 
+      const ctx = getTravelContextForElement(el);
+
       const payload = {
         page_title: place,
         section_title: instruction || place || 'Tekst',
@@ -333,7 +428,9 @@
         language,
         count: 1,
         useResearch: false,
-        currentText
+        currentText,
+        trip_title: ctx.trip_title || '',
+        travel_context: ctx.travel_context || ''
       };
 
       const res = await generate('content_block', payload);
