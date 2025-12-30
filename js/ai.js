@@ -433,6 +433,11 @@
       const instruction = (opts.instruction || '').trim();
       const tone = (opts.tone || 'inspiring').trim();
       const language = (opts.language || 'nl').trim();
+      const kind = (opts.kind || 'text').trim();
+
+      const routeFrom = (opts.routeFrom || '').trim();
+      const routeTo = (opts.routeTo || '').trim();
+      const routeStops = parseInt(String(opts.routeStops || ''), 10) || 3;
 
       const ctx = getTravelContextForElement(el);
 
@@ -445,7 +450,11 @@
         useResearch: false,
         currentText,
         trip_title: ctx.trip_title || '',
-        travel_context: ctx.travel_context || ''
+        travel_context: ctx.travel_context || '',
+        route_mode: kind === 'route',
+        route_from: routeFrom,
+        route_to: routeTo,
+        route_stops: routeStops,
       };
 
       const res = await generate('content_block', payload);
@@ -486,8 +495,8 @@
           <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#374151;">
             Type
             <select data-kind style="height:38px;border:1px solid #d1d5db;border-radius:10px;padding:8px 10px;font-size:13px;">
-              <option value="text" selected>Normale tekst</option>
-              <option value="route">Routedag (routebeschrijving)</option>
+              <option value="text" selected>Bestemmingstekst</option>
+              <option value="route">Routedag (Google route)</option>
             </select>
           </label>
           <label data-stops-wrap style="display:none;flex-direction:column;gap:6px;font-size:12px;color:#374151;">
@@ -499,6 +508,16 @@
               <option value="6">6 stops</option>
             </select>
           </label>
+          <div data-route-wrap style="display:none;grid-column:1 / -1;gap:12px;grid-template-columns:1fr 1fr;">
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#374151;">
+              Van
+              <input data-route-from type="text" value="${String(_cleanText(routeGuess.from) || '').replace(/\"/g, '&quot;')}" style="height:38px;border:1px solid #d1d5db;border-radius:10px;padding:8px 10px;font-size:13px;" />
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#374151;">
+              Naar
+              <input data-route-to type="text" value="${String(_cleanText(routeGuess.to) || '').replace(/\"/g, '&quot;')}" style="height:38px;border:1px solid #d1d5db;border-radius:10px;padding:8px 10px;font-size:13px;" />
+            </label>
+          </div>
           <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#374151;">
             Plaatsnaam (context)
             <input data-place type="text" value="${String(placeGuess || '').replace(/\"/g, '&quot;')}" style="height:38px;border:1px solid #d1d5db;border-radius:10px;padding:8px 10px;font-size:13px;" />
@@ -536,6 +555,9 @@
       const kind = panel.querySelector('[data-kind]');
       const stopsWrap = panel.querySelector('[data-stops-wrap]');
       const stops = panel.querySelector('[data-stops]');
+      const routeWrap = panel.querySelector('[data-route-wrap]');
+      const routeFromInput = panel.querySelector('[data-route-from]');
+      const routeToInput = panel.querySelector('[data-route-to]');
       const placeInput = panel.querySelector('[data-place]');
       const instr = panel.querySelector('[data-instruction]');
       const tone = panel.querySelector('[data-tone]');
@@ -548,9 +570,9 @@
           const mode = kind ? kind.value : 'text';
           if (mode === 'route') {
             const n = parseInt((stops && stops.value) || '3', 10) || 3;
-            const from = _cleanText(routeGuess.from || placeGuess || 'de startlocatie');
-            const to = _cleanText(routeGuess.to || 'de volgende bestemming');
-            instr.value = `Schrijf een routebeschrijving voor een routedag van ${from} naar ${to}. Geef ${n} leuke stops onderweg.\n\nStructuur:\n- Korte intro (1 alinea)\n- Genummerde lijst met ${n} stops: naam/regio + 1-2 zinnen wat je daar doet/ziet + waarom leuk\n- Afsluiting: aankomst in ${to} + 2 praktische tips (vertrektijd, tanken/veiligheid)\n\nSchrijf concreet en passend bij een reisprogramma.`;
+            const from = _cleanText((routeFromInput && routeFromInput.value) || routeGuess.from || placeGuess || 'de startlocatie');
+            const to = _cleanText((routeToInput && routeToInput.value) || routeGuess.to || 'de volgende bestemming');
+            instr.value = `Maak een routebeschrijving (rijdag) van ${from} naar ${to}.\n\nVereisten:\n- Gebruik de echte route (snelste route) als basis en geef afstand + reistijd\n- Licht ${n} leuke stops onderweg uit (naam + korte toelichting)\n- Voeg praktische tips toe (tankstop, pauzes, veiligheid, laatste boodschappen)\n\nStructuur (zoals in een roadbook):\nRoute-overzicht\n- Totale afstand: ...\n- Reistijd zonder stops: ...\n- Reistijd met stops: ...\n\nRoutebeschrijving\n- Stap-voor-stap (max 8 stappen, kort)\n\nStops onderweg\n1) ...\n2) ...\n3) ...\n\nTips onderweg\n- ...\n- ...\n- ...`;
           } else {
             const base = (placeGuess || '').trim();
             instr.value = base ? `Schrijf een aantrekkelijke tekst over ${base} voor een reisprogramma. Benoem highlights, sfeer en praktische tips.` : 'Schrijf een aantrekkelijke tekst voor een reisprogramma. Benoem highlights, sfeer en praktische tips.';
@@ -564,10 +586,13 @@
         try {
           const mode = kind ? kind.value : 'text';
           if (stopsWrap) stopsWrap.style.display = (mode === 'route') ? 'flex' : 'none';
+          if (routeWrap) routeWrap.style.display = (mode === 'route') ? 'grid' : 'none';
           // Only overwrite if user hasn't typed something custom
           if (instr && (!instr.value || instr.value.trim().length < 5)) setDefaultInstruction();
         } catch (e) {}
       };
+
+      try { syncUiForKind(); } catch (e) {}
 
       try {
         if (kind) kind.addEventListener('change', syncUiForKind);
@@ -599,7 +624,11 @@
               place: placeInput ? placeInput.value : '',
               instruction: instr ? instr.value : '',
               tone: tone ? tone.value : 'inspiring',
-              language: 'nl'
+              language: 'nl',
+              kind: kind ? kind.value : 'text',
+              routeFrom: routeFromInput ? routeFromInput.value : '',
+              routeTo: routeToInput ? routeToInput.value : '',
+              routeStops: stops ? stops.value : '3'
             });
             closeModal();
             try { el.focus(); } catch (e) {}

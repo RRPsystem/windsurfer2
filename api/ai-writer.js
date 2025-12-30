@@ -33,6 +33,11 @@ export default async function handler(req, res) {
     currentText = '',
     trip_title = '',
     travel_context = '',
+    // Route (optional)
+    route_mode = false,
+    route_from = '',
+    route_to = '',
+    route_stops = 3,
   } = body || {};
 
   // Use destination if provided, otherwise use country
@@ -61,6 +66,47 @@ export default async function handler(req, res) {
     }
   }
 
+  const stripHtml = (s) => {
+    try {
+      return String(s || '')
+        .replace(/<[^>]*>/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    } catch (e) {
+      return '';
+    }
+  };
+
+  let routeDetails = null;
+  try {
+    const wantRoute = !!route_mode && String(route_from || '').trim() && String(route_to || '').trim();
+    const gKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_API_KEY || '';
+    if (wantRoute && gKey) {
+      const origin = encodeURIComponent(String(route_from).trim());
+      const dest = encodeURIComponent(String(route_to).trim());
+      const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${dest}&mode=driving&units=metric&language=${encodeURIComponent(String(language || 'nl'))}&key=${encodeURIComponent(gKey)}`;
+      const rr = await fetch(url);
+      if (rr.ok) {
+        const rj = await rr.json();
+        const leg = rj?.routes?.[0]?.legs?.[0] || null;
+        if (leg) {
+          const steps = Array.isArray(leg.steps) ? leg.steps : [];
+          routeDetails = {
+            distanceText: leg.distance?.text || '',
+            durationText: leg.duration?.text || '',
+            startAddress: leg.start_address || '',
+            endAddress: leg.end_address || '',
+            steps: steps.slice(0, 8).map((st) => {
+              const inst = stripHtml(st.html_instructions || '');
+              const dist = st.distance?.text || '';
+              return `${inst}${dist ? ` (${dist})` : ''}`.trim();
+            }).filter(Boolean)
+          };
+        }
+      }
+    }
+  } catch (e) {}
+
   const toneHint = (() => {
     switch (String(tone || '').toLowerCase()) {
       case 'luxury': return 'Schrijf luxe, premium en verfijnd, zonder overdreven superlatieven.';
@@ -81,13 +127,39 @@ export default async function handler(req, res) {
         const hasCtx = !!String(travel_context || '').trim();
         const trip = String(trip_title || '').trim();
         const base = topic ? `Context: ${topic}.` : '';
-        const instr = instruction ? `Opdracht: ${instruction}` : 'Opdracht: Schrijf een aantrekkelijke, concrete tekst voor een reisprogramma.';
+        const isRoute = !!route_mode;
+        const nStops = Math.max(1, Math.min(6, parseInt(String(route_stops || 3), 10) || 3));
+        const from = String(route_from || '').trim();
+        const to = String(route_to || '').trim();
+        const instr = instruction ? `Opdracht: ${instruction}` : (isRoute ? 'Opdracht: Maak een routebeschrijving (rijdag) voor het roadbook.' : 'Opdracht: Schrijf een aantrekkelijke, concrete tekst voor een reisprogramma.');
         const rewrite = hasCurrent ? `\n\nHuidige tekst (mag je verbeteren en herschrijven):\n"""\n${String(currentText || '').trim()}\n"""` : '';
         const ctxBlock = hasCtx ? `\n\nReiscontext (gebruik dit om specifiek te schrijven):\n"""\n${String(travel_context || '').trim()}\n"""` : '';
         const specRule = hasCtx ?
           '\n- Gebruik minimaal 2 concrete details uit de reiscontext (plaatsnamen, dag-indeling, hotel/activiteiten/vervoer)'
           : '\n- Als er geen reiscontext is: schrijf neutraal maar nog steeds concreet (geen algemene vage reis-clichés)';
         const tripRule = trip ? `\n- Het gaat om deze reis: ${trip}` : '';
+
+        const routeBlock = (() => {
+          if (!isRoute) return '';
+          let s = '';
+          if (from || to) s += `\n\nRoute: ${from || '[onbekend]'} → ${to || '[onbekend]'}`;
+          if (routeDetails) {
+            s += `\nGoogle route details:`;
+            if (routeDetails.distanceText) s += `\n- Afstand: ${routeDetails.distanceText}`;
+            if (routeDetails.durationText) s += `\n- Reistijd (zonder stops): ${routeDetails.durationText}`;
+            if (routeDetails.steps && routeDetails.steps.length) {
+              s += `\n- Belangrijkste stappen:`;
+              routeDetails.steps.forEach((st, i) => { s += `\n  ${i + 1}. ${st}`; });
+            }
+          } else {
+            s += `\n(Geen Google route details beschikbaar; schat afstand en reistijd realistisch.)`;
+          }
+          return s;
+        })();
+
+        if (isRoute) {
+          return `${base}\n${instr}${ctxBlock}${routeBlock}\n\nVereisten:\n- Schrijf als een roadbook voor een rijdag\n- Geef een Route-overzicht met: totale afstand, reistijd zonder stops, reistijd met stops (realistische schatting)\n- Geef een korte routebeschrijving in maximaal 8 stappen (kort en duidelijk)\n- Licht ${nStops} leuke stops onderweg uit (naam/plaats + 1-2 zinnen wat je daar doet/ziet + waarom het leuk is)\n- Voeg 3 praktische tips toe (tankstop, pauzes, veiligheid, laatste boodschappen)${tripRule}${specRule}\n- Geen disclaimers\n- Geen aanhalingstekens om de output\n\nGeef alleen de uiteindelijke tekst.${rewrite}`;
+        }
 
         return `${base}\n${instr}${ctxBlock}\n\nVereisten:\n- Schrijf 80-140 woorden (tenzij de opdracht duidelijk anders vraagt)\n- Vermijd clichés en vage claims${tripRule}${specRule}\n- Gebruik concrete details, sfeer en (indien passend) 1-2 praktische tips\n- Geen opsommingen tenzij de opdracht erom vraagt\n- Geen aanhalingstekens om de output\n\nGeef alleen de uiteindelijke tekst.${rewrite}`;
       }
