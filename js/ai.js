@@ -357,6 +357,128 @@
       }
     }
 
+    function setEditableContentPreserveLines(el, text){
+      try {
+        if (!el) return;
+        const t = String(text || '');
+        while (el.firstChild) el.removeChild(el.firstChild);
+        const parts = t.split(/\n/);
+        const frag = document.createDocumentFragment();
+        parts.forEach((p, idx) => {
+          frag.appendChild(document.createTextNode(p));
+          if (idx < parts.length - 1) frag.appendChild(document.createElement('br'));
+        });
+        el.appendChild(frag);
+      } catch (e) {
+        try { el.textContent = String(text || ''); } catch (e2) {}
+      }
+    }
+
+    function applyReadMoreToggle(el, text){
+      try {
+        if (!el) return;
+        const raw = String(text || '');
+        const tooLong = raw.length > 520 || (raw.split(/\n/).length > 10);
+
+        // Cleanup existing
+        const key = el.dataset.wbReadmoreKey || (el.dataset.wbReadmoreKey = `rm_${Date.now()}_${Math.random().toString(16).slice(2)}`);
+        const existingBtn = document.querySelector(`button[data-wb-readmore="${key}"]`);
+        if (existingBtn) existingBtn.remove();
+
+        // Reset styles
+        el.style.maxHeight = '';
+        el.style.overflow = '';
+        el.style.position = '';
+
+        if (!tooLong) return;
+
+        // Persist state on the element (so repeated AI runs won't create stale closures)
+        if (el.dataset.wbReadmoreExpanded !== '1') el.dataset.wbReadmoreExpanded = '0';
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.setAttribute('data-wb-readmore', key);
+        btn.style.cssText = 'margin-top:8px;background:#ffffff;border:1px solid #e5e7eb;color:#374151;border-radius:10px;padding:7px 10px;font:700 12px system-ui,Segoe UI,Roboto,Arial;cursor:pointer;';
+
+        const update = () => {
+          try {
+            const expanded = el.dataset.wbReadmoreExpanded === '1';
+            if (expanded) {
+              el.style.maxHeight = '';
+              el.style.overflow = '';
+              btn.textContent = 'Lees minder';
+            } else {
+              el.style.maxHeight = '9.5em';
+              el.style.overflow = 'hidden';
+              el.style.position = 'relative';
+              btn.textContent = 'Lees verder';
+            }
+          } catch (e) {}
+        };
+
+        btn.addEventListener('click', (ev) => {
+          try {
+            ev.preventDefault();
+            ev.stopPropagation();
+            const expanded = el.dataset.wbReadmoreExpanded === '1';
+            el.dataset.wbReadmoreExpanded = expanded ? '0' : '1';
+            // If user manually toggles, stop treating it as auto-expanded
+            el.dataset.wbReadmoreAutoExpanded = '0';
+            update();
+          } catch (e) {}
+        });
+
+        // Put button right after the element
+        if (el.parentNode) {
+          if (el.nextSibling) el.parentNode.insertBefore(btn, el.nextSibling);
+          else el.parentNode.appendChild(btn);
+        }
+
+        // Auto-expand while editing (bind only once)
+        if (el.dataset.wbReadmoreBound !== '1') {
+          el.dataset.wbReadmoreBound = '1';
+          el.addEventListener('focusin', () => {
+            try {
+              // Expand temporarily for editing
+              el.dataset.wbReadmoreAutoExpanded = '1';
+              el.dataset.wbReadmoreExpanded = '1';
+              // Update current button if it exists
+              const k = el.dataset.wbReadmoreKey;
+              const b = k ? document.querySelector(`button[data-wb-readmore="${k}"]`) : null;
+              if (b) {
+                el.style.maxHeight = '';
+                el.style.overflow = '';
+                b.textContent = 'Lees minder';
+              }
+            } catch (e) {}
+          }, true);
+          el.addEventListener('focusout', () => {
+            try {
+              setTimeout(() => {
+                try {
+                  // If it was only auto-expanded (not manually toggled), collapse back
+                  if (el.dataset.wbReadmoreAutoExpanded === '1') {
+                    el.dataset.wbReadmoreExpanded = '0';
+                    el.dataset.wbReadmoreAutoExpanded = '0';
+                    const k = el.dataset.wbReadmoreKey;
+                    const b = k ? document.querySelector(`button[data-wb-readmore="${k}"]`) : null;
+                    if (b) {
+                      el.style.maxHeight = '9.5em';
+                      el.style.overflow = 'hidden';
+                      el.style.position = 'relative';
+                      b.textContent = 'Lees verder';
+                    }
+                  }
+                } catch (e2) {}
+              }, 0);
+            } catch (e) {}
+          }, true);
+        }
+
+        update();
+      } catch (e) {}
+    }
+
     function ensureButton(){
       if (btn) return btn;
       btn = document.createElement('button');
@@ -465,7 +587,8 @@
       text = String(text || '').trim();
       if (!text) return;
 
-      el.textContent = text;
+      setEditableContentPreserveLines(el, text);
+      applyReadMoreToggle(el, text);
       try { el.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) {}
       try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
     }
