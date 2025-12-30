@@ -7258,21 +7258,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             <!-- DAYS -->
                             ${data.itinerary.map((day, i) => {
                                 const location = day.title || day.destination || 'Bestemming';
-                                const prevDay = i > 0 ? data.itinerary[i - 1] : null;
-                                const prevLocation = prevDay ? (prevDay.title || prevDay.destination || '') : '';
-                                const isNewLocation = location !== prevLocation;
-                                
-                                if (!isNewLocation) return '';
-                                
-                                let dayCount = 1;
-                                for (let j = i + 1; j < data.itinerary.length; j++) {
-                                    const nextLoc = data.itinerary[j].title || data.itinerary[j].destination || '';
-                                    if (nextLoc === location) dayCount++;
-                                    else break;
-                                }
-                                
                                 const isEven = i % 2 === 0;
-                                const dayLabel = dayCount > 1 ? 'Day ' + (i + 1) + '-' + (i + dayCount) : 'Day ' + (i + 1);
+                                const dayLabel = 'Stop ' + (i + 1);
                                 const imgSrc = day.image || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800';
                                 const subtitle = day.subtitle || day.location || 'Provincie / Stad';
                                 const description = day.description || 'Beschrijving van deze dag...';
@@ -7285,15 +7272,15 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                             '<img src="' + imgSrc + '" alt="' + location + '">' +
                                         '</div>' +
                                         '<div class="right placeInfo">' +
-                                            '<div class="dayNum">' + dayLabel + '</div>' +
+                                            '<div class="dayNum editable" contenteditable="true">' + dayLabel + '</div>' +
                                             '<h3 class="editable" contenteditable="true">' + location + '</h3>' +
                                             '<span class="editable" contenteditable="true">' + subtitle + '</span>' +
                                             '<p class="editable" contenteditable="true">' + description + '</p>' +
                                             '<ul>' +
-                                                '<li><i class="fas fa-map-marker-alt"></i><h6>Tourist Attraction:</h6><span class="editable" contenteditable="true">Bezienswaardigheden</span></li>' +
-                                                '<li><i class="fas fa-shopping-bag"></i><h6>Best Buy:</h6><span class="editable" contenteditable="true">Lokale producten</span></li>' +
-                                                '<li><i class="fas fa-utensils"></i><h6>Food Speciality:</h6><span class="editable" contenteditable="true">Lokale gerechten</span></li>' +
-                                                '<li><i class="fas fa-hiking"></i><h6>Activity:</h6><span class="editable" contenteditable="true">Activiteiten</span></li>' +
+                                                '<li><i class="fas fa-map-marker-alt" data-wb-icon="fa-map-marker-alt" style="cursor:pointer;"></i><h6 class="editable" contenteditable="true">Tourist Attraction:</h6><span class="editable" contenteditable="true">Bezienswaardigheden</span></li>' +
+                                                '<li><i class="fas fa-shopping-bag" data-wb-icon="fa-shopping-bag" style="cursor:pointer;"></i><h6 class="editable" contenteditable="true">Best Buy:</h6><span class="editable" contenteditable="true">Lokale producten</span></li>' +
+                                                '<li><i class="fas fa-utensils" data-wb-icon="fa-utensils" style="cursor:pointer;"></i><h6 class="editable" contenteditable="true">Food Speciality:</h6><span class="editable" contenteditable="true">Lokale gerechten</span></li>' +
+                                                '<li><i class="fas fa-hiking" data-wb-icon="fa-hiking" style="cursor:pointer;"></i><h6 class="editable" contenteditable="true">Activity:</h6><span class="editable" contenteditable="true">Activiteiten</span></li>' +
                                             '</ul>' +
                                             '<div class="delight"><i class="fas fa-star"></i><h6>TOUR DELIGHT:</h6><span class="editable" contenteditable="true">' + delight + '</span></div>' +
                                         '</div>' +
@@ -7303,15 +7290,15 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                     // Info LEFT, Photo RIGHT
                                     return '<div class="day">' +
                                         '<div class="left placeInfo">' +
-                                            '<div class="dayNum">' + dayLabel + '</div>' +
+                                            '<div class="dayNum editable" contenteditable="true">' + dayLabel + '</div>' +
                                             '<h3 class="editable" contenteditable="true">' + location + '</h3>' +
                                             '<span class="editable" contenteditable="true">' + subtitle + '</span>' +
                                             '<p class="editable" contenteditable="true">' + description + '</p>' +
                                             '<ul>' +
-                                                '<li><i class="fas fa-map-marker-alt"></i><h6>Tourist Attraction:</h6><span class="editable" contenteditable="true">Bezienswaardigheden</span></li>' +
-                                                '<li><i class="fas fa-shopping-bag"></i><h6>Best Buy:</h6><span class="editable" contenteditable="true">Lokale producten</span></li>' +
-                                                '<li><i class="fas fa-utensils"></i><h6>Food Speciality:</h6><span class="editable" contenteditable="true">Lokale gerechten</span></li>' +
-                                                '<li><i class="fas fa-hiking"></i><h6>Activity:</h6><span class="editable" contenteditable="true">Activiteiten</span></li>' +
+                                                '<li><i class="fas fa-map-marker-alt" data-wb-icon="fa-map-marker-alt" style="cursor:pointer;"></i><h6 class="editable" contenteditable="true">Tourist Attraction:</h6><span class="editable" contenteditable="true">Bezienswaardigheden</span></li>' +
+                                                '<li><i class="fas fa-shopping-bag" data-wb-icon="fa-shopping-bag" style="cursor:pointer;"></i><h6 class="editable" contenteditable="true">Best Buy:</h6><span class="editable" contenteditable="true">Lokale producten</span></li>' +
+                                                '<li><i class="fas fa-utensils" data-wb-icon="fa-utensils" style="cursor:pointer;"></i><h6 class="editable" contenteditable="true">Food Speciality:</h6><span class="editable" contenteditable="true">Lokale gerechten</span></li>' +
+                                                '<li><i class="fas fa-hiking" data-wb-icon="fa-hiking" style="cursor:pointer;"></i><h6 class="editable" contenteditable="true">Activity:</h6><span class="editable" contenteditable="true">Activiteiten</span></li>' +
                                             '</ul>' +
                                             '<div class="delight"><i class="fas fa-star"></i><h6>TOUR DELIGHT:</h6><span class="editable" contenteditable="true">' + delight + '</span></div>' +
                                         '</div>' +
@@ -7441,6 +7428,30 @@ ComponentFactory.createRoadbook = function(options = {}) {
         window.addEventListener('scroll', updateActiveMenu);
         updateActiveMenu();
     }, 100);
+
+    try {
+        if (!window.__wbRoadbookIconEditBound) {
+            window.__wbRoadbookIconEditBound = true;
+            document.addEventListener('click', (e) => {
+                try {
+                    const t = e && e.target ? e.target : null;
+                    if (!t || !t.matches) return;
+                    if (!t.matches('.wb-roadbook i[data-wb-icon]')) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const current = (t.getAttribute('data-wb-icon') || '').trim() || 'fa-star';
+                    const next = window.prompt('FontAwesome icon class (bijv. fa-hiking):', current);
+                    if (!next) return;
+                    const cls = String(next).trim();
+                    if (!cls) return;
+                    t.setAttribute('data-wb-icon', cls);
+                    t.className = `fas ${cls}`;
+                    try { t.dispatchEvent(new Event('input', { bubbles: true })); } catch (e2) {}
+                    try { t.dispatchEvent(new Event('change', { bubbles: true })); } catch (e3) {}
+                } catch (e1) {}
+            }, true);
+        }
+    } catch (e) {}
     
     // Apply roadbook colors on load
     setTimeout(() => {

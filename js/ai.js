@@ -722,6 +722,17 @@
 
       if (closeBtn) closeBtn.addEventListener('click', closeModal);
 
+      // Track whether user manually edited the prompt
+      let instrDirty = false;
+      const markInstrDirty = () => { try { instrDirty = true; } catch (e) {} };
+      try {
+        if (instr) {
+          instr.addEventListener('input', markInstrDirty);
+          instr.addEventListener('change', markInstrDirty);
+          instr.addEventListener('keydown', markInstrDirty);
+        }
+      } catch (e) {}
+
       const setDefaultInstruction = () => {
         try {
           if (!instr) return;
@@ -755,8 +766,8 @@
             if (routeToInput && !String(routeToInput.value || '').trim()) routeToInput.value = routeGuess.to || '';
           }
 
-          // Only overwrite if user hasn't typed something custom
-          if (instr && (!instr.value || instr.value.trim().length < 5)) setDefaultInstruction();
+          // Update default prompt on mode switch, unless user edited it
+          if (!instrDirty) setDefaultInstruction();
         } catch (e) {}
       };
 
