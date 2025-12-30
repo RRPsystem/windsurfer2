@@ -7185,105 +7185,137 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         <p class="editable" contenteditable="true">Highlights Of Your Journey</p>
                     </div>
                     
-                    <!-- Inline styles for road - guaranteed to work -->
+                    <!-- Inline styles for roadbook -->
                     <style>
-                        :root {
-                            --brand-primary: ${brandPrimary} !important;
-                        }
-                        #itinerary-wrap {
-                            position: relative !important;
-                        }
-                        /* WordPress exact: tube */
+                        :root { --brand-primary: ${brandPrimary}; }
+                        
+                        /* Itinerary wrap container */
+                        #itinerary-wrap { position: relative; }
+                        
+                        /* Gray road tube */
                         .tube {
-                            position: absolute !important;
-                            top: 0 !important;
-                            left: 50% !important;
-                            bottom: 0 !important;
-                            width: 4.65em !important;
-                            background: #6b7280 !important;
-                            margin-left: -2.15em !important;
-                            border-radius: 10em !important;
-                            z-index: 98 !important;
+                            position: absolute;
+                            top: 0;
+                            left: 50%;
+                            bottom: 0;
+                            width: 4.65em;
+                            background: #6b7280;
+                            margin-left: -2.15em;
+                            border-radius: 10em;
+                            z-index: 1;
                         }
-                        .tube .start {
-                            position: absolute !important;
-                            top: 1.5em !important;
-                            left: 0 !important;
-                            right: 0 !important;
-                            text-align: center !important;
-                            color: #fff !important;
-                            font-weight: 600 !important;
+                        .tube .start, .tube .end {
+                            position: absolute;
+                            left: 0;
+                            right: 0;
+                            text-align: center;
+                            color: #fff;
+                            font-weight: 600;
                         }
-                        .tube .end {
-                            position: absolute !important;
-                            bottom: 1.5em !important;
-                            left: 0 !important;
-                            right: 0 !important;
-                            text-align: center !important;
-                            color: #fff !important;
-                            font-weight: 600 !important;
+                        .tube .start { top: 1.5em; }
+                        .tube .end { bottom: 1.5em; }
+                        
+                        /* White dashed line */
+                        .line {
+                            position: absolute;
+                            top: 0;
+                            left: 50%;
+                            bottom: -3em;
+                            width: 1px;
+                            border-left: 3px dashed #fff;
+                            z-index: 2;
                         }
-                        /* WordPress exact: line (inside itinerary) */
-                        .itinerary .line {
-                            position: absolute !important;
-                            top: 0 !important;
-                            left: 50% !important;
-                            bottom: -3em !important;
-                            width: 1px !important;
-                            border-left: 3px dashed #fff !important;
-                            z-index: 98 !important;
-                        }
-                        .itinerary {
-                            position: relative !important;
-                        }
-                        /* Car - WordPress exact styling */
+                        
+                        /* Car - fixed in viewport center when on road */
                         #car {
-                            display: block !important;
-                            width: 39px !important;
-                            height: 75px !important;
-                            position: absolute !important;
-                            left: 50% !important;
-                            z-index: 99 !important;
-                            margin-left: -18px !important;
-                            pointer-events: none !important;
+                            display: block;
+                            width: 39px;
+                            height: 75px;
+                            position: fixed;
+                            left: 50%;
+                            top: 50%;
+                            margin-left: -18px;
+                            margin-top: -37px;
+                            z-index: 9999;
+                            pointer-events: none;
+                            opacity: 0;
+                            transition: opacity 0.3s;
                         }
-                        #car.trigger {
-                            display: block !important;
-                            position: fixed !important;
-                            width: 39px !important;
-                            height: 75px !important;
-                            top: 50% !important;
-                            left: 50% !important;
-                            z-index: 999999999 !important;
-                            margin-left: -18px !important;
-                            margin-top: -37px !important;
+                        #car.visible { opacity: 1; }
+                        
+                        /* Itinerary container */
+                        .itinerary { position: relative; z-index: 3; }
+                        
+                        /* Day items */
+                        .day { position: relative; overflow: hidden; }
+                        .day .left, .day .right {
+                            display: block;
+                            position: relative;
+                            width: 50%;
                         }
-                        /* Day badge - WordPress exact styling */
+                        .day .left { float: left; }
+                        .day .right { float: right; }
+                        .clear { clear: both; }
+                        
+                        /* Day number badge */
                         .day .dayNum {
-                            background: ${brandPrimary} !important;
-                            z-index: 99 !important;
+                            display: block;
+                            position: absolute;
+                            top: 50%;
+                            width: 6em;
+                            height: 6em;
+                            line-height: 4.65em;
+                            font-size: 1.15em;
+                            font-weight: 600;
+                            border: 0.65em solid #fff;
+                            border-radius: 50%;
+                            text-align: center;
+                            color: #fff;
+                            background: ${brandPrimary};
+                            margin-top: -3.65em;
+                            box-shadow: 0 0 5px 1px rgba(0,0,0,0.3);
+                            z-index: 10;
                         }
+                        .day .right .dayNum { left: -2.85em; right: auto; }
+                        .day .left .dayNum { right: -3.15em; left: auto; }
+                        
+                        /* Place info and image */
+                        .day .placeInfo { background-color: #fff; }
+                        .day .right.placeInfo { padding: 3.5em 3.5em 7em 5.65em; }
+                        .day .left.placeInfo { padding: 3.5em 5.65em 7em 3.5em; }
+                        
+                        /* Delight bar */
                         .day .delight {
-                            background: ${brandPrimary} !important;
+                            position: absolute;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            color: #fff;
+                            background: ${brandPrimary};
                         }
-                        .day ul li i {
-                            color: ${brandPrimary} !important;
-                        }
+                        .day .right .delight { padding: 1.65em 1.5em 1.65em 8.50em; }
+                        .day .left .delight { padding: 1.65em 1.5em 1.65em 6.15em; }
+                        .day .delight i { position: absolute; top: 0.95em; font-size: 1.65em; }
+                        .day .right .delight i { left: 3.35em; }
+                        .day .left .delight i { left: 2.15em; }
+                        
+                        /* Icon colors */
+                        .day ul li i { color: ${brandPrimary}; }
                     </style>
                     
-                    <!-- Itinerary Wrap (WordPress exact structure) -->
+                    <!-- Itinerary Wrap -->
                     <div id="itinerary-wrap">
-                        <!-- TUBE: Gray road background -->
+                        <!-- Gray road -->
                         <div class="tube">
                             <span class="start">START</span>
                             <span class="end">END</span>
                         </div>
-                        <!-- CAR: Animated car -->
-                        <div id="car"><img src="images/auto.png" alt="Car" style="width: 100%; height: auto;" onerror="this.parentElement.innerHTML='🚗';"></div>
+                        <!-- Car -->
+                        <div id="car"><img src="images/auto.png" alt="Car" style="width:100%;height:auto;" onerror="this.parentElement.innerHTML='🚗';"></div>
                         
-                        <!-- ITINERARY: Contains line and days -->
+                        <!-- Days container -->
                         <div class="itinerary">
-                            <!-- LINE: White dashed center line (inside itinerary like WordPress) -->
+                            <!-- Dashed line -->
                             <div class="line"></div>
                             <!-- DAYS -->
                             ${data.itinerary.map((day, i) => {

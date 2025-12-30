@@ -764,21 +764,31 @@ ${roadbookCSS}
     padding-bottom: 100px !important;
 }
 
-/* WordPress exact: tube z-index 98 */
-.tube, .roadbook-road, #itinerary-wrap > .roadbook-road {
+/* Gray road tube */
+.tube {
     position: absolute !important;
     top: 0 !important;
     left: 50% !important;
     bottom: 0 !important;
     width: 4.65em !important;
     background: #6b7280 !important;
-    margin-left: -2.325em !important;
+    margin-left: -2.15em !important;
     border-radius: 10em !important;
-    z-index: 98 !important;
-    pointer-events: none !important;
+    z-index: 1 !important;
 }
 
-/* WordPress exact: line z-index 98 */
+.tube .start, .tube .end {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    text-align: center !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+.tube .start { top: 1.5em !important; }
+.tube .end { bottom: 1.5em !important; }
+
+/* White dashed line */
 .line {
     position: absolute !important;
     top: 0 !important;
@@ -786,43 +796,25 @@ ${roadbookCSS}
     bottom: -3em !important;
     width: 1px !important;
     border-left: 3px dashed #fff !important;
-    z-index: 98 !important;
+    z-index: 2 !important;
 }
 
-/* Hide separate line div */
-.roadbook-road-line, #itinerary-wrap > .roadbook-road-line {
-    display: none !important;
-}
-
-/* Hide pseudo-elements - using inline divs instead */
-.itinerary::before,
-.itinerary::after {
-    display: none !important;
-}
-
-/* Car - WordPress exact styling */
+/* Car - fixed in viewport center */
 #car {
     display: block !important;
     width: 39px !important;
     height: 75px !important;
-    position: absolute !important;
-    left: 50% !important;
-    z-index: 99 !important;
-    margin-left: -18px !important;
-    pointer-events: none !important;
-}
-
-#car.trigger {
-    display: block !important;
     position: fixed !important;
-    width: 39px !important;
-    height: 75px !important;
-    top: 50% !important;
     left: 50% !important;
-    z-index: 999999999 !important;
+    top: 50% !important;
     margin-left: -18px !important;
     margin-top: -37px !important;
+    z-index: 9999 !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
+    transition: opacity 0.3s !important;
 }
+#car.visible { opacity: 1 !important; }
 
 #car img {
     width: 100% !important;
@@ -830,14 +822,16 @@ ${roadbookCSS}
     display: block !important;
 }
 
+/* Itinerary container */
 .itinerary {
     position: relative !important;
-    z-index: 10 !important;
+    z-index: 3 !important;
 }
 
+/* Day items */
 .day {
     position: relative !important;
-    overflow: visible !important;
+    overflow: hidden !important;
 }
 
 .day .left {
@@ -864,7 +858,7 @@ ${roadbookCSS}
 .day .right.placeInfo { padding: 3.5em 3.5em 7em 5.65em !important; }
 .day .left.placeInfo { padding: 3.5em 5.65em 7em 3.5em !important; }
 
-/* Day badge - WordPress exact styling */
+/* Day number badge */
 .day .dayNum {
     display: block !important;
     position: absolute !important;
@@ -872,6 +866,7 @@ ${roadbookCSS}
     width: 6em !important;
     height: 6em !important;
     line-height: 4.65em !important;
+    z-index: 10 !important;
     font-size: 1.15em !important;
     font-weight: 600 !important;
     border: 0.65em solid #fff !important;
@@ -1020,26 +1015,12 @@ class RoadbookTimelineAnimation {
         const scrollY = window.pageYOffset || document.documentElement.scrollTop;
         const viewportMiddle = scrollY + (window.innerHeight / 2);
         
-        // Check if viewport middle is within tube bounds
-        const isOnRoad = viewportMiddle >= this.tubeTop && viewportMiddle <= this.tubeBottom;
-        
-        if (isOnRoad) {
-            // Add trigger class - makes car fixed in center
-            this.car.classList.add('trigger');
+        // Show car only when viewport middle is within tube bounds
+        if (viewportMiddle >= this.tubeTop && viewportMiddle <= this.tubeBottom) {
+            this.car.classList.add('visible');
         } else {
-            // Remove trigger class - car goes back to absolute
-            this.car.classList.remove('trigger');
-            
-            // Position car at top or bottom of tube
-            if (viewportMiddle < this.tubeTop) {
-                this.car.style.top = '0px';
-            } else {
-                this.car.style.top = (this.tubeBottom - this.tubeTop - 75) + 'px';
-            }
+            this.car.classList.remove('visible');
         }
-        
-        // Update active days
-        this.updateActiveDays();
     }
     
     updateActiveDays() {
