@@ -93,4 +93,39 @@
 
   // 4) Hydrate menus using BrandHydrator (header/footer contain nav[data-menu-key])
   try { await window.BrandHydrator.hydrate(); } catch (e){ console.warn('hydrate failed', e); }
+
+  // 5) Preview injects HTML after DOMContentLoaded; initialize timeline behaviors manually.
+  try {
+    const timelines = document.querySelectorAll('.roadbook-animated-timeline-section');
+    timelines.forEach((timeline) => {
+      // Ensure the road height ends at the bottom of the last day (avoid preview whitespace).
+      const itineraryWrap = timeline.querySelector('#itinerary-wrap');
+      const tube = itineraryWrap ? itineraryWrap.querySelector('.roadbook-road') : null;
+      const line = itineraryWrap ? itineraryWrap.querySelector('.roadbook-road-line') : null;
+      const itinerary = itineraryWrap ? itineraryWrap.querySelector('.itinerary') : null;
+      if (itineraryWrap && tube && line && itinerary) {
+        const updateRoadHeight = () => {
+          const days = Array.from(itinerary.querySelectorAll('.day'));
+          let height = 500;
+          if (days.length > 0) {
+            const lastDay = days[days.length - 1];
+            height = Math.max(lastDay.offsetTop + lastDay.offsetHeight, 500);
+          }
+          tube.style.height = height + 'px';
+          line.style.height = height + 'px';
+        };
+        updateRoadHeight();
+        setTimeout(updateRoadHeight, 500);
+        setTimeout(updateRoadHeight, 1200);
+        window.addEventListener('resize', updateRoadHeight);
+      }
+
+      // Initialize animation logic (car visibility / active days). This is safe to run multiple times.
+      if (window.RoadbookTimelineAnimation) {
+        new window.RoadbookTimelineAnimation(timeline);
+      }
+    });
+  } catch (e) {
+    console.warn('timeline init failed', e);
+  }
 })();
