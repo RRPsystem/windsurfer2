@@ -249,6 +249,21 @@
       return '';
     }
 
+    function getRouteFromToForElement(el){
+      try {
+        const dayEl = (el && el.closest) ? el.closest('.day') : null;
+        if (!dayEl) return { from: '', to: '' };
+        const from = _cleanText(dayEl.querySelector('h3')?.textContent || '');
+        const nextDay = dayEl.nextElementSibling;
+        const to = nextDay && nextDay.matches && nextDay.matches('.day')
+          ? _cleanText(nextDay.querySelector('h3')?.textContent || '')
+          : '';
+        return { from, to };
+      } catch (e) {
+        return { from: '', to: '' };
+      }
+    }
+
     function _cleanText(s){
       try {
         return String(s || '')
@@ -449,6 +464,7 @@
     function openModal(el){
       closeModal();
       const placeGuess = guessPlaceFromElement(el);
+      const routeGuess = getRouteFromToForElement(el);
       const cur = (el && (el.textContent || '')).trim();
 
       modal = document.createElement('div');
@@ -468,8 +484,24 @@
         </div>
         <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#374151;">
+            Type
+            <select data-kind style="height:38px;border:1px solid #d1d5db;border-radius:10px;padding:8px 10px;font-size:13px;">
+              <option value="text" selected>Normale tekst</option>
+              <option value="route">Routedag (routebeschrijving)</option>
+            </select>
+          </label>
+          <label data-stops-wrap style="display:none;flex-direction:column;gap:6px;font-size:12px;color:#374151;">
+            Aantal stops onderweg
+            <select data-stops style="height:38px;border:1px solid #d1d5db;border-radius:10px;padding:8px 10px;font-size:13px;">
+              <option value="3" selected>3 stops</option>
+              <option value="4">4 stops</option>
+              <option value="5">5 stops</option>
+              <option value="6">6 stops</option>
+            </select>
+          </label>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#374151;">
             Plaatsnaam (context)
-            <input data-place type="text" value="${String(placeGuess || '').replace(/"/g, '&quot;')}" style="height:38px;border:1px solid #d1d5db;border-radius:10px;padding:8px 10px;font-size:13px;" />
+            <input data-place type="text" value="${String(placeGuess || '').replace(/\"/g, '&quot;')}" style="height:38px;border:1px solid #d1d5db;border-radius:10px;padding:8px 10px;font-size:13px;" />
           </label>
           <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#374151;">
             Tone
@@ -482,7 +514,7 @@
           </label>
           <label style="grid-column:1 / -1;display:flex;flex-direction:column;gap:6px;font-size:12px;color:#374151;">
             Waarover moet de tekst gaan? (prompt)
-            <textarea data-instruction rows="3" placeholder="Bijv. Schrijf een korte intro over de highlights in ${String(placeGuess||'deze plek').replace(/"/g, '&quot;')}…" style="border:1px solid #d1d5db;border-radius:10px;padding:10px;font-size:13px;resize:vertical;"></textarea>
+            <textarea data-instruction rows="3" placeholder="Bijv. Schrijf een korte intro over de highlights in ${String(placeGuess||'deze plek').replace(/\"/g, '&quot;')}…" style="border:1px solid #d1d5db;border-radius:10px;padding:10px;font-size:13px;resize:vertical;"></textarea>
           </label>
           <label style="grid-column:1 / -1;display:flex;flex-direction:column;gap:6px;font-size:12px;color:#374151;">
             Huidige tekst (context)
@@ -501,18 +533,51 @@
       const closeBtn = panel.querySelector('[data-close]');
       const genBtn = panel.querySelector('[data-generate]');
       const status = panel.querySelector('[data-status]');
+      const kind = panel.querySelector('[data-kind]');
+      const stopsWrap = panel.querySelector('[data-stops-wrap]');
+      const stops = panel.querySelector('[data-stops]');
       const placeInput = panel.querySelector('[data-place]');
       const instr = panel.querySelector('[data-instruction]');
       const tone = panel.querySelector('[data-tone]');
 
       if (closeBtn) closeBtn.addEventListener('click', closeModal);
 
-      if (instr && !instr.value) {
+      const setDefaultInstruction = () => {
         try {
-          const base = (placeGuess || '').trim();
-          instr.value = base ? `Schrijf een aantrekkelijke tekst over ${base} voor een reisprogramma. Benoem highlights, sfeer en praktische tips.` : 'Schrijf een aantrekkelijke tekst voor een reisprogramma. Benoem highlights, sfeer en praktische tips.';
+          if (!instr) return;
+          const mode = kind ? kind.value : 'text';
+          if (mode === 'route') {
+            const n = parseInt((stops && stops.value) || '3', 10) || 3;
+            const from = _cleanText(routeGuess.from || placeGuess || 'de startlocatie');
+            const to = _cleanText(routeGuess.to || 'de volgende bestemming');
+            instr.value = `Schrijf een routebeschrijving voor een routedag van ${from} naar ${to}. Geef ${n} leuke stops onderweg.\n\nStructuur:\n- Korte intro (1 alinea)\n- Genummerde lijst met ${n} stops: naam/regio + 1-2 zinnen wat je daar doet/ziet + waarom leuk\n- Afsluiting: aankomst in ${to} + 2 praktische tips (vertrektijd, tanken/veiligheid)\n\nSchrijf concreet en passend bij een reisprogramma.`;
+          } else {
+            const base = (placeGuess || '').trim();
+            instr.value = base ? `Schrijf een aantrekkelijke tekst over ${base} voor een reisprogramma. Benoem highlights, sfeer en praktische tips.` : 'Schrijf een aantrekkelijke tekst voor een reisprogramma. Benoem highlights, sfeer en praktische tips.';
+          }
         } catch (e) {}
-      }
+      };
+
+      if (instr && !instr.value) setDefaultInstruction();
+
+      const syncUiForKind = () => {
+        try {
+          const mode = kind ? kind.value : 'text';
+          if (stopsWrap) stopsWrap.style.display = (mode === 'route') ? 'flex' : 'none';
+          // Only overwrite if user hasn't typed something custom
+          if (instr && (!instr.value || instr.value.trim().length < 5)) setDefaultInstruction();
+        } catch (e) {}
+      };
+
+      try {
+        if (kind) kind.addEventListener('change', syncUiForKind);
+        if (stops) stops.addEventListener('change', () => {
+          try {
+            const mode = kind ? kind.value : 'text';
+            if (mode === 'route') setDefaultInstruction();
+          } catch (e) {}
+        });
+      } catch (e) {}
 
       if (genBtn) {
         genBtn.addEventListener('click', async () => {
@@ -521,6 +586,15 @@
             const old = genBtn.textContent;
             genBtn.textContent = 'Genereren...';
             if (status) status.textContent = '';
+
+            // If user selected route mode but left prompt empty, ensure a good default prompt
+            try {
+              const mode = kind ? kind.value : 'text';
+              if (mode === 'route' && instr && (!instr.value || instr.value.trim().length < 5)) {
+                setDefaultInstruction();
+              }
+            } catch (e) {}
+
             await generateInto(el, {
               place: placeInput ? placeInput.value : '',
               instruction: instr ? instr.value : '',
