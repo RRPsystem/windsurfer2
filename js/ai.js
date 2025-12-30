@@ -198,6 +198,7 @@
 
   try {
     let activeEl = null;
+    let lastActiveEl = null;
     let btn = null;
     let modal = null;
     let keyHandler = null;
@@ -242,13 +243,62 @@
       btn = document.createElement('button');
       btn.id = 'wb-ai-text-btn';
       btn.type = 'button';
-      btn.textContent = '✨ AI';
-      btn.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:2147483646;background:#8b5cf6;color:#fff;border:1px solid #7c3aed;border-radius:999px;padding:10px 14px;font:600 13px system-ui,Segoe UI,Roboto,Arial;cursor:pointer;box-shadow:0 10px 20px rgba(0,0,0,.15);display:none;';
-      btn.addEventListener('click', () => {
-        try { if (activeEl) openModal(activeEl); } catch (e) {}
-      });
+      btn.textContent = '✨ AI tekst';
+      btn.style.cssText = 'position:fixed;left:16px;top:16px;z-index:2147483646;background:#8b5cf6;color:#fff;border:1px solid #7c3aed;border-radius:999px;padding:10px 14px;font:800 14px system-ui,Segoe UI,Roboto,Arial;cursor:pointer;box-shadow:0 12px 26px rgba(0,0,0,.18);display:none;';
+      // Open on pointerdown to avoid blur clearing active element before click fires
+      btn.addEventListener('pointerdown', (ev) => {
+        try {
+          ev.preventDefault();
+          ev.stopPropagation();
+          const targetEl = activeEl || lastActiveEl;
+          if (targetEl) openModal(targetEl);
+        } catch (e) {}
+      }, true);
       document.body.appendChild(btn);
       return btn;
+    }
+
+    function positionButtonNear(el){
+      try {
+        const b = ensureButton();
+        if (!el || !el.getBoundingClientRect) {
+          b.style.left = '';
+          b.style.top = '';
+          b.style.right = '16px';
+          b.style.bottom = '16px';
+          return;
+        }
+        const r = el.getBoundingClientRect();
+        // Fallback if element is offscreen
+        const off = (r.bottom < 0 || r.top > window.innerHeight || r.right < 0 || r.left > window.innerWidth);
+        if (off) {
+          b.style.left = '';
+          b.style.top = '';
+          b.style.right = '16px';
+          b.style.bottom = '16px';
+          return;
+        }
+
+        b.style.right = '';
+        b.style.bottom = '';
+
+        // Temporarily show to measure width
+        const prevVis = b.style.visibility;
+        b.style.visibility = 'hidden';
+        b.style.display = 'block';
+        const bw = b.getBoundingClientRect().width || 160;
+        const bh = b.getBoundingClientRect().height || 40;
+        b.style.visibility = prevVis || '';
+
+        const margin = 10;
+        let top = Math.max(margin, r.top - bh - 8);
+        let left = Math.min(window.innerWidth - bw - margin, Math.max(margin, r.left));
+        // If not enough space above, pin below
+        if (top <= margin + 2) top = Math.min(window.innerHeight - bh - margin, r.bottom + 8);
+
+        b.style.left = Math.round(left) + 'px';
+        b.style.top = Math.round(top) + 'px';
+      } catch (e) {}
     }
 
     function closeModal(){
@@ -392,12 +442,32 @@
       document.addEventListener('keydown', keyHandler, true);
     }
 
+    function showButtonFor(el){
+      activeEl = el;
+      lastActiveEl = el;
+      const b = ensureButton();
+      b.style.display = 'block';
+      positionButtonNear(el);
+    }
+
+    function hideButton(){
+      try { if (btn) btn.style.display = 'none'; } catch (e) {}
+      activeEl = null;
+    }
+
+    // Keep button positioned on scroll/resize while an element is active
+    window.addEventListener('scroll', () => {
+      try { if (activeEl && btn && btn.style.display !== 'none') positionButtonNear(activeEl); } catch (e) {}
+    }, true);
+    window.addEventListener('resize', () => {
+      try { if (activeEl && btn && btn.style.display !== 'none') positionButtonNear(activeEl); } catch (e) {}
+    });
+
     document.addEventListener('focusin', (e) => {
       try {
         const el = e && e.target;
         if (!isCanvasEditable(el)) return;
-        activeEl = el;
-        ensureButton().style.display = 'block';
+        showButtonFor(el);
       } catch (e2) {}
     }, true);
 
@@ -408,13 +478,20 @@
         setTimeout(() => {
           try {
             const ae = document.activeElement;
-            if (isCanvasEditable(ae)) {
-              activeEl = ae;
-              ensureButton().style.display = 'block';
+            // If focus moved to our AI button or modal, keep last active element
+            if (btn && (ae === btn)) {
+              positionButtonNear(lastActiveEl);
               return;
             }
-            activeEl = null;
-            if (btn) btn.style.display = 'none';
+            if (modal && modal.contains(ae)) {
+              positionButtonNear(lastActiveEl);
+              return;
+            }
+            if (isCanvasEditable(ae)) {
+              showButtonFor(ae);
+              return;
+            }
+            hideButton();
           } catch (e3) {}
         }, 0);
       } catch (e2) {}
