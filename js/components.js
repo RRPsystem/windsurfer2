@@ -7230,6 +7230,11 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         }
                         .day .dayNum {
                             background: ${brandPrimary} !important;
+                            z-index: 60 !important;
+                        }
+                        #itinerary-wrap > .roadbook-road-line::before {
+                            content: none !important;
+                            display: none !important;
                         }
                         .day .delight {
                             background: ${brandPrimary} !important;
@@ -7249,7 +7254,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         <div id="car"><img src="images/auto.png" alt="Car" style="width: 100%; height: auto;" onerror="this.parentElement.innerHTML='🚗';"></div>
                         
                         <!-- ITINERARY: Contains days -->
-                        <div class="itinerary" style="position: relative; z-index: 5;">
+                        <div class="itinerary" style="position: relative;">
                             <!-- DAYS -->
                             ${data.itinerary.map((day, i) => {
                                 const location = day.title || day.destination || 'Bestemming';

@@ -177,6 +177,15 @@
      z-index: 60;
  }
 
+ .roadbook-itinerary-wrap > .roadbook-road-line::before {
+     content: none !important;
+     display: none !important;
+ }
+
+ .roadbook-itinerary-wrap .itinerary {
+     z-index: auto !important;
+ }
+
 /* Road using pseudo-elements - always visible */
 .itinerary::before {
     content: '';
