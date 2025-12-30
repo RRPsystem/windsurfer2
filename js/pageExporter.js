@@ -412,22 +412,11 @@
         console.log('[PageExporter] Added inline styles to timeline road');
       }
       
-      // Style car - check both selectors
-      let car = tempDiv.querySelector('#car') || tempDiv.querySelector('.roadbook-timeline-car');
+      // Style car
+      const car = tempDiv.querySelector('.roadbook-timeline-car');
       if (car) {
-        car.style.cssText = 'position: fixed !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; width: 50px !important; z-index: 999 !important; pointer-events: none !important; transition: opacity 0.3s ease !important;';
+        car.style.cssText = 'position: absolute !important; left: 50% !important; transform: translateX(-50%) !important; width: 70px !important; height: 100px !important; z-index: 10 !important; filter: drop-shadow(0 6px 20px rgba(0,0,0,0.3)) !important; display: flex !important; align-items: center !important; justify-content: center !important; pointer-events: none !important; transition: top 0.3s ease-out !important; background: transparent !important; will-change: top !important; top: 0 !important;';
         console.log('[PageExporter] Added inline styles to car');
-      } else {
-        // Car not found, check if itinerary-wrap exists and add car
-        const itineraryWrap = tempDiv.querySelector('#itinerary-wrap');
-        if (itineraryWrap) {
-          const carDiv = document.createElement('div');
-          carDiv.id = 'car';
-          carDiv.style.cssText = 'position: fixed !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; width: 50px !important; z-index: 999 !important; pointer-events: none !important; transition: opacity 0.3s ease !important;';
-          carDiv.innerHTML = '<img src="images/auto.png" alt="Car" style="width: 100%; height: auto;" onerror="this.parentElement.innerHTML=\'🚗\';">';
-          itineraryWrap.insertBefore(carDiv, itineraryWrap.firstChild);
-          console.log('[PageExporter] Created car element');
-        }
       }
       
       // Style timeline section
@@ -749,7 +738,7 @@ ${componentsCSS}
 /* Roadbook Timeline CSS */
 ${roadbookCSS}
 
-/* Critical Roadbook Inline Styles - WordPress Structure */
+/* Critical Roadbook Inline Styles */
 .roadbook-animated-timeline-section {
     width: 100% !important;
     background: linear-gradient(to bottom, var(--brand-primary, #84cc16) 300px, #f9fafb 300px) !important;
@@ -757,187 +746,75 @@ ${roadbookCSS}
     overflow: visible !important;
 }
 
-#itinerary-wrap {
+.roadbook-timeline-road {
     position: relative !important;
-    max-width: 100% !important;
+    max-width: 1400px !important;
     margin: 0 auto !important;
-    padding-bottom: 100px !important;
+    padding: 0 20px 100px !important;
+    min-height: 500px !important;
 }
 
-/* Gray road tube */
-.tube {
+.roadbook-road-line {
     position: absolute !important;
-    top: 0 !important;
     left: 50% !important;
+    top: 0 !important;
     bottom: 0 !important;
-    width: 4.65em !important;
-    background: #6b7280 !important;
-    margin-left: -2.15em !important;
-    border-radius: 10em !important;
-    z-index: 1 !important;
-}
-
-.tube .start, .tube .end {
-    position: absolute !important;
-    left: 0 !important;
-    right: 0 !important;
-    text-align: center !important;
-    color: #fff !important;
-    font-weight: 600 !important;
-}
-.tube .start { top: 1.5em !important; }
-.tube .end { bottom: 1.5em !important; }
-
-/* White dashed line */
-.line {
-    position: absolute !important;
-    top: 0 !important;
-    left: 50% !important;
-    bottom: -3em !important;
-    width: 1px !important;
-    border-left: 3px dashed #fff !important;
+    width: 6px !important;
+    background: #9ca3af !important;
+    transform: translateX(-50%) !important;
     z-index: 2 !important;
-}
-
-/* Car - fixed in viewport center */
-#car {
-    display: block !important;
-    width: 39px !important;
-    height: 75px !important;
-    position: fixed !important;
-    left: 50% !important;
-    top: 50% !important;
-    margin-left: -18px !important;
-    margin-top: -37px !important;
-    z-index: 9999 !important;
     pointer-events: none !important;
-    opacity: 0 !important;
-    transition: opacity 0.3s !important;
-}
-#car.visible { opacity: 1 !important; }
-
-#car img {
-    width: 100% !important;
-    height: auto !important;
-    display: block !important;
+    height: 100% !important;
 }
 
-/* Itinerary container */
-.itinerary {
-    position: relative !important;
-    z-index: 3 !important;
-}
-
-/* Day items */
-.day {
-    position: relative !important;
-    overflow: hidden !important;
-}
-
-.day .left {
-    display: block !important;
-    position: relative !important;
-    float: left !important;
-    width: 50% !important;
-}
-
-.day .right {
-    display: block !important;
-    position: relative !important;
-    float: right !important;
-    width: 50% !important;
-}
-
-.clear { clear: both !important; }
-
-.day .placeInfo {
-    background-color: #fff !important;
-    min-height: 400px !important;
-}
-
-.day .right.placeInfo { padding: 3.5em 3.5em 7em 5.65em !important; }
-.day .left.placeInfo { padding: 3.5em 5.65em 7em 3.5em !important; }
-
-/* Day number badge */
-.day .dayNum {
-    display: block !important;
+.roadbook-road-line::before {
+    content: '' !important;
     position: absolute !important;
-    top: 50% !important;
-    width: 6em !important;
-    height: 6em !important;
-    line-height: 4.65em !important;
-    z-index: 10 !important;
-    font-size: 1.15em !important;
-    font-weight: 600 !important;
-    border: 0.65em solid #fff !important;
-    border-radius: 50% !important;
-    text-align: center !important;
-    color: #fff !important;
-    background: var(--brand-primary, #84cc16) !important;
-    margin-top: -3.65em !important;
-    box-shadow: 0 0 5px 1px rgba(0,0,0,0.3) !important;
-    z-index: 99 !important;
-}
-
-.day .right .dayNum { left: -3em !important; right: auto !important; }
-.day .left .dayNum { right: -3em !important; left: auto !important; }
-
-.day .placeImg {
-    position: absolute !important;
+    left: 50% !important;
     top: 0 !important;
-    bottom: 0 !important;
+    width: 2px !important;
     height: 100% !important;
-    overflow: hidden !important;
+    background: white !important;
+    transform: translateX(-50%) !important;
+    background-image: repeating-linear-gradient(to bottom, white 0px, white 20px, transparent 20px, transparent 40px) !important;
 }
 
-.day .placeImg img {
+.roadbook-timeline-car {
+    position: absolute !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 70px !important;
+    height: 100px !important;
+    z-index: 10 !important;
+    filter: drop-shadow(0 6px 20px rgba(0,0,0,0.3)) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    pointer-events: none !important;
+    transition: top 0.3s ease-out !important;
+    background: transparent !important;
+    will-change: top !important;
+    top: 0 !important;
+}
+
+.roadbook-timeline-car img {
+    width: 100% !important;
     height: 100% !important;
-    width: auto !important;
-    min-width: 100% !important;
-    object-fit: cover !important;
+    object-fit: contain !important;
 }
 
-.day .left.placeImg { left: 0 !important; }
-.day .right.placeImg { right: 0 !important; }
-
-.day .delight {
+.roadbook-start-badge {
     position: absolute !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    background: var(--brand-primary, #84cc16) !important;
-    color: #fff !important;
-    padding: 1.65em 1.5em !important;
-}
-
-.day .right .delight { padding-left: 8.50em !important; }
-.day .left .delight { padding-left: 6.15em !important; }
-
-.day ul {
-    list-style-type: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-}
-
-.day ul li {
-    display: block !important;
-    float: left !important;
-    width: 50% !important;
-    position: relative !important;
-    padding: 1.5em 1.5em 1.5em 3em !important;
-    border-top: 1px solid rgba(0,0,0,0.1) !important;
-    box-sizing: border-box !important;
-}
-
-.day ul li:first-child, .day ul li:nth-child(2) { border: none !important; }
-
-.day ul li i {
-    position: absolute !important;
-    left: 0 !important;
-    top: 1.55em !important;
-    font-size: 1.65em !important;
-    color: var(--brand-primary, #84cc16) !important;
+    left: 50% !important;
+    top: -30px !important;
+    transform: translateX(-50%) !important;
+    background: #4b5563 !important;
+    color: white !important;
+    padding: 8px 20px !important;
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    z-index: 5 !important;
 }
 
 /* Page Specific */
@@ -974,52 +851,81 @@ ${brandLogoHTML}
 
 <!-- Roadbook Timeline Animation -->
 <script>
-// Roadbook Timeline Animation for Preview - WordPress ScrollMagic style
+// Roadbook Timeline Animation for Preview
 class RoadbookTimelineAnimation {
     constructor(container) {
         this.container = container;
-        this.car = document.getElementById('car');
-        this.tube = container.querySelector('.tube') || container.querySelector('.roadbook-road');
-        this.dayItems = container.querySelectorAll('.day');
-        this.tubeTop = 0;
-        this.tubeBottom = 0;
+        this.car = container.querySelector('.roadbook-timeline-car');
+        this.roadContainer = container.querySelector('.roadbook-road-line');
+        this.dayItems = container.querySelectorAll('.roadbook-day-item');
+        this.isAnimating = false;
         
-        console.log('[Timeline Preview] Init:', {
+        console.log('[Timeline Preview] Initializing...', {
+            container: !!this.container,
             car: !!this.car,
-            tube: !!this.tube,
-            days: this.dayItems.length
+            roadContainer: !!this.roadContainer,
+            dayItemsCount: this.dayItems.length
         });
         
-        if (!this.car || !this.tube) {
-            console.warn('[Timeline Preview] Missing car or tube');
+        if (!this.car || !this.roadContainer || this.dayItems.length === 0) {
+            console.warn('[Timeline Preview] Missing required elements:', {
+                car: !!this.car,
+                roadContainer: !!this.roadContainer,
+                dayItems: this.dayItems.length
+            });
             return;
         }
         
-        this.calculateBounds();
-        window.addEventListener('scroll', () => this.onScroll(), { passive: true });
-        window.addEventListener('resize', () => this.calculateBounds(), { passive: true });
-        setTimeout(() => this.onScroll(), 100);
+        console.log('[Timeline Preview] All elements found, initializing animation');
+        this.init();
     }
     
-    calculateBounds() {
-        if (!this.tube) return;
-        const rect = this.tube.getBoundingClientRect();
-        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-        this.tubeTop = scrollY + rect.top;
-        this.tubeBottom = scrollY + rect.bottom;
+    init() {
+        const scrollHandler = () => this.onScroll();
+        window.addEventListener('scroll', scrollHandler, { passive: true });
+        window.addEventListener('resize', scrollHandler, { passive: true });
+        
+        setTimeout(() => {
+            this.updateCarPosition();
+            this.onScroll();
+        }, 100);
+        
+        setInterval(() => {
+            if (this.isVisible()) {
+                this.updateCarPosition();
+            }
+        }, 100);
     }
     
     onScroll() {
-        if (!this.car || !this.tube) return;
+        if (this.isAnimating) return;
+        this.isAnimating = true;
         
-        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-        const viewportMiddle = scrollY + (window.innerHeight / 2);
+        requestAnimationFrame(() => {
+            this.updateCarPosition();
+            this.updateActiveDays();
+            this.isAnimating = false;
+        });
+    }
+    
+    updateCarPosition() {
+        if (!this.car || !this.roadContainer) return;
         
-        // Show car only when viewport middle is within tube bounds
-        if (viewportMiddle >= this.tubeTop && viewportMiddle <= this.tubeBottom) {
-            this.car.classList.add('visible');
-        } else {
-            this.car.classList.remove('visible');
+        const containerRect = this.roadContainer.getBoundingClientRect();
+        const viewportMiddle = window.innerHeight / 2;
+        const relativePosition = viewportMiddle - containerRect.top;
+        const clampedPosition = Math.max(0, Math.min(relativePosition, containerRect.height));
+        
+        this.car.style.top = clampedPosition + 'px';
+        
+        // Debug logging (only log occasionally to avoid spam)
+        if (Math.random() < 0.01) {
+            console.log('[Timeline Preview] Car position updated:', {
+                top: clampedPosition,
+                containerHeight: containerRect.height,
+                viewportMiddle: viewportMiddle,
+                containerTop: containerRect.top
+            });
         }
     }
     
@@ -1027,18 +933,24 @@ class RoadbookTimelineAnimation {
         const viewportMiddle = window.innerHeight / 2;
         
         this.dayItems.forEach(day => {
-            const dayNum = day.querySelector('.dayNum');
-            if (!dayNum) return;
+            const badge = day.querySelector('.roadbook-day-badge');
+            if (!badge) return;
             
-            const rect = dayNum.getBoundingClientRect();
+            const rect = badge.getBoundingClientRect();
             const badgeMiddle = rect.top + rect.height / 2;
             
-            if (Math.abs(badgeMiddle - viewportMiddle) < 150) {
+            if (Math.abs(badgeMiddle - viewportMiddle) < 100) {
                 day.classList.add('active');
             } else {
                 day.classList.remove('active');
             }
         });
+    }
+    
+    isVisible() {
+        if (!this.container) return false;
+        const rect = this.container.getBoundingClientRect();
+        return rect.top < window.innerHeight && rect.bottom > 0;
     }
 }
 

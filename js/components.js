@@ -7176,215 +7176,103 @@ ComponentFactory.createRoadbook = function(options = {}) {
             
             <!-- Hotels are now in the timeline above, no separate section needed -->
             
-            <!-- Animated Timeline: Dag bij Dag - WordPress Style -->
+            <!-- Animated Timeline: Dag bij Dag -->
             ${data.itinerary.length > 0 ? `
-                <div id="itinerary" class="roadbook-animated-timeline-section" style="background: linear-gradient(to bottom, ${brandPrimary} 300px, #f9fafb 300px) !important;">
+                <div id="itinerary" class="roadbook-animated-timeline-section">
                     <!-- Header -->
                     <div class="roadbook-timeline-header">
                         <h2 class="editable" contenteditable="true">DE REIS <strong>DAG BIJ DAG</strong></h2>
                         <p class="editable" contenteditable="true">Highlights Of Your Journey</p>
                     </div>
                     
-                    <!-- Inline styles for roadbook -->
-                    <style>
-                        :root { --brand-primary: ${brandPrimary}; }
+                    <!-- Timeline Road -->
+                    <div class="roadbook-timeline-road">
+                        <!-- Start Badge -->
+                        <div class="roadbook-start-badge">START</div>
                         
-                        /* Itinerary wrap container */
-                        #itinerary-wrap { position: relative; }
+                        <!-- Vertical Road Line -->
+                        <div class="roadbook-road-line"></div>
                         
-                        /* Gray road tube */
-                        .tube {
-                            position: absolute;
-                            top: 0;
-                            left: 50%;
-                            bottom: 0;
-                            width: 4.65em;
-                            background: #6b7280;
-                            margin-left: -2.15em;
-                            border-radius: 10em;
-                            z-index: 1;
-                        }
-                        .tube .start, .tube .end {
-                            position: absolute;
-                            left: 0;
-                            right: 0;
-                            text-align: center;
-                            color: #fff;
-                            font-weight: 600;
-                        }
-                        .tube .start { top: 1.5em; }
-                        .tube .end { bottom: 1.5em; }
-                        
-                        /* White dashed line */
-                        .line {
-                            position: absolute;
-                            top: 0;
-                            left: 50%;
-                            bottom: -3em;
-                            width: 1px;
-                            border-left: 3px dashed #fff;
-                            z-index: 2;
-                        }
-                        
-                        /* Car - fixed in viewport center when on road */
-                        #car {
-                            display: block;
-                            width: 39px;
-                            height: 75px;
-                            position: fixed;
-                            left: 50%;
-                            top: 50%;
-                            margin-left: -18px;
-                            margin-top: -37px;
-                            z-index: 9999;
-                            pointer-events: none;
-                            opacity: 0;
-                            transition: opacity 0.3s;
-                        }
-                        #car.visible { opacity: 1; }
-                        
-                        /* Itinerary container */
-                        .itinerary { position: relative; z-index: 3; }
-                        
-                        /* Day items */
-                        .day { position: relative; overflow: hidden; }
-                        .day .left, .day .right {
-                            display: block;
-                            position: relative;
-                            width: 50%;
-                        }
-                        .day .left { float: left; }
-                        .day .right { float: right; }
-                        .clear { clear: both; }
-                        
-                        /* Day number badge */
-                        .day .dayNum {
-                            display: block;
-                            position: absolute;
-                            top: 50%;
-                            width: 6em;
-                            height: 6em;
-                            line-height: 4.65em;
-                            font-size: 1.15em;
-                            font-weight: 600;
-                            border: 0.65em solid #fff;
-                            border-radius: 50%;
-                            text-align: center;
-                            color: #fff;
-                            background: ${brandPrimary};
-                            margin-top: -3.65em;
-                            box-shadow: 0 0 5px 1px rgba(0,0,0,0.3);
-                            z-index: 10;
-                        }
-                        .day .right .dayNum { left: -2.85em; right: auto; }
-                        .day .left .dayNum { right: -3.15em; left: auto; }
-                        
-                        /* Place info and image */
-                        .day .placeInfo { background-color: #fff; }
-                        .day .right.placeInfo { padding: 3.5em 3.5em 7em 5.65em; }
-                        .day .left.placeInfo { padding: 3.5em 5.65em 7em 3.5em; }
-                        
-                        /* Delight bar */
-                        .day .delight {
-                            position: absolute;
-                            left: 0;
-                            right: 0;
-                            bottom: 0;
-                            color: #fff;
-                            background: ${brandPrimary};
-                        }
-                        .day .right .delight { padding: 1.65em 1.5em 1.65em 8.50em; }
-                        .day .left .delight { padding: 1.65em 1.5em 1.65em 6.15em; }
-                        .day .delight i { position: absolute; top: 0.95em; font-size: 1.65em; }
-                        .day .right .delight i { left: 3.35em; }
-                        .day .left .delight i { left: 2.15em; }
-                        
-                        /* Icon colors */
-                        .day ul li i { color: ${brandPrimary}; }
-                    </style>
-                    
-                    <!-- Itinerary Wrap -->
-                    <div id="itinerary-wrap">
-                        <!-- Gray road -->
-                        <div class="tube">
-                            <span class="start">START</span>
-                            <span class="end">END</span>
+                        <!-- Animated Car -->
+                        <div class="roadbook-timeline-car">
+                            <img src="images/auto.png" alt="Car" onerror="console.error('Auto image failed to load'); this.parentElement.innerHTML='<i class=\\'fas fa-car\\'></i>';">
                         </div>
-                        <!-- Car -->
-                        <div id="car"><img src="images/auto.png" alt="Car" style="width:100%;height:auto;" onerror="this.parentElement.innerHTML='🚗';"></div>
                         
-                        <!-- Days container -->
-                        <div class="itinerary">
-                            <!-- Dashed line -->
-                            <div class="line"></div>
-                            <!-- DAYS -->
-                            ${data.itinerary.map((day, i) => {
-                                const location = day.title || day.destination || 'Bestemming';
-                                const prevDay = i > 0 ? data.itinerary[i - 1] : null;
-                                const prevLocation = prevDay ? (prevDay.title || prevDay.destination || '') : '';
-                                const isNewLocation = location !== prevLocation;
+                        <!-- Days -->
+                        ${data.itinerary.map((day, i) => {
+                            // Check if this is first occurrence of this location
+                            const location = day.title || day.destination || 'Bestemming';
+                            const prevDay = i > 0 ? data.itinerary[i - 1] : null;
+                            const prevLocation = prevDay ? (prevDay.title || prevDay.destination || '') : '';
+                            const isNewLocation = location !== prevLocation;
+                            
+                            // Skip if not a new location (already rendered)
+                            if (!isNewLocation) return '';
+                            
+                            // Find how many consecutive days at this location
+                            let dayCount = 1;
+                            for (let j = i + 1; j < data.itinerary.length; j++) {
+                                const nextLoc = data.itinerary[j].title || data.itinerary[j].destination || '';
+                                if (nextLoc === location) dayCount++;
+                                else break;
+                            }
+                            
+                            const dayRange = dayCount > 1 ? `${i + 1}-${i + dayCount}` : `${i + 1}`;
+                            
+                            return `
+                            <div class="roadbook-day-item" data-day="${i + 1}">
+                                <!-- Day Badge -->
+                                <div class="roadbook-day-badge">Stop ${i + 1}</div>
                                 
-                                if (!isNewLocation) return '';
-                                
-                                let dayCount = 1;
-                                for (let j = i + 1; j < data.itinerary.length; j++) {
-                                    const nextLoc = data.itinerary[j].title || data.itinerary[j].destination || '';
-                                    if (nextLoc === location) dayCount++;
-                                    else break;
-                                }
-                                
-                                const isEven = i % 2 === 0;
-                                const dayLabel = dayCount > 1 ? 'Day ' + (i + 1) + '-' + (i + dayCount) : 'Day ' + (i + 1);
-                                const imgSrc = day.image || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800';
-                                const subtitle = day.subtitle || day.location || 'Provincie / Stad';
-                                const description = day.description || 'Beschrijving van deze dag...';
-                                const delight = day.delight || 'Special experience';
-                                
-                                if (isEven) {
-                                    // Photo LEFT, Info RIGHT
-                                    return '<div class="day">' +
-                                        '<div class="left placeImg">' +
-                                            '<img src="' + imgSrc + '" alt="' + location + '">' +
-                                        '</div>' +
-                                        '<div class="right placeInfo">' +
-                                            '<div class="dayNum">' + dayLabel + '</div>' +
-                                            '<h3 class="editable" contenteditable="true">' + location + '</h3>' +
-                                            '<span class="editable" contenteditable="true">' + subtitle + '</span>' +
-                                            '<p class="editable" contenteditable="true">' + description + '</p>' +
-                                            '<ul>' +
-                                                '<li><i class="fas fa-map-marker-alt"></i><h6>Tourist Attraction:</h6><span class="editable" contenteditable="true">Bezienswaardigheden</span></li>' +
-                                                '<li><i class="fas fa-shopping-bag"></i><h6>Best Buy:</h6><span class="editable" contenteditable="true">Lokale producten</span></li>' +
-                                                '<li><i class="fas fa-utensils"></i><h6>Food Speciality:</h6><span class="editable" contenteditable="true">Lokale gerechten</span></li>' +
-                                                '<li><i class="fas fa-hiking"></i><h6>Activity:</h6><span class="editable" contenteditable="true">Activiteiten</span></li>' +
-                                            '</ul>' +
-                                            '<div class="delight"><i class="fas fa-star"></i><h6>TOUR DELIGHT:</h6><span class="editable" contenteditable="true">' + delight + '</span></div>' +
-                                        '</div>' +
-                                        '<div class="clear"></div>' +
-                                    '</div><div class="clear"></div>';
-                                } else {
-                                    // Info LEFT, Photo RIGHT
-                                    return '<div class="day">' +
-                                        '<div class="left placeInfo">' +
-                                            '<div class="dayNum">' + dayLabel + '</div>' +
-                                            '<h3 class="editable" contenteditable="true">' + location + '</h3>' +
-                                            '<span class="editable" contenteditable="true">' + subtitle + '</span>' +
-                                            '<p class="editable" contenteditable="true">' + description + '</p>' +
-                                            '<ul>' +
-                                                '<li><i class="fas fa-map-marker-alt"></i><h6>Tourist Attraction:</h6><span class="editable" contenteditable="true">Bezienswaardigheden</span></li>' +
-                                                '<li><i class="fas fa-shopping-bag"></i><h6>Best Buy:</h6><span class="editable" contenteditable="true">Lokale producten</span></li>' +
-                                                '<li><i class="fas fa-utensils"></i><h6>Food Speciality:</h6><span class="editable" contenteditable="true">Lokale gerechten</span></li>' +
-                                                '<li><i class="fas fa-hiking"></i><h6>Activity:</h6><span class="editable" contenteditable="true">Activiteiten</span></li>' +
-                                            '</ul>' +
-                                            '<div class="delight"><i class="fas fa-star"></i><h6>TOUR DELIGHT:</h6><span class="editable" contenteditable="true">' + delight + '</span></div>' +
-                                        '</div>' +
-                                        '<div class="right placeImg">' +
-                                            '<img src="' + imgSrc + '" alt="' + location + '">' +
-                                        '</div>' +
-                                        '<div class="clear"></div>' +
-                                    '</div><div class="clear"></div>';
-                                }
-                            }).join('')}
-                        </div>
+                                <!-- Day Content -->
+                                <div class="roadbook-day-content">
+                                    <!-- Photo -->
+                                    <div class="roadbook-day-photo">
+                                        <img src="${day.image || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800'}" alt="${day.title || 'Dag ' + (i + 1)}">
+                                    </div>
+                                    
+                                    <!-- Info -->
+                                    <div class="roadbook-day-info">
+                                        <h3 class="roadbook-day-location editable" contenteditable="true">${location}${dayCount > 1 ? ` (Dag ${dayRange})` : ''}</h3>
+                                        <p class="roadbook-day-subtitle editable" contenteditable="true">${day.subtitle || day.location || 'Provincie / Stad'}</p>
+                                        ${day.distance ? `<p class="roadbook-day-distance editable" contenteditable="true">${day.distance}</p>` : ''}
+                                        
+                                        <p class="roadbook-day-description editable" contenteditable="true">${day.description || 'Beschrijving van deze dag...'}</p>
+                                        
+                                        <a href="#" class="roadbook-read-more" onclick="event.preventDefault(); alert('Open slide panel met meer info');">
+                                            Lees verder <i class="fas fa-arrow-right"></i>
+                                        </a>
+                                        
+                                        <!-- Highlights -->
+                                        <div class="roadbook-day-highlights">
+                                            ${(day.highlights && day.highlights.length > 0 ? day.highlights : [
+                                                { icon: 'fa-map-marker-alt', title: 'Tourist Attraction:', text: 'Bezienswaardigheden' },
+                                                { icon: 'fa-shopping-bag', title: 'Best Buy:', text: 'Lokale producten' },
+                                                { icon: 'fa-utensils', title: 'Food Speciality:', text: 'Lokale gerechten' },
+                                                { icon: 'fa-hiking', title: 'Activity:', text: 'Activiteiten' }
+                                            ]).slice(0, 4).map(h => `
+                                                <div class="roadbook-highlight-item">
+                                                    <div class="roadbook-highlight-icon">
+                                                        <i class="fas ${h.icon || 'fa-star'}"></i>
+                                                    </div>
+                                                    <div class="roadbook-highlight-content">
+                                                        <h4 class="editable" contenteditable="true">${h.title || 'Highlight'}</h4>
+                                                        <p class="editable" contenteditable="true">${h.text || h.description || ''}</p>
+                                                    </div>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                        
+                                        <!-- Hotel Bar -->
+                                        <div class="roadbook-hotel-bar">
+                                            <i class="fas fa-hotel"></i>
+                                            <span class="editable" contenteditable="true">${day.hotel || day.accommodation || 'Hotel naam'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        }).join('')}
                     </div>
                 </div>
             ` : ''}
@@ -7411,48 +7299,6 @@ ComponentFactory.createRoadbook = function(options = {}) {
                 section: !!timelineSection,
                 animation: !!window.RoadbookTimelineAnimation
             });
-        }
-        
-        // Set tube and line height based on itinerary content height
-        const itineraryWrap = document.getElementById('itinerary-wrap');
-        const tube = document.querySelector('.tube');
-        const line = document.querySelector('.itinerary .line');
-        const itinerary = document.querySelector('#itinerary-wrap .itinerary');
-        
-        console.log('[Roadbook] Road elements found:', {
-            wrap: !!itineraryWrap,
-            tube: !!tube,
-            line: !!line,
-            itinerary: !!itinerary
-        });
-        
-        if (itineraryWrap && tube && line && itinerary) {
-            const updateRoadHeight = () => {
-                // Get the total height of all day items
-                const days = itinerary.querySelectorAll('.day');
-                let totalHeight = 0;
-                days.forEach(day => {
-                    totalHeight += day.offsetHeight;
-                });
-                
-                // Use scrollHeight as fallback
-                const height = Math.max(totalHeight, itinerary.scrollHeight, itinerary.offsetHeight, 500);
-                console.log('[Roadbook] Setting road height to:', height, '(days:', days.length, ')');
-                tube.style.height = height + 'px';
-                line.style.height = height + 'px';
-            };
-            
-            // Update immediately and after images load
-            updateRoadHeight();
-            setTimeout(updateRoadHeight, 500);
-            setTimeout(updateRoadHeight, 1000);
-            setTimeout(updateRoadHeight, 2000);
-            setTimeout(updateRoadHeight, 3000);
-            
-            // Also update on window resize
-            window.addEventListener('resize', updateRoadHeight);
-        } else {
-            console.warn('[Roadbook] Could not find road elements');
         }
     }, 500);
     
