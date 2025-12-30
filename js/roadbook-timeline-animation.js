@@ -9,6 +9,9 @@ class RoadbookTimelineAnimation {
         this.roadContainer = null;
         this.isAnimating = false;
         this.itineraryWrap = null;
+        this.isFixedCar = false;
+        this.scrollContainer = null;
+        this._scrollHandler = null;
         
         this.init();
     }
@@ -21,6 +24,8 @@ class RoadbookTimelineAnimation {
         this.roadLine = this.container.querySelector('.roadbook-road-line');
         this.car = this.container.querySelector('.roadbook-timeline-car, #car');
         this.itineraryWrap = this.container.querySelector('#itinerary-wrap');
+        this.isFixedCar = !!(this.car && (this.car.id === 'car' || getComputedStyle(this.car).position === 'fixed'));
+        this.scrollContainer = this.findScrollContainer();
         
         console.log('[Timeline Init]', {
             container: !!this.container,
@@ -28,7 +33,9 @@ class RoadbookTimelineAnimation {
             roadContainer: !!this.roadContainer,
             roadLine: !!this.roadLine,
             car: !!this.car,
-            itineraryWrap: !!this.itineraryWrap
+            itineraryWrap: !!this.itineraryWrap,
+            isFixedCar: this.isFixedCar,
+            scrollContainer: this.scrollContainer === window ? 'window' : 'element'
         });
         
         if (!this.car || this.dayItems.length === 0) {
@@ -41,30 +48,29 @@ class RoadbookTimelineAnimation {
         
         console.log('[Timeline Init] ✅ All elements found, setting up animation...');
         
-        // Position car at START badge initially (relative to road container)
-        setTimeout(() => {
-            const startBadge = this.container.querySelector('.roadbook-start-badge');
-            if (startBadge && this.roadContainer) {
-                const containerRect = this.roadContainer.getBoundingClientRect();
-                const badgeRect = startBadge.getBoundingClientRect();
-                const badgeMiddle = badgeRect.top + badgeRect.height / 2;
-                const relativeTop = badgeMiddle - containerRect.top - (this.car.offsetHeight / 2);
-                this.car.style.top = `${Math.max(0, relativeTop)}px`;
-            }
-        }, 100);
-        
-        // Setup scroll listener - listen to ALL scroll events
-        const scrollHandler = () => this.onScroll();
-        document.addEventListener('scroll', scrollHandler, { passive: true, capture: true });
-        window.addEventListener('scroll', scrollHandler, { passive: true });
-        window.addEventListener('resize', scrollHandler, { passive: true });
-        
-        // Also check for scroll on parent containers
-        let parent = this.container.parentElement;
-        while (parent) {
-            parent.addEventListener('scroll', scrollHandler, { passive: true });
-            parent = parent.parentElement;
+        // Position car at START badge only when the car is not fixed.
+        // In layout 1 the car is fixed in the viewport (top: 50%), so do not override it.
+        if (!this.isFixedCar) {
+            setTimeout(() => {
+                const startBadge = this.container.querySelector('.roadbook-start-badge');
+                if (startBadge && this.roadContainer) {
+                    const containerRect = this.roadContainer.getBoundingClientRect();
+                    const badgeRect = startBadge.getBoundingClientRect();
+                    const badgeMiddle = badgeRect.top + badgeRect.height / 2;
+                    const relativeTop = badgeMiddle - containerRect.top - (this.car.offsetHeight / 2);
+                    this.car.style.top = `${Math.max(0, relativeTop)}px`;
+                }
+            }, 100);
         }
+        
+        // Setup scroll listeners on the actual scroll container (Builder often scrolls inside a panel).
+        this._scrollHandler = () => this.onScroll();
+        if (this.scrollContainer === window) {
+            window.addEventListener('scroll', this._scrollHandler, { passive: true });
+        } else if (this.scrollContainer) {
+            this.scrollContainer.addEventListener('scroll', this._scrollHandler, { passive: true });
+        }
+        window.addEventListener('resize', this._scrollHandler, { passive: true });
         
         console.log('[Timeline Init] Scroll listeners attached');
         
@@ -81,6 +87,26 @@ class RoadbookTimelineAnimation {
                 this.updateCarPosition();
             }
         }, 100);
+    }
+
+    findScrollContainer() {
+        // Prefer the nearest scrollable ancestor. Builder often scrolls inside a panel/canvas.
+        let el = this.container;
+        while (el && el !== document.body) {
+            const style = getComputedStyle(el);
+            const overflowY = style.overflowY;
+            const isScrollable = (overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight + 2;
+            if (isScrollable) return el;
+            el = el.parentElement;
+        }
+        return window;
+    }
+
+    getScrollTop() {
+        if (!this.scrollContainer || this.scrollContainer === window) {
+            return window.pageYOffset || document.documentElement.scrollTop || 0;
+        }
+        return this.scrollContainer.scrollTop || 0;
     }
     
     updateCarVisibility() {
@@ -122,9 +148,16 @@ class RoadbookTimelineAnimation {
             console.warn('[Car] Cannot update - missing elements');
             return;
         }
+
+        // In Roadbook layout 1 the car is intentionally fixed in the viewport.
+        // Avoid fighting the CSS by not recalculating the top position.
+        if (this.isFixedCar) {
+            this.updateActiveDays();
+            return;
+        }
         
         // Get scroll position
-        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollY = this.getScrollTop();
         const containerRect = this.roadContainer.getBoundingClientRect();
         const containerTop = scrollY + containerRect.top;
         
@@ -150,7 +183,7 @@ class RoadbookTimelineAnimation {
         const viewportMiddle = window.innerHeight / 2;
         
         this.dayItems.forEach(day => {
-            const badge = day.querySelector('.roadbook-day-badge');
+            const badge = day.querySelector('.roadbook-day-badge, .dayNum');
             if (!badge) return;
             
             const rect = badge.getBoundingClientRect();

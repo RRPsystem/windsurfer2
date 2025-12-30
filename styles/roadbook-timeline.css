@@ -45,6 +45,18 @@
     padding-bottom: 100px;
 }
 
+.roadbook-itinerary-wrap#itinerary-wrap::before,
+.roadbook-itinerary-wrap#itinerary-wrap::after {
+    content: none !important;
+    display: none !important;
+}
+
+.roadbook-itinerary-wrap .itinerary::before,
+.roadbook-itinerary-wrap .itinerary::after {
+    content: none !important;
+    display: none !important;
+}
+
 /* Road as background on itinerary-wrap */
 #itinerary-wrap::before {
     content: '';
@@ -140,11 +152,17 @@
     display: block;
 }
 
+ .roadbook-itinerary-wrap .roadbook-road-line {
+     border: none !important;
+     border-left: none !important;
+ }
+
 /* ===========================================
    ITINERARY - Contains Days
    =========================================== */
 .itinerary {
     position: relative;
+    z-index: 5;
 }
 
 /* Road using pseudo-elements - always visible */
@@ -188,7 +206,7 @@
 .day {
     position: relative;
     overflow: visible;
-    z-index: 5;
+    z-index: auto;
 }
 
 .day .left {

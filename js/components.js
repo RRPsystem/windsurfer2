@@ -7202,7 +7202,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             background: #6b7280 !important;
                             margin-left: -37px !important;
                             border-radius: 100px !important;
-                            z-index: 6 !important;
+                            z-index: 1 !important;
                             pointer-events: none !important;
                         }
                         #itinerary-wrap > .roadbook-road-line {
@@ -7212,8 +7212,10 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             bottom: 0 !important;
                             width: 3px !important;
                             margin-left: -1.5px !important;
+                            border: none !important;
+                            border-left: none !important;
                             background-image: repeating-linear-gradient(to bottom, #fff 0px, #fff 15px, transparent 15px, transparent 30px) !important;
-                            z-index: 7 !important;
+                            z-index: 2 !important;
                             pointer-events: none !important;
                         }
                         #car {
@@ -7238,7 +7240,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                     </style>
                     
                     <!-- Itinerary Wrap -->
-                    <div id="itinerary-wrap">
+                    <div id="itinerary-wrap" class="roadbook-itinerary-wrap">
                         <!-- ROAD: Gray background -->
                         <div class="roadbook-road"></div>
                         <!-- ROAD LINE: White dashed -->
@@ -7345,10 +7347,10 @@ ComponentFactory.createRoadbook = function(options = {}) {
         }
         
         // Set tube and line height based on itinerary content height
-        const itineraryWrap = document.getElementById('itinerary-wrap');
-        const tube = document.querySelector('.roadbook-tube');
-        const line = document.querySelector('.roadbook-line');
-        const itinerary = document.querySelector('#itinerary-wrap .itinerary');
+        const itineraryWrap = section.querySelector('#itinerary-wrap');
+        const tube = itineraryWrap ? itineraryWrap.querySelector('.roadbook-road') : null;
+        const line = itineraryWrap ? itineraryWrap.querySelector('.roadbook-road-line') : null;
+        const itinerary = itineraryWrap ? itineraryWrap.querySelector('.itinerary') : null;
         
         console.log('[Roadbook] Road elements found:', {
             wrap: !!itineraryWrap,
