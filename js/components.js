@@ -7100,7 +7100,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
             
         <div class="roadbook-wrapper">
             <!-- Timeline: Transport + Hotels Combined -->
-            ${(data.transports.length > 0 || data.hotels.length > 0) ? `
+            ${((data.transports || []).length > 0 || (data.hotels || []).length > 0 || (data.cars || []).length > 0 || (data.activities || []).length > 0) ? `
                 <div class="roadbook-section">
                     <h2 class="roadbook-section-title editable" contenteditable="true">Jouw Reis Timeline</h2>
                     <div class="roadbook-cards-carousel-wrapper">
@@ -7486,6 +7486,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
 ComponentFactory.createTimelineCards = function(data) {
     console.log('[createTimelineCards] Input data:', {
         transports: data.transports?.length,
+        cars: data.cars?.length,
+        activities: data.activities?.length,
         hotels: data.hotels?.length,
         firstHotel: data.hotels?.[0]
     });
@@ -7551,6 +7553,126 @@ ComponentFactory.createTimelineCards = function(data) {
                                 <i class="fas fa-suitcase"></i>
                                 <span class="editable" contenteditable="true">Bagage: ${t.baggageInfo}</span>
                             </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `
+        });
+    });
+
+    // Add rental car cards
+    (data.cars || []).forEach((c, i) => {
+        const date = c.pickupDate || c.pickUpDate || c.date || c.startDate || '';
+        const provider = c.provider || c.company || 'Huurauto';
+        const vehicle = c.vehicle || c.model || '';
+        const pickup = c.pickupLocation || c.pickUpLocation || '';
+        const dropoff = c.dropoffLocation || c.dropOffLocation || '';
+
+        cards.push({
+            type: 'car',
+            date,
+            html: `
+                <div class="roadbook-card transport-card">
+                    <div class="roadbook-card-badge">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <div class="roadbook-card-content">
+                        <div style="margin-bottom: 16px;">
+                            <div style="margin-bottom: 8px;">
+                                <i class="fas fa-car" style="color: ${brandPrimary}; font-size: 1.2rem;"></i>
+                            </div>
+                            <div class="editable" contenteditable="true" style="color: ${brandPrimary}; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                HUURAUTO: ${date || ''}
+                            </div>
+                        </div>
+
+                        <div class="roadbook-card-detail" style="margin-bottom: 8px; font-weight: 600; font-size: 1rem;">
+                            <i class="fas fa-building" style="color: #6b7280;"></i>
+                            <span class="editable" contenteditable="true">${provider}</span>
+                        </div>
+
+                        ${vehicle ? `
+                            <div class="roadbook-card-detail" style="margin-bottom: 12px; color: #6b7280;">
+                                <i class="fas fa-car-side"></i>
+                                <span class="editable" contenteditable="true">${vehicle}</span>
+                            </div>
+                        ` : ''}
+
+                        <div class="roadbook-transport-route">
+                            <div class="roadbook-transport-station">
+                                <div class="roadbook-transport-station-name editable" contenteditable="true">PICK-UP</div>
+                                <div class="roadbook-transport-time editable" contenteditable="true">${c.pickupTime || c.pickUpTime || ''}</div>
+                                <div class="roadbook-transport-address editable" contenteditable="true">${pickup || ''}</div>
+                            </div>
+                            <div class="roadbook-transport-arrow">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                            <div class="roadbook-transport-station">
+                                <div class="roadbook-transport-station-name editable" contenteditable="true">DROP-OFF</div>
+                                <div class="roadbook-transport-time editable" contenteditable="true">${c.dropoffTime || c.dropOffTime || ''}</div>
+                                <div class="roadbook-transport-address editable" contenteditable="true">${dropoff || ''}</div>
+                            </div>
+                        </div>
+
+                        ${(c.dropoffDate || c.dropOffDate) ? `
+                            <div class="roadbook-card-detail" style="margin-top: 12px; color: #6b7280;">
+                                <i class="fas fa-calendar-check"></i>
+                                <span class="editable" contenteditable="true">Inleveren: ${(c.dropoffDate || c.dropOffDate) || ''}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `
+        });
+    });
+
+    // Add activity / excursion cards
+    (data.activities || []).forEach((a, i) => {
+        const date = a.date || a.startDate || '';
+        const title = a.name || 'Excursie';
+        const location = a.location || '';
+        const time = a.time || '';
+        const provider = a.provider || '';
+
+        cards.push({
+            type: 'activity',
+            date,
+            html: `
+                <div class="roadbook-card transport-card">
+                    <div class="roadbook-card-badge">
+                        <i class="fas fa-map-signs"></i>
+                    </div>
+                    <div class="roadbook-card-content">
+                        <div style="margin-bottom: 16px;">
+                            <div style="margin-bottom: 8px;">
+                                <i class="fas fa-map-signs" style="color: ${brandPrimary}; font-size: 1.2rem;"></i>
+                            </div>
+                            <div class="editable" contenteditable="true" style="color: ${brandPrimary}; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                ACTIVITEIT: ${date || ''}
+                            </div>
+                        </div>
+
+                        <div class="roadbook-card-detail" style="margin-bottom: 8px; font-weight: 700; font-size: 1.05rem;">
+                            <i class="fas fa-star" style="color: #6b7280;"></i>
+                            <span class="editable" contenteditable="true">${title}</span>
+                        </div>
+
+                        ${(provider || location) ? `
+                            <div class="roadbook-card-detail" style="margin-bottom: 10px; color: #6b7280;">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span class="editable" contenteditable="true">${[provider, location].filter(Boolean).join(' • ')}</span>
+                            </div>
+                        ` : ''}
+
+                        ${time ? `
+                            <div class="roadbook-card-detail" style="margin-bottom: 10px; color: #6b7280;">
+                                <i class="fas fa-clock"></i>
+                                <span class="editable" contenteditable="true">${time}</span>
+                            </div>
+                        ` : ''}
+
+                        ${a.description ? `
+                            <p class="roadbook-card-description editable" contenteditable="true">${String(a.description).substring(0, 150)}${String(a.description).length > 150 ? '...' : ''}</p>
                         ` : ''}
                     </div>
                 </div>

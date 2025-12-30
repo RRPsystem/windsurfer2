@@ -195,4 +195,229 @@
     generate,
     guessCountry
   };
+
+  try {
+    let activeEl = null;
+    let btn = null;
+    let modal = null;
+    let keyHandler = null;
+
+    function isCanvasEditable(el){
+      try {
+        if (!el || el.nodeType !== 1) return false;
+        if (!el.isContentEditable) return false;
+        const canvas = document.getElementById('canvas');
+        if (!canvas) return false;
+        return canvas.contains(el);
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function guessPlaceFromElement(el){
+      try {
+        const day = el.closest ? el.closest('.day') : null;
+        if (day) {
+          const h3 = day.querySelector('h3');
+          if (h3 && h3.textContent.trim()) return h3.textContent.trim();
+          const info = day.querySelector('.placeInfo h3');
+          if (info && info.textContent.trim()) return info.textContent.trim();
+        }
+      } catch (e) {}
+
+      try {
+        const comp = el.closest ? el.closest('.wb-component, section, .roadbook-section') : null;
+        if (comp) {
+          const heading = comp.querySelector('h1, h2, h3, h4');
+          if (heading && heading.textContent.trim()) return heading.textContent.trim();
+        }
+      } catch (e) {}
+
+      try { return guessCountry(); } catch (e) {}
+      return '';
+    }
+
+    function ensureButton(){
+      if (btn) return btn;
+      btn = document.createElement('button');
+      btn.id = 'wb-ai-text-btn';
+      btn.type = 'button';
+      btn.textContent = '✨ AI';
+      btn.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:2147483646;background:#8b5cf6;color:#fff;border:1px solid #7c3aed;border-radius:999px;padding:10px 14px;font:600 13px system-ui,Segoe UI,Roboto,Arial;cursor:pointer;box-shadow:0 10px 20px rgba(0,0,0,.15);display:none;';
+      btn.addEventListener('click', () => {
+        try { if (activeEl) openModal(activeEl); } catch (e) {}
+      });
+      document.body.appendChild(btn);
+      return btn;
+    }
+
+    function closeModal(){
+      try { if (keyHandler) document.removeEventListener('keydown', keyHandler, true); } catch (e) {}
+      keyHandler = null;
+      try { if (modal) modal.remove(); } catch (e) {}
+      modal = null;
+    }
+
+    async function generateInto(el, opts){
+      const currentText = (el && (el.textContent || '')).trim();
+      const place = (opts.place || '').trim();
+      const instruction = (opts.instruction || '').trim();
+      const tone = (opts.tone || 'inspiring').trim();
+      const language = (opts.language || 'nl').trim();
+
+      const payload = {
+        page_title: place,
+        section_title: instruction || place || 'Tekst',
+        tone,
+        language,
+        count: 1,
+        useResearch: false,
+        currentText
+      };
+
+      const res = await generate('content_block', payload);
+      let text = '';
+      if (res && Array.isArray(res.paragraphs) && res.paragraphs.length) text = String(res.paragraphs[0] || '');
+      else if (res && typeof res.text === 'string') text = res.text;
+      else if (res && typeof res.content === 'string') text = res.content;
+      text = String(text || '').trim();
+      if (!text) return;
+
+      el.textContent = text;
+      try { el.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) {}
+      try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+    }
+
+    function openModal(el){
+      closeModal();
+      const placeGuess = guessPlaceFromElement(el);
+      const cur = (el && (el.textContent || '')).trim();
+
+      modal = document.createElement('div');
+      modal.id = 'wb-ai-text-modal';
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:16px;';
+      modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+      const panel = document.createElement('div');
+      panel.style.cssText = 'width:min(720px, 100%);background:#fff;border-radius:14px;box-shadow:0 25px 60px rgba(0,0,0,.25);overflow:hidden;font-family:system-ui,Segoe UI,Roboto,Arial;';
+
+      panel.innerHTML = `
+        <div style="padding:14px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:10px;">
+          <div style="font-weight:800;color:#111827;">✨ AI tekst</div>
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+            <button type="button" data-close style="background:transparent;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;cursor:pointer;color:#374151;font-weight:700;">Sluiten</button>
+          </div>
+        </div>
+        <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#374151;">
+            Plaatsnaam (context)
+            <input data-place type="text" value="${String(placeGuess || '').replace(/"/g, '&quot;')}" style="height:38px;border:1px solid #d1d5db;border-radius:10px;padding:8px 10px;font-size:13px;" />
+          </label>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#374151;">
+            Tone
+            <select data-tone style="height:38px;border:1px solid #d1d5db;border-radius:10px;padding:8px 10px;font-size:13px;">
+              <option value="inspiring" selected>Inspirerend</option>
+              <option value="informative">Informatief</option>
+              <option value="luxury">Luxe</option>
+              <option value="friendly">Vriendelijk</option>
+            </select>
+          </label>
+          <label style="grid-column:1 / -1;display:flex;flex-direction:column;gap:6px;font-size:12px;color:#374151;">
+            Waarover moet de tekst gaan? (prompt)
+            <textarea data-instruction rows="3" placeholder="Bijv. Schrijf een korte intro over de highlights in ${String(placeGuess||'deze plek').replace(/"/g, '&quot;')}…" style="border:1px solid #d1d5db;border-radius:10px;padding:10px;font-size:13px;resize:vertical;"></textarea>
+          </label>
+          <label style="grid-column:1 / -1;display:flex;flex-direction:column;gap:6px;font-size:12px;color:#374151;">
+            Huidige tekst (context)
+            <textarea data-current rows="4" style="border:1px solid #e5e7eb;background:#f9fafb;border-radius:10px;padding:10px;font-size:12px;resize:vertical;" readonly>${String(cur || '').replace(/</g, '&lt;')}</textarea>
+          </label>
+        </div>
+        <div style="padding:14px 16px;border-top:1px solid #e5e7eb;display:flex;gap:10px;align-items:center;">
+          <button type="button" data-generate style="background:#8b5cf6;border:1px solid #7c3aed;color:#fff;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer;">Genereren & vervangen</button>
+          <div data-status style="font-size:12px;color:#6b7280;"></div>
+        </div>
+      `;
+
+      modal.appendChild(panel);
+      document.body.appendChild(modal);
+
+      const closeBtn = panel.querySelector('[data-close]');
+      const genBtn = panel.querySelector('[data-generate]');
+      const status = panel.querySelector('[data-status]');
+      const placeInput = panel.querySelector('[data-place]');
+      const instr = panel.querySelector('[data-instruction]');
+      const tone = panel.querySelector('[data-tone]');
+
+      if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+      if (instr && !instr.value) {
+        try {
+          const base = (placeGuess || '').trim();
+          instr.value = base ? `Schrijf een aantrekkelijke tekst over ${base} voor een reisprogramma. Benoem highlights, sfeer en praktische tips.` : 'Schrijf een aantrekkelijke tekst voor een reisprogramma. Benoem highlights, sfeer en praktische tips.';
+        } catch (e) {}
+      }
+
+      if (genBtn) {
+        genBtn.addEventListener('click', async () => {
+          try {
+            genBtn.disabled = true;
+            const old = genBtn.textContent;
+            genBtn.textContent = 'Genereren...';
+            if (status) status.textContent = '';
+            await generateInto(el, {
+              place: placeInput ? placeInput.value : '',
+              instruction: instr ? instr.value : '',
+              tone: tone ? tone.value : 'inspiring',
+              language: 'nl'
+            });
+            closeModal();
+            try { el.focus(); } catch (e) {}
+            try { el.blur(); } catch (e) {}
+            genBtn.textContent = old;
+          } catch (e) {
+            try { if (status) status.textContent = 'Genereren mislukt. Probeer opnieuw.'; } catch (e2) {}
+          } finally {
+            try { genBtn.disabled = false; } catch (e) {}
+            try { genBtn.textContent = 'Genereren & vervangen'; } catch (e) {}
+          }
+        });
+      }
+
+      keyHandler = (e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          closeModal();
+        }
+      };
+      document.addEventListener('keydown', keyHandler, true);
+    }
+
+    document.addEventListener('focusin', (e) => {
+      try {
+        const el = e && e.target;
+        if (!isCanvasEditable(el)) return;
+        activeEl = el;
+        ensureButton().style.display = 'block';
+      } catch (e2) {}
+    }, true);
+
+    document.addEventListener('focusout', (e) => {
+      try {
+        const el = e && e.target;
+        if (!isCanvasEditable(el)) return;
+        setTimeout(() => {
+          try {
+            const ae = document.activeElement;
+            if (isCanvasEditable(ae)) {
+              activeEl = ae;
+              ensureButton().style.display = 'block';
+              return;
+            }
+            activeEl = null;
+            if (btn) btn.style.display = 'none';
+          } catch (e3) {}
+        }, 0);
+      } catch (e2) {}
+    }, true);
+  } catch (e) {}
 })();

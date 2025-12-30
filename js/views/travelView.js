@@ -1702,6 +1702,51 @@
         baggageInfo: t.baggageInfo || '',
         type: t.transportType?.toLowerCase() || t.type || 'flight'
       }));
+
+      // Convert cars (rental cars)
+      const cars = (tcData.cars || tcData.carRentals || []).map(c => {
+        const carData = c.carData || c.car || c;
+        const pickUp = c.pickUp || c.pickup || c.pickUpLocation || c.pickupLocation || carData.pickUp || carData.pickup || {};
+        const dropOff = c.dropOff || c.dropoff || c.dropOffLocation || c.dropoffLocation || carData.dropOff || carData.dropoff || {};
+
+        const pickupDate = c.pickUpDate || c.pickupDate || c.startDate || c.date || carData.pickUpDate || carData.pickupDate || '';
+        const dropoffDate = c.dropOffDate || c.dropoffDate || c.endDate || carData.dropOffDate || carData.dropoffDate || '';
+
+        return {
+          provider: c.company || c.vendor || c.supplier || carData.company || carData.vendor || carData.supplier || '',
+          bookingReference: c.bookingReference || c.reservationNumber || carData.bookingReference || '',
+          pickupDate,
+          pickupTime: c.pickUpTime || c.pickupTime || carData.pickUpTime || carData.pickupTime || '',
+          dropoffDate,
+          dropoffTime: c.dropOffTime || c.dropoffTime || carData.dropOffTime || carData.dropoffTime || '',
+          pickupLocation: pickUp.name || pickUp.location || pickUp.address || c.pickUpLocationName || c.pickupLocationName || '',
+          dropoffLocation: dropOff.name || dropOff.location || dropOff.address || c.dropOffLocationName || c.dropoffLocationName || '',
+          vehicle: carData.vehicle || carData.carName || carData.model || carData.category || c.vehicle || c.model || c.category || '',
+          type: 'car'
+        };
+      });
+
+      // Convert activities / excursions
+      const activities = (tcData.activities || tcData.excursions || tcData.experiences || tcData.tours || []).map(a => {
+        const act = a.activityData || a.activity || a.experienceData || a.experience || a;
+
+        const date = a.date || a.startDate || a.activityDate || act.date || act.startDate || '';
+        const endDate = a.endDate || a.finishDate || act.endDate || '';
+        const time = a.time || a.startTime || act.time || act.startTime || '';
+
+        return {
+          name: act.name || a.name || a.title || 'Excursie',
+          description: act.description || a.description || '',
+          location: act.destination?.name || act.location || a.location || a.city || '',
+          date,
+          endDate,
+          time,
+          duration: act.duration || a.duration || '',
+          provider: a.company || a.vendor || act.company || act.vendor || '',
+          image: (act.images && (act.images[0]?.url || act.images[0])) || act.image || a.image || '',
+          type: 'activity'
+        };
+      });
       
       // Convert hotels - extract from hotelData nested object
       const hotels = (tcData.hotels || tcData.accommodations || []).map((h, idx) => {
@@ -1789,6 +1834,8 @@
         duration,
         transports: transports.length,
         hotels: hotels.length,
+        cars: cars.length,
+        activities: activities.length,
         itinerary: itinerary.length
       });
       
@@ -1799,6 +1846,8 @@
         description,
         duration,
         transports,
+        cars,
+        activities,
         hotels,
         itinerary
       };
