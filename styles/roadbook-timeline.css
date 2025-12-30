@@ -165,6 +165,18 @@
     z-index: 5;
 }
 
+ .roadbook-itinerary-wrap > .roadbook-road {
+     z-index: 40 !important;
+ }
+
+ .roadbook-itinerary-wrap > .roadbook-road-line {
+     z-index: 41 !important;
+ }
+
+ .roadbook-itinerary-wrap .day .dayNum {
+     z-index: 60;
+ }
+
 /* Road using pseudo-elements - always visible */
 .itinerary::before {
     content: '';

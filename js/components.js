@@ -7202,7 +7202,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             background: #6b7280 !important;
                             margin-left: -37px !important;
                             border-radius: 100px !important;
-                            z-index: 1 !important;
+                            z-index: 40 !important;
                             pointer-events: none !important;
                         }
                         #itinerary-wrap > .roadbook-road-line {
@@ -7215,7 +7215,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             border: none !important;
                             border-left: none !important;
                             background-image: repeating-linear-gradient(to bottom, #fff 0px, #fff 15px, transparent 15px, transparent 30px) !important;
-                            z-index: 2 !important;
+                            z-index: 41 !important;
                             pointer-events: none !important;
                         }
                         #car {
