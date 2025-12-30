@@ -113,10 +113,12 @@ class RoadbookTimelineAnimation {
         if (!this.car || !this.itineraryWrap) return;
         
         const wrapRect = this.itineraryWrap.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
+        const viewportMiddle = window.innerHeight / 2;
         
-        // Show car only when itinerary-wrap is in view
-        const isInView = wrapRect.top < viewportHeight && wrapRect.bottom > 0;
+        // The car is fixed in the viewport (around middle). Only show it when the
+        // timeline (itinerary-wrap/road) spans the car's viewport position.
+        // This prevents the car from appearing above the timeline before the road starts.
+        const isInView = wrapRect.top <= viewportMiddle && wrapRect.bottom >= viewportMiddle;
         
         if (isInView) {
             this.car.style.opacity = '1';

@@ -7197,7 +7197,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             position: absolute !important;
                             top: 0 !important;
                             left: 50% !important;
-                            bottom: 0 !important;
+                            bottom: auto !important;
                             width: 74px !important;
                             background: #6b7280 !important;
                             margin-left: -37px !important;
@@ -7209,7 +7209,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             position: absolute !important;
                             top: 0 !important;
                             left: 50% !important;
-                            bottom: 0 !important;
+                            bottom: auto !important;
                             width: 3px !important;
                             margin-left: -1.5px !important;
                             border: none !important;
@@ -7366,15 +7366,14 @@ ComponentFactory.createRoadbook = function(options = {}) {
         
         if (itineraryWrap && tube && line && itinerary) {
             const updateRoadHeight = () => {
-                // Get the total height of all day items
-                const days = itinerary.querySelectorAll('.day');
-                let totalHeight = 0;
-                days.forEach(day => {
-                    totalHeight += day.offsetHeight;
-                });
-                
-                // Use scrollHeight as fallback
-                const height = Math.max(totalHeight, itinerary.scrollHeight, itinerary.offsetHeight, 500);
+                // End the road exactly at the bottom of the last day.
+                // Using scrollHeight/offsetHeight can include extra whitespace (e.g. preview padding).
+                const days = Array.from(itinerary.querySelectorAll('.day'));
+                let height = 500;
+                if (days.length > 0) {
+                    const lastDay = days[days.length - 1];
+                    height = Math.max(lastDay.offsetTop + lastDay.offsetHeight, 500);
+                }
                 console.log('[Roadbook] Setting road height to:', height, '(days:', days.length, ')');
                 tube.style.height = height + 'px';
                 line.style.height = height + 'px';
