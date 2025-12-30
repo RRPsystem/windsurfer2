@@ -231,9 +231,9 @@
         const day = el.closest ? el.closest('.day') : null;
         if (day) {
           const h3 = day.querySelector('h3');
-          if (h3 && h3.textContent.trim()) return h3.textContent.trim();
+          if (h3 && h3.textContent.trim()) return stripDayPrefix(h3.textContent.trim());
           const info = day.querySelector('.placeInfo h3');
-          if (info && info.textContent.trim()) return info.textContent.trim();
+          if (info && info.textContent.trim()) return stripDayPrefix(info.textContent.trim());
         }
       } catch (e) {}
 
@@ -241,7 +241,7 @@
         const comp = el.closest ? el.closest('.wb-component, section, .roadbook-section') : null;
         if (comp) {
           const heading = comp.querySelector('h1, h2, h3, h4');
-          if (heading && heading.textContent.trim()) return heading.textContent.trim();
+          if (heading && heading.textContent.trim()) return stripDayPrefix(heading.textContent.trim());
         }
       } catch (e) {}
 
@@ -249,15 +249,39 @@
       return '';
     }
 
+    function stripDayPrefix(s){
+      try {
+        return String(s || '')
+          .replace(/^\s*Dag\s*\d+\s*[:\-–]\s*/i, '')
+          .trim();
+      } catch (e) {
+        return String(s || '').trim();
+      }
+    }
+
+    function getDayTitleText(dayEl){
+      try {
+        if (!dayEl) return '';
+        const h3 = dayEl.querySelector('h3');
+        if (h3 && h3.textContent && h3.textContent.trim()) return stripDayPrefix(h3.textContent.trim());
+        const info = dayEl.querySelector('.placeInfo h3');
+        if (info && info.textContent && info.textContent.trim()) return stripDayPrefix(info.textContent.trim());
+        return '';
+      } catch (e) {
+        return '';
+      }
+    }
+
     function getRouteFromToForElement(el){
       try {
         const dayEl = (el && el.closest) ? el.closest('.day') : null;
         if (!dayEl) return { from: '', to: '' };
-        const from = _cleanText(dayEl.querySelector('h3')?.textContent || '');
-        const nextDay = dayEl.nextElementSibling;
-        const to = nextDay && nextDay.matches && nextDay.matches('.day')
-          ? _cleanText(nextDay.querySelector('h3')?.textContent || '')
-          : '';
+        const from = _cleanText(getDayTitleText(dayEl) || '');
+        let nextDay = dayEl.nextElementSibling;
+        while (nextDay && (!nextDay.matches || !nextDay.matches('.day'))) {
+          nextDay = nextDay.nextElementSibling;
+        }
+        const to = nextDay ? _cleanText(getDayTitleText(nextDay) || '') : '';
         return { from, to };
       } catch (e) {
         return { from: '', to: '' };
@@ -566,6 +590,7 @@
       const payload = {
         page_title: place,
         section_title: instruction || place || 'Tekst',
+        content_mode: kind,
         tone,
         language,
         count: 1,
@@ -599,6 +624,15 @@
       const routeGuess = getRouteFromToForElement(el);
       const cur = (el && (el.textContent || '')).trim();
 
+      const defaultKind = (() => {
+        try {
+          const a = String(routeGuess.from || '').toLowerCase().trim();
+          const b = String(routeGuess.to || '').toLowerCase().trim();
+          if (a && b && a === b) return 'dayplan';
+        } catch (e) {}
+        return 'text';
+      })();
+
       modal = document.createElement('div');
       modal.id = 'wb-ai-text-modal';
       modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -618,8 +652,9 @@
           <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#374151;">
             Type
             <select data-kind style="height:38px;border:1px solid #d1d5db;border-radius:10px;padding:8px 10px;font-size:13px;">
-              <option value="text" selected>Bestemmingstekst</option>
-              <option value="route">Routedag (Google route)</option>
+              <option value="text" ${defaultKind === 'text' ? 'selected' : ''}>Bestemmingstekst</option>
+              <option value="route" ${defaultKind === 'route' ? 'selected' : ''}>Routedag (Google route)</option>
+              <option value="dayplan" ${defaultKind === 'dayplan' ? 'selected' : ''}>Dagplanning (verblijfsdag)</option>
             </select>
           </label>
           <label data-stops-wrap style="display:none;flex-direction:column;gap:6px;font-size:12px;color:#374151;">
@@ -696,6 +731,9 @@
             const from = _cleanText((routeFromInput && routeFromInput.value) || routeGuess.from || placeGuess || 'de startlocatie');
             const to = _cleanText((routeToInput && routeToInput.value) || routeGuess.to || 'de volgende bestemming');
             instr.value = `Maak een routebeschrijving (rijdag) van ${from} naar ${to}.\n\nVereisten:\n- Gebruik de echte route (snelste route) als basis en geef afstand + reistijd\n- Licht ${n} leuke stops onderweg uit (naam + korte toelichting)\n- Voeg praktische tips toe (tankstop, pauzes, veiligheid, laatste boodschappen)\n\nStructuur (zoals in een roadbook):\nRoute-overzicht\n- Totale afstand: ...\n- Reistijd zonder stops: ...\n- Reistijd met stops: ...\n\nRoutebeschrijving\n- Stap-voor-stap (max 8 stappen, kort)\n\nStops onderweg\n1) ...\n2) ...\n3) ...\n\nTips onderweg\n- ...\n- ...\n- ...`;
+          } else if (mode === 'dayplan') {
+            const base = _cleanText((placeInput && placeInput.value) || placeGuess || 'deze plek');
+            instr.value = `Maak een dagplanning voor ${base} voor in een reisprogramma.\n\nVereisten:\n- Schrijf als een praktische, inspirerende planning (ochtend / middag / avond)\n- Voeg 6-10 concrete suggesties toe (bezienswaardigheden/activiteiten/eten/drinken), passend bij de plek\n- Voeg 2-4 praktische tips toe (tickets, openingstijden, verplaatsen, rustmomenten)\n- Sluit af met een korte extra tip\n\nStructuur:\nDagplanning ${base} – ...\n\n🌞 Ochtend – ...\n...\n\n🥘 Middag – ...\n...\n\n🌇 Avond – ...\n...\n\n🎒 Extra tip in de omgeving: ...`;
           } else {
             const base = (placeGuess || '').trim();
             instr.value = base ? `Schrijf een aantrekkelijke tekst over ${base} voor een reisprogramma. Benoem highlights, sfeer en praktische tips.` : 'Schrijf een aantrekkelijke tekst voor een reisprogramma. Benoem highlights, sfeer en praktische tips.';
@@ -710,6 +748,13 @@
           const mode = kind ? kind.value : 'text';
           if (stopsWrap) stopsWrap.style.display = (mode === 'route') ? 'flex' : 'none';
           if (routeWrap) routeWrap.style.display = (mode === 'route') ? 'grid' : 'none';
+
+          // Auto-fill route fields when switching to route mode
+          if (mode === 'route') {
+            if (routeFromInput && !String(routeFromInput.value || '').trim()) routeFromInput.value = routeGuess.from || '';
+            if (routeToInput && !String(routeToInput.value || '').trim()) routeToInput.value = routeGuess.to || '';
+          }
+
           // Only overwrite if user hasn't typed something custom
           if (instr && (!instr.value || instr.value.trim().length < 5)) setDefaultInstruction();
         } catch (e) {}

@@ -30,6 +30,7 @@ export default async function handler(req, res) {
     // Builder/editor fields (content_block)
     page_title = '',
     section_title = '',
+    content_mode = '',
     currentText = '',
     trip_title = '',
     travel_context = '',
@@ -127,11 +128,19 @@ export default async function handler(req, res) {
         const hasCtx = !!String(travel_context || '').trim();
         const trip = String(trip_title || '').trim();
         const base = topic ? `Context: ${topic}.` : '';
-        const isRoute = !!route_mode;
+        const mode = String(content_mode || '').trim().toLowerCase();
+        const isDayplan = mode === 'dayplan';
+        const isRoute = (!!route_mode) || (mode === 'route');
         const nStops = Math.max(1, Math.min(6, parseInt(String(route_stops || 3), 10) || 3));
         const from = String(route_from || '').trim();
         const to = String(route_to || '').trim();
-        const instr = instruction ? `Opdracht: ${instruction}` : (isRoute ? 'Opdracht: Maak een routebeschrijving (rijdag) voor het roadbook.' : 'Opdracht: Schrijf een aantrekkelijke, concrete tekst voor een reisprogramma.');
+        const instr = instruction
+          ? `Opdracht: ${instruction}`
+          : (isRoute
+            ? 'Opdracht: Maak een routebeschrijving (rijdag) voor het roadbook.'
+            : (isDayplan
+              ? 'Opdracht: Maak een dagplanning (verblijfsdag) voor het roadbook.'
+              : 'Opdracht: Schrijf een aantrekkelijke, concrete tekst voor een reisprogramma.'));
         const rewrite = hasCurrent ? `\n\nHuidige tekst (mag je verbeteren en herschrijven):\n"""\n${String(currentText || '').trim()}\n"""` : '';
         const ctxBlock = hasCtx ? `\n\nReiscontext (gebruik dit om specifiek te schrijven):\n"""\n${String(travel_context || '').trim()}\n"""` : '';
         const specRule = hasCtx ?
@@ -159,6 +168,11 @@ export default async function handler(req, res) {
 
         if (isRoute) {
           return `${base}\n${instr}${ctxBlock}${routeBlock}\n\nVereisten:\n- Schrijf als een roadbook voor een rijdag\n- Geef een Route-overzicht met: totale afstand, reistijd zonder stops, reistijd met stops (realistische schatting)\n- Geef een korte routebeschrijving in maximaal 8 stappen (kort en duidelijk)\n- Licht ${nStops} leuke stops onderweg uit (naam/plaats + 1-2 zinnen wat je daar doet/ziet + waarom het leuk is)\n- Voeg 3 praktische tips toe (tankstop, pauzes, veiligheid, laatste boodschappen)${tripRule}${specRule}\n- Geen disclaimers\n- Geen aanhalingstekens om de output\n\nGeef alleen de uiteindelijke tekst.${rewrite}`;
+        }
+
+        if (isDayplan) {
+          const dayTopic = topic || 'deze plek';
+          return `${base}\n${instr}${ctxBlock}\n\nVereisten:\n- Schrijf als een dagplanning voor een verblijfsdag (geen verplaatsing van A naar B)\n- Gebruik duidelijke kopjes met: Ochtend, Middag, Avond\n- Voeg 6-10 concrete suggesties toe (activiteiten, highlights, eten/drinken), passend bij ${dayTopic}\n- Gebruik korte bullets of korte zinnen waar dat helpt voor leesbaarheid\n- Voeg 2-4 praktische tips toe (planning, tickets/reserveren, tijden, vervoer/looproutes, rustmomenten)\n- Sluit af met één Extra tip${tripRule}${specRule}\n- Geen disclaimers\n- Geen aanhalingstekens om de output\n\nGeef alleen de uiteindelijke tekst.${rewrite}`;
         }
 
         return `${base}\n${instr}${ctxBlock}\n\nVereisten:\n- Schrijf 80-140 woorden (tenzij de opdracht duidelijk anders vraagt)\n- Vermijd clichés en vage claims${tripRule}${specRule}\n- Gebruik concrete details, sfeer en (indien passend) 1-2 praktische tips\n- Geen opsommingen tenzij de opdracht erom vraagt\n- Geen aanhalingstekens om de output\n\nGeef alleen de uiteindelijke tekst.${rewrite}`;
