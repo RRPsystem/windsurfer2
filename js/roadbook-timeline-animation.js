@@ -8,24 +8,27 @@ class RoadbookTimelineAnimation {
         this.roadLine = null;
         this.roadContainer = null;
         this.isAnimating = false;
+        this.itineraryWrap = null;
         
         this.init();
     }
     
     init() {
         console.log('[Timeline Init] ===== STARTING INITIALIZATION =====');
-        // Get all day items
-        this.dayItems = Array.from(this.container.querySelectorAll('.roadbook-day-item'));
-        this.roadContainer = this.container.querySelector('.roadbook-timeline-road');
+        // Get all day items - support both old and new class names
+        this.dayItems = Array.from(this.container.querySelectorAll('.roadbook-day-item, .day'));
+        this.roadContainer = this.container.querySelector('.roadbook-timeline-road, #itinerary-wrap');
         this.roadLine = this.container.querySelector('.roadbook-road-line');
-        this.car = this.container.querySelector('.roadbook-timeline-car');
+        this.car = this.container.querySelector('.roadbook-timeline-car, #car');
+        this.itineraryWrap = this.container.querySelector('#itinerary-wrap');
         
         console.log('[Timeline Init]', {
             container: !!this.container,
             dayItems: this.dayItems.length,
             roadContainer: !!this.roadContainer,
             roadLine: !!this.roadLine,
-            car: !!this.car
+            car: !!this.car,
+            itineraryWrap: !!this.itineraryWrap
         });
         
         if (!this.car || this.dayItems.length === 0) {
@@ -71,12 +74,31 @@ class RoadbookTimelineAnimation {
             this.onScroll();
         }, 100);
         
-        // Also update on any scroll event globally
+        // Also update on any scroll event globally and control car visibility
         setInterval(() => {
+            this.updateCarVisibility();
             if (this.isVisible()) {
                 this.updateCarPosition();
             }
         }, 100);
+    }
+    
+    updateCarVisibility() {
+        if (!this.car || !this.itineraryWrap) return;
+        
+        const wrapRect = this.itineraryWrap.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        
+        // Show car only when itinerary-wrap is in view
+        const isInView = wrapRect.top < viewportHeight && wrapRect.bottom > 0;
+        
+        if (isInView) {
+            this.car.style.opacity = '1';
+            this.car.style.visibility = 'visible';
+        } else {
+            this.car.style.opacity = '0';
+            this.car.style.visibility = 'hidden';
+        }
     }
     
     onScroll() {
