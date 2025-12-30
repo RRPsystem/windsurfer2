@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY || process.env.OPENAI_KEY || process.env.OPENAI_APIKEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'OPENAI_API_KEY is not configured' });
   }
@@ -27,10 +27,14 @@ export default async function handler(req, res) {
     count = 6,
     images = [],
     useResearch = true, // Enable Google Search research
+    // Builder/editor fields (content_block)
+    page_title = '',
+    section_title = '',
+    currentText = '',
   } = body || {};
 
   // Use destination if provided, otherwise use country
-  const location = destination || country;
+  const location = destination || country || page_title;
 
   // Fetch Google Search research if enabled
   let research = null;
@@ -55,10 +59,28 @@ export default async function handler(req, res) {
     }
   }
 
-  const system = `Je bent een reiscontent schrijver. Schrijf in ${language}. Toon geen disclaimers. Gebruik korte, concrete zinnen.`;
+  const toneHint = (() => {
+    switch (String(tone || '').toLowerCase()) {
+      case 'luxury': return 'Schrijf luxe, premium en verfijnd, zonder overdreven superlatieven.';
+      case 'informative': return 'Schrijf informatief, praktisch en concreet, zonder marketingtaal.';
+      case 'friendly': return 'Schrijf warm, vriendelijk en toegankelijk.';
+      default: return 'Schrijf inspirerend, concreet en beeldend.';
+    }
+  })();
+
+  const system = `Je bent een professionele reis-copywriter. Schrijf in ${language}. Toon geen disclaimers. Gebruik korte, concrete zinnen. ${toneHint} Geef alleen de tekst terug, zonder titel of extra uitleg.`;
 
   const makePrompt = () => {
     switch (section) {
+      case 'content_block': {
+        const topic = (page_title || location || country || '').trim();
+        const instruction = (section_title || '').trim();
+        const hasCurrent = !!String(currentText || '').trim();
+        const base = topic ? `Context: ${topic}.` : '';
+        const instr = instruction ? `Opdracht: ${instruction}` : 'Opdracht: Schrijf een aantrekkelijke, concrete tekst voor een reisprogramma.';
+        const rewrite = hasCurrent ? `\n\nHuidige tekst (mag je verbeteren en herschrijven):\n"""\n${String(currentText || '').trim()}\n"""` : '';
+        return `${base}\n${instr}\n\nVereisten:\n- Schrijf 80-140 woorden (tenzij de opdracht duidelijk anders vraagt)\n- Vermijd clichés en vage claims\n- Gebruik concrete details, sfeer en (indien passend) 1-2 praktische tips\n- Geen opsommingen tenzij de opdracht erom vraagt\n- Geen aanhalingstekens om de output\n\nGeef alleen de uiteindelijke tekst.${rewrite}`;
+      }
       case 'intro':
         let introPrompt = `Schrijf een concrete, informatieve inleiding van ongeveer 200 woorden over ${location}. 
 
@@ -138,7 +160,7 @@ Schrijf in 2 korte alinea's (elk ~100 woorden). Geen titel, geen subtitel. Wees 
         return `Geef bij ${images.length} foto\'s over ${country} een korte caption (6-10 woorden) die algemeen past.
 Als JSON: [{"caption":".."}] met dezelfde volgorde als de foto\'s.`;
       default:
-        return `Schrijf een korte paragraaf (80-120 woorden) over ${country}.`;
+        return `Schrijf een korte paragraaf (80-120 woorden) over ${location || country}.`;
     }
   };
 

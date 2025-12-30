@@ -25,6 +25,17 @@
     return DEFAULT_ENDPOINT;
   }
 
+  function allowMockFallback() {
+    try {
+      const url = new URL(window.location.href);
+      const q = url.searchParams.get('ai_mock');
+      if (q === '1' || q === 'true') return true;
+      const host = (url.hostname || '').toLowerCase();
+      if (host === 'localhost' || host === '127.0.0.1') return true;
+    } catch (e) {}
+    return false;
+  }
+
   function guessCountry() {
     // Try hero-page title, or content-flex title starting with 'Over '.
     try {
@@ -162,7 +173,7 @@
       console.log('[BuilderAI] API response:', result);
       
       // Check if response is generic/empty/unhelpful
-      if (result && result.text && (
+      if (allowMockFallback() && result && result.text && (
         result.text.includes('Natuurlijk') || 
         result.text.includes('Zeker!') ||
         result.text.includes('Waarover wil je') ||
@@ -182,12 +193,12 @@
       
       return result;
     } catch (err) {
-      console.warn('[BuilderAI] API failed, using mock data:', err.message);
-      // Fallback to mock data
-      if (mockData[section]) {
+      console.warn('[BuilderAI] API failed:', err.message);
+      if (allowMockFallback() && mockData[section]) {
+        console.warn('[BuilderAI] Mock fallback enabled; using mock data');
         return mockData[section](params);
       }
-      return {};
+      throw err;
     }
   }
 
