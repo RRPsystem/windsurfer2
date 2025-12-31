@@ -7261,7 +7261,10 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                 const isEven = i % 2 === 0;
                                 const dayLabel = 'Stop ' + (i + 1);
                                 const imgSrc = day.image || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800';
-                                let imgs = Array.isArray(day.images) ? day.images.filter(Boolean) : [];
+                                const rawImgs = day.images || day.imageUrls || day.photos || [];
+                                let imgs = (Array.isArray(rawImgs) ? rawImgs : [])
+                                    .map(img => img && typeof img === 'object' ? (img.url || img.src || '') : img)
+                                    .filter(Boolean);
                                 if (imgSrc && !imgs.includes(imgSrc)) imgs = [imgSrc, ...imgs];
                                 if (!imgs.length) imgs = [imgSrc];
                                 const slidesAttr = encodeURIComponent(JSON.stringify(imgs.slice(0, 12)));
@@ -7402,22 +7405,56 @@ ComponentFactory.createRoadbook = function(options = {}) {
         }
 
         try {
+            const parseSlidesAttr = (raw) => {
+                let s = String(raw || '').trim();
+                if (!s) return [];
+                try {
+                    // handle HTML-escaped attributes from stored HTML
+                    s = s
+                        .replace(/&quot;/g, '"')
+                        .replace(/&#34;/g, '"')
+                        .replace(/&#39;/g, "'")
+                        .replace(/&amp;/g, '&');
+                } catch (e0) {}
+                try {
+                    let decoded = decodeURIComponent(s);
+                    // some content ends up double-encoded
+                    try {
+                        if (/%5B|%7B|%22/i.test(decoded)) decoded = decodeURIComponent(decoded);
+                    } catch (e11) {}
+                    const parsed = JSON.parse(decoded);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e1) {}
+                try {
+                    const parsed = JSON.parse(s);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e2) {}
+                try {
+                    // Legacy: comma or pipe separated URLs
+                    const parts = s.split(/\s*[\|,]\s*/g).map(p => p.trim()).filter(Boolean);
+                    return parts;
+                } catch (e3) {}
+                return [];
+            };
+
             const initSlideshows = () => {
                 const wraps = Array.from(section.querySelectorAll('.placeImg[data-wb-slides]'));
                 wraps.forEach((wrap) => {
                     try {
                         if (!wrap || wrap.dataset.wbSlideInited === '1') return;
-                        wrap.dataset.wbSlideInited = '1';
 
                         const imgEl = wrap.querySelector('img');
                         if (!imgEl) return;
 
-                        let slides = [];
-                        try {
-                            slides = JSON.parse(decodeURIComponent(wrap.getAttribute('data-wb-slides') || '')) || [];
-                        } catch (e) { slides = []; }
+                        const slidesAttrRaw = wrap.getAttribute('data-wb-slides') || '';
+                        let slides = parseSlidesAttr(slidesAttrRaw);
                         slides = Array.isArray(slides) ? slides.filter(Boolean) : [];
-                        if (slides.length <= 1) return;
+                        if (slides.length <= 1) {
+                            // Do NOT mark inited, so it can be re-initialized if slides get added later.
+                            return;
+                        }
+
+                        wrap.dataset.wbSlideInited = '1';
 
                         wrap._wbSlides = slides;
 
@@ -7488,6 +7525,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
                 });
             };
 
+            // expose for media edits
+            try { section._wbInitSlideshows = initSlideshows; } catch (e0) {}
             initSlideshows();
 
             if (!window.__wbRoadbookSlideshowBound) {
@@ -7565,8 +7604,14 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             (vr && vr.type === 'video-playlist' && Array.isArray(vr.playlist) && vr.playlist[0]
                                 ? (vr.playlist[0].url || vr.playlist[0].videoUrl || '')
                                 : '') ||
-                            vr?.fullUrl || vr?.regularUrl || vr?.url || vr?.dataUrl;
+                            vr?.videoUrl || vr?.fullUrl || vr?.regularUrl || vr?.url || vr?.dataUrl;
                         if (!vUrl) return;
+
+                        const vThumb =
+                            (vr && vr.type === 'video-playlist' && Array.isArray(vr.playlist) && vr.playlist[0]
+                                ? (vr.playlist[0].thumbnail || vr.playlist[0].thumb || '')
+                                : '') ||
+                            vr?.thumbnail || vr?.thumb || '';
 
                         // Stop slideshow timer if running
                         try {
@@ -7588,6 +7633,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             videoEl.style.width = '100%';
                             videoEl.style.height = '100%';
                             videoEl.style.objectFit = 'cover';
+                            videoEl.style.position = 'absolute';
+                            videoEl.style.inset = '0';
                             try {
                                 const firstChild = wrap.firstChild;
                                 wrap.insertBefore(videoEl, firstChild);
@@ -7598,8 +7645,12 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         try { videoEl.src = vUrl; } catch (e9) {}
                         try { wrap.dataset.wbVideoSrc = vUrl; } catch (e10) {}
 
-                        // Hide image + slideshow buttons for video
-                        try { imgEl.style.display = 'none'; } catch (e11) {}
+                        // Hide image (or picture wrapper) + slideshow buttons for video
+                        try {
+                            const pic = imgEl.closest ? imgEl.closest('picture') : null;
+                            if (pic) pic.style.display = 'none';
+                            else imgEl.style.display = 'none';
+                        } catch (e11) {}
                         try {
                             const prevBtn = wrap.querySelector('.wb-slide-prev');
                             const nextBtn = wrap.querySelector('.wb-slide-next');
@@ -7607,6 +7658,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
                             if (nextBtn) nextBtn.style.display = 'none';
                         } catch (e12) {}
                         try { videoEl.style.display = ''; } catch (e13) {}
+                        try { if (vThumb) videoEl.poster = vThumb; } catch (e131) {}
+                        try { videoEl.load(); } catch (e132) {}
                         try { await videoEl.play(); } catch (e14) {}
 
                         try { wrap.dispatchEvent(new Event('input', { bubbles: true })); } catch (e15) {}
@@ -7630,7 +7683,11 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         if (v && v.parentNode) v.parentNode.removeChild(v);
                     } catch (e17) {}
                     try { delete wrap.dataset.wbVideoSrc; } catch (e18) {}
-                    try { imgEl.style.display = ''; } catch (e19) {}
+                    try {
+                        const pic = imgEl.closest ? imgEl.closest('picture') : null;
+                        if (pic) pic.style.display = '';
+                        else imgEl.style.display = '';
+                    } catch (e19) {}
 
                     let slides = [];
                     try {
@@ -7669,6 +7726,9 @@ ComponentFactory.createRoadbook = function(options = {}) {
 
                     try {
                         if (wrap._wbStopSlides) wrap._wbStopSlides();
+                        // Allow re-init if this wrap wasn't initialized before due to legacy slide data.
+                        try { wrap.dataset.wbSlideInited = '0'; } catch (e211) {}
+                        try { if (section && typeof section._wbInitSlideshows === 'function') section._wbInitSlideshows(); } catch (e212) {}
                         if (slides.length > 1 && wrap._wbStartSlides) wrap._wbStartSlides();
                     } catch (e21) {}
 
