@@ -7440,6 +7440,27 @@ ComponentFactory.createRoadbook = function(options = {}) {
 
                         wrap.addEventListener('mouseenter', stop);
                         wrap.addEventListener('mouseleave', start);
+
+                        // Bind prev/next directly to avoid any delegation edge cases
+                        try {
+                            const bindNav = (selector, delta) => {
+                                const b = wrap.querySelector(selector);
+                                if (!b || b.dataset.wbBound === '1') return;
+                                b.dataset.wbBound = '1';
+                                b.addEventListener('click', (ev) => {
+                                    try {
+                                        ev.preventDefault();
+                                        ev.stopPropagation();
+                                        const idx = parseInt(wrap.dataset.wbSlideIdx || '0', 10) || 0;
+                                        setIdx(idx + delta);
+                                        stop();
+                                    } catch (e9) {}
+                                }, true);
+                            };
+                            bindNav('.wb-slide-prev', -1);
+                            bindNav('.wb-slide-next', 1);
+                        } catch (e8) {}
+
                         start();
                     } catch (e1) {}
                 });
@@ -7451,7 +7472,10 @@ ComponentFactory.createRoadbook = function(options = {}) {
                 window.__wbRoadbookSlideshowBound = true;
                 document.addEventListener('click', (e) => {
                     try {
-                        const btn = e && e.target ? e.target.closest('.wb-slide-prev, .wb-slide-next') : null;
+                        const t = (e && e.target)
+                            ? (e.target.nodeType === 1 ? e.target : e.target.parentElement)
+                            : null;
+                        const btn = t && t.closest ? t.closest('.wb-slide-prev, .wb-slide-next') : null;
                         if (!btn) return;
                         const wrap = btn.closest('.placeImg[data-wb-slides]');
                         if (!wrap) return;
@@ -7487,6 +7511,133 @@ ComponentFactory.createRoadbook = function(options = {}) {
             }
         } catch (e) {}
     }, 500);
+
+    // Allow editing destination images via MediaPicker (edit mode only)
+    try {
+        if (!window.__wbRoadbookMediaEditBound) {
+            window.__wbRoadbookMediaEditBound = true;
+            document.addEventListener('click', async (e) => {
+                try {
+                    const isEdit = !!(document.body && document.body.dataset && document.body.dataset.wbMode === 'edit');
+                    if (!isEdit) return;
+                    const t = (e && e.target)
+                        ? (e.target.nodeType === 1 ? e.target : e.target.parentElement)
+                        : null;
+                    if (!t || !t.closest) return;
+                    if (t.closest('.wb-slide-prev, .wb-slide-next')) return;
+                    const imgEl = t.closest('.placeImg') ? t.closest('.placeImg').querySelector('img') : null;
+                    if (!imgEl) return;
+                    const wrap = imgEl.closest('.placeImg[data-wb-slides]') || imgEl.closest('.placeImg');
+                    if (!wrap) return;
+                    if (!section || !section.contains(wrap)) return;
+
+                    if (!window.MediaPicker || typeof window.MediaPicker.openImage !== 'function') return;
+
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Shift-click: video, otherwise image
+                    if (e.shiftKey && typeof window.MediaPicker.openVideo === 'function') {
+                        const vr = await window.MediaPicker.openVideo({ defaultTab: 'pexels' });
+                        const vUrl = vr?.fullUrl || vr?.regularUrl || vr?.url || vr?.dataUrl;
+                        if (!vUrl) return;
+
+                        // Stop slideshow timer if running
+                        try {
+                            if (wrap._wbSlideTimer) {
+                                clearInterval(wrap._wbSlideTimer);
+                                wrap._wbSlideTimer = null;
+                            }
+                        } catch (e7) {}
+
+                        // Swap to video element
+                        let videoEl = wrap.querySelector('video');
+                        if (!videoEl) {
+                            videoEl = document.createElement('video');
+                            videoEl.muted = true;
+                            videoEl.loop = true;
+                            videoEl.playsInline = true;
+                            videoEl.autoplay = true;
+                            videoEl.controls = true;
+                            videoEl.style.width = '100%';
+                            videoEl.style.height = '100%';
+                            videoEl.style.objectFit = 'cover';
+                            try {
+                                const firstChild = wrap.firstChild;
+                                wrap.insertBefore(videoEl, firstChild);
+                            } catch (e8) {
+                                wrap.appendChild(videoEl);
+                            }
+                        }
+                        try { videoEl.src = vUrl; } catch (e9) {}
+                        try { wrap.dataset.wbVideoSrc = vUrl; } catch (e10) {}
+
+                        // Hide image + slideshow buttons for video
+                        try { imgEl.style.display = 'none'; } catch (e11) {}
+                        try {
+                            const prevBtn = wrap.querySelector('.wb-slide-prev');
+                            const nextBtn = wrap.querySelector('.wb-slide-next');
+                            if (prevBtn) prevBtn.style.display = 'none';
+                            if (nextBtn) nextBtn.style.display = 'none';
+                        } catch (e12) {}
+                        try { videoEl.style.display = ''; } catch (e13) {}
+                        try { await videoEl.play(); } catch (e14) {}
+
+                        try { wrap.dispatchEvent(new Event('input', { bubbles: true })); } catch (e15) {}
+                        try { wrap.dispatchEvent(new Event('change', { bubbles: true })); } catch (e16) {}
+                        return;
+                    }
+
+                    const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
+                    const newSrc = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
+                    if (!newSrc) return;
+
+                    // If video was previously set, remove it and show image again
+                    try {
+                        const v = wrap.querySelector('video');
+                        if (v && v.parentNode) v.parentNode.removeChild(v);
+                    } catch (e17) {}
+                    try { delete wrap.dataset.wbVideoSrc; } catch (e18) {}
+                    try { imgEl.style.display = ''; } catch (e19) {}
+
+                    let slides = [];
+                    try {
+                        slides = JSON.parse(decodeURIComponent(wrap.getAttribute('data-wb-slides') || '')) || [];
+                    } catch (e2) { slides = []; }
+                    slides = Array.isArray(slides) ? slides.filter(Boolean) : [];
+                    if (!slides.length) slides = [imgEl.currentSrc || imgEl.src].filter(Boolean);
+
+                    const idx = parseInt(wrap.dataset.wbSlideIdx || '0', 10) || 0;
+                    if (e.altKey) {
+                        slides.push(newSrc);
+                        wrap.dataset.wbSlideIdx = String(slides.length - 1);
+                    } else {
+                        slides[idx] = newSrc;
+                        wrap.dataset.wbSlideIdx = String(idx);
+                    }
+                    try { wrap.setAttribute('data-wb-slides', encodeURIComponent(JSON.stringify(slides.slice(0, 12)))); } catch (e3) {}
+                    try {
+                        if (typeof window.__WB_applyResponsiveSrc === 'function') {
+                            window.__WB_applyResponsiveSrc(imgEl, newSrc);
+                        } else {
+                            imgEl.src = newSrc;
+                        }
+                    } catch (e4) { imgEl.src = newSrc; }
+
+                    // Show slideshow buttons again if applicable
+                    try {
+                        const prevBtn = wrap.querySelector('.wb-slide-prev');
+                        const nextBtn = wrap.querySelector('.wb-slide-next');
+                        if (prevBtn) prevBtn.style.display = (slides.length > 1) ? '' : 'none';
+                        if (nextBtn) nextBtn.style.display = (slides.length > 1) ? '' : 'none';
+                    } catch (e20) {}
+
+                    try { imgEl.dispatchEvent(new Event('input', { bubbles: true })); } catch (e5) {}
+                    try { imgEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e6) {}
+                } catch (err) {}
+            }, true);
+        }
+    } catch (e) {}
     
     // Store hotel data on cards for carousel
     setTimeout(() => {

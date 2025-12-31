@@ -1670,12 +1670,36 @@
     convertTCToRoadbook(tcData) {
       console.log('[TravelView] Converting TC data to Roadbook format...');
       console.log('[TravelView] Full TC Data:', JSON.stringify(tcData, null, 2));
+
+      const preferredLang = String(this.tcLanguage || 'NL').trim().toUpperCase() || 'NL';
+      const pickText = (v) => {
+        try {
+          if (v == null) return '';
+          if (typeof v === 'string') return v;
+          if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+          if (typeof v === 'object') {
+            const obj = v;
+            const direct = obj[preferredLang];
+            if (typeof direct === 'string' && direct.trim()) return direct;
+            const nl = obj.NL || obj.nl;
+            if (typeof nl === 'string' && nl.trim()) return nl;
+            const en = obj.EN || obj.en;
+            if (typeof en === 'string' && en.trim()) return en;
+            const firstKey = Object.keys(obj || {})[0];
+            const firstVal = firstKey ? obj[firstKey] : '';
+            return (typeof firstVal === 'string') ? firstVal : '';
+          }
+          return '';
+        } catch (e) {
+          return '';
+        }
+      };
       
       // Store for debugging
       window.lastTravelData = tcData;
       
       // Extract title
-      const title = tcData.title || tcData.name || 'Jouw Reis';
+      const title = pickText(tcData.title) || pickText(tcData.name) || 'Jouw Reis';
       
       // Extract departure date - try multiple sources
       let departureDate = null;
@@ -1756,8 +1780,8 @@
         const time = a.time || a.startTime || act.time || act.startTime || '';
 
         return {
-          name: act.name || a.name || a.title || 'Excursie',
-          description: act.description || a.description || '',
+          name: pickText(act.name) || pickText(a.name) || pickText(a.title) || 'Excursie',
+          description: pickText(act.description) || pickText(a.description) || '',
           location: act.destination?.name || act.location || a.location || a.city || '',
           date,
           endDate,
@@ -1777,7 +1801,7 @@
         const images = hotelData.images?.map(img => img.url || img) || [];
         
         return {
-          name: hotelData.name || h.hotelName || 'Hotel',
+          name: pickText(hotelData.name) || pickText(h.hotelName) || 'Hotel',
           location: hotelData.destination?.name || hotelData.address || 'Locatie',
           checkIn: h.checkInDate || h.checkIn || '',
           checkOut: h.checkOutDate || h.checkOut || '',
@@ -1786,8 +1810,8 @@
           mealPlan: h.mealPlan || '',
           image: images[0] || '',
           images: images,
-          description: hotelData.description || '',
-          fullDescription: hotelData.description || '',
+          description: pickText(hotelData.description) || '',
+          fullDescription: pickText(hotelData.description) || '',
           address: hotelData.address || '',
           phone: hotelData.phoneNumber || '',
           chain: hotelData.chain || ''
@@ -1806,6 +1830,7 @@
           const fromDay = dest.fromDay || 1;
           const toDay = dest.toDay || fromDay;
           const numDays = toDay - fromDay + 1;
+          const destName = pickText(dest.name) || dest.name || 'Bestemming';
           
           // Create a day entry for each day in this destination
           for (let i = 0; i < numDays; i++) {
@@ -1815,11 +1840,11 @@
               .map(img => img && typeof img === 'object' ? (img.url || img.src || '') : img)
               .filter(Boolean);
             days.push({
-              title: `Dag ${dayNum}: ${dest.name || 'Bestemming'}`,
-              description: i === 0 ? (dest.description || `Bezoek aan ${dest.name}`) : `Vervolg in ${dest.name}`,
+              title: `Dag ${dayNum}: ${destName}`,
+              description: i === 0 ? (pickText(dest.description) || `Bezoek aan ${destName}`) : `Vervolg in ${destName}`,
               image: (destImgs.length ? destImgs[i % destImgs.length] : '') || dest.image || dest.imageUrl || '',
               images: destImgs,
-              destination: dest.name
+              destination: destName
             });
           }
         });
@@ -1834,18 +1859,18 @@
         if (first && !images.includes(first)) images = [first, ...images];
 
         return {
-          title: day.title || day.name || `Dag ${index + 1}`,
-          description: day.description || day.text || day.summary || '',
+          title: pickText(day.title) || pickText(day.name) || `Dag ${index + 1}`,
+          description: pickText(day.description) || pickText(day.text) || pickText(day.summary) || '',
           image: first,
           images
         };
       });
       
       // Extract description/intro text
-      const description = tcData.description || tcData.summary || tcData.intro || '';
+      const description = pickText(tcData.description) || pickText(tcData.summary) || pickText(tcData.intro) || '';
       
       // Extract subtitle
-      const subtitle = tcData.subtitle || tcData.tagline || tcData.slogan || '';
+      const subtitle = pickText(tcData.subtitle) || pickText(tcData.tagline) || pickText(tcData.slogan) || '';
       
       // Extract duration - calculate from dates if not provided
       let duration = tcData.duration || tcData.numberOfDays || 0;

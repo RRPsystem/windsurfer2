@@ -80,7 +80,10 @@ export default async function handler(req, res) {
     } = req.query || {};
     const language = String(langRaw || languageRaw || 'NL');
     const params = new URLSearchParams();
+    // TC endpoints are inconsistent: some use `lang`, others use `language`.
+    // Send both to maximize chance of localized texts.
     params.set('language', String(language));
+    params.set('lang', String(language));
     params.set('currency', String(currency));
     if (adults) params.set('adults', String(adults));
 
