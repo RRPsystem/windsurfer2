@@ -11,7 +11,7 @@ class MediaPicker {
     return this._open({ type: 'video', ...options });
   }
 
-  static _open({ type = 'image', defaultTab, searchQuery } = {}) {
+  static _open({ type = 'image', defaultTab, searchQuery, multi = false } = {}) {
     return new Promise((resolve, reject) => {
       // Overlay
       const overlay = document.createElement('div');
@@ -53,7 +53,11 @@ class MediaPicker {
           <div class="unsplash-grid"></div>
           <div class="mp-row mp-between mp-more-row">
             <p class="unsplash-note" style="font-size: 12px; color: #666;"></p>
-            <button class="btn btn-primary btn-lg unsplash-more" disabled>Laad meer afbeeldingen</button>
+            <div style="display:flex; gap:12px; align-items:center;">
+              <span class="unsplash-selected-count" style="font-size: 14px; color: #2563eb; font-weight: 600; display:none;">0 geselecteerd</span>
+              <button class="btn btn-success unsplash-use-selected" disabled style="display:none;">Gebruik Geselecteerde</button>
+              <button class="btn btn-primary btn-lg unsplash-more" disabled>Laad meer afbeeldingen</button>
+            </div>
           </div>
         </div>
 
@@ -197,9 +201,28 @@ class MediaPicker {
         const noteEl = unsplashPane ? unsplashPane.querySelector('.unsplash-note') : null;
         const grid = unsplashPane ? unsplashPane.querySelector('.unsplash-grid') : null;
         const moreBtn = unsplashPane ? unsplashPane.querySelector('.unsplash-more') : null;
+        const selectedCountEl = unsplashPane ? unsplashPane.querySelector('.unsplash-selected-count') : null;
+        const useSelectedBtn = unsplashPane ? unsplashPane.querySelector('.unsplash-use-selected') : null;
         const key = (window.MEDIA_CONFIG && (window.MEDIA_CONFIG.unsplashAccessKey || window.MEDIA_CONFIG.unsplashKey))
           ? (window.MEDIA_CONFIG.unsplashAccessKey || window.MEDIA_CONFIG.unsplashKey)
           : '';
+        let selectedUrls = [];
+
+        const updateSelectedUi = () => {
+          try {
+            if (!selectedCountEl || !useSelectedBtn) return;
+            if (!multi || type !== 'image') {
+              selectedCountEl.style.display = 'none';
+              useSelectedBtn.style.display = 'none';
+              return;
+            }
+            selectedCountEl.style.display = 'inline';
+            useSelectedBtn.style.display = 'inline-flex';
+            selectedCountEl.textContent = `${selectedUrls.length} geselecteerd`;
+            useSelectedBtn.disabled = selectedUrls.length === 0;
+          } catch (e) {}
+        };
+
         if (!key) {
           if (noteEl) noteEl.textContent = 'Tip: voeg een Unsplash Access Key toe in js/config.local.js als window.MEDIA_CONFIG.unsplashAccessKey (of unsplashKey) om hier te zoeken.';
         }
@@ -212,6 +235,8 @@ class MediaPicker {
             if (grid) grid.innerHTML = '<div style="color:#666;">Zoeken...</div>';
             currentPage = 1;
             currentQuery = q;
+            selectedUrls = [];
+            updateSelectedUi();
           }
           try {
             if (!key) {
@@ -225,10 +250,25 @@ class MediaPicker {
                 const img = document.createElement('img');
                 img.src = url;
                 img.className = 'mp-thumb';
-                img.onclick = () => { resolve({ source: 'unsplash-demo', type: 'image', url }); close(); };
+                img.onclick = () => {
+                  if (multi && type === 'image') {
+                    const idx = selectedUrls.indexOf(url);
+                    if (idx >= 0) {
+                      selectedUrls.splice(idx, 1);
+                      img.style.outline = '';
+                    } else {
+                      selectedUrls.push(url);
+                      img.style.outline = '3px solid #2563eb';
+                    }
+                    updateSelectedUi();
+                    return;
+                  }
+                  resolve({ source: 'unsplash-demo', type: 'image', url }); close();
+                };
                 if (grid) grid.appendChild(img);
               });
               if (moreBtn) moreBtn.disabled = true;
+              updateSelectedUi();
               return;
             }
             // Add better filters for hero/background images - focus on landmarks and highlights
@@ -252,17 +292,43 @@ class MediaPicker {
               img.title = item.alt_description || '';
               const user = item.user || {};
               const links = item.links || {};
-              // Return FULL URL for high-res background images
-              img.onclick = () => { resolve({ source: 'unsplash', type: 'image', url: full, smallUrl: small, regularUrl: regular, fullUrl: full, credit: user.name || '', link: links.html || '' }); close(); };
+              img.onclick = () => {
+                if (multi && type === 'image') {
+                  const idx = selectedUrls.indexOf(full);
+                  if (idx >= 0) {
+                    selectedUrls.splice(idx, 1);
+                    img.style.outline = '';
+                  } else {
+                    selectedUrls.push(full);
+                    img.style.outline = '3px solid #2563eb';
+                  }
+                  updateSelectedUi();
+                  return;
+                }
+                resolve({ source: 'unsplash', type: 'image', url: full, smallUrl: small, regularUrl: regular, fullUrl: full, credit: user.name || '', link: links.html || '' }); close();
+              };
               if (grid) grid.appendChild(img);
             });
             const totalPages = data.total_pages || 0;
             if (moreBtn) moreBtn.disabled = !(currentPage < totalPages);
+            updateSelectedUi();
           } catch (err) {
             if (grid) grid.innerHTML = '<div style="color:#c00;">Unsplash fout. Probeer later opnieuw.</div>';
             if (moreBtn) moreBtn.disabled = true;
           }
         };
+
+        if (useSelectedBtn) {
+          useSelectedBtn.addEventListener('click', () => {
+            try {
+              if (!multi || type !== 'image') return;
+              const urls = Array.isArray(selectedUrls) ? selectedUrls.filter(Boolean) : [];
+              if (urls.length === 0) return;
+              resolve({ source: 'unsplash', type: 'image-list', urls, count: urls.length });
+              close();
+            } catch (e) {}
+          });
+        }
         const unsplashSearchBtn = unsplashPane ? unsplashPane.querySelector('.unsplash-search') : null;
         if (unsplashSearchBtn) unsplashSearchBtn.addEventListener('click', () => runSearch(false));
         if (moreBtn) moreBtn.addEventListener('click', () => { currentPage += 1; runSearch(true); });
@@ -285,6 +351,8 @@ class MediaPicker {
         if (defaultTab === 'unsplash') {
           setTimeout(() => runSearch(false), 100);
         }
+
+        updateSelectedUi();
       }
 
       // Pexels Videos

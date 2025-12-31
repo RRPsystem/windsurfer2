@@ -7268,7 +7268,20 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                 const hasSlides = imgs.length > 1;
                                 const subtitle = day.subtitle || day.location || 'Provincie / Stad';
                                 const description = day.description || 'Beschrijving van deze dag...';
-                                const delight = day.delight || 'Special experience';
+                                const normalizePlaceName = (s) => String(s || '').replace(/^Dag\s*\d+\s*:\s*/i, '').trim().toLowerCase();
+                                const placeKey = normalizePlaceName(day.destination || day.location || location);
+                                let hotelName = '';
+                                try {
+                                    const hotels = Array.isArray(data.hotels) ? data.hotels : [];
+                                    if (placeKey && hotels.length) {
+                                        const hit = hotels.find(h => {
+                                            const hl = normalizePlaceName(h && (h.location || ''));
+                                            return (hl && (hl === placeKey || hl.includes(placeKey) || placeKey.includes(hl)));
+                                        }) || null;
+                                        hotelName = hit && hit.name ? String(hit.name) : '';
+                                    }
+                                } catch (e) {}
+                                const delight = hotelName || day.delight || 'Special experience';
                                 
                                 if (isEven) {
                                     // Photo LEFT, Info RIGHT
@@ -7406,14 +7419,17 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         slides = Array.isArray(slides) ? slides.filter(Boolean) : [];
                         if (slides.length <= 1) return;
 
+                        wrap._wbSlides = slides;
+
                         const setIdx = (nextIdx) => {
                             try {
-                                const n = slides.length;
+                                const slidesNow = Array.isArray(wrap._wbSlides) ? wrap._wbSlides : slides;
+                                const n = slidesNow.length;
                                 let idx = parseInt(String(nextIdx), 10);
                                 if (Number.isNaN(idx)) idx = 0;
                                 idx = ((idx % n) + n) % n;
                                 wrap.dataset.wbSlideIdx = String(idx);
-                                imgEl.src = slides[idx];
+                                imgEl.src = slidesNow[idx];
                             } catch (e2) {}
                         };
                         setIdx(parseInt(wrap.dataset.wbSlideIdx || '0', 10) || 0);
@@ -7423,6 +7439,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                 if (wrap._wbSlideTimer) return;
                                 wrap._wbSlideTimer = window.setInterval(() => {
                                     try {
+                                        const slidesNow = Array.isArray(wrap._wbSlides) ? wrap._wbSlides : slides;
+                                        if (!slidesNow || slidesNow.length <= 1) return;
                                         const idx = parseInt(wrap.dataset.wbSlideIdx || '0', 10) || 0;
                                         setIdx(idx + 1);
                                     } catch (e3) {}
@@ -7440,6 +7458,10 @@ ComponentFactory.createRoadbook = function(options = {}) {
 
                         wrap.addEventListener('mouseenter', stop);
                         wrap.addEventListener('mouseleave', start);
+
+                        wrap._wbSetIdx = setIdx;
+                        wrap._wbStartSlides = start;
+                        wrap._wbStopSlides = stop;
 
                         // Bind prev/next directly to avoid any delegation edge cases
                         try {
@@ -7539,7 +7561,11 @@ ComponentFactory.createRoadbook = function(options = {}) {
                     // Shift-click: video, otherwise image
                     if (e.shiftKey && typeof window.MediaPicker.openVideo === 'function') {
                         const vr = await window.MediaPicker.openVideo({ defaultTab: 'pexels' });
-                        const vUrl = vr?.fullUrl || vr?.regularUrl || vr?.url || vr?.dataUrl;
+                        const vUrl =
+                            (vr && vr.type === 'video-playlist' && Array.isArray(vr.playlist) && vr.playlist[0]
+                                ? (vr.playlist[0].url || vr.playlist[0].videoUrl || '')
+                                : '') ||
+                            vr?.fullUrl || vr?.regularUrl || vr?.url || vr?.dataUrl;
                         if (!vUrl) return;
 
                         // Stop slideshow timer if running
@@ -7588,9 +7614,15 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         return;
                     }
 
-                    const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash' });
-                    const newSrc = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
-                    if (!newSrc) return;
+                    const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash', multi: true });
+                    if (!res) return;
+
+                    const pickedList = (res && res.type === 'image-list' && Array.isArray(res.urls)) ? res.urls.filter(Boolean) : [];
+                    const pickedSingle = res?.fullUrl || res?.regularUrl || res?.url || res?.dataUrl;
+                    const picked = pickedList.length ? pickedList : (pickedSingle ? [pickedSingle] : []);
+                    if (!picked.length) return;
+
+                    const doAppend = !!e.altKey;
 
                     // If video was previously set, remove it and show image again
                     try {
@@ -7607,15 +7639,18 @@ ComponentFactory.createRoadbook = function(options = {}) {
                     slides = Array.isArray(slides) ? slides.filter(Boolean) : [];
                     if (!slides.length) slides = [imgEl.currentSrc || imgEl.src].filter(Boolean);
 
-                    const idx = parseInt(wrap.dataset.wbSlideIdx || '0', 10) || 0;
-                    if (e.altKey) {
-                        slides.push(newSrc);
-                        wrap.dataset.wbSlideIdx = String(slides.length - 1);
+                    if (doAppend) {
+                        const merged = slides.concat(picked);
+                        slides = Array.from(new Set(merged)).filter(Boolean);
                     } else {
-                        slides[idx] = newSrc;
-                        wrap.dataset.wbSlideIdx = String(idx);
+                        slides = picked.slice();
                     }
+
+                    wrap.dataset.wbSlideIdx = '0';
                     try { wrap.setAttribute('data-wb-slides', encodeURIComponent(JSON.stringify(slides.slice(0, 12)))); } catch (e3) {}
+                    try { wrap._wbSlides = slides.slice(0, 12); } catch (e30) {}
+
+                    const newSrc = slides[0];
                     try {
                         if (typeof window.__WB_applyResponsiveSrc === 'function') {
                             window.__WB_applyResponsiveSrc(imgEl, newSrc);
@@ -7631,6 +7666,11 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         if (prevBtn) prevBtn.style.display = (slides.length > 1) ? '' : 'none';
                         if (nextBtn) nextBtn.style.display = (slides.length > 1) ? '' : 'none';
                     } catch (e20) {}
+
+                    try {
+                        if (wrap._wbStopSlides) wrap._wbStopSlides();
+                        if (slides.length > 1 && wrap._wbStartSlides) wrap._wbStartSlides();
+                    } catch (e21) {}
 
                     try { imgEl.dispatchEvent(new Event('input', { bubbles: true })); } catch (e5) {}
                     try { imgEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e6) {}
