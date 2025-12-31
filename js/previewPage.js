@@ -280,4 +280,13 @@
   } catch (e) {
     console.warn('roadbook media init failed', e);
   }
+
+  try {
+    if (window.ComponentFactory && typeof window.ComponentFactory.initRoadbookRouteMaps === 'function') {
+      window.ComponentFactory.initRoadbookRouteMaps(document);
+      setTimeout(() => { try { window.ComponentFactory.initRoadbookRouteMaps(document); } catch (e2) {} }, 800);
+    }
+  } catch (e) {
+    console.warn('roadbook route map init failed', e);
+  }
 })();

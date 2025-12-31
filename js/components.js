@@ -6868,6 +6868,82 @@ ComponentFactory.createTravelFilterBar = function(options = {}) {
     return section;
 };
 
+ComponentFactory.initRoadbookRouteMaps = function(root) {
+    try {
+        const scope = root || document;
+        const banners = Array.from(scope.querySelectorAll('.wb-roadbook-route-map'));
+        banners.forEach((banner) => {
+            try {
+                if (!banner || banner.dataset.wbMapInited === '1') return;
+                if (!window.L) return;
+
+                const mapEl = banner.querySelector('.roadbook-route-map-canvas');
+                if (!mapEl) return;
+
+                let destinations = [];
+                try {
+                    const raw = banner.getAttribute('data-wb-destinations') || '';
+                    const decoded = decodeURIComponent(raw);
+                    destinations = JSON.parse(decoded) || [];
+                } catch (e1) { destinations = []; }
+                destinations = Array.isArray(destinations) ? destinations.filter(d => d && d.latitude != null && d.longitude != null) : [];
+                if (destinations.length <= 1) return;
+
+                banner.dataset.wbMapInited = '1';
+
+                const lats = destinations.map(d => Number(d.latitude));
+                const lngs = destinations.map(d => Number(d.longitude));
+                const centerLat = (Math.max(...lats) + Math.min(...lats)) / 2;
+                const centerLng = (Math.max(...lngs) + Math.min(...lngs)) / 2;
+
+                const map = L.map(mapEl, {
+                    zoomControl: true,
+                    attributionControl: false,
+                    dragging: true,
+                    scrollWheelZoom: true,
+                    doubleClickZoom: true,
+                    touchZoom: true
+                }).setView([centerLat, centerLng], 6);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 18
+                }).addTo(map);
+
+                const routeCoords = destinations.map(d => [Number(d.latitude), Number(d.longitude)]);
+
+                L.polyline(routeCoords, {
+                    color: '#3b82f6',
+                    weight: 4,
+                    opacity: 0.85,
+                    smoothFactor: 1
+                }).addTo(map);
+
+                destinations.forEach((dest, idx) => {
+                    const icon = L.divIcon({
+                        className: '',
+                        html: `<div style="width:32px;height:32px;border-radius:999px;background:#3b82f6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;border:2px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,0.25);">${idx + 1}</div>`,
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16]
+                    });
+                    const label = String(dest.name || dest.title || '').trim();
+                    const dayTxt = `Dag ${dest.fromDay || 1}${(dest.toDay && dest.toDay !== dest.fromDay) ? ` - ${dest.toDay}` : ''}`;
+                    L.marker([Number(dest.latitude), Number(dest.longitude)], { icon })
+                        .bindPopup(label ? `<b>${label}</b><br>${dayTxt}` : dayTxt)
+                        .addTo(map);
+                });
+
+                try {
+                    const bounds = L.latLngBounds(routeCoords);
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                } catch (e2) {}
+
+                try { banner._wbLeafletMap = map; } catch (e3) {}
+                setTimeout(() => { try { map.invalidateSize(); } catch (e4) {} }, 50);
+            } catch (e0) {}
+        });
+    } catch (e) {}
+};
+
 // Travel Search Card - Metadata voor Zoek & Boek overzicht
 ComponentFactory.createTravelSearchCard = function(options = {}) {
     const section = document.createElement('section');
@@ -6962,6 +7038,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
     section.className = 'wb-component wb-roadbook';
     section.setAttribute('data-component', 'roadbook');
     section.id = this.generateId('roadbook');
+
+    const routeMapId = this.generateId('roadbook_route_map');
     
     const toolbar = this.createToolbar();
     section.appendChild(toolbar);
@@ -6973,7 +7051,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
         departureDate: options.departureDate || '2025-06-15',
         transports: options.transports || [],
         hotels: options.hotels || [],
-        itinerary: options.itinerary || []
+        itinerary: options.itinerary || [],
+        destinations: options.destinations || []
     };
     
     // Store data on component
@@ -7016,6 +7095,29 @@ ComponentFactory.createRoadbook = function(options = {}) {
         console.error('[Roadbook] Error loading brand settings:', e);
     }
     
+    const routePoints = (Array.isArray(data.destinations) ? data.destinations : [])
+        .map((d) => {
+            try {
+                const lat = d && (d.latitude != null ? d.latitude : (d.geolocation && d.geolocation.latitude));
+                const lng = d && (d.longitude != null ? d.longitude : (d.geolocation && d.geolocation.longitude));
+                if (lat == null || lng == null) return null;
+                return {
+                    name: d.name || d.title || '',
+                    fromDay: d.fromDay || d.day || 1,
+                    toDay: d.toDay || d.fromDay || d.day || 1,
+                    latitude: lat,
+                    longitude: lng
+                };
+            } catch (e) {
+                return null;
+            }
+        })
+        .filter(Boolean);
+
+    const routePointsAttr = (() => {
+        try { return encodeURIComponent(JSON.stringify(routePoints)); } catch (e) { return ''; }
+    })();
+
     section.innerHTML += `
             <!-- Countdown Hero (fullwidth) -->
             <div class="roadbook-hero">
@@ -7339,6 +7441,16 @@ ComponentFactory.createRoadbook = function(options = {}) {
                 </div>
             ` : ''}
         </div>
+
+        ${(routePoints.length > 1) ? `
+            <div class="wb-component edge-to-edge wb-roadbook-route-map" data-component="roadbook-route-map" data-wb-destinations="${routePointsAttr}" style="width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);">
+                <div style="max-width:1200px;margin:0 auto;padding:0 24px 12px 24px;">
+                    <h2 class="editable" contenteditable="true" style="margin:0 0 12px 0;font-size:28px;font-weight:800;">Routekaart</h2>
+                    <div class="editable" contenteditable="true" style="color:#6b7280;margin:0 0 16px 0;">Bekijk de route met alle bestemmingen op de kaart.</div>
+                </div>
+                <div id="${routeMapId}" class="roadbook-route-map-canvas" style="width:100%;height:420px;"></div>
+            </div>
+        ` : ''}
     `;
     
     // Start countdown

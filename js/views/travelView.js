@@ -1865,6 +1865,24 @@
           images
         };
       });
+
+      const destinations = (tcData.destinations || []).map((d, idx) => {
+        const geo = d.geolocation || d.geo || d.location || {};
+        const latitude = (d.latitude != null ? d.latitude : (geo.latitude != null ? geo.latitude : null));
+        const longitude = (d.longitude != null ? d.longitude : (geo.longitude != null ? geo.longitude : null));
+        const fromDay = d.fromDay || d.day || 1;
+        const toDay = d.toDay || fromDay;
+        const name = pickText(d.name) || pickText(d.title) || d.name || d.title || `Bestemming ${idx + 1}`;
+        return {
+          name,
+          title: name,
+          description: pickText(d.description) || '',
+          fromDay,
+          toDay,
+          latitude,
+          longitude
+        };
+      }).filter(d => d && d.latitude != null && d.longitude != null);
       
       // Extract description/intro text
       const description = pickText(tcData.description) || pickText(tcData.summary) || pickText(tcData.intro) || '';
@@ -1910,7 +1928,8 @@
         cars,
         activities,
         hotels,
-        itinerary
+        itinerary,
+        destinations
       };
     }
   };
