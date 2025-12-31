@@ -72,11 +72,13 @@ export default async function handler(req, res) {
 
     // Query params
     const {
-      language = 'NL',
+      language: languageRaw = 'NL',
+      lang: langRaw,
       currency = 'EUR',
       adults = '2',
       info
     } = req.query || {};
+    const language = String(langRaw || languageRaw || 'NL');
     const params = new URLSearchParams();
     params.set('language', String(language));
     params.set('currency', String(currency));

@@ -8,6 +8,7 @@
   const TravelView = {
     currentIdea: null,
     micrositeId: null,
+    tcLanguage: 'NL',
 
     mount(container) {
       if (!container) return;
@@ -31,6 +32,13 @@
       
       // Get microsite ID from environment or config
       this.micrositeId = this.getMicrositeId();
+
+      // Load preferred TC language
+      try {
+        this.tcLanguage = localStorage.getItem('tc_language') || 'NL';
+      } catch (e) {
+        this.tcLanguage = 'NL';
+      }
       
       container.innerHTML = this.renderHTML();
       this.attachEventListeners(container);
@@ -270,6 +278,14 @@
               ${micrositeOptions}
             </select>
           </div>
+          <div style="flex: 1; min-width: 160px;"><label style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 14px;"><i class="fas fa-language"></i> Taal</label>
+            <select id="tcLanguageInput" style="width: 100%; height: 40px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; background: white; cursor: pointer;">
+              <option value="NL" ${String(this.tcLanguage || 'NL').toUpperCase() === 'NL' ? 'selected' : ''}>Nederlands</option>
+              <option value="EN" ${String(this.tcLanguage || '').toUpperCase() === 'EN' ? 'selected' : ''}>English</option>
+              <option value="DE" ${String(this.tcLanguage || '').toUpperCase() === 'DE' ? 'selected' : ''}>Deutsch</option>
+              <option value="FR" ${String(this.tcLanguage || '').toUpperCase() === 'FR' ? 'selected' : ''}>Français</option>
+            </select>
+          </div>
         </div>
         ${this.renderTemplateSelector()}
         <div style="display: flex; gap: 12px; margin-top: 20px;">
@@ -281,15 +297,19 @@
       const testBtn = container.querySelector('#testApiBtn');
       const ideaInput = container.querySelector('#tcIdeaIdInput');
       const micrositeInput = container.querySelector('#tcMicrositeIdInput');
+      const langInput = container.querySelector('#tcLanguageInput');
       this.attachTemplateListeners(container);
       if (loadBtn) {
         loadBtn.addEventListener('click', async () => {
           const ideaId = ideaInput?.value?.trim();
           const micrositeId = micrositeInput?.value?.trim();
+          const language = (langInput?.value || this.tcLanguage || 'NL').trim();
           if (!ideaId || !micrositeId) { this.showStatus('error', 'Voer beide velden in'); return; }
           this.micrositeId = micrositeId;
           localStorage.setItem('tc_microsite_id', micrositeId);
-          await this.loadTravel(ideaId, micrositeId, this.selectedTemplate);
+          try { localStorage.setItem('tc_language', language); } catch (e) {}
+          this.tcLanguage = language;
+          await this.loadTravel(ideaId, micrositeId, this.selectedTemplate, language);
         });
       }
       if (testBtn) testBtn.addEventListener('click', () => this.testApiConfiguration());
@@ -741,13 +761,14 @@
       }
     },
 
-    async loadTravel(ideaId, micrositeId, template = '1') {
+    async loadTravel(ideaId, micrositeId, template = '1', language = 'NL') {
       this.showStatus('loading', `<i class="fas fa-circle-notch fa-spin"></i> Reis aan het laden met Template ${template}...`);
 
       try {
         // Determine API endpoint
         const apiBase = this.getApiBase();
-        const url = `${apiBase}/api/ideas/${encodeURIComponent(ideaId)}?micrositeId=${encodeURIComponent(micrositeId)}&lang=NL`;
+        const lang = String(language || 'NL').trim() || 'NL';
+        const url = `${apiBase}/api/ideas/${encodeURIComponent(ideaId)}?micrositeId=${encodeURIComponent(micrositeId)}&language=${encodeURIComponent(lang)}&lang=${encodeURIComponent(lang)}`;
 
         console.log('🔍 ===== DEBUG: TRAVEL COMPOSITOR CALL =====');
         console.log('📋 Parameters:', {

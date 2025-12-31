@@ -7273,8 +7273,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                 if (isEven) {
                                     // Photo LEFT, Info RIGHT
                                     return '<div class="day">' +
-                                        '<div class="left placeImg" data-wb-slides="' + slidesAttr + '" data-wb-slide-idx="0" style="position:relative;">' +
-                                            '<img src="' + imgSrc + '" alt="' + location + '">' +
+                                        '<div class="left placeImg" data-wb-slides="' + slidesAttr + '" data-wb-slide-idx="0">' +
+                                            '<img src="' + imgSrc + '" alt="' + location + '" style="width:100%;height:100%;object-fit:cover;">' +
                                             '<button type="button" class="wb-slide-prev" style="' + (hasSlides ? 'position:absolute;left:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.65);background:rgba(17,24,39,.45);color:#fff;font-weight:900;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center;line-height:1;' : 'display:none;') + '">&lsaquo;</button>' +
                                             '<button type="button" class="wb-slide-next" style="' + (hasSlides ? 'position:absolute;right:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.65);background:rgba(17,24,39,.45);color:#fff;font-weight:900;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center;line-height:1;' : 'display:none;') + '">&rsaquo;</button>' +
                                         '</div>' +
@@ -7309,8 +7309,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                             '</ul>' +
                                             '<div class="delight"><i class="fas fa-star"></i><h6>TOUR DELIGHT:</h6><span class="editable" contenteditable="true">' + delight + '</span></div>' +
                                         '</div>' +
-                                        '<div class="right placeImg" data-wb-slides="' + slidesAttr + '" data-wb-slide-idx="0" style="position:relative;">' +
-                                            '<img src="' + imgSrc + '" alt="' + location + '">' +
+                                        '<div class="right placeImg" data-wb-slides="' + slidesAttr + '" data-wb-slide-idx="0">' +
+                                            '<img src="' + imgSrc + '" alt="' + location + '" style="width:100%;height:100%;object-fit:cover;">' +
                                             '<button type="button" class="wb-slide-prev" style="' + (hasSlides ? 'position:absolute;left:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.65);background:rgba(17,24,39,.45);color:#fff;font-weight:900;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center;line-height:1;' : 'display:none;') + '">&lsaquo;</button>' +
                                             '<button type="button" class="wb-slide-next" style="' + (hasSlides ? 'position:absolute;right:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.65);background:rgba(17,24,39,.45);color:#fff;font-weight:900;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center;line-height:1;' : 'display:none;') + '">&rsaquo;</button>' +
                                         '</div>' +
