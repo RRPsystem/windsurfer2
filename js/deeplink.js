@@ -217,41 +217,24 @@
       document.addEventListener('DOMContentLoaded', () => {
         setTimeout(async () => {
           try {
-            if (window.TravelDataService && window.TravelView) {
-              log('Loading existing trip from database...');
+            // Switch to page mode (roadbook is edited as page HTML in the builder)
+            try { if (window.WB_setMode) window.WB_setMode('page'); } catch (e) {}
+
+            // Prefer loading via content-api using deeplink credentials (works without BOLT_DB)
+            if (ctx && ctx.api && ctx.token) {
+              await loadTripContent(ctx, tripId);
+              return;
+            }
+
+            // Fallback: legacy TravelDataService (requires BOLT_DB)
+            if (window.TravelDataService && typeof window.TravelDataService.getTravel === 'function') {
+              log('Fallback: loading existing trip via TravelDataService...');
               const travel = await window.TravelDataService.getTravel(tripId);
-              if (travel) {
-                log('Trip loaded, switching to page mode and loading content:', travel.title);
-                
-                // Switch to page mode instead of travel mode
-                if (window.WB_setMode) {
-                  window.WB_setMode('page');
-                }
-                
-                // Load trip content as page content
-                if (window.websiteBuilder && typeof window.websiteBuilder.loadTravelIdea === 'function') {
-                  window.websiteBuilder.loadTravelIdea(travel);
-                } else {
-                  warn('websiteBuilder.loadTravelIdea not available');
-                }
+              if (travel && window.websiteBuilder && typeof window.websiteBuilder.loadTravelIdea === 'function') {
+                window.websiteBuilder.loadTravelIdea(travel);
               } else {
-                warn('Trip not found:', tripId);
+                warn('Trip not found or loadTravelIdea not available:', tripId);
               }
-            } else {
-              warn('TravelDataService or TravelView not available yet, retrying...');
-              setTimeout(async () => {
-                try {
-                  if (window.TravelDataService && window.TravelView) {
-                    const travel = await window.TravelDataService.getTravel(tripId);
-                    if (travel && typeof window.websiteBuilder.loadTravelIdea === 'function') {
-                      if (window.WB_setMode) window.WB_setMode('page');
-                      window.websiteBuilder.loadTravelIdea(travel);
-                    }
-                  }
-                } catch (e) {
-                  warn('Retry failed to load trip:', e);
-                }
-              }, 1000);
             }
           } catch (e) {
             warn('Failed to load existing trip:', e);
@@ -305,7 +288,149 @@
       loadNewsContent(ctx);
     }
   }
+
 })();
+
+async function loadTripContent(ctx, tripId) {
+  try {
+    const api = (ctx.api || '').replace(/\/$/, '');
+    const brandId = ctx.brand_id;
+    if (!api || !brandId || !tripId) return;
+
+    log('Loading trip content for id:', tripId);
+
+    const candidates = [
+      // Preferred: direct fetch by id (if backend supports it)
+      `${api}/content-api?type=trips&brand_id=${encodeURIComponent(brandId)}&id=${encodeURIComponent(tripId)}`,
+      // Alternative endpoint patterns (some environments use /load)
+      `${api}/content-api/load?type=trips&id=${encodeURIComponent(tripId)}`,
+      // Fallback: list all trips for the brand
+      `${api}/content-api?type=trips&brand_id=${encodeURIComponent(brandId)}`
+    ];
+
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+
+    if (ctx.token) {
+      headers['Authorization'] = `Bearer ${ctx.token}`;
+    }
+    if (ctx.apikey) {
+      headers['apikey'] = ctx.apikey;
+    }
+
+    const normalizeToItems = (raw) => {
+      if (!raw) return [];
+      if (Array.isArray(raw)) return raw;
+      if (raw.trips && Array.isArray(raw.trips)) return raw.trips;
+      if (raw.items && Array.isArray(raw.items)) return raw.items;
+      return [raw];
+    };
+
+    let rawData = null;
+    for (const url of candidates) {
+      try {
+        const response = await fetch(url, { headers });
+        if (!response.ok) continue;
+        rawData = await response.json();
+        break;
+      } catch (e) {}
+    }
+
+    if (!rawData) {
+      warn('Failed to load trip: no successful response');
+      return;
+    }
+
+    log('Trip data loaded:', rawData);
+
+    const items = normalizeToItems(rawData);
+    const wantedId = String(tripId);
+    const data = items.find(x => x && String(x.id) === wantedId) || (items.length === 1 ? items[0] : null);
+
+    if (!data || !data.id) {
+      warn('Trip not found in response for id:', tripId, { count: items.length });
+      return;
+    }
+
+    window._pendingPageLoad = {
+      data: data,
+      loaded: false
+    };
+
+    const loadContent = () => {
+      try {
+        if (window._pendingPageLoad.loaded) return;
+
+        const canvas = document.getElementById('canvas');
+        if (!canvas) {
+          setTimeout(loadContent, 100);
+          return;
+        }
+
+        const trip = window._pendingPageLoad.data;
+        const htmlContent = trip.content?.html || trip.content?.htmlSnapshot || trip.body_html;
+
+        if (htmlContent) {
+          canvas.innerHTML = htmlContent;
+          log('Trip HTML loaded into canvas');
+          window._pendingPageLoad.loaded = true;
+        } else {
+          warn('No HTML content found in trip response. Keys:', Object.keys(trip.content || {}));
+        }
+
+        const titleInput = document.getElementById('pageTitleInput');
+        const slugInput = document.getElementById('pageSlugInput');
+        if (titleInput && trip.title) {
+          titleInput.value = trip.title;
+          log('Trip title set to:', trip.title);
+        }
+        if (slugInput && trip.slug) {
+          slugInput.value = trip.slug;
+          log('Trip slug set to:', trip.slug);
+        }
+
+        if (window.websiteBuilder) {
+          if (window.websiteBuilder.reattachEventListeners) {
+            window.websiteBuilder.reattachEventListeners();
+          }
+
+          const components = canvas.querySelectorAll('[data-component]');
+          components.forEach(comp => {
+            if (window.websiteBuilder.makeSelectable) {
+              window.websiteBuilder.makeSelectable(comp);
+            }
+          });
+
+          try {
+            if (window.ComponentFactory && typeof window.ComponentFactory.initRoadbookRouteMaps === 'function') {
+              window.ComponentFactory.initRoadbookRouteMaps(canvas);
+            }
+          } catch (e) {}
+
+          try {
+            const event = new CustomEvent('canvasUpdated');
+            canvas.dispatchEvent(event);
+          } catch (e) {}
+        }
+
+        log('Trip content loaded into builder');
+      } catch (e) {
+        warn('Failed to load trip into builder:', e);
+      }
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(loadContent, 500);
+      });
+    } else {
+      setTimeout(loadContent, 500);
+    }
+  } catch (error) {
+    warn('Error loading trip content:', error);
+  }
+}
 
 // Load page content from pages-api and auto-detect content_type
 async function loadPageContent(ctx) {
