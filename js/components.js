@@ -7118,6 +7118,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
         try { return encodeURIComponent(JSON.stringify(routePoints)); } catch (e) { return ''; }
     })();
 
+    const itineraryPadBottom = (routePoints.length > 1) ? '0px' : '100px';
+
     section.innerHTML += `
             <!-- Countdown Hero (fullwidth) -->
             <div class="roadbook-hero">
@@ -7294,6 +7296,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         }
                         #itinerary-wrap {
                             position: relative !important;
+                            padding-bottom: ${itineraryPadBottom} !important;
                         }
                         #itinerary-wrap > .roadbook-road {
                             position: absolute !important;
