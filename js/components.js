@@ -7040,6 +7040,9 @@ ComponentFactory.createRoadbook = function(options = {}) {
     section.id = this.generateId('roadbook');
 
     const routeMapId = this.generateId('roadbook_route_map');
+    const accommodationsId = this.generateId('roadbook_accommodaties');
+    const routeMapSectionId = this.generateId('roadbook_routekaart');
+    const travelBroSectionId = this.generateId('roadbook_travelbro');
     
     const toolbar = this.createToolbar();
     section.appendChild(toolbar);
@@ -7052,7 +7055,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
         transports: options.transports || [],
         hotels: options.hotels || [],
         itinerary: options.itinerary || [],
-        destinations: options.destinations || []
+        destinations: options.destinations || [],
+        travelBroUrl: options.travelBroUrl || options.travelbroUrl || options.broUrl || options.travel_bro_url || ''
     };
     
     // Store data on component
@@ -7119,6 +7123,13 @@ ComponentFactory.createRoadbook = function(options = {}) {
     })();
 
     const itineraryPadBottom = (routePoints.length > 1) ? '0px' : '100px';
+    const showRouteMap = (routePoints.length > 1);
+    const travelBroUrl = String(data.travelBroUrl || '').trim();
+    const hasTravelBroUrl = !!travelBroUrl;
+    const showTravelBro = true;
+    const showAccommodations = ((data.transports || []).length > 0 || (data.hotels || []).length > 0 || (data.cars || []).length > 0 || (data.activities || []).length > 0);
+    const showItinerary = (data.itinerary && data.itinerary.length > 0);
+    const itinerarySectionStyle = showRouteMap ? 'margin-bottom:0 !important;padding-bottom:0 !important;' : '';
 
     section.innerHTML += `
             <!-- Countdown Hero (fullwidth) -->
@@ -7148,10 +7159,10 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         <img src="${brandLogo}" alt="Logo" />
                     </div>
                     <ul class="roadbook-nav-menu">
-                        <li><a href="#accommodaties"><i class="fas fa-home"></i> Accommodaties</a></li>
-                        <li><a href="#itinerary"><i class="fas fa-map-marked-alt"></i> Itinerary</a></li>
-                        <li><a href="#praktisch"><i class="fas fa-info-circle"></i> Praktisch</a></li>
-                        <li><a href="#contact"><i class="fas fa-envelope"></i> Contact</a></li>
+                        ${showAccommodations ? `<li><a href="#${accommodationsId}"><i class="fas fa-home"></i> Accommodaties</a></li>` : ''}
+                        ${showItinerary ? `<li><a href="#itinerary"><i class="fas fa-map-marked-alt"></i> Itinerary</a></li>` : ''}
+                        ${showRouteMap ? `<li><a href="#${routeMapSectionId}"><i class="fas fa-route"></i> Routekaart</a></li>` : ''}
+                        ${showTravelBro ? `<li><a href="#${travelBroSectionId}"><i class="fas fa-comments"></i> TravelBRO</a></li>` : ''}
                     </ul>
                 </div>
             </nav>
@@ -7205,7 +7216,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
         <div class="roadbook-wrapper">
             <!-- Timeline: Transport + Hotels Combined -->
             ${((data.transports || []).length > 0 || (data.hotels || []).length > 0 || (data.cars || []).length > 0 || (data.activities || []).length > 0) ? `
-                <div class="roadbook-section">
+                <div class="roadbook-section" id="${accommodationsId}">
                     <h2 class="roadbook-section-title editable" contenteditable="true">Jouw Reis Timeline</h2>
                     <div class="roadbook-cards-carousel-wrapper">
                         <div class="roadbook-cards-grid" data-carousel="timeline">
@@ -7282,7 +7293,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
             
             <!-- Animated Timeline: Dag bij Dag - WordPress Style -->
             ${data.itinerary.length > 0 ? `
-                <div id="itinerary" class="roadbook-animated-timeline-section" style="background: linear-gradient(to bottom, ${brandPrimary} 300px, #f9fafb 300px) !important;">
+                <div id="itinerary" class="roadbook-animated-timeline-section" style="background: linear-gradient(to bottom, ${brandPrimary} 300px, #f9fafb 300px) !important;${itinerarySectionStyle}">
                     <!-- Header -->
                     <div class="roadbook-timeline-header">
                         <h2 class="editable" contenteditable="true">DE REIS <strong>DAG BIJ DAG</strong></h2>
@@ -7297,6 +7308,11 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         #itinerary-wrap {
                             position: relative !important;
                             padding-bottom: ${itineraryPadBottom} !important;
+                            margin-bottom: 0 !important;
+                        }
+                        .roadbook-animated-timeline-section {
+                            margin-bottom: 0 !important;
+                            padding-bottom: 0 !important;
                         }
                         #itinerary-wrap > .roadbook-road {
                             position: absolute !important;
@@ -7446,8 +7462,30 @@ ComponentFactory.createRoadbook = function(options = {}) {
         </div>
 
         ${(routePoints.length > 1) ? `
-            <div class="wb-component edge-to-edge wb-roadbook-route-map" data-component="roadbook-route-map" data-wb-destinations="${routePointsAttr}" style="width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);margin-top:0;padding:0;">
+            <div id="${routeMapSectionId}" class="wb-component edge-to-edge wb-roadbook-route-map" data-component="roadbook-route-map" data-wb-destinations="${routePointsAttr}" style="width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);margin-top:0;padding:0;">
                 <div id="${routeMapId}" class="roadbook-route-map-canvas" style="width:100%;height:420px;margin:0;padding:0;"></div>
+            </div>
+        ` : ''}
+
+        ${showTravelBro ? `
+            <div id="${travelBroSectionId}" class="roadbook-section" style="max-width:1200px;margin:0 auto;padding:50px 24px;">
+                <h2 class="roadbook-section-title editable" contenteditable="true">TravelBRO</h2>
+                <div class="editable" contenteditable="true" style="color:#6b7280;margin-bottom:18px;">Scan de QR code om TravelBRO te openen.</div>
+                <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;">
+                    ${hasTravelBroUrl ? `
+                        <div style="width:220px;height:220px;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;">
+                            <img alt="TravelBRO QR" style="width:220px;height:220px;display:block;" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(travelBroUrl)}" />
+                        </div>
+                    ` : `
+                        <div style="width:220px;height:220px;border:1px dashed #d1d5db;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;color:#6b7280;font-weight:700;text-align:center;padding:18px;box-sizing:border-box;">
+                            QR volgt
+                        </div>
+                    `}
+                    <div style="min-width:240px;flex:1;">
+                        ${hasTravelBroUrl ? `<a class="editable" contenteditable="true" href="${travelBroUrl}" target="_blank" rel="noopener" style="display:inline-block;color:${brandPrimary};font-weight:700;text-decoration:none;">Open TravelBRO</a>` : `<div class="editable" contenteditable="true" style="display:inline-block;color:#6b7280;font-weight:700;">Nog geen TravelBRO gekoppeld</div>`}
+                        <div class="editable" contenteditable="true" style="color:#6b7280;margin-top:10px;">(Chat / integratie met BOLT volgt.)</div>
+                    </div>
+                </div>
             </div>
         ` : ''}
     `;
@@ -7898,6 +7936,35 @@ ComponentFactory.createRoadbook = function(options = {}) {
         window.addEventListener('scroll', updateActiveMenu);
         updateActiveMenu();
     }, 100);
+
+    // Smooth scroll for in-page Roadbook menu (works in builder + preview)
+    setTimeout(() => {
+        try {
+            if (section.dataset.wbNavBound === '1') return;
+            section.dataset.wbNavBound = '1';
+
+            section.addEventListener('click', (e) => {
+                try {
+                    const t = e && e.target ? (e.target.nodeType === 1 ? e.target : e.target.parentElement) : null;
+                    const a = t && t.closest ? t.closest('.roadbook-nav-menu a[href^="#"]') : null;
+                    if (!a) return;
+
+                    const href = a.getAttribute('href') || '';
+                    if (!href || href.charAt(0) !== '#') return;
+                    const target = section.querySelector(href);
+                    if (!target) return;
+
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const nav = section.querySelector('.roadbook-nav');
+                    const navH = nav ? (nav.getBoundingClientRect().height || 0) : 0;
+                    const top = target.getBoundingClientRect().top + window.pageYOffset - navH - 10;
+                    window.scrollTo({ top, behavior: 'smooth' });
+                } catch (e1) {}
+            }, true);
+        } catch (e0) {}
+    }, 120);
 
     try {
         if (!window.__wbRoadbookIconEditBound) {
