@@ -7439,15 +7439,37 @@ ComponentFactory.createRoadbook = function(options = {}) {
                     if (!t.matches('.wb-roadbook i[data-wb-icon]')) return;
                     e.preventDefault();
                     e.stopPropagation();
+
                     const current = (t.getAttribute('data-wb-icon') || '').trim() || 'fa-star';
+
+                    const applyIcon = (cls) => {
+                        try {
+                            const clean = String(cls || '').trim();
+                            if (!clean) return;
+                            t.setAttribute('data-wb-icon', clean);
+                            t.className = `fas ${clean}`;
+                            try { t.dispatchEvent(new Event('input', { bubbles: true })); } catch (e2) {}
+                            try { t.dispatchEvent(new Event('change', { bubbles: true })); } catch (e3) {}
+                        } catch (e4) {}
+                    };
+
+                    // Preferred: reuse existing IconPicker modal
+                    if (window.IconPicker && typeof window.IconPicker.open === 'function') {
+                        window.IconPicker.open({ current, compact: true })
+                            .then((res) => {
+                                try {
+                                    const picked = res && res.icon ? res.icon : '';
+                                    if (picked) applyIcon(picked);
+                                } catch (e5) {}
+                            })
+                            .catch(() => {});
+                        return;
+                    }
+
+                    // Fallback: prompt if IconPicker isn't available
                     const next = window.prompt('FontAwesome icon class (bijv. fa-hiking):', current);
                     if (!next) return;
-                    const cls = String(next).trim();
-                    if (!cls) return;
-                    t.setAttribute('data-wb-icon', cls);
-                    t.className = `fas ${cls}`;
-                    try { t.dispatchEvent(new Event('input', { bubbles: true })); } catch (e2) {}
-                    try { t.dispatchEvent(new Event('change', { bubbles: true })); } catch (e3) {}
+                    applyIcon(next);
                 } catch (e1) {}
             }, true);
         }
