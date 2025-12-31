@@ -7302,7 +7302,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                                 '<li><i class="fas fa-utensils" data-wb-icon="fa-utensils" style="cursor:pointer;"></i><h6 class="editable" contenteditable="true">Food Speciality:</h6><span class="editable" contenteditable="true">Lokale gerechten</span></li>' +
                                                 '<li><i class="fas fa-hiking" data-wb-icon="fa-hiking" style="cursor:pointer;"></i><h6 class="editable" contenteditable="true">Activity:</h6><span class="editable" contenteditable="true">Activiteiten</span></li>' +
                                             '</ul>' +
-                                            '<div class="delight"><i class="fas fa-star"></i><h6>TOUR DELIGHT:</h6><span class="editable" contenteditable="true">' + delight + '</span></div>' +
+                                            '<div class="delight"><i class="fas fa-hotel"></i><h6>HOTEL:</h6><span class="editable" contenteditable="true">' + delight + '</span></div>' +
                                         '</div>' +
                                         '<div class="clear"></div>' +
                                     '</div><div class="clear"></div>';
@@ -7320,7 +7320,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                                 '<li><i class="fas fa-utensils" data-wb-icon="fa-utensils" style="cursor:pointer;"></i><h6 class="editable" contenteditable="true">Food Speciality:</h6><span class="editable" contenteditable="true">Lokale gerechten</span></li>' +
                                                 '<li><i class="fas fa-hiking" data-wb-icon="fa-hiking" style="cursor:pointer;"></i><h6 class="editable" contenteditable="true">Activity:</h6><span class="editable" contenteditable="true">Activiteiten</span></li>' +
                                             '</ul>' +
-                                            '<div class="delight"><i class="fas fa-star"></i><h6>TOUR DELIGHT:</h6><span class="editable" contenteditable="true">' + delight + '</span></div>' +
+                                            '<div class="delight"><i class="fas fa-hotel"></i><h6>HOTEL:</h6><span class="editable" contenteditable="true">' + delight + '</span></div>' +
                                         '</div>' +
                                         '<div class="right placeImg" data-wb-slides="' + slidesAttr + '" data-wb-slide-idx="0">' +
                                             '<img src="' + imgSrc + '" alt="' + location + '" style="width:100%;height:100%;object-fit:cover;">' +
@@ -7560,7 +7560,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
 
                     // Shift-click: video, otherwise image
                     if (e.shiftKey && typeof window.MediaPicker.openVideo === 'function') {
-                        const vr = await window.MediaPicker.openVideo({ defaultTab: 'pexels' });
+                        const vr = await window.MediaPicker.openVideo({ defaultTab: 'pexels', single: true });
                         const vUrl =
                             (vr && vr.type === 'video-playlist' && Array.isArray(vr.playlist) && vr.playlist[0]
                                 ? (vr.playlist[0].url || vr.playlist[0].videoUrl || '')

@@ -11,7 +11,7 @@ class MediaPicker {
     return this._open({ type: 'video', ...options });
   }
 
-  static _open({ type = 'image', defaultTab, searchQuery, multi = false } = {}) {
+  static _open({ type = 'image', defaultTab, searchQuery, multi = false, single = false } = {}) {
     return new Promise((resolve, reject) => {
       // Overlay
       const overlay = document.createElement('div');
@@ -512,8 +512,23 @@ class MediaPicker {
                 playIcon.style.opacity = '1';
               });
               
-              // Multi-select click handler
+              // Click handler
               tile.onclick = () => {
+                if (single && type === 'video') {
+                  resolve({
+                    source: 'pexels',
+                    type: 'video',
+                    url: hdFile.link,
+                    videoUrl: hdFile.link,
+                    thumbnail: video.image,
+                    duration: video.duration,
+                    width: hdFile.width,
+                    height: hdFile.height,
+                    id: video.id
+                  });
+                  close();
+                  return;
+                }
                 isSelected = !isSelected;
                 
                 if (isSelected) {
@@ -692,8 +707,26 @@ class MediaPicker {
                 }
               });
               
-              // Multi-select click handler
+              // Click handler (single-select or multi-select)
               tile.onclick = () => {
+                try {
+                  if (single && type === 'video') {
+                    resolve({
+                      source: 'storyblocks',
+                      type: 'video',
+                      url: downloadUrl,
+                      videoUrl: downloadUrl,
+                      thumbnail: thumbnail,
+                      duration: video.duration,
+                      width: video.width,
+                      height: video.height,
+                      id: video.id,
+                      title: video.title
+                    });
+                    close();
+                    return;
+                  }
+                } catch (e0) {}
                 isSelected = !isSelected;
                 
                 if (isSelected) {
