@@ -7443,12 +7443,8 @@ ComponentFactory.createRoadbook = function(options = {}) {
         </div>
 
         ${(routePoints.length > 1) ? `
-            <div class="wb-component edge-to-edge wb-roadbook-route-map" data-component="roadbook-route-map" data-wb-destinations="${routePointsAttr}" style="width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);">
-                <div style="max-width:1200px;margin:0 auto;padding:0 24px 12px 24px;">
-                    <h2 class="editable" contenteditable="true" style="margin:0 0 12px 0;font-size:28px;font-weight:800;">Routekaart</h2>
-                    <div class="editable" contenteditable="true" style="color:#6b7280;margin:0 0 16px 0;">Bekijk de route met alle bestemmingen op de kaart.</div>
-                </div>
-                <div id="${routeMapId}" class="roadbook-route-map-canvas" style="width:100%;height:420px;"></div>
+            <div class="wb-component edge-to-edge wb-roadbook-route-map" data-component="roadbook-route-map" data-wb-destinations="${routePointsAttr}" style="width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);margin-top:0;padding:0;">
+                <div id="${routeMapId}" class="roadbook-route-map-canvas" style="width:100%;height:420px;margin:0;padding:0;"></div>
             </div>
         ` : ''}
     `;
