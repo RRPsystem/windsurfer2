@@ -7261,6 +7261,11 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                 const isEven = i % 2 === 0;
                                 const dayLabel = 'Stop ' + (i + 1);
                                 const imgSrc = day.image || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800';
+                                let imgs = Array.isArray(day.images) ? day.images.filter(Boolean) : [];
+                                if (imgSrc && !imgs.includes(imgSrc)) imgs = [imgSrc, ...imgs];
+                                if (!imgs.length) imgs = [imgSrc];
+                                const slidesAttr = encodeURIComponent(JSON.stringify(imgs.slice(0, 12)));
+                                const hasSlides = imgs.length > 1;
                                 const subtitle = day.subtitle || day.location || 'Provincie / Stad';
                                 const description = day.description || 'Beschrijving van deze dag...';
                                 const delight = day.delight || 'Special experience';
@@ -7268,8 +7273,10 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                 if (isEven) {
                                     // Photo LEFT, Info RIGHT
                                     return '<div class="day">' +
-                                        '<div class="left placeImg">' +
+                                        '<div class="left placeImg" data-wb-slides="' + slidesAttr + '" data-wb-slide-idx="0" style="position:relative;">' +
                                             '<img src="' + imgSrc + '" alt="' + location + '">' +
+                                            '<button type="button" class="wb-slide-prev" style="' + (hasSlides ? 'position:absolute;left:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.65);background:rgba(17,24,39,.45);color:#fff;font-weight:900;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center;line-height:1;' : 'display:none;') + '">&lsaquo;</button>' +
+                                            '<button type="button" class="wb-slide-next" style="' + (hasSlides ? 'position:absolute;right:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.65);background:rgba(17,24,39,.45);color:#fff;font-weight:900;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center;line-height:1;' : 'display:none;') + '">&rsaquo;</button>' +
                                         '</div>' +
                                         '<div class="right placeInfo">' +
                                             '<div class="dayNum editable" contenteditable="true">' + dayLabel + '</div>' +
@@ -7302,8 +7309,10 @@ ComponentFactory.createRoadbook = function(options = {}) {
                                             '</ul>' +
                                             '<div class="delight"><i class="fas fa-star"></i><h6>TOUR DELIGHT:</h6><span class="editable" contenteditable="true">' + delight + '</span></div>' +
                                         '</div>' +
-                                        '<div class="right placeImg">' +
+                                        '<div class="right placeImg" data-wb-slides="' + slidesAttr + '" data-wb-slide-idx="0" style="position:relative;">' +
                                             '<img src="' + imgSrc + '" alt="' + location + '">' +
+                                            '<button type="button" class="wb-slide-prev" style="' + (hasSlides ? 'position:absolute;left:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.65);background:rgba(17,24,39,.45);color:#fff;font-weight:900;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center;line-height:1;' : 'display:none;') + '">&lsaquo;</button>' +
+                                            '<button type="button" class="wb-slide-next" style="' + (hasSlides ? 'position:absolute;right:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.65);background:rgba(17,24,39,.45);color:#fff;font-weight:900;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center;line-height:1;' : 'display:none;') + '">&rsaquo;</button>' +
                                         '</div>' +
                                         '<div class="clear"></div>' +
                                     '</div><div class="clear"></div>';
@@ -7378,6 +7387,105 @@ ComponentFactory.createRoadbook = function(options = {}) {
         } else {
             console.warn('[Roadbook] Could not find road elements');
         }
+
+        try {
+            const initSlideshows = () => {
+                const wraps = Array.from(section.querySelectorAll('.placeImg[data-wb-slides]'));
+                wraps.forEach((wrap) => {
+                    try {
+                        if (!wrap || wrap.dataset.wbSlideInited === '1') return;
+                        wrap.dataset.wbSlideInited = '1';
+
+                        const imgEl = wrap.querySelector('img');
+                        if (!imgEl) return;
+
+                        let slides = [];
+                        try {
+                            slides = JSON.parse(decodeURIComponent(wrap.getAttribute('data-wb-slides') || '')) || [];
+                        } catch (e) { slides = []; }
+                        slides = Array.isArray(slides) ? slides.filter(Boolean) : [];
+                        if (slides.length <= 1) return;
+
+                        const setIdx = (nextIdx) => {
+                            try {
+                                const n = slides.length;
+                                let idx = parseInt(String(nextIdx), 10);
+                                if (Number.isNaN(idx)) idx = 0;
+                                idx = ((idx % n) + n) % n;
+                                wrap.dataset.wbSlideIdx = String(idx);
+                                imgEl.src = slides[idx];
+                            } catch (e2) {}
+                        };
+                        setIdx(parseInt(wrap.dataset.wbSlideIdx || '0', 10) || 0);
+
+                        const start = () => {
+                            try {
+                                if (wrap._wbSlideTimer) return;
+                                wrap._wbSlideTimer = window.setInterval(() => {
+                                    try {
+                                        const idx = parseInt(wrap.dataset.wbSlideIdx || '0', 10) || 0;
+                                        setIdx(idx + 1);
+                                    } catch (e3) {}
+                                }, 4500);
+                            } catch (e4) {}
+                        };
+                        const stop = () => {
+                            try {
+                                if (wrap._wbSlideTimer) {
+                                    clearInterval(wrap._wbSlideTimer);
+                                    wrap._wbSlideTimer = null;
+                                }
+                            } catch (e5) {}
+                        };
+
+                        wrap.addEventListener('mouseenter', stop);
+                        wrap.addEventListener('mouseleave', start);
+                        start();
+                    } catch (e1) {}
+                });
+            };
+
+            initSlideshows();
+
+            if (!window.__wbRoadbookSlideshowBound) {
+                window.__wbRoadbookSlideshowBound = true;
+                document.addEventListener('click', (e) => {
+                    try {
+                        const btn = e && e.target ? e.target.closest('.wb-slide-prev, .wb-slide-next') : null;
+                        if (!btn) return;
+                        const wrap = btn.closest('.placeImg[data-wb-slides]');
+                        if (!wrap) return;
+
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const imgEl = wrap.querySelector('img');
+                        if (!imgEl) return;
+
+                        let slides = [];
+                        try {
+                            slides = JSON.parse(decodeURIComponent(wrap.getAttribute('data-wb-slides') || '')) || [];
+                        } catch (e2) { slides = []; }
+                        slides = Array.isArray(slides) ? slides.filter(Boolean) : [];
+                        if (slides.length <= 1) return;
+
+                        const idx = parseInt(wrap.dataset.wbSlideIdx || '0', 10) || 0;
+                        const delta = btn.classList.contains('wb-slide-next') ? 1 : -1;
+                        const n = slides.length;
+                        const next = ((idx + delta) % n + n) % n;
+                        wrap.dataset.wbSlideIdx = String(next);
+                        imgEl.src = slides[next];
+
+                        try {
+                            if (wrap._wbSlideTimer) {
+                                clearInterval(wrap._wbSlideTimer);
+                                wrap._wbSlideTimer = null;
+                            }
+                        } catch (e3) {}
+                    } catch (e1) {}
+                }, true);
+            }
+        } catch (e) {}
     }, 500);
     
     // Store hotel data on cards for carousel

@@ -1789,21 +1789,36 @@
           // Create a day entry for each day in this destination
           for (let i = 0; i < numDays; i++) {
             const dayNum = fromDay + i;
+            const destImgsRaw = dest.imageUrls || dest.images || [];
+            const destImgs = (Array.isArray(destImgsRaw) ? destImgsRaw : [])
+              .map(img => img && typeof img === 'object' ? (img.url || img.src || '') : img)
+              .filter(Boolean);
             days.push({
               title: `Dag ${dayNum}: ${dest.name || 'Bestemming'}`,
               description: i === 0 ? (dest.description || `Bezoek aan ${dest.name}`) : `Vervolg in ${dest.name}`,
-              image: dest.imageUrls?.[i % dest.imageUrls.length] || dest.image || dest.imageUrl || '',
+              image: (destImgs.length ? destImgs[i % destImgs.length] : '') || dest.image || dest.imageUrl || '',
+              images: destImgs,
               destination: dest.name
             });
           }
         });
       }
       
-      const itinerary = days.map((day, index) => ({
-        title: day.title || day.name || `Dag ${index + 1}`,
-        description: day.description || day.text || day.summary || '',
-        image: day.image || day.imageUrl || (day.images && day.images[0]) || ''
-      }));
+      const itinerary = days.map((day, index) => {
+        const rawImgs = day.images || day.imageUrls || day.photos || [];
+        let images = (Array.isArray(rawImgs) ? rawImgs : [])
+          .map(img => img && typeof img === 'object' ? (img.url || img.src || '') : img)
+          .filter(Boolean);
+        const first = day.image || day.imageUrl || images[0] || '';
+        if (first && !images.includes(first)) images = [first, ...images];
+
+        return {
+          title: day.title || day.name || `Dag ${index + 1}`,
+          description: day.description || day.text || day.summary || '',
+          image: first,
+          images
+        };
+      });
       
       // Extract description/intro text
       const description = tcData.description || tcData.summary || tcData.intro || '';
