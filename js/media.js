@@ -514,7 +514,7 @@ class MediaPicker {
               
               // Click handler
               tile.onclick = () => {
-                if (single && type === 'video') {
+                if (single) {
                   resolve({
                     source: 'pexels',
                     type: 'video',
@@ -710,7 +710,7 @@ class MediaPicker {
               // Click handler (single-select or multi-select)
               tile.onclick = () => {
                 try {
-                  if (single && type === 'video') {
+                  if (single) {
                     resolve({
                       source: 'storyblocks',
                       type: 'video',

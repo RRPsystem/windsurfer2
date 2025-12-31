@@ -128,4 +128,156 @@
   } catch (e) {
     console.warn('timeline init failed', e);
   }
+
+  try {
+    const parseSlidesAttr = (raw) => {
+      let s = String(raw || '').trim();
+      if (!s) return [];
+      try {
+        s = s
+          .replace(/&quot;/g, '"')
+          .replace(/&#34;/g, '"')
+          .replace(/&#39;/g, "'")
+          .replace(/&amp;/g, '&');
+      } catch (e0) {}
+      try {
+        let decoded = decodeURIComponent(s);
+        try {
+          if (/%5B|%7B|%22/i.test(decoded)) decoded = decodeURIComponent(decoded);
+        } catch (e11) {}
+        const parsed = JSON.parse(decoded);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e1) {}
+      try {
+        const parsed = JSON.parse(s);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e2) {}
+      try {
+        const parts = s.split(/\s*[\|,]\s*/g).map(p => p.trim()).filter(Boolean);
+        return parts;
+      } catch (e3) {}
+      return [];
+    };
+
+    const initRoadbookDestinationMedia = (root) => {
+      const wraps = Array.from((root || document).querySelectorAll('.placeImg'));
+      wraps.forEach((wrap) => {
+        try {
+          const imgEl = wrap.querySelector('img');
+          const videoSrc = wrap.getAttribute('data-wb-video-src') || '';
+          if (videoSrc) {
+            let videoEl = wrap.querySelector('video');
+            if (!videoEl) {
+              videoEl = document.createElement('video');
+              videoEl.muted = true;
+              videoEl.loop = true;
+              videoEl.playsInline = true;
+              videoEl.autoplay = true;
+              videoEl.controls = true;
+              videoEl.style.width = '100%';
+              videoEl.style.height = '100%';
+              videoEl.style.objectFit = 'cover';
+              videoEl.style.position = 'absolute';
+              videoEl.style.inset = '0';
+              try { wrap.insertBefore(videoEl, wrap.firstChild); } catch (e8) { wrap.appendChild(videoEl); }
+            }
+            try { videoEl.src = videoSrc; } catch (e9) {}
+            try { videoEl.load(); } catch (e10) {}
+
+            try {
+              if (imgEl) {
+                const pic = imgEl.closest ? imgEl.closest('picture') : null;
+                if (pic) pic.style.display = 'none';
+                else imgEl.style.display = 'none';
+              }
+            } catch (e11) {}
+            try {
+              const prevBtn = wrap.querySelector('.wb-slide-prev');
+              const nextBtn = wrap.querySelector('.wb-slide-next');
+              if (prevBtn) prevBtn.style.display = 'none';
+              if (nextBtn) nextBtn.style.display = 'none';
+            } catch (e12) {}
+            try { videoEl.style.display = ''; } catch (e13) {}
+            try { videoEl.play(); } catch (e14) {}
+            return;
+          }
+
+          const slidesAttrRaw = wrap.getAttribute('data-wb-slides') || '';
+          let slides = parseSlidesAttr(slidesAttrRaw);
+          slides = Array.isArray(slides) ? slides.filter(Boolean) : [];
+          if (slides.length <= 1 || !imgEl) return;
+
+          wrap._wbSlides = slides;
+
+          const setIdx = (nextIdx) => {
+            const slidesNow = Array.isArray(wrap._wbSlides) ? wrap._wbSlides : slides;
+            const n = slidesNow.length;
+            let idx = parseInt(String(nextIdx), 10);
+            if (Number.isNaN(idx)) idx = 0;
+            idx = ((idx % n) + n) % n;
+            wrap.setAttribute('data-wb-slide-idx', String(idx));
+            imgEl.src = slidesNow[idx];
+          };
+
+          const stop = () => {
+            try {
+              if (wrap._wbSlideTimer) {
+                clearInterval(wrap._wbSlideTimer);
+                wrap._wbSlideTimer = null;
+              }
+            } catch (e5) {}
+          };
+
+          const start = () => {
+            try {
+              if (wrap._wbSlideTimer) return;
+              wrap._wbSlideTimer = window.setInterval(() => {
+                try {
+                  const slidesNow = Array.isArray(wrap._wbSlides) ? wrap._wbSlides : slides;
+                  if (!slidesNow || slidesNow.length <= 1) return;
+                  const idx = parseInt(wrap.getAttribute('data-wb-slide-idx') || '0', 10) || 0;
+                  setIdx(idx + 1);
+                } catch (e3) {}
+              }, 4500);
+            } catch (e4) {}
+          };
+
+          try {
+            const prevBtn = wrap.querySelector('.wb-slide-prev');
+            const nextBtn = wrap.querySelector('.wb-slide-next');
+            if (prevBtn) prevBtn.style.display = '';
+            if (nextBtn) nextBtn.style.display = '';
+          } catch (e20) {}
+
+          try {
+            const bindNav = (selector, delta) => {
+              const b = wrap.querySelector(selector);
+              if (!b || b.dataset.wbBound === '1') return;
+              b.dataset.wbBound = '1';
+              b.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                const idx = parseInt(wrap.getAttribute('data-wb-slide-idx') || '0', 10) || 0;
+                setIdx(idx + delta);
+                stop();
+              }, true);
+            };
+            bindNav('.wb-slide-prev', -1);
+            bindNav('.wb-slide-next', 1);
+          } catch (e8) {}
+
+          wrap.addEventListener('mouseenter', stop);
+          wrap.addEventListener('mouseleave', start);
+
+          setIdx(parseInt(wrap.getAttribute('data-wb-slide-idx') || '0', 10) || 0);
+          start();
+        } catch (eWrap) {}
+      });
+    };
+
+    initRoadbookDestinationMedia(document);
+    setTimeout(() => initRoadbookDestinationMedia(document), 600);
+  } catch (e) {
+    console.warn('roadbook media init failed', e);
+  }
 })();
