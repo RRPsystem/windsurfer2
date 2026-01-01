@@ -300,12 +300,12 @@ async function loadTripContent(ctx, tripId) {
     log('Loading trip content for id:', tripId);
 
     const candidates = [
-      // Preferred: direct fetch by id (if backend supports it)
-      `${api}/content-api?type=trips&brand_id=${encodeURIComponent(brandId)}&id=${encodeURIComponent(tripId)}`,
-      // Alternative endpoint patterns (some environments use /load)
-      `${api}/content-api/load?type=trips&id=${encodeURIComponent(tripId)}`,
-      // Fallback: list all trips for the brand
-      `${api}/content-api?type=trips&brand_id=${encodeURIComponent(brandId)}`
+      // Preferred: direct fetch by id (same pattern as newsGetById)
+      `${api}/content-api/${encodeURIComponent(tripId)}?type=trips`,
+      // Fallback: list endpoint (same pattern as newsList)
+      `${api}/content-api/list?type=trips&brand_id=${encodeURIComponent(brandId)}&status=draft`,
+      `${api}/content-api/list?type=trips&brand_id=${encodeURIComponent(brandId)}&status=published`,
+      `${api}/content-api/list?type=trips&brand_id=${encodeURIComponent(brandId)}`
     ];
 
     const headers = {
@@ -322,19 +322,46 @@ async function loadTripContent(ctx, tripId) {
     const normalizeToItems = (raw) => {
       if (!raw) return [];
       if (Array.isArray(raw)) return raw;
+      if (raw.data && Array.isArray(raw.data)) return raw.data;
       if (raw.trips && Array.isArray(raw.trips)) return raw.trips;
       if (raw.items && Array.isArray(raw.items)) return raw.items;
       return [raw];
     };
 
+    const tryFetchJson = async (url) => {
+      let response;
+      try {
+        response = await fetch(url, { headers });
+      } catch (e) {
+        warn('Trip load network error:', { url, error: String(e) });
+        return null;
+      }
+
+      let text = '';
+      try { text = await response.text(); } catch (e) {}
+      let data = null;
+      try { data = text ? JSON.parse(text) : null; } catch (e) {}
+
+      if (!response.ok) {
+        warn('Trip load HTTP error:', {
+          url,
+          status: response.status,
+          statusText: response.statusText,
+          body: (data && (data.error || data.message)) || (text || '').slice(0, 500)
+        });
+        return null;
+      }
+
+      return data;
+    };
+
     let rawData = null;
     for (const url of candidates) {
-      try {
-        const response = await fetch(url, { headers });
-        if (!response.ok) continue;
-        rawData = await response.json();
+      const maybe = await tryFetchJson(url);
+      if (maybe) {
+        rawData = maybe;
         break;
-      } catch (e) {}
+      }
     }
 
     if (!rawData) {
