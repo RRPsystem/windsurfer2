@@ -1703,13 +1703,12 @@ class WebsiteBuilder {
                         try {
                             const s = String(html || '');
                             if (!s || s.indexOf('wb-layout') === -1) return s;
+                            if (s.indexOf('<header class="wb-layout') === -1 && s.indexOf('<footer class="wb-layout') === -1) return s;
                             const parser = new DOMParser();
                             const doc = parser.parseFromString(`<div id="__wb_root__">${s}</div>`, 'text/html');
                             const root = doc.getElementById('__wb_root__');
                             if (!root) return s;
                             root.querySelectorAll('header.wb-layout, footer.wb-layout').forEach(el => el.remove());
-                            const main = root.querySelector('main.wb-layout.main');
-                            if (main) return main.innerHTML;
                             return root.innerHTML;
                         } catch (e) {
                             return String(html || '');
