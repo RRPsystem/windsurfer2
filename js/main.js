@@ -1699,6 +1699,22 @@ class WebsiteBuilder {
                     });
                     const contentJson = await awaitIdle(() => (typeof window.exportBuilderAsJSON === 'function') ? window.exportBuilderAsJSON() : (this.getProjectData() || {}));
                     const htmlString = await awaitIdle(async () => (typeof window.exportBuilderAsHTML === 'function') ? await window.exportBuilderAsHTML(contentJson) : '');
+                    const stripWbLayout = (html) => {
+                        try {
+                            const s = String(html || '');
+                            if (!s || s.indexOf('wb-layout') === -1) return s;
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(`<div id="__wb_root__">${s}</div>`, 'text/html');
+                            const root = doc.getElementById('__wb_root__');
+                            if (!root) return s;
+                            root.querySelectorAll('header.wb-layout, footer.wb-layout').forEach(el => el.remove());
+                            const main = root.querySelector('main.wb-layout.main');
+                            if (main) return main.innerHTML;
+                            return root.innerHTML;
+                        } catch (e) {
+                            return String(html || '');
+                        }
+                    };
                     // Ensure title/slug are present
                     const titleInput = document.getElementById('pageTitleInput');
                     const slugInput = document.getElementById('pageSlugInput');
@@ -1820,6 +1836,11 @@ class WebsiteBuilder {
                         // Check multiple sources for trip ID to prevent duplicates
                         const trip_id = u.searchParams.get('id') || u.searchParams.get('trip_id') || u.searchParams.get('page_id') || this.currentPageId || undefined;
 
+                        let tripHtmlString = htmlString;
+                        try {
+                            tripHtmlString = stripWbLayout(htmlString);
+                        } catch (e) {}
+
                         try {
                             const rbv = (window.CURRENT_ROADBOOK_VARIANT || '').toString().trim();
                             const docType = (window.CURRENT_ROADBOOK_DOC_TYPE || '').toString().trim();
@@ -1835,7 +1856,7 @@ class WebsiteBuilder {
                             id: trip_id,  // Use 'id' instead of 'page_id' for trips
                             title: safeTitle,
                             slug: safeSlug,
-                            content: { json: contentJson, html: htmlString },
+                            content: { json: contentJson, html: tripHtmlString },
                             status: 'draft'
                         });
                         this.showNotification('✈️ Concept opgeslagen (Reis)', 'success');
