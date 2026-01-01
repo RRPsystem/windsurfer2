@@ -1819,6 +1819,17 @@ class WebsiteBuilder {
                         // Trips/Travel: save via trips helper (same structure as destinations)
                         // Check multiple sources for trip ID to prevent duplicates
                         const trip_id = u.searchParams.get('id') || u.searchParams.get('trip_id') || u.searchParams.get('page_id') || this.currentPageId || undefined;
+
+                        try {
+                            const rbv = (window.CURRENT_ROADBOOK_VARIANT || '').toString().trim();
+                            const docType = (window.CURRENT_ROADBOOK_DOC_TYPE || '').toString().trim();
+                            if (rbv || docType) {
+                                contentJson.meta = contentJson.meta || {};
+                                if (rbv) contentJson.meta.roadbook_variant = rbv;
+                                if (docType) contentJson.meta.doc_type = docType;
+                            }
+                        } catch (e) {}
+
                         await window.BuilderPublishAPI.trips.saveDraft({
                             brand_id,
                             id: trip_id,  // Use 'id' instead of 'page_id' for trips

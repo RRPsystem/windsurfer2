@@ -380,6 +380,17 @@ async function loadTripContent(ctx, tripId) {
       return;
     }
 
+    // Restore any saved roadbook template metadata so the UI + save flow can keep it stable
+    try {
+      const meta = (data && data.content && data.content.json && data.content.json.meta)
+        ? data.content.json.meta
+        : ((data && data.content && data.content.meta) ? data.content.meta : null);
+      const rbv = meta && meta.roadbook_variant ? String(meta.roadbook_variant) : '';
+      const docType = meta && meta.doc_type ? String(meta.doc_type) : '';
+      if (rbv) window.CURRENT_ROADBOOK_VARIANT = rbv;
+      if (docType) window.CURRENT_ROADBOOK_DOC_TYPE = docType;
+    } catch (e) {}
+
     window._pendingPageLoad = {
       data: data,
       loaded: false

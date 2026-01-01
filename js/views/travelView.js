@@ -9,6 +9,7 @@
     currentIdea: null,
     micrositeId: null,
     tcLanguage: 'NL',
+    selectedRoadbookVariant: 'autorondreis',
 
     mount(container) {
       if (!container) return;
@@ -38,6 +39,12 @@
         this.tcLanguage = localStorage.getItem('tc_language') || 'NL';
       } catch (e) {
         this.tcLanguage = 'NL';
+      }
+
+      try {
+        this.selectedRoadbookVariant = String(window.CURRENT_ROADBOOK_VARIANT || 'autorondreis');
+      } catch (e) {
+        this.selectedRoadbookVariant = 'autorondreis';
       }
       
       container.innerHTML = this.renderHTML();
@@ -245,29 +252,82 @@
             <div style="position: absolute; top: 4px; right: 4px; background: #fbbf24; color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">SOON</div>
           </div>
         </div>
+
+        <div id="roadbookVariantSelector" style="display:none; margin-top: 10px; padding: 10px; border: 1px solid #e5e7eb; border-radius: 10px; background: #f9fafb;">
+          <div style="font-weight: 700; font-size: 12px; color: #111827; margin-bottom: 8px; display:flex; align-items:center; gap:8px;">
+            <i class="fas fa-route" style="color:#059669;"></i>
+            <span>Roadbook type</span>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" class="roadbook-variant-btn" data-variant="autorondreis" style="padding:6px 10px; border-radius:999px; border:1px solid #e5e7eb; background:white; color:#374151; font-weight:700; font-size:11px; cursor:pointer;">Autorondreis</button>
+            <button type="button" class="roadbook-variant-btn" data-variant="eilandhop" style="padding:6px 10px; border-radius:999px; border:1px solid #e5e7eb; background:white; color:#374151; font-weight:700; font-size:11px; cursor:pointer;">Eilandhop</button>
+            <button type="button" class="roadbook-variant-btn" data-variant="combinatiereis" style="padding:6px 10px; border-radius:999px; border:1px solid #e5e7eb; background:white; color:#374151; font-weight:700; font-size:11px; cursor:pointer;">Combinatiereis</button>
+            <button type="button" class="roadbook-variant-btn" data-variant="autorondreis-offerte" style="padding:6px 10px; border-radius:999px; border:1px solid #e5e7eb; background:white; color:#374151; font-weight:700; font-size:11px; cursor:pointer;">Autorondreis Offerte</button>
+          </div>
+        </div>
       </div>`;
     },
 
     attachTemplateListeners(container) {
       const templateCards = container.querySelectorAll('.template-card');
+      const roadbookVariantSelector = container.querySelector('#roadbookVariantSelector');
+      const variantButtons = container.querySelectorAll('.roadbook-variant-btn');
+
+      const setVariant = (variant) => {
+        try {
+          this.selectedRoadbookVariant = String(variant || 'autorondreis');
+          window.CURRENT_ROADBOOK_VARIANT = this.selectedRoadbookVariant;
+        } catch (e) {}
+        try {
+          variantButtons.forEach(btn => {
+            const active = btn.dataset.variant === this.selectedRoadbookVariant;
+            btn.style.borderColor = active ? '#10b981' : '#e5e7eb';
+            btn.style.background = active ? '#ecfdf5' : 'white';
+            btn.style.color = active ? '#065f46' : '#374151';
+          });
+        } catch (e) {}
+      };
+
+      try {
+        variantButtons.forEach(btn => {
+          btn.addEventListener('click', () => setVariant(btn.dataset.variant));
+        });
+      } catch (e) {}
+
       templateCards.forEach(card => {
         card.addEventListener('click', () => {
           templateCards.forEach(c => { c.style.border = '2px solid #e5e7eb'; c.style.background = 'white'; });
           this.selectedTemplate = card.dataset.template;
           card.style.border = '2px solid #667eea';
           card.style.background = '#f8f9ff';
+          try {
+            if (roadbookVariantSelector) {
+              roadbookVariantSelector.style.display = (this.selectedTemplate === 'roadbook') ? 'block' : 'none';
+            }
+          } catch (e) {}
+          if (this.selectedTemplate === 'roadbook') {
+            setVariant(this.selectedRoadbookVariant || window.CURRENT_ROADBOOK_VARIANT || 'autorondreis');
+          }
         });
       });
+
+      try {
+        if (roadbookVariantSelector) {
+          roadbookVariantSelector.style.display = (this.selectedTemplate === 'roadbook') ? 'block' : 'none';
+        }
+      } catch (e) {}
+      if (this.selectedTemplate === 'roadbook') {
+        setVariant(this.selectedRoadbookVariant || window.CURRENT_ROADBOOK_VARIANT || 'autorondreis');
+      }
     },
 
     async renderTCForm(container) {
       // Load available microsites
       const microsites = await this.loadAvailableMicrosites();
-      
-      const micrositeOptions = microsites.map(ms => 
+      const micrositeOptions = microsites.map(ms =>
         `<option value="${ms.id}">${ms.name}</option>`
       ).join('');
-      
+
       container.innerHTML = `<div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <h3 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700; color: #111827;"><i class="fas fa-link" style="color: #667eea;"></i> Travel Compositor Import</h3>
         <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px;">
@@ -293,12 +353,15 @@
           <button id="testApiBtn" style="height: 48px; padding: 0 24px; background: #6b7280 !important; border: none; border-radius: 8px; color: white !important; font-weight: 600; cursor: pointer;"><i class="fas fa-flask"></i> Test API</button>
         </div>
       </div>`;
+
       const loadBtn = container.querySelector('#loadTravelBtn');
       const testBtn = container.querySelector('#testApiBtn');
       const ideaInput = container.querySelector('#tcIdeaIdInput');
       const micrositeInput = container.querySelector('#tcMicrositeIdInput');
       const langInput = container.querySelector('#tcLanguageInput');
+
       this.attachTemplateListeners(container);
+
       if (loadBtn) {
         loadBtn.addEventListener('click', async () => {
           const ideaId = ideaInput?.value?.trim();
@@ -1632,6 +1695,13 @@
       
       // Convert TC data to roadbook format
       const roadbookData = this.convertTCToRoadbook(data);
+      try {
+        const v = String(this.selectedRoadbookVariant || window.CURRENT_ROADBOOK_VARIANT || 'autorondreis');
+        roadbookData.meta = roadbookData.meta || {};
+        roadbookData.meta.roadbook_variant = v;
+        window.CURRENT_ROADBOOK_VARIANT = v;
+        window.CURRENT_ROADBOOK_DOC_TYPE = (v === 'autorondreis-offerte') ? 'quote' : 'roadbook';
+      } catch (e) {}
       console.log('[TravelView] Converted Roadbook Data:', roadbookData);
       
       // Close travel view
