@@ -176,11 +176,13 @@ export default async function handler(req, res) {
       return res.status(404).send('Brand niet gevonden');
     }
 
-    const { data: trip, error: tripError } = await supabase
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(slug));
+    let tripQuery = supabase
       .from('trips')
-      .select('id,title,slug,content,status')
-      .eq('slug', slug)
-      .single();
+      .select('id,title,slug,content,status');
+
+    tripQuery = isUuid ? tripQuery.eq('id', slug) : tripQuery.eq('slug', slug);
+    const { data: trip, error: tripError } = await tripQuery.single();
 
     if (tripError || !trip) {
       return res.status(404).send('Trip niet gevonden');
