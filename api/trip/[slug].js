@@ -159,6 +159,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    const debug = String((req.query && (req.query.debug ?? req.query._debug)) ?? '') === '1';
     const slug = req.query && req.query.slug;
     if (!slug) {
       return res.status(400).json({ error: 'Slug is required' });
@@ -173,8 +174,10 @@ export default async function handler(req, res) {
     // Brand is optional for the trip viewer: if brand slug is present and found, enforce assignment
     // for that brand. Otherwise fall back to any published assignment.
     let brandId = null;
+    let brandSlug = '';
+    let brandError = null;
     try {
-      const brandSlug = getBrandSlug(req);
+      brandSlug = getBrandSlug(req);
       if (brandSlug) {
         const { data: brand } = await supabase
           .from('brands')
@@ -185,12 +188,16 @@ export default async function handler(req, res) {
       }
     } catch (e) {
       brandId = null;
+      brandError = String(e && e.message ? e.message : e);
     }
 
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(slug));
     let trip = null;
     let tripError = null;
     let assignment = null;
+    let lookupMode = isUuid ? 'uuid' : 'slug';
+    let tripLookup = null;
+    let assignmentLookup = null;
 
     if (isUuid) {
       // 1) Prefer direct trip lookup by UUID
@@ -202,23 +209,52 @@ export default async function handler(req, res) {
 
       trip = tripRes.data || null;
       tripError = tripRes.error || null;
+      tripLookup = {
+        tried: 'trips.id',
+        found: !!trip,
+        error: tripError ? (tripError.message || String(tripError)) : null
+      };
 
       // 2) Fallback: some public URLs might use trip_brand_assignments.id
       if (!trip) {
-        const { data: maybeAssignment } = await supabase
+        const assignmentRes = await supabase
           .from('trip_brand_assignments')
           .select('id,trip_id,brand_id,is_published')
           .eq('id', slug)
           .eq('is_published', true)
           .maybeSingle();
 
+        const maybeAssignment = assignmentRes.data || null;
+        assignmentLookup = {
+          tried: 'trip_brand_assignments.id (published)',
+          found: !!maybeAssignment,
+          error: assignmentRes.error ? (assignmentRes.error.message || String(assignmentRes.error)) : null
+        };
+
         if (maybeAssignment) {
           // If we can resolve brand from subdomain, enforce brand match.
           if (brandId && maybeAssignment.brand_id && maybeAssignment.brand_id !== brandId) {
+            if (debug) {
+              return res.status(200).json({
+                ok: false,
+                reason: 'brand_mismatch',
+                host: String(req.headers.host || ''),
+                brandSlug,
+                brandId,
+                brandError,
+                slug,
+                isUuid,
+                lookupMode,
+                tripLookup,
+                assignmentLookup,
+                assignment: { id: maybeAssignment.id, trip_id: maybeAssignment.trip_id, brand_id: maybeAssignment.brand_id, is_published: maybeAssignment.is_published }
+              });
+            }
             return res.status(404).send('Trip niet gepubliceerd');
           }
 
           assignment = maybeAssignment;
+          lookupMode = 'assignment_uuid';
           const tripByAssignRes = await supabase
             .from('trips')
             .select('id,title,slug,content,status')
@@ -227,6 +263,11 @@ export default async function handler(req, res) {
 
           trip = tripByAssignRes.data || null;
           tripError = tripByAssignRes.error || null;
+          tripLookup = {
+            tried: 'trips.id via assignment.trip_id',
+            found: !!trip,
+            error: tripError ? (tripError.message || String(tripError)) : null
+          };
         }
       }
     } else {
@@ -238,9 +279,29 @@ export default async function handler(req, res) {
 
       trip = tripRes.data || null;
       tripError = tripRes.error || null;
+      tripLookup = {
+        tried: 'trips.slug',
+        found: !!trip,
+        error: tripError ? (tripError.message || String(tripError)) : null
+      };
     }
 
     if (tripError || !trip) {
+      if (debug) {
+        return res.status(200).json({
+          ok: false,
+          reason: 'trip_not_found',
+          host: String(req.headers.host || ''),
+          brandSlug,
+          brandId,
+          brandError,
+          slug,
+          isUuid,
+          lookupMode,
+          tripLookup,
+          assignmentLookup
+        });
+      }
       return res.status(404).send('Trip niet gevonden');
     }
 
@@ -262,7 +323,40 @@ export default async function handler(req, res) {
     }
 
     if (!assignment) {
+      if (debug) {
+        return res.status(200).json({
+          ok: false,
+          reason: 'not_published',
+          host: String(req.headers.host || ''),
+          brandSlug,
+          brandId,
+          brandError,
+          slug,
+          isUuid,
+          lookupMode,
+          tripLookup,
+          assignmentLookup,
+          trip: { id: trip.id, slug: trip.slug, title: trip.title, status: trip.status }
+        });
+      }
       return res.status(404).send('Trip niet gepubliceerd');
+    }
+
+    if (debug) {
+      return res.status(200).json({
+        ok: true,
+        host: String(req.headers.host || ''),
+        brandSlug,
+        brandId,
+        brandError,
+        slug,
+        isUuid,
+        lookupMode,
+        tripLookup,
+        assignmentLookup,
+        trip: { id: trip.id, slug: trip.slug, title: trip.title, status: trip.status },
+        assignment
+      });
     }
 
     const html = extractTripHtml(trip);
