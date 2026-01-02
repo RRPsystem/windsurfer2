@@ -42,9 +42,21 @@ function extractTripHtml(trip) {
   }
 }
 
+function stripContentEditable(html) {
+  try {
+    const s = String(html || '');
+    return s
+      .replace(/\scontenteditable\s*=\s*(["'])?(?:true|plaintext-only)\1/gi, '')
+      .replace(/\scontenteditable\b/gi, '');
+  } catch (e) {
+    return String(html || '');
+  }
+}
+
 function buildTripViewerHtml({ title, html }) {
   const safeTitle = escapeHtml(title || 'Reis');
-  const body = html || '<div style="padding:40px;text-align:center;color:#64748b;">Geen content</div>';
+  const cleanedBody = stripContentEditable(html);
+  const body = cleanedBody || '<div style="padding:40px;text-align:center;color:#64748b;">Geen content</div>';
 
   return `<!doctype html>
 <html lang="nl">
@@ -56,6 +68,7 @@ function buildTripViewerHtml({ title, html }) {
   <link rel="stylesheet" href="/styles/main.css?v=tripviewer">
   <link rel="stylesheet" href="/styles/components.css?v=tripviewer">
   <link rel="stylesheet" href="/styles/roadbook-timeline.css?v=tripviewer">
+  <link rel="stylesheet" href="/styles/roadbook-timeline-new.css?v=tripviewer" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     html, body { height: auto; min-height: 100vh; }
@@ -80,7 +93,7 @@ function buildTripViewerHtml({ title, html }) {
         } catch (e) {}
 
         try {
-          var timelines = document.querySelectorAll('.roadbook-animated-timeline-section');
+          var timelines = document.querySelectorAll('.roadbook-animated-timeline-section, .roadbook-animated-timeline');
           timelines.forEach(function(timeline){
             try {
               var itineraryWrap = timeline.querySelector('#itinerary-wrap');

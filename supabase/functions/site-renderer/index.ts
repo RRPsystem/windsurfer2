@@ -114,6 +114,8 @@ async function loadCSS(supabaseUrl: string): Promise<string> {
   try {
     const mainCSSUrl = `${supabaseUrl}/storage/v1/object/public/assets/styles/main.css`;
     const componentsCSSUrl = `${supabaseUrl}/storage/v1/object/public/assets/styles/components.css`;
+    const roadbookTimelineCSSUrl = `${supabaseUrl}/storage/v1/object/public/assets/styles/roadbook-timeline.css`;
+    const roadbookTimelineNewCSSUrl = `${supabaseUrl}/storage/v1/object/public/assets/styles/roadbook-timeline-new.css`;
     
     const [mainRes, compRes] = await Promise.all([
       fetch(mainCSSUrl),
@@ -122,8 +124,21 @@ async function loadCSS(supabaseUrl: string): Promise<string> {
     
     const mainCSS = mainRes.ok ? await mainRes.text() : '';
     const componentsCSS = compRes.ok ? await compRes.text() : '';
-    
-    return mainCSS + '\n\n' + componentsCSS;
+
+    let timelineCSS = '';
+    try {
+      const [tlRes, tlNewRes] = await Promise.all([
+        fetch(roadbookTimelineCSSUrl),
+        fetch(roadbookTimelineNewCSSUrl)
+      ]);
+      const tlCss = tlRes.ok ? await tlRes.text() : '';
+      const tlNewCss = tlNewRes.ok ? await tlNewRes.text() : '';
+      timelineCSS = [tlCss, tlNewCss].filter(Boolean).join('\n\n');
+    } catch (_e) {
+      timelineCSS = '';
+    }
+
+    return [mainCSS, componentsCSS, timelineCSS].filter(Boolean).join('\n\n');
   } catch (e) {
     console.error('Failed to load CSS:', e);
     return '';
@@ -327,6 +342,62 @@ body {
 
   <!-- Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    (function(){
+      function stripEditable() {
+        try {
+          document.querySelectorAll('[contenteditable]').forEach(function(el){
+            el.removeAttribute('contenteditable');
+          });
+        } catch (_e) {}
+      }
+
+      function initTimelines() {
+        try {
+          var timelines = document.querySelectorAll('.roadbook-animated-timeline-section, .roadbook-animated-timeline');
+          timelines.forEach(function(timeline){
+            try {
+              if (window.RoadbookTimelineAnimation) {
+                new window.RoadbookTimelineAnimation(timeline);
+              }
+            } catch (_e2) {}
+          });
+        } catch (_e3) {}
+      }
+
+      function initAll() {
+        stripEditable();
+        initTimelines();
+      }
+
+      function ensureTimelineLib(cb) {
+        try {
+          if (window.RoadbookTimelineAnimation) return cb();
+          var s = document.createElement('script');
+          s.src = 'https://www.ai-websitestudio.nl/js/roadbook-timeline-animation.js';
+          s.onload = cb;
+          s.onerror = cb;
+          document.head.appendChild(s);
+        } catch (_e) {
+          cb();
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function(){
+          initAll();
+          ensureTimelineLib(function(){
+            initTimelines();
+          });
+        });
+      } else {
+        initAll();
+        ensureTimelineLib(function(){
+          initTimelines();
+        });
+      }
+    })();
+  </script>
 </body>
 </html>`;
 }
