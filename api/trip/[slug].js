@@ -168,21 +168,23 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Supabase not configured' });
     }
 
-    const brandSlug = getBrandSlug(req);
-    if (!brandSlug) {
-      return res.status(400).send('Brand ontbreekt (gebruik subdomain of ?brand=...)');
-    }
-
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { data: brand, error: brandError } = await supabase
-      .from('brands')
-      .select('id')
-      .eq('slug', brandSlug)
-      .single();
-
-    if (brandError || !brand) {
-      return res.status(404).send('Brand niet gevonden');
+    // Brand is optional for the trip viewer: if brand slug is present and found, enforce assignment
+    // for that brand. Otherwise fall back to any published assignment.
+    let brandId = null;
+    try {
+      const brandSlug = getBrandSlug(req);
+      if (brandSlug) {
+        const { data: brand } = await supabase
+          .from('brands')
+          .select('id')
+          .eq('slug', brandSlug)
+          .single();
+        if (brand && brand.id) brandId = brand.id;
+      }
+    } catch (e) {
+      brandId = null;
     }
 
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(slug));
@@ -197,15 +199,23 @@ export default async function handler(req, res) {
       return res.status(404).send('Trip niet gevonden');
     }
 
-    const { data: assignment, error: assignError } = await supabase
-      .from('trip_brand_assignments')
-      .select('id,is_published')
-      .eq('brand_id', brand.id)
-      .eq('trip_id', trip.id)
-      .eq('is_published', true)
-      .single();
+    // Verify publication
+    let assignment = null;
+    try {
+      let q = supabase
+        .from('trip_brand_assignments')
+        .select('id,is_published')
+        .eq('trip_id', trip.id)
+        .eq('is_published', true);
+      if (brandId) q = q.eq('brand_id', brandId);
+      const { data, error: assignError } = await q.limit(1).maybeSingle();
+      if (assignError) throw assignError;
+      assignment = data;
+    } catch (e) {
+      assignment = null;
+    }
 
-    if (assignError || !assignment) {
+    if (!assignment) {
       return res.status(404).send('Trip niet gepubliceerd');
     }
 
