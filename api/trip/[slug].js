@@ -188,31 +188,77 @@ export default async function handler(req, res) {
     }
 
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(slug));
-    let tripQuery = supabase
-      .from('trips')
-      .select('id,title,slug,content,status');
+    let trip = null;
+    let tripError = null;
+    let assignment = null;
 
-    tripQuery = isUuid ? tripQuery.eq('id', slug) : tripQuery.eq('slug', slug);
-    const { data: trip, error: tripError } = await tripQuery.single();
+    if (isUuid) {
+      // 1) Prefer direct trip lookup by UUID
+      const tripRes = await supabase
+        .from('trips')
+        .select('id,title,slug,content,status')
+        .eq('id', slug)
+        .maybeSingle();
+
+      trip = tripRes.data || null;
+      tripError = tripRes.error || null;
+
+      // 2) Fallback: some public URLs might use trip_brand_assignments.id
+      if (!trip) {
+        const { data: maybeAssignment } = await supabase
+          .from('trip_brand_assignments')
+          .select('id,trip_id,brand_id,is_published')
+          .eq('id', slug)
+          .eq('is_published', true)
+          .maybeSingle();
+
+        if (maybeAssignment) {
+          // If we can resolve brand from subdomain, enforce brand match.
+          if (brandId && maybeAssignment.brand_id && maybeAssignment.brand_id !== brandId) {
+            return res.status(404).send('Trip niet gepubliceerd');
+          }
+
+          assignment = maybeAssignment;
+          const tripByAssignRes = await supabase
+            .from('trips')
+            .select('id,title,slug,content,status')
+            .eq('id', maybeAssignment.trip_id)
+            .maybeSingle();
+
+          trip = tripByAssignRes.data || null;
+          tripError = tripByAssignRes.error || null;
+        }
+      }
+    } else {
+      const tripRes = await supabase
+        .from('trips')
+        .select('id,title,slug,content,status')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      trip = tripRes.data || null;
+      tripError = tripRes.error || null;
+    }
 
     if (tripError || !trip) {
       return res.status(404).send('Trip niet gevonden');
     }
 
     // Verify publication
-    let assignment = null;
-    try {
-      let q = supabase
-        .from('trip_brand_assignments')
-        .select('id,is_published')
-        .eq('trip_id', trip.id)
-        .eq('is_published', true);
-      if (brandId) q = q.eq('brand_id', brandId);
-      const { data, error: assignError } = await q.limit(1).maybeSingle();
-      if (assignError) throw assignError;
-      assignment = data;
-    } catch (e) {
-      assignment = null;
+    if (!assignment) {
+      try {
+        let q = supabase
+          .from('trip_brand_assignments')
+          .select('id,is_published')
+          .eq('trip_id', trip.id)
+          .eq('is_published', true);
+        if (brandId) q = q.eq('brand_id', brandId);
+        const { data, error: assignError } = await q.limit(1).maybeSingle();
+        if (assignError) throw assignError;
+        assignment = data;
+      } catch (e) {
+        assignment = null;
+      }
     }
 
     if (!assignment) {
