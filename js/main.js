@@ -1714,6 +1714,14 @@ class WebsiteBuilder {
                             return String(html || '');
                         }
                     };
+                    const stripScripts = (html) => {
+                        try {
+                            const s = String(html || '');
+                            return s.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+                        } catch (e) {
+                            return String(html || '');
+                        }
+                    };
                     // Ensure title/slug are present
                     const titleInput = document.getElementById('pageTitleInput');
                     const slugInput = document.getElementById('pageSlugInput');
@@ -1837,7 +1845,7 @@ class WebsiteBuilder {
 
                         let tripHtmlString = htmlString;
                         try {
-                            tripHtmlString = stripWbLayout(htmlString);
+                            tripHtmlString = stripScripts(stripWbLayout(htmlString));
                         } catch (e) {}
 
                         try {

@@ -53,9 +53,18 @@ function stripContentEditable(html) {
   }
 }
 
+function stripScripts(html) {
+  try {
+    const s = String(html || '');
+    return s.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  } catch (e) {
+    return String(html || '');
+  }
+}
+
 function buildTripViewerHtml({ title, html }) {
   const safeTitle = escapeHtml(title || 'Reis');
-  const cleanedBody = stripContentEditable(html);
+  const cleanedBody = stripContentEditable(stripScripts(html));
   const body = cleanedBody || '<div style="padding:40px;text-align:center;color:#64748b;">Geen content</div>';
 
   return `<!doctype html>
