@@ -754,6 +754,31 @@ async function tripsSaveDraft({ brand_id, page_id, id, title, slug, description,
   const base = contentApiBase();
   if (!base) throw new Error('content-api base URL ontbreekt');
   const url = `${base}/content-api/save?type=trips`;
+
+  // BOLT expects a page with HTML content and a page_id reference.
+  // Keep a stable mapping by using the trip id as the page_id.
+  const tripId = id || page_id || null;
+  const htmlString =
+    (content && (content.html || content.body_html)) ||
+    (content_json && (content_json.html || content_json.body_html)) ||
+    '';
+  let ensuredPageId = null;
+  if (tripId && htmlString && typeof saveDraft === 'function' && typeof publishPage === 'function') {
+    try {
+      const pageSlug = (slug ? `trip-${slug}` : `trip-${String(tripId).slice(0, 8)}`);
+      const savedPage = await saveDraft({
+        brand_id,
+        page_id: tripId,
+        title: title || 'Reis',
+        slug: pageSlug,
+        content_json: { trip_id: tripId, type: 'trip' }
+      });
+      ensuredPageId = (savedPage && (savedPage.id || savedPage.page_id)) || tripId;
+      await publishPage(ensuredPageId, htmlString);
+    } catch (e) {
+      console.warn('[tripsSaveDraft] Could not ensure trip page_id/page HTML for BOLT sync', e);
+    }
+  }
   
   // Build body with all trip fields
   const body = { 
@@ -814,6 +839,10 @@ async function tripsSaveDraft({ brand_id, page_id, id, title, slug, description,
   }
   
   console.debug('[tripsSaveDraft] success', { id: data && data.id, slug: data && data.slug, status: data && data.status });
+  // Include ensured page_id if we managed to create/publish it
+  if (data && ensuredPageId && !data.page_id) {
+    try { data.page_id = ensuredPageId; } catch (e) {}
+  }
   return data;
 }
 
