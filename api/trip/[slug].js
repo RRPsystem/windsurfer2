@@ -204,7 +204,7 @@ export default async function handler(req, res) {
       // 1) Prefer direct trip lookup by UUID
       const tripRes = await supabase
         .from('trips')
-        .select('id,title,slug,content,status')
+        .select('id,brand_id,title,slug,content,status')
         .eq('id', slug)
         .maybeSingle();
 
@@ -221,7 +221,7 @@ export default async function handler(req, res) {
       if (!trip) {
         const tripBySlugRes = await supabase
           .from('trips')
-          .select('id,title,slug,content,status')
+          .select('id,brand_id,title,slug,content,status')
           .eq('slug', slug)
           .maybeSingle();
 
@@ -305,7 +305,7 @@ export default async function handler(req, res) {
           lookupMode = 'assignment_uuid';
           const tripByAssignRes = await supabase
             .from('trips')
-            .select('id,title,slug,content,status')
+            .select('id,brand_id,title,slug,content,status')
             .eq('id', maybeAssignment.trip_id)
             .maybeSingle();
 
@@ -321,7 +321,7 @@ export default async function handler(req, res) {
     } else {
       const tripRes = await supabase
         .from('trips')
-        .select('id,title,slug,content,status')
+        .select('id,brand_id,title,slug,content,status')
         .eq('slug', slug)
         .maybeSingle();
 
@@ -372,6 +372,15 @@ export default async function handler(req, res) {
     }
 
     if (!assignment) {
+      const tripStatus = String(trip && trip.status || '').trim().toLowerCase();
+      const isLive = tripStatus === 'live';
+      const brandOk = !brandId || !trip.brand_id || trip.brand_id === brandId;
+      if (isLive && brandOk) {
+        assignment = { id: null, is_published: true, _implicit: true };
+      }
+    }
+
+    if (!assignment) {
       if (debug) {
         return res.status(200).json({
           ok: false,
@@ -386,7 +395,7 @@ export default async function handler(req, res) {
           tripLookup,
           tripLookupAttempts,
           assignmentLookup,
-          trip: { id: trip.id, slug: trip.slug, title: trip.title, status: trip.status }
+          trip: { id: trip.id, brand_id: trip.brand_id, slug: trip.slug, title: trip.title, status: trip.status }
         });
       }
       return res.status(404).send('Trip niet gepubliceerd');
@@ -405,7 +414,7 @@ export default async function handler(req, res) {
         tripLookup,
         tripLookupAttempts,
         assignmentLookup,
-        trip: { id: trip.id, slug: trip.slug, title: trip.title, status: trip.status },
+        trip: { id: trip.id, brand_id: trip.brand_id, slug: trip.slug, title: trip.title, status: trip.status },
         assignment
       });
     }
