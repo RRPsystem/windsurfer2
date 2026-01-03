@@ -1108,10 +1108,14 @@ class ComponentFactory {
             }
             
             // Navigate to detail page
-            console.log('[TravelCard] Card clicked, navigating to:', travel.id);
-            // TODO: Implement proper navigation
-            // For now, show travel details
-            alert(`Reis Details:\n\nTitel: ${travel.title}\nLocatie: ${travel.location}\nDuur: ${travel.duration}\nPrijs: ${travel.price}\n\nDetail pagina wordt binnenkort toegevoegd!`);
+            const targetId = travel.id || travel.slug;
+            if (!targetId) {
+                alert('Deze reis heeft geen geldige ID/slug om te openen.');
+                return;
+            }
+            const url = `/trip/${encodeURIComponent(String(targetId))}`;
+            console.log('[TravelCard] Card clicked, navigating to:', url);
+            window.location.href = url;
         });
 
         return card;

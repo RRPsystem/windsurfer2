@@ -12,6 +12,7 @@ class RoadbookTimelineAnimation {
         this.isFixedCar = false;
         this.scrollContainer = null;
         this._scrollHandler = null;
+        this._resizeHandler = null;
         
         this.init();
     }
@@ -65,17 +66,29 @@ class RoadbookTimelineAnimation {
         
         // Setup scroll listeners on the actual scroll container (Builder often scrolls inside a panel).
         this._scrollHandler = () => this.onScroll();
+        this._resizeHandler = () => {
+            try {
+                if (this.isFixedCar) {
+                    this.updateFixedCarLeft();
+                    this.updateCarVisibility();
+                }
+            } catch (e) {}
+        };
         if (this.scrollContainer === window) {
             window.addEventListener('scroll', this._scrollHandler, { passive: true });
         } else if (this.scrollContainer) {
             this.scrollContainer.addEventListener('scroll', this._scrollHandler, { passive: true });
         }
-        window.addEventListener('resize', this._scrollHandler, { passive: true });
+        window.addEventListener('resize', this._resizeHandler, { passive: true });
         
         console.log('[Timeline Init] Scroll listeners attached');
         
         // Force initial update after a delay to ensure layout is ready
         setTimeout(() => {
+            if (this.isFixedCar) {
+                this.updateFixedCarLeft();
+                this.updateCarVisibility();
+            }
             this.updateCarPosition();
             this.onScroll();
         }, 100);
@@ -87,6 +100,13 @@ class RoadbookTimelineAnimation {
                 this.updateCarPosition();
             }
         }, 100);
+    }
+
+    updateFixedCarLeft() {
+        if (!this.car || !this.roadContainer) return;
+        const r = this.roadContainer.getBoundingClientRect();
+        const cx = r.left + (r.width / 2);
+        this.car.style.setProperty('left', `${cx}px`, 'important');
     }
 
     findScrollContainer() {
@@ -154,6 +174,7 @@ class RoadbookTimelineAnimation {
         // In Roadbook layout 1 the car is intentionally fixed in the viewport.
         // Avoid fighting the CSS by not recalculating the top position.
         if (this.isFixedCar) {
+            this.updateFixedCarLeft();
             this.updateActiveDays();
             return;
         }

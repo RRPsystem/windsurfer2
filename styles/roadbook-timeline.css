@@ -7,7 +7,7 @@
     width: 100%;
     background: linear-gradient(to bottom, var(--brand-primary, #84cc16) 300px, #f9fafb 300px);
     position: relative;
-    overflow: visible;
+    overflow: hidden;
 }
 
 /* Header */

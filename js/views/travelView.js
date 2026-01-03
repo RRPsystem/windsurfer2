@@ -956,10 +956,15 @@
                 
                 console.log('[TravelView] Creating trip assignment for brand:', brand_id);
                 
+                const normStatus = (s) => String(s || '').trim().toLowerCase();
+                const tripStatus = normStatus(savedTravel.status || travelData.status);
+                const shouldPublish = tripStatus === 'live';
+                
                 const assignmentData = {
                   trip_id: savedTravel.id,
                   brand_id: brand_id,
-                  is_published: true,
+                  is_published: shouldPublish,
+                  status: shouldPublish ? 'accepted' : 'draft',
                   priority: 999
                 };
                 

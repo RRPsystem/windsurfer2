@@ -197,6 +197,7 @@ export default async function handler(req, res) {
     let assignment = null;
     let lookupMode = isUuid ? 'uuid' : 'slug';
     let tripLookup = null;
+    let tripLookupAttempts = [];
     let assignmentLookup = null;
 
     if (isUuid) {
@@ -214,6 +215,32 @@ export default async function handler(req, res) {
         found: !!trip,
         error: tripError ? (tripError.message || String(tripError)) : null
       };
+      tripLookupAttempts.push(tripLookup);
+
+      // 1b) Fallback: sometimes UUID-like values are stored as trips.slug
+      if (!trip) {
+        const tripBySlugRes = await supabase
+          .from('trips')
+          .select('id,title,slug,content,status')
+          .eq('slug', slug)
+          .maybeSingle();
+
+        const tripBySlug = tripBySlugRes.data || null;
+        const tripBySlugErr = tripBySlugRes.error || null;
+        const tripSlugAttempt = {
+          tried: 'trips.slug (uuid-like)',
+          found: !!tripBySlug,
+          error: tripBySlugErr ? (tripBySlugErr.message || String(tripBySlugErr)) : null
+        };
+        tripLookupAttempts.push(tripSlugAttempt);
+
+        if (tripBySlug) {
+          trip = tripBySlug;
+          tripError = tripBySlugErr;
+          tripLookup = tripSlugAttempt;
+          lookupMode = 'uuid_as_slug';
+        }
+      }
 
       // 2) Fallback: some public URLs might use trip_brand_assignments.id
       if (!trip) {
@@ -221,17 +248,37 @@ export default async function handler(req, res) {
           .from('trip_brand_assignments')
           .select('id,trip_id,brand_id,is_published')
           .eq('id', slug)
-          .eq('is_published', true)
           .maybeSingle();
 
         const maybeAssignment = assignmentRes.data || null;
         assignmentLookup = {
-          tried: 'trip_brand_assignments.id (published)',
+          tried: 'trip_brand_assignments.id',
           found: !!maybeAssignment,
           error: assignmentRes.error ? (assignmentRes.error.message || String(assignmentRes.error)) : null
         };
 
         if (maybeAssignment) {
+          if (!maybeAssignment.is_published) {
+            if (debug) {
+              return res.status(200).json({
+                ok: false,
+                reason: 'assignment_not_published',
+                host: String(req.headers.host || ''),
+                brandSlug,
+                brandId,
+                brandError,
+                slug,
+                isUuid,
+                lookupMode,
+                tripLookup,
+                tripLookupAttempts,
+                assignmentLookup,
+                assignment: { id: maybeAssignment.id, trip_id: maybeAssignment.trip_id, brand_id: maybeAssignment.brand_id, is_published: maybeAssignment.is_published }
+              });
+            }
+            return res.status(404).send('Trip niet gepubliceerd');
+          }
+
           // If we can resolve brand from subdomain, enforce brand match.
           if (brandId && maybeAssignment.brand_id && maybeAssignment.brand_id !== brandId) {
             if (debug) {
@@ -246,6 +293,7 @@ export default async function handler(req, res) {
                 isUuid,
                 lookupMode,
                 tripLookup,
+                tripLookupAttempts,
                 assignmentLookup,
                 assignment: { id: maybeAssignment.id, trip_id: maybeAssignment.trip_id, brand_id: maybeAssignment.brand_id, is_published: maybeAssignment.is_published }
               });
@@ -299,6 +347,7 @@ export default async function handler(req, res) {
           isUuid,
           lookupMode,
           tripLookup,
+          tripLookupAttempts,
           assignmentLookup
         });
       }
@@ -335,6 +384,7 @@ export default async function handler(req, res) {
           isUuid,
           lookupMode,
           tripLookup,
+          tripLookupAttempts,
           assignmentLookup,
           trip: { id: trip.id, slug: trip.slug, title: trip.title, status: trip.status }
         });
@@ -353,6 +403,7 @@ export default async function handler(req, res) {
         isUuid,
         lookupMode,
         tripLookup,
+        tripLookupAttempts,
         assignmentLookup,
         trip: { id: trip.id, slug: trip.slug, title: trip.title, status: trip.status },
         assignment
