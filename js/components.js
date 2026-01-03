@@ -7376,7 +7376,7 @@ ComponentFactory.createRoadbook = function(options = {}) {
                         <!-- ROAD LINE: White dashed -->
                         <div class="roadbook-road-line"></div>
                         <!-- CAR: Animated car (fixed position, stays in center while scrolling) -->
-                        <div id="car"><img src="images/auto.png" alt="Car" style="width: 100%; height: auto;" onerror="this.parentElement.innerHTML='🚗';"></div>
+                        <div id="car"><img src="/images/auto.png" alt="Car" style="width: 100%; height: auto;" onerror="this.parentElement.innerHTML='<span style=&quot;display:block;font-size:40px;line-height:1;text-align:center;&quot;>🚗</span>'; "></div>
                         
                         <!-- ITINERARY: Contains days -->
                         <div class="itinerary" style="position: relative;">
