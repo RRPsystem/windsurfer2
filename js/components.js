@@ -6250,6 +6250,264 @@ class ComponentFactory {
     }
 }
 
+ComponentFactory.createRoadbookRondreis = function(options = {}) {
+    const section = document.createElement('section');
+    section.className = 'wb-component wb-roadbook wb-roadbook-rondreis';
+    section.setAttribute('data-component', 'roadbook');
+    section.setAttribute('data-roadbook-variant', 'rondreis');
+    section.id = this.generateId('roadbook_rondreis');
+
+    const escapeHtml = (s) => {
+        try {
+            return String(s || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        } catch (e) {
+            return String(s || '');
+        }
+    };
+
+    const toolbar = this.createToolbar();
+    section.appendChild(toolbar);
+    this.addTypeBadge(section);
+
+    const data = {
+        title: options.title || 'Rondreis',
+        departureDate: options.departureDate || '2025-06-15',
+        transports: options.transports || [],
+        hotels: options.hotels || [],
+        itinerary: options.itinerary || [],
+        destinations: options.destinations || [],
+        travelBroUrl: options.travelBroUrl || options.travelbroUrl || options.broUrl || options.travel_bro_url || ''
+    };
+    section._roadbookData = data;
+
+    let brandPrimary = '#066168';
+    let brandLogo = '';
+    try {
+        const brandSettings = localStorage.getItem('brandSettings');
+        if (brandSettings) {
+            const brand = JSON.parse(brandSettings);
+            if (brand && brand.logo) brandLogo = brand.logo;
+            if (brand && brand.colors && brand.colors.primary) brandPrimary = brand.colors.primary;
+            else if (brand && brand.primaryColor) brandPrimary = brand.primaryColor;
+        }
+    } catch (e) {}
+
+    try {
+        document.documentElement.style.setProperty('--brand-primary', brandPrimary);
+    } catch (e) {}
+
+    const routePoints = (Array.isArray(data.destinations) ? data.destinations : [])
+        .map((d) => {
+            try {
+                const lat = d && (d.latitude != null ? d.latitude : (d.geolocation && d.geolocation.latitude));
+                const lng = d && (d.longitude != null ? d.longitude : (d.geolocation && d.geolocation.longitude));
+                if (lat == null || lng == null) return null;
+                return {
+                    name: d.name || d.title || '',
+                    fromDay: d.fromDay || d.day || 1,
+                    toDay: d.toDay || d.fromDay || d.day || 1,
+                    latitude: lat,
+                    longitude: lng
+                };
+            } catch (e) { return null; }
+        })
+        .filter(Boolean);
+
+    const routePointsAttr = (() => {
+        try { return encodeURIComponent(JSON.stringify(routePoints)); } catch (e) { return ''; }
+    })();
+
+    const firstImg = (() => {
+        try {
+            const it0 = Array.isArray(data.itinerary) && data.itinerary[0] ? data.itinerary[0] : null;
+            const u = it0 && (it0.image || it0.imageUrl || it0.photo || '');
+            return u || 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200';
+        } catch (e) {
+            return 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200';
+        }
+    })();
+
+    const stops = Array.isArray(data.itinerary) ? data.itinerary : [];
+    const stopItems = stops.map((day, i) => {
+        const name = day.title || day.destination || day.location || `Stop ${i + 1}`;
+        const subtitle = day.subtitle || day.location || '';
+        const date = day.date || day.fromDate || '';
+        const nights = day.nights || '';
+        return {
+            i,
+            name,
+            subtitle,
+            date,
+            nights,
+            img: day.image || day.imageUrl || firstImg
+        };
+    });
+
+    const safeJson = (obj) => {
+        try { return encodeURIComponent(JSON.stringify(obj)); } catch (e) { return ''; }
+    };
+
+    const detailsHtml = stopItems.map((s) => {
+        const normalizePlaceName = (v) => String(v || '').replace(/^Dag\s*\d+\s*:\s*/i, '').trim().toLowerCase();
+        const placeKey = normalizePlaceName(s.name);
+        const hotels = Array.isArray(data.hotels) ? data.hotels : [];
+        const hit = hotels.find(h => {
+            try {
+                const hl = normalizePlaceName(h && (h.location || h.city || h.destination || ''));
+                return hl && placeKey && (hl === placeKey || hl.includes(placeKey) || placeKey.includes(hl));
+            } catch (e) { return false; }
+        }) || null;
+        const hotelName = hit && hit.name ? String(hit.name) : '';
+        const hotelImg = (hit && (hit.image || (Array.isArray(hit.images) && hit.images[0]))) || s.img;
+        const hotelImgsRaw = (hit && (hit.images || hit.photos || [])) || [];
+        const hotelImgs = (Array.isArray(hotelImgsRaw) ? hotelImgsRaw : [])
+            .map(x => x && typeof x === 'object' ? (x.url || x.src || '') : x)
+            .filter(Boolean);
+        const hotelSlides = safeJson((hotelImg ? [hotelImg, ...hotelImgs] : hotelImgs).slice(0, 12));
+
+        const destSlides = safeJson([s.img].filter(Boolean));
+
+        const transports = Array.isArray(data.transports) ? data.transports : [];
+        const transportHtml = transports.length
+            ? transports.map((t) => {
+                const type = (t && t.type) ? String(t.type) : 'transport';
+                const from = t.from || t.departure || '';
+                const to = t.to || t.arrival || '';
+                const time = (t.departureTime || t.time || '') + (t.arrivalTime ? ` - ${t.arrivalTime}` : '');
+                const carrier = t.carrier || t.company || t.airline || '';
+                const code = t.flightNumber || t.code || '';
+                const icon = (type === 'flight' || type === 'plane') ? 'plane' : (type === 'car' ? 'car' : (type === 'train' ? 'train' : 'route'));
+                return `
+                    <div style="border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px;background:#fff;display:flex;gap:12px;align-items:flex-start;">
+                        <div style="width:38px;height:38px;border-radius:10px;background:rgba(6,97,104,0.12);display:flex;align-items:center;justify-content:center;color:${brandPrimary};flex:0 0 auto;">
+                            <i class="fas fa-${icon}"></i>
+                        </div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-weight:800;color:#111827;">${escapeHtml(from)} ${from && to ? '→' : ''} ${escapeHtml(to)}</div>
+                            <div style="color:#6b7280;font-size:13px;margin-top:2px;">${escapeHtml(time)} ${carrier || code ? '·' : ''} ${escapeHtml([carrier, code].filter(Boolean).join(' '))}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('')
+            : `<div style="padding:14px 16px;border:1px dashed #d1d5db;border-radius:12px;color:#6b7280;background:#fff;">Nog geen transport gevonden</div>`;
+
+        const destHtml = `
+            <div class="placeImg" data-wb-slides="${destSlides}" data-wb-slide-idx="0" style="position:relative;border-radius:14px;overflow:hidden;height:240px;background:#f3f4f6;">
+                <img src="${s.img}" alt="${escapeHtml(s.name)}" style="width:100%;height:100%;object-fit:cover;display:block;">
+            </div>
+            <div style="margin-top:14px;">
+                <div style="font-weight:900;font-size:22px;color:#111827;" class="editable" contenteditable="true">${escapeHtml(s.name)}</div>
+                <div style="color:#6b7280;margin-top:4px;" class="editable" contenteditable="true">${escapeHtml(s.subtitle || 'Bestemming')}</div>
+                <div style="color:#374151;line-height:1.7;margin-top:10px;" class="editable" contenteditable="true">Beschrijving van deze bestemming...</div>
+            </div>
+        `;
+
+        const hotelHtml = `
+            <div class="placeImg" data-wb-slides="${hotelSlides}" data-wb-slide-idx="0" style="position:relative;border-radius:14px;overflow:hidden;height:240px;background:#f3f4f6;">
+                <img src="${hotelImg}" alt="${escapeHtml(hotelName || 'Hotel')}" style="width:100%;height:100%;object-fit:cover;display:block;">
+                <button type="button" class="wb-slide-prev" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.65);background:rgba(17,24,39,.45);color:#fff;font-weight:900;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center;line-height:1;">&lsaquo;</button>
+                <button type="button" class="wb-slide-next" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.65);background:rgba(17,24,39,.45);color:#fff;font-weight:900;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center;line-height:1;">&rsaquo;</button>
+            </div>
+            <div style="margin-top:14px;">
+                <div style="font-weight:900;font-size:22px;color:#111827;" class="editable" contenteditable="true">${escapeHtml(hotelName || 'Hotel')}</div>
+                <div style="color:#374151;line-height:1.7;margin-top:10px;" class="editable" contenteditable="true">Hotel informatie...</div>
+            </div>
+        `;
+
+        const excursiesHtml = `
+            <div style="padding:14px 16px;border:1px dashed #d1d5db;border-radius:12px;color:#6b7280;background:#fff;" class="editable" contenteditable="true">Excursies (later: Activities API)</div>
+        `;
+
+        return `
+            <div class="rr-stop-detail" data-stop-index="${s.i}" style="display:none;">
+                <div class="rr-tabs" style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px 0;">
+                    <button type="button" class="rr-tab-btn" data-tab="transport" style="border:1px solid #e5e7eb;background:#fff;border-radius:999px;padding:8px 12px;font-weight:800;font-size:13px;cursor:pointer;">Transport</button>
+                    <button type="button" class="rr-tab-btn" data-tab="bestemming" style="border:1px solid #e5e7eb;background:#fff;border-radius:999px;padding:8px 12px;font-weight:800;font-size:13px;cursor:pointer;">Bestemming</button>
+                    <button type="button" class="rr-tab-btn" data-tab="hotel" style="border:1px solid #e5e7eb;background:#fff;border-radius:999px;padding:8px 12px;font-weight:800;font-size:13px;cursor:pointer;">Hotel</button>
+                    <button type="button" class="rr-tab-btn" data-tab="excursies" style="border:1px solid #e5e7eb;background:#fff;border-radius:999px;padding:8px 12px;font-weight:800;font-size:13px;cursor:pointer;">Excursies</button>
+                </div>
+                <div class="rr-tab-panel" data-tab="transport" style="display:none;">
+                    <div style="display:grid;gap:12px;">${transportHtml}</div>
+                </div>
+                <div class="rr-tab-panel" data-tab="bestemming" style="display:none;">${destHtml}</div>
+                <div class="rr-tab-panel" data-tab="hotel" style="display:none;">${hotelHtml}</div>
+                <div class="rr-tab-panel" data-tab="excursies" style="display:none;">${excursiesHtml}</div>
+            </div>
+        `;
+    }).join('');
+
+    const stopsListHtml = stopItems.map((s) => {
+        return `
+            <button type="button" class="rr-stop-item" data-stop-index="${s.i}" data-stop-img="${escapeHtml(s.img)}" style="width:100%;text-align:left;border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:12px 12px;display:grid;grid-template-columns:42px 1fr 34px;gap:10px;align-items:center;cursor:pointer;">
+                <div style="width:42px;height:42px;border-radius:12px;background:${brandPrimary};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;">${String(s.i + 1).padStart(2, '0')}</div>
+                <div style="min-width:0;">
+                    <div style="font-weight:900;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(s.name)}</div>
+                    <div style="color:#6b7280;font-size:12px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml([s.date, s.nights ? `${s.nights} nachten` : ''].filter(Boolean).join(' · '))}</div>
+                </div>
+                <div style="width:34px;height:34px;border-radius:999px;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;color:${brandPrimary};"><i class="fas fa-chevron-right"></i></div>
+            </button>
+        `;
+    }).join('');
+
+    section.innerHTML += `
+        <div style="position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid #eef2f7;">
+            <div style="max-width:1200px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:14px;">
+                <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                    ${brandLogo ? `<img src="${brandLogo}" alt="Logo" style="height:34px;width:auto;">` : ''}
+                    <div style="font-weight:900;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" class="editable" contenteditable="true">${escapeHtml(data.title)}</div>
+                </div>
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+                    <a href="#" class="rr-nav" data-rr-nav="home" style="text-decoration:none;font-weight:900;font-size:13px;color:#0f172a;padding:8px 12px;border-radius:999px;background:#f1f5f9;">Home</a>
+                    <a href="#rr-map" class="rr-nav" data-rr-nav="map" style="text-decoration:none;font-weight:900;font-size:13px;color:#0f172a;padding:8px 12px;border-radius:999px;background:#f1f5f9;">Kaart</a>
+                    <a href="#rr-detail" class="rr-nav" data-rr-nav="detail" style="text-decoration:none;font-weight:900;font-size:13px;color:#0f172a;padding:8px 12px;border-radius:999px;background:#f1f5f9;">Schema</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="rr-wrap" style="max-width:1200px;margin:0 auto;padding:16px;">
+            <div class="rr-home" style="display:grid;grid-template-columns:1.1fr 1fr;gap:16px;align-items:stretch;">
+                <div class="rr-hero-media" style="position:relative;border-radius:18px;overflow:hidden;min-height:520px;background:#0b1220;">
+                    <div class="rr-hero-img placeImg" data-wb-slides="${safeJson([firstImg])}" data-wb-slide-idx="0" style="position:absolute;inset:0;">
+                        <img src="${firstImg}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0.92;">
+                    </div>
+                    <div style="position:absolute;left:18px;right:18px;bottom:18px;color:#fff;z-index:2;">
+                        <div style="font-weight:900;font-size:26px;line-height:1.1;" class="editable" contenteditable="true">${escapeHtml(data.title)}</div>
+                        <div style="opacity:0.9;margin-top:6px;font-weight:700;" class="editable" contenteditable="true">${escapeHtml(new Date(data.departureDate).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' }))} · ${escapeHtml(String(stops.length || '').trim() ? `${stops.length} dagen` : '')}</div>
+                    </div>
+                    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.0) 45%,rgba(0,0,0,0.55) 100%);"></div>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:14px;min-height:520px;">
+                    <div id="rr-map" class="wb-component wb-roadbook-route-map" data-component="roadbook-route-map" data-wb-destinations="${routePointsAttr}" style="border-radius:18px;overflow:hidden;border:1px solid #e5e7eb;background:#fff;">
+                        <div class="roadbook-route-map-canvas" style="width:100%;height:260px;margin:0;padding:0;"></div>
+                    </div>
+                    <div style="border:1px solid #e5e7eb;border-radius:18px;background:#fff;overflow:hidden;display:flex;flex-direction:column;min-height:0;">
+                        <div style="padding:12px 14px;border-bottom:1px solid #eef2f7;font-weight:900;color:#111827;">Plaatsen</div>
+                        <div class="rr-stops" style="padding:12px;display:grid;gap:10px;overflow:auto;max-height:calc(520px - 260px - 52px);">${stopsListHtml}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="rr-detail" style="margin-top:18px;border:1px solid #e5e7eb;border-radius:18px;background:#fff;padding:16px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                    <div style="font-weight:900;color:#111827;font-size:18px;">Details</div>
+                    <div style="color:#6b7280;font-weight:700;font-size:13px;" class="rr-active-stop-label"></div>
+                </div>
+                <div style="height:1px;background:#eef2f7;margin:14px 0;"></div>
+                <div class="rr-details">${detailsHtml}</div>
+            </div>
+        </div>
+    `;
+
+    this.makeSelectable(section);
+    return section;
+};
+
 // Export for use in other files
 window.ComponentFactory = ComponentFactory;
 
@@ -6370,6 +6628,18 @@ document.addEventListener('DOMContentLoaded', () => {
             sec.appendChild(btn);
         }
     });
+
+    try {
+        if (window.ComponentFactory && typeof window.ComponentFactory.initRoadbookRouteMaps === 'function') {
+            window.ComponentFactory.initRoadbookRouteMaps(document);
+        }
+    } catch (e) {}
+
+    try {
+        if (window.ComponentFactory && typeof window.ComponentFactory.initRoadbookRondreis === 'function') {
+            window.ComponentFactory.initRoadbookRondreis(document);
+        }
+    } catch (e) {}
 });
 
 // Safety net: delegated handler so the trash always works, even on cloned nodes
@@ -6629,6 +6899,218 @@ ComponentFactory.createTravelIntro = function(options = {}) {
     return section;
 };
 
+ComponentFactory.initRoadbookRondreis = function(root) {
+    try {
+        const scope = root || document;
+        const blocks = Array.from(scope.querySelectorAll('.wb-roadbook-rondreis'));
+        blocks.forEach((block) => {
+            try {
+                if (!block || block.dataset.rrInited === '1') return;
+                block.dataset.rrInited = '1';
+
+                const parseSlidesAttr = (raw) => {
+                    let s = String(raw || '').trim();
+                    if (!s) return [];
+                    try {
+                        s = s
+                            .replace(/&quot;/g, '"')
+                            .replace(/&#34;/g, '"')
+                            .replace(/&#39;/g, "'")
+                            .replace(/&amp;/g, '&');
+                    } catch (e0) {}
+                    try {
+                        let decoded = decodeURIComponent(s);
+                        try {
+                            if (/%5B|%7B|%22/i.test(decoded)) decoded = decodeURIComponent(decoded);
+                        } catch (e11) {}
+                        const parsed = JSON.parse(decoded);
+                        return Array.isArray(parsed) ? parsed : [];
+                    } catch (e1) {}
+                    try {
+                        const parsed = JSON.parse(s);
+                        return Array.isArray(parsed) ? parsed : [];
+                    } catch (e2) {}
+                    try {
+                        const parts = s.split(/\s*[\|,]\s*/g).map(p => p.trim()).filter(Boolean);
+                        return parts;
+                    } catch (e3) {}
+                    return [];
+                };
+
+                const initSlideshows = () => {
+                    try {
+                        const wraps = Array.from(block.querySelectorAll('.placeImg[data-wb-slides]'));
+                        wraps.forEach((wrap) => {
+                            try {
+                                if (!wrap || wrap.dataset.wbSlideInited === '1') return;
+                                const imgEl = wrap.querySelector('img');
+                                if (!imgEl) return;
+                                let slides = parseSlidesAttr(wrap.getAttribute('data-wb-slides') || '');
+                                slides = Array.isArray(slides) ? slides.filter(Boolean) : [];
+                                if (slides.length <= 1) return;
+                                wrap.dataset.wbSlideInited = '1';
+                                wrap._wbSlides = slides;
+                                const setIdx = (nextIdx) => {
+                                    try {
+                                        const slidesNow = Array.isArray(wrap._wbSlides) ? wrap._wbSlides : slides;
+                                        const n = slidesNow.length;
+                                        let idx = parseInt(String(nextIdx), 10);
+                                        if (Number.isNaN(idx)) idx = 0;
+                                        idx = ((idx % n) + n) % n;
+                                        wrap.dataset.wbSlideIdx = String(idx);
+                                        imgEl.src = slidesNow[idx];
+                                    } catch (e2) {}
+                                };
+                                setIdx(parseInt(wrap.dataset.wbSlideIdx || '0', 10) || 0);
+
+                                const bindNav = (selector, delta) => {
+                                    const b = wrap.querySelector(selector);
+                                    if (!b || b.dataset.wbBound === '1') return;
+                                    b.dataset.wbBound = '1';
+                                    b.addEventListener('click', (ev) => {
+                                        try {
+                                            ev.preventDefault();
+                                            ev.stopPropagation();
+                                            const idx = parseInt(wrap.dataset.wbSlideIdx || '0', 10) || 0;
+                                            setIdx(idx + delta);
+                                        } catch (e9) {}
+                                    }, true);
+                                };
+                                bindNav('.wb-slide-prev', -1);
+                                bindNav('.wb-slide-next', 1);
+                            } catch (e1) {}
+                        });
+                    } catch (e) {}
+                };
+
+                const setActiveStop = (idx) => {
+                    try {
+                        const i = parseInt(String(idx), 10);
+                        if (Number.isNaN(i)) return;
+                        const items = Array.from(block.querySelectorAll('.rr-stop-item'));
+                        const details = Array.from(block.querySelectorAll('.rr-stop-detail'));
+
+                        items.forEach((b) => {
+                            const active = String(b.dataset.stopIndex) === String(i);
+                            b.style.borderColor = active ? 'rgba(6,97,104,0.35)' : '#e5e7eb';
+                            b.style.boxShadow = active ? '0 6px 20px rgba(0,0,0,0.08)' : 'none';
+                        });
+                        details.forEach((d) => {
+                            d.style.display = (String(d.dataset.stopIndex) === String(i)) ? 'block' : 'none';
+                        });
+
+                        const activeItem = items.find(b => String(b.dataset.stopIndex) === String(i)) || null;
+                        const label = block.querySelector('.rr-active-stop-label');
+                        if (label && activeItem) {
+                            const title = activeItem.querySelector('div[style*="font-weight:900"]');
+                            label.textContent = title ? title.textContent.trim() : '';
+                        }
+
+                        const firstPanel = block.querySelector(`.rr-stop-detail[data-stop-index="${i}"] .rr-tab-panel[data-tab="transport"]`);
+                        const det = block.querySelector(`.rr-stop-detail[data-stop-index="${i}"]`);
+                        if (det) {
+                            const panels = Array.from(det.querySelectorAll('.rr-tab-panel'));
+                            const btns = Array.from(det.querySelectorAll('.rr-tab-btn'));
+                            panels.forEach(p => p.style.display = 'none');
+                            btns.forEach(b => {
+                                b.style.background = '#fff';
+                                b.style.borderColor = '#e5e7eb';
+                                b.style.color = '#111827';
+                            });
+                            if (firstPanel) firstPanel.style.display = 'block';
+                            const firstBtn = det.querySelector('.rr-tab-btn[data-tab="transport"]');
+                            if (firstBtn) {
+                                firstBtn.style.background = 'rgba(6,97,104,0.12)';
+                                firstBtn.style.borderColor = 'rgba(6,97,104,0.25)';
+                                firstBtn.style.color = '#0f172a';
+                            }
+                        }
+
+                        initSlideshows();
+                    } catch (e) {}
+                };
+
+                block.addEventListener('click', (e) => {
+                    try {
+                        const t = e && e.target ? (e.target.nodeType === 1 ? e.target : e.target.parentElement) : null;
+                        if (!t || !t.closest) return;
+                        const stopBtn = t.closest('.rr-stop-item');
+                        if (stopBtn && block.contains(stopBtn)) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setActiveStop(stopBtn.dataset.stopIndex);
+                            try {
+                                const detail = block.querySelector('#rr-detail');
+                                if (detail) detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            } catch (e2) {}
+                            return;
+                        }
+
+                        const tabBtn = t.closest('.rr-tab-btn');
+                        if (tabBtn && block.contains(tabBtn)) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const det = tabBtn.closest('.rr-stop-detail');
+                            if (!det) return;
+                            const tab = tabBtn.dataset.tab;
+                            const panels = Array.from(det.querySelectorAll('.rr-tab-panel'));
+                            const btns = Array.from(det.querySelectorAll('.rr-tab-btn'));
+                            panels.forEach(p => p.style.display = (p.dataset.tab === tab) ? 'block' : 'none');
+                            btns.forEach(b => {
+                                const active = b.dataset.tab === tab;
+                                b.style.background = active ? 'rgba(6,97,104,0.12)' : '#fff';
+                                b.style.borderColor = active ? 'rgba(6,97,104,0.25)' : '#e5e7eb';
+                                b.style.color = '#0f172a';
+                            });
+                            return;
+                        }
+
+                        const isEdit = !!(document.body && document.body.dataset && document.body.dataset.wbMode === 'edit');
+                        if (isEdit && window.MediaPicker && typeof window.MediaPicker.openImage === 'function') {
+                            if (t.closest('.wb-slide-prev, .wb-slide-next')) return;
+                            const imgEl = t.closest('.placeImg') ? t.closest('.placeImg').querySelector('img') : null;
+                            if (!imgEl) return;
+                            const wrap = imgEl.closest('.placeImg[data-wb-slides]') || imgEl.closest('.placeImg');
+                            if (!wrap || !block.contains(wrap)) return;
+                            e.preventDefault();
+                            e.stopPropagation();
+                            (async () => {
+                                try {
+                                    const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash', allowUpload: true });
+                                    if (!res || !res.url) return;
+                                    let slides = parseSlidesAttr(wrap.getAttribute('data-wb-slides') || '');
+                                    slides = Array.isArray(slides) ? slides.filter(Boolean) : [];
+                                    const idx = parseInt(wrap.dataset.wbSlideIdx || '0', 10) || 0;
+                                    if (slides.length) {
+                                        slides[idx] = res.url;
+                                    } else {
+                                        slides = [res.url];
+                                        wrap.dataset.wbSlideIdx = '0';
+                                    }
+                                    wrap._wbSlides = slides;
+                                    wrap.setAttribute('data-wb-slides', encodeURIComponent(JSON.stringify(slides)));
+                                    imgEl.src = res.url;
+                                    try {
+                                        wrap.dataset.wbSlideInited = '0';
+                                        initSlideshows();
+                                    } catch (e3) {}
+                                } catch (e4) {}
+                            })();
+                            return;
+                        }
+                    } catch (e0) {}
+                }, true);
+
+                try {
+                    const first = block.querySelector('.rr-stop-item');
+                    if (first) setActiveStop(first.dataset.stopIndex || '0');
+                } catch (e1) {}
+
+                try { initSlideshows(); } catch (e2) {}
+            } catch (e0) {}
+        });
+    } catch (e) {}
+};
 // Animated Travel Route Map - Mapbox GL JS animated routes
 ComponentFactory.createAnimatedRouteMap = function(options = {}) {
         const section = document.createElement('section');
@@ -7038,6 +7520,12 @@ ComponentFactory.createTravelSearchCard = function(options = {}) {
 // ROADBOOK COMPONENT (Layout 1 - Classic)
 // ============================================
 ComponentFactory.createRoadbook = function(options = {}) {
+    try {
+        const v = String((options && options.meta && options.meta.roadbook_variant) || window.CURRENT_ROADBOOK_VARIANT || '').trim().toLowerCase();
+        if (v === 'rondreis') {
+            return this.createRoadbookRondreis(options);
+        }
+    } catch (e) {}
     const section = document.createElement('section');
     section.className = 'wb-component wb-roadbook';
     section.setAttribute('data-component', 'roadbook');

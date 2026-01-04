@@ -260,6 +260,7 @@
           </div>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <button type="button" class="roadbook-variant-btn" data-variant="autorondreis" style="padding:6px 10px; border-radius:999px; border:1px solid #e5e7eb; background:white; color:#374151; font-weight:700; font-size:11px; cursor:pointer;">Autorondreis</button>
+            <button type="button" class="roadbook-variant-btn" data-variant="rondreis" style="padding:6px 10px; border-radius:999px; border:1px solid #e5e7eb; background:white; color:#374151; font-weight:700; font-size:11px; cursor:pointer;">Rondreis Roadbook</button>
             <button type="button" class="roadbook-variant-btn" data-variant="eilandhop" style="padding:6px 10px; border-radius:999px; border:1px solid #e5e7eb; background:white; color:#374151; font-weight:700; font-size:11px; cursor:pointer;">Eilandhop</button>
             <button type="button" class="roadbook-variant-btn" data-variant="combinatiereis" style="padding:6px 10px; border-radius:999px; border:1px solid #e5e7eb; background:white; color:#374151; font-weight:700; font-size:11px; cursor:pointer;">Combinatiereis</button>
             <button type="button" class="roadbook-variant-btn" data-variant="autorondreis-offerte" style="padding:6px 10px; border-radius:999px; border:1px solid #e5e7eb; background:white; color:#374151; font-weight:700; font-size:11px; cursor:pointer;">Autorondreis Offerte</button>
