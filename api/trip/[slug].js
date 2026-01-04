@@ -373,10 +373,10 @@ export default async function handler(req, res) {
 
     if (!assignment) {
       const tripStatus = String(trip && trip.status || '').trim().toLowerCase();
-      const isLive = tripStatus === 'live';
+      const isPublicByStatus = (tripStatus === 'live' || tripStatus === 'published');
       const brandOk = !brandId || !trip.brand_id || trip.brand_id === brandId;
-      if (isLive && brandOk) {
-        assignment = { id: null, is_published: true, _implicit: true };
+      if (isPublicByStatus && brandOk) {
+        assignment = { id: null, is_published: true, _implicit: true, _via_status: tripStatus };
       }
     }
 
