@@ -6301,26 +6301,15 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
         document.documentElement.style.setProperty('--brand-primary', brandPrimary);
     } catch (e) {}
 
-    const routePoints = (Array.isArray(data.destinations) ? data.destinations : [])
-        .map((d) => {
-            try {
-                const lat = d && (d.latitude != null ? d.latitude : (d.geolocation && d.geolocation.latitude));
-                const lng = d && (d.longitude != null ? d.longitude : (d.geolocation && d.geolocation.longitude));
-                if (lat == null || lng == null) return null;
-                return {
-                    name: d.name || d.title || '',
-                    fromDay: d.fromDay || d.day || 1,
-                    toDay: d.toDay || d.fromDay || d.day || 1,
-                    latitude: lat,
-                    longitude: lng
-                };
-            } catch (e) { return null; }
-        })
-        .filter(Boolean);
-
-    const routePointsAttr = (() => {
-        try { return encodeURIComponent(JSON.stringify(routePoints)); } catch (e) { return ''; }
-    })();
+    const normalizePlaceName = (v) => String(v || '').replace(/^Dag\s*\d+(\s*-\s*\d+)?\s*:?\s*/i, '').trim();
+    const getLatLng = (d) => {
+        try {
+            const lat = d && (d.latitude != null ? d.latitude : (d.geolocation && d.geolocation.latitude));
+            const lng = d && (d.longitude != null ? d.longitude : (d.geolocation && d.geolocation.longitude));
+            if (lat == null || lng == null) return null;
+            return { latitude: Number(lat), longitude: Number(lng) };
+        } catch (e) { return null; }
+    };
 
     const firstImg = (() => {
         try {
@@ -6333,32 +6322,114 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
     })();
 
     const stops = Array.isArray(data.itinerary) ? data.itinerary : [];
-    const stopItems = stops.map((day, i) => {
-        const name = day.title || day.destination || day.location || `Stop ${i + 1}`;
-        const subtitle = day.subtitle || day.location || '';
-        const date = day.date || day.fromDate || '';
-        const nights = day.nights || '';
-        return {
-            i,
-            name,
-            subtitle,
-            date,
-            nights,
-            img: day.image || day.imageUrl || firstImg
+
+    const groupedStops = (() => {
+        const out = [];
+        let current = null;
+        const flush = () => {
+            if (!current) return;
+            const i = out.length;
+            out.push({
+                i,
+                key: current.key,
+                name: current.name,
+                subtitle: current.subtitle,
+                fromDay: current.fromDay,
+                toDay: current.toDay,
+                date: current.date,
+                nights: current.nights,
+                img: current.img,
+                latitude: current.latitude,
+                longitude: current.longitude,
+                items: current.items
+            });
+            current = null;
         };
-    });
+
+        stops.forEach((day, idx) => {
+            const rawName = normalizePlaceName(day.title || day.destination || day.location || `Stop ${idx + 1}`);
+            const key = rawName.toLowerCase();
+            const dayNr = idx + 1;
+            const img = day.image || day.imageUrl || firstImg;
+            const subtitle = day.subtitle || day.location || '';
+            const date = day.date || day.fromDate || '';
+            const ll = getLatLng(day) || null;
+
+            if (!current || current.key !== key) {
+                flush();
+                current = {
+                    key,
+                    name: rawName,
+                    subtitle,
+                    fromDay: dayNr,
+                    toDay: dayNr,
+                    date,
+                    nights: day.nights || '',
+                    img,
+                    latitude: ll ? ll.latitude : null,
+                    longitude: ll ? ll.longitude : null,
+                    items: [day]
+                };
+                return;
+            }
+
+            current.toDay = dayNr;
+            current.items.push(day);
+            if (!current.img && img) current.img = img;
+            if ((!current.latitude || !current.longitude) && ll) {
+                current.latitude = ll.latitude;
+                current.longitude = ll.longitude;
+            }
+        });
+        flush();
+        return out;
+    })();
+
+    const routePoints = (() => {
+        const fromDestinations = (Array.isArray(data.destinations) ? data.destinations : [])
+            .map((d) => {
+                const ll = getLatLng(d);
+                if (!ll) return null;
+                return {
+                    name: normalizePlaceName(d.name || d.title || ''),
+                    fromDay: d.fromDay || d.day || 1,
+                    toDay: d.toDay || d.fromDay || d.day || 1,
+                    latitude: ll.latitude,
+                    longitude: ll.longitude
+                };
+            })
+            .filter(Boolean);
+
+        if (fromDestinations.length) return fromDestinations;
+
+        return groupedStops
+            .map((g) => {
+                if (g.latitude == null || g.longitude == null) return null;
+                return {
+                    name: g.name,
+                    fromDay: g.fromDay,
+                    toDay: g.toDay,
+                    latitude: g.latitude,
+                    longitude: g.longitude
+                };
+            })
+            .filter(Boolean);
+    })();
+
+    const routePointsAttr = (() => {
+        try { return encodeURIComponent(JSON.stringify(routePoints)); } catch (e) { return ''; }
+    })();
 
     const safeJson = (obj) => {
         try { return encodeURIComponent(JSON.stringify(obj)); } catch (e) { return ''; }
     };
 
-    const detailsHtml = stopItems.map((s) => {
-        const normalizePlaceName = (v) => String(v || '').replace(/^Dag\s*\d+\s*:\s*/i, '').trim().toLowerCase();
-        const placeKey = normalizePlaceName(s.name);
+    const detailsHtml = groupedStops.map((s) => {
+        const placeKey = String(normalizePlaceName(s.name) || '').trim().toLowerCase();
         const hotels = Array.isArray(data.hotels) ? data.hotels : [];
         const hit = hotels.find(h => {
             try {
-                const hl = normalizePlaceName(h && (h.location || h.city || h.destination || ''));
+                const hl = String(normalizePlaceName(h && (h.location || h.city || h.destination || '')) || '').trim().toLowerCase();
                 return hl && placeKey && (hl === placeKey || hl.includes(placeKey) || placeKey.includes(hl));
             } catch (e) { return false; }
         }) || null;
@@ -6423,6 +6494,7 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
             <div style="padding:14px 16px;border:1px dashed #d1d5db;border-radius:12px;color:#6b7280;background:#fff;" class="editable" contenteditable="true">Excursies (later: Activities API)</div>
         `;
 
+        const dayLabel = `Dag ${s.fromDay}${(s.toDay && s.toDay !== s.fromDay) ? `-${s.toDay}` : ''}`;
         return `
             <div class="rr-stop-detail" data-stop-index="${s.i}" style="display:none;">
                 <div class="rr-tabs" style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px 0;">
@@ -6437,16 +6509,18 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
                 <div class="rr-tab-panel" data-tab="bestemming" style="display:none;">${destHtml}</div>
                 <div class="rr-tab-panel" data-tab="hotel" style="display:none;">${hotelHtml}</div>
                 <div class="rr-tab-panel" data-tab="excursies" style="display:none;">${excursiesHtml}</div>
+                <div style="margin-top:12px;color:#6b7280;font-size:12px;font-weight:700;">${escapeHtml(dayLabel)} ${s.name ? '·' : ''} ${escapeHtml(s.name)}</div>
             </div>
         `;
     }).join('');
 
-    const stopsListHtml = stopItems.map((s) => {
+    const stopsListHtml = groupedStops.map((s) => {
+        const dayLabel = `Dag ${s.fromDay}${(s.toDay && s.toDay !== s.fromDay) ? `-${s.toDay}` : ''}: ${s.name}`;
         return `
             <button type="button" class="rr-stop-item" data-stop-index="${s.i}" data-stop-img="${escapeHtml(s.img)}" style="width:100%;text-align:left;border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:12px 12px;display:grid;grid-template-columns:42px 1fr 34px;gap:10px;align-items:center;cursor:pointer;">
                 <div style="width:42px;height:42px;border-radius:12px;background:${brandPrimary};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;">${String(s.i + 1).padStart(2, '0')}</div>
                 <div style="min-width:0;">
-                    <div style="font-weight:900;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(s.name)}</div>
+                    <div style="font-weight:900;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(dayLabel)}</div>
                     <div style="color:#6b7280;font-size:12px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml([s.date, s.nights ? `${s.nights} nachten` : ''].filter(Boolean).join(' · '))}</div>
                 </div>
                 <div style="width:34px;height:34px;border-radius:999px;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;color:${brandPrimary};"><i class="fas fa-chevron-right"></i></div>
@@ -6482,29 +6556,46 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
                     <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.0) 45%,rgba(0,0,0,0.55) 100%);"></div>
                 </div>
 
-                <div style="display:flex;flex-direction:column;gap:14px;min-height:520px;">
+                <div class="rr-right" style="display:flex;flex-direction:column;gap:14px;min-height:520px;">
                     <div id="rr-map" class="wb-component wb-roadbook-route-map" data-component="roadbook-route-map" data-wb-destinations="${routePointsAttr}" style="border-radius:18px;overflow:hidden;border:1px solid #e5e7eb;background:#fff;">
-                        <div class="roadbook-route-map-canvas" style="width:100%;height:260px;margin:0;padding:0;"></div>
+                        <div class="roadbook-route-map-canvas" style="width:100%;height:260px;margin:0;padding:0;display:flex;align-items:center;justify-content:center;color:#6b7280;font-weight:800;">Kaart wordt geladen...</div>
                     </div>
-                    <div style="border:1px solid #e5e7eb;border-radius:18px;background:#fff;overflow:hidden;display:flex;flex-direction:column;min-height:0;">
-                        <div style="padding:12px 14px;border-bottom:1px solid #eef2f7;font-weight:900;color:#111827;">Plaatsen</div>
-                        <div class="rr-stops" style="padding:12px;display:grid;gap:10px;overflow:auto;max-height:calc(520px - 260px - 52px);">${stopsListHtml}</div>
-                    </div>
-                </div>
-            </div>
 
-            <div id="rr-detail" style="margin-top:18px;border:1px solid #e5e7eb;border-radius:18px;background:#fff;padding:16px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-                    <div style="font-weight:900;color:#111827;font-size:18px;">Details</div>
-                    <div style="color:#6b7280;font-weight:700;font-size:13px;" class="rr-active-stop-label"></div>
+                    <div class="rr-panel" style="border:1px solid #e5e7eb;border-radius:18px;background:#fff;overflow:hidden;display:flex;flex-direction:column;min-height:0;flex:1;">
+                        <div class="rr-places-view" style="display:block;min-height:0;flex:1;">
+                            <div style="padding:12px 14px;border-bottom:1px solid #eef2f7;font-weight:900;color:#111827;">Plaatsen</div>
+                            <div class="rr-stops" style="padding:12px;display:grid;gap:10px;overflow:auto;max-height:calc(520px - 260px - 52px);">${stopsListHtml}</div>
+                        </div>
+
+                        <div id="rr-detail" class="rr-detail-view" style="display:none;min-height:0;flex:1;">
+                            <div style="padding:12px 14px;border-bottom:1px solid #eef2f7;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                                <button type="button" class="rr-back-btn" style="border:1px solid #e5e7eb;background:#fff;border-radius:999px;padding:8px 12px;font-weight:900;cursor:pointer;">Terug</button>
+                                <div style="font-weight:900;color:#111827;font-size:16px;">Details</div>
+                                <div style="color:#6b7280;font-weight:800;font-size:12px;" class="rr-active-stop-label"></div>
+                            </div>
+                            <div class="rr-details" style="padding:12px;overflow:auto;">${detailsHtml}</div>
+                        </div>
+                    </div>
                 </div>
-                <div style="height:1px;background:#eef2f7;margin:14px 0;"></div>
-                <div class="rr-details">${detailsHtml}</div>
             </div>
         </div>
     `;
 
     this.makeSelectable(section);
+
+    setTimeout(() => {
+        try {
+            if (window.ComponentFactory && typeof window.ComponentFactory.initRoadbookRondreis === 'function') {
+                window.ComponentFactory.initRoadbookRondreis(section);
+            }
+        } catch (e) {}
+        try {
+            if (window.ComponentFactory && typeof window.ComponentFactory.initRoadbookRouteMaps === 'function') {
+                window.ComponentFactory.initRoadbookRouteMaps(section);
+            }
+        } catch (e) {}
+    }, 50);
+
     return section;
 };
 
@@ -6908,6 +6999,21 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                 if (!block || block.dataset.rrInited === '1') return;
                 block.dataset.rrInited = '1';
 
+                const placesView = block.querySelector('.rr-places-view');
+                const detailView = block.querySelector('.rr-detail-view');
+                const showPlaces = () => {
+                    try {
+                        if (placesView) placesView.style.display = 'block';
+                        if (detailView) detailView.style.display = 'none';
+                    } catch (e) {}
+                };
+                const showDetail = () => {
+                    try {
+                        if (placesView) placesView.style.display = 'none';
+                        if (detailView) detailView.style.display = 'block';
+                    } catch (e) {}
+                };
+
                 const parseSlidesAttr = (raw) => {
                     let s = String(raw || '').trim();
                     if (!s) return [];
@@ -7030,17 +7136,55 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                     } catch (e) {}
                 };
 
+                try {
+                    const backBtn = block.querySelector('.rr-back-btn');
+                    if (backBtn && backBtn.dataset.rrBound !== '1') {
+                        backBtn.dataset.rrBound = '1';
+                        backBtn.addEventListener('click', (ev) => {
+                            try {
+                                ev.preventDefault();
+                                ev.stopPropagation();
+                                showPlaces();
+                                const panel = block.querySelector('.rr-panel') || block.querySelector('.rr-right') || block;
+                                if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            } catch (e) {}
+                        }, true);
+                    }
+                } catch (e0) {}
+
                 block.addEventListener('click', (e) => {
                     try {
                         const t = e && e.target ? (e.target.nodeType === 1 ? e.target : e.target.parentElement) : null;
                         if (!t || !t.closest) return;
+
+                        const nav = t.closest('.rr-nav');
+                        if (nav && block.contains(nav)) {
+                            try {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const k = String(nav.dataset.rrNav || '').trim();
+                                if (k === 'detail') {
+                                    showDetail();
+                                } else if (k === 'home') {
+                                    showPlaces();
+                                }
+                                const href = nav.getAttribute('href') || '';
+                                if (href && href.startsWith('#')) {
+                                    const el = block.querySelector(href);
+                                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }
+                            } catch (e1) {}
+                            return;
+                        }
+
                         const stopBtn = t.closest('.rr-stop-item');
                         if (stopBtn && block.contains(stopBtn)) {
                             e.preventDefault();
                             e.stopPropagation();
                             setActiveStop(stopBtn.dataset.stopIndex);
                             try {
-                                const detail = block.querySelector('#rr-detail');
+                                showDetail();
+                                const detail = block.querySelector('#rr-detail') || block.querySelector('.rr-detail-view');
                                 if (detail) detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
                             } catch (e2) {}
                             return;
@@ -7105,6 +7249,8 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                     const first = block.querySelector('.rr-stop-item');
                     if (first) setActiveStop(first.dataset.stopIndex || '0');
                 } catch (e1) {}
+
+                try { showPlaces(); } catch (e3) {}
 
                 try { initSlideshows(); } catch (e2) {}
             } catch (e0) {}
@@ -7361,10 +7507,16 @@ ComponentFactory.initRoadbookRouteMaps = function(root) {
         banners.forEach((banner) => {
             try {
                 if (!banner || banner.dataset.wbMapInited === '1') return;
-                if (!window.L) return;
-
                 const mapEl = banner.querySelector('.roadbook-route-map-canvas');
                 if (!mapEl) return;
+
+                if (!window.L) {
+                    try {
+                        mapEl.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#6b7280;font-weight:800;">Kaart niet beschikbaar</div>';
+                    } catch (e0) {}
+                    banner.dataset.wbMapInited = '1';
+                    return;
+                }
 
                 let destinations = [];
                 try {
@@ -7373,9 +7525,17 @@ ComponentFactory.initRoadbookRouteMaps = function(root) {
                     destinations = JSON.parse(decoded) || [];
                 } catch (e1) { destinations = []; }
                 destinations = Array.isArray(destinations) ? destinations.filter(d => d && d.latitude != null && d.longitude != null) : [];
-                if (destinations.length <= 1) return;
 
                 banner.dataset.wbMapInited = '1';
+
+                if (!destinations.length) {
+                    try {
+                        mapEl.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#6b7280;font-weight:800;">Geen routepunten gevonden</div>';
+                    } catch (e00) {}
+                    return;
+                }
+
+                try { mapEl.innerHTML = ''; } catch (e01) {}
 
                 const lats = destinations.map(d => Number(d.latitude));
                 const lngs = destinations.map(d => Number(d.longitude));
@@ -7397,12 +7557,14 @@ ComponentFactory.initRoadbookRouteMaps = function(root) {
 
                 const routeCoords = destinations.map(d => [Number(d.latitude), Number(d.longitude)]);
 
-                L.polyline(routeCoords, {
-                    color: '#3b82f6',
-                    weight: 4,
-                    opacity: 0.85,
-                    smoothFactor: 1
-                }).addTo(map);
+                if (routeCoords.length >= 2) {
+                    L.polyline(routeCoords, {
+                        color: '#3b82f6',
+                        weight: 4,
+                        opacity: 0.85,
+                        smoothFactor: 1
+                    }).addTo(map);
+                }
 
                 destinations.forEach((dest, idx) => {
                     const icon = L.divIcon({
@@ -7419,8 +7581,12 @@ ComponentFactory.initRoadbookRouteMaps = function(root) {
                 });
 
                 try {
-                    const bounds = L.latLngBounds(routeCoords);
-                    map.fitBounds(bounds, { padding: [50, 50] });
+                    if (routeCoords.length >= 2) {
+                        const bounds = L.latLngBounds(routeCoords);
+                        map.fitBounds(bounds, { padding: [50, 50] });
+                    } else {
+                        map.setView(routeCoords[0], 7);
+                    }
                 } catch (e2) {}
 
                 try { banner._wbLeafletMap = map; } catch (e3) {}
