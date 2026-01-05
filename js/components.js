@@ -6999,7 +6999,18 @@ ComponentFactory.createTravelIntro = function(options = {}) {
 ComponentFactory.initRoadbookRondreis = function(root) {
     try {
         const scope = root || document;
-        const blocks = Array.from(scope.querySelectorAll('.wb-roadbook-rondreis'));
+        const blocks = (() => {
+            try {
+                if (scope && scope.nodeType === 1 && scope.classList && scope.classList.contains('wb-roadbook-rondreis')) {
+                    return [scope];
+                }
+            } catch (e0) {}
+            try {
+                return Array.from((scope || document).querySelectorAll('.wb-roadbook-rondreis'));
+            } catch (e1) {
+                return [];
+            }
+        })();
         blocks.forEach((block) => {
             try {
                 if (!block || block.dataset.rrInited === '1') return;
@@ -7221,7 +7232,11 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                             return;
                         }
 
-                        const isEdit = !!(document.body && document.body.dataset && document.body.dataset.wbMode === 'edit');
+                        const isEdit = !!(
+                            (document.body && document.body.dataset && document.body.dataset.wbMode === 'edit') ||
+                            window.PropertiesPanel ||
+                            window.dragDropManager
+                        );
                         if (isEdit && window.MediaPicker && (typeof window.MediaPicker.openImage === 'function' || typeof window.MediaPicker.openVideo === 'function')) {
                             if (t.closest('.wb-slide-prev, .wb-slide-next')) return;
                             const wrap = t.closest('.placeImg[data-wb-slides]') || t.closest('.placeImg');
