@@ -7222,30 +7222,60 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                         }
 
                         const isEdit = !!(document.body && document.body.dataset && document.body.dataset.wbMode === 'edit');
-                        if (isEdit && window.MediaPicker && typeof window.MediaPicker.openImage === 'function') {
+                        if (isEdit && window.MediaPicker && (typeof window.MediaPicker.openImage === 'function' || typeof window.MediaPicker.openVideo === 'function')) {
                             if (t.closest('.wb-slide-prev, .wb-slide-next')) return;
-                            const imgEl = t.closest('.placeImg') ? t.closest('.placeImg').querySelector('img') : null;
-                            if (!imgEl) return;
-                            const wrap = imgEl.closest('.placeImg[data-wb-slides]') || imgEl.closest('.placeImg');
+                            const wrap = t.closest('.placeImg[data-wb-slides]') || t.closest('.placeImg');
                             if (!wrap || !block.contains(wrap)) return;
+                            const imgEl = wrap.querySelector('img');
                             e.preventDefault();
                             e.stopPropagation();
                             (async () => {
                                 try {
-                                    const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash', allowUpload: true });
-                                    if (!res || !res.url) return;
+                                    const wantsVideo = !!(e && e.altKey);
+                                    const picker = (wantsVideo && typeof window.MediaPicker.openVideo === 'function')
+                                        ? window.MediaPicker.openVideo
+                                        : window.MediaPicker.openImage;
+                                    if (typeof picker !== 'function') return;
+
+                                    const res = await picker({ defaultTab: 'unsplash', allowUpload: true });
+                                    const pickedUrl = res && (res.fullUrl || res.regularUrl || res.url || res.dataUrl || res.videoUrl || res.embedUrl);
+                                    if (!pickedUrl) return;
+
+                                    const isVideo = wantsVideo || (res && (res.type === 'video' || String(res.type || '').includes('video')));
+
+                                    if (isVideo) {
+                                        const hadNav = !!wrap.querySelector('.wb-slide-prev, .wb-slide-next');
+                                        const url = String(pickedUrl);
+                                        if (/youtube\.com|youtu\.be|vimeo\.com/.test(url)) {
+                                            wrap.innerHTML = `<iframe src="${url}" style="width:100%;height:100%;border:0;" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+                                        } else {
+                                            wrap.innerHTML = `<video src="${url}" style="width:100%;height:100%;object-fit:cover;display:block;" autoplay muted loop playsinline controls></video>`;
+                                        }
+                                        if (hadNav) {
+                                            try {
+                                                // no-op: nav hidden for video
+                                            } catch (e9) {}
+                                        }
+                                        return;
+                                    }
+
                                     let slides = parseSlidesAttr(wrap.getAttribute('data-wb-slides') || '');
                                     slides = Array.isArray(slides) ? slides.filter(Boolean) : [];
                                     const idx = parseInt(wrap.dataset.wbSlideIdx || '0', 10) || 0;
                                     if (slides.length) {
-                                        slides[idx] = res.url;
+                                        slides[idx] = pickedUrl;
                                     } else {
-                                        slides = [res.url];
+                                        slides = [pickedUrl];
                                         wrap.dataset.wbSlideIdx = '0';
                                     }
                                     wrap._wbSlides = slides;
                                     wrap.setAttribute('data-wb-slides', encodeURIComponent(JSON.stringify(slides)));
-                                    imgEl.src = res.url;
+                                    if (imgEl) {
+                                        if (typeof window.__WB_applyResponsiveSrc === 'function') window.__WB_applyResponsiveSrc(imgEl, pickedUrl);
+                                        else imgEl.src = pickedUrl;
+                                    } else {
+                                        wrap.innerHTML = `<img src="${pickedUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+                                    }
                                     try {
                                         wrap.dataset.wbSlideInited = '0';
                                         initSlideshows();
