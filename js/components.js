@@ -6385,6 +6385,56 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
         return out;
     })();
 
+    // Enrich grouped stops with media arrays + matched hotel data
+    try {
+        const hotels = Array.isArray(data.hotels) ? data.hotels : [];
+        groupedStops.forEach((s) => {
+            try {
+                // Destination images (from itinerary items + main image)
+                const imgs = [];
+                try {
+                    (Array.isArray(s.items) ? s.items : []).forEach((it) => {
+                        const u = it && (it.image || it.imageUrl || it.photo || '');
+                        if (u) imgs.push(String(u));
+                    });
+                } catch (e0) {}
+                if (s.img) imgs.unshift(String(s.img));
+                const uniq = Array.from(new Set(imgs.filter(Boolean)));
+                s.destImages = uniq.slice(0, 12);
+                if (!s.destImages.length && s.img) s.destImages = [String(s.img)];
+
+                // Match a hotel by place name
+                const placeKey = String(normalizePlaceName(s.name) || '').trim().toLowerCase();
+                const hit = hotels.find(h => {
+                    try {
+                        const hl = String(normalizePlaceName(h && (h.location || h.city || h.destination || '')) || '').trim().toLowerCase();
+                        return hl && placeKey && (hl === placeKey || hl.includes(placeKey) || placeKey.includes(hl));
+                    } catch (e) { return false; }
+                }) || null;
+
+                const hotelImgsRaw = (hit && (hit.images || hit.photos || [])) || [];
+                const hotelImgs = (Array.isArray(hotelImgsRaw) ? hotelImgsRaw : [])
+                    .map(x => x && typeof x === 'object' ? (x.url || x.src || '') : x)
+                    .filter(Boolean)
+                    .map(String);
+                const hotelImg = (hit && (hit.image || (Array.isArray(hit.images) && hit.images[0]))) ? String(hit.image || hit.images[0]) : '';
+
+                if (hit) {
+                    s.hotel = {
+                        name: hit.name ? String(hit.name) : '',
+                        location: hit.location || hit.city || hit.destination ? String(hit.location || hit.city || hit.destination) : '',
+                        description: String(hit.description || hit.fullDescription || ''),
+                        images: Array.from(new Set([hotelImg, ...hotelImgs].filter(Boolean))).slice(0, 12)
+                    };
+                } else {
+                    s.hotel = null;
+                }
+            } catch (e1) {}
+        });
+    } catch (e) {}
+
+    try { section._rrGroupedStops = groupedStops; } catch (e) {}
+
     const routePoints = (() => {
         const fromDestinations = (Array.isArray(data.destinations) ? data.destinations : [])
             .map((d) => {
@@ -6543,8 +6593,9 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
             </div>
         </div>
 
-        <div class="rr-wrap" style="max-width:none;width:100%;margin:0 auto;padding:16px 24px;">
-            <div class="rr-home" style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch;height:calc(100vh - 86px);min-height:640px;">
+        <div class="rr-page rr-page-home" style="display:block;">
+            <div class="rr-wrap" style="max-width:none;width:100%;margin:0 auto;padding:16px 24px;">
+                <div class="rr-home" style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch;height:calc(100vh - 86px);min-height:640px;">
                 <div class="rr-hero-media" style="position:relative;border-radius:18px;overflow:hidden;height:100%;background:#0b1220;">
                     <div class="rr-hero-img placeImg" data-wb-slides="${safeJson([firstImg])}" data-wb-slide-idx="0" style="position:absolute;inset:0;">
                         <img src="${firstImg}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0.92;">
@@ -6574,6 +6625,63 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
                                 <div style="color:#6b7280;font-weight:800;font-size:12px;" class="rr-active-stop-label"></div>
                             </div>
                             <div class="rr-details" style="padding:12px;overflow:auto;flex:1;min-height:0;">${detailsHtml}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="rr-page rr-page-detail" style="display:none;">
+            <div class="rr-wrap rr-detail-wrap" style="max-width:none;width:100%;margin:0 auto;padding:16px 24px;">
+                <div class="rr-detail-page" style="display:grid;grid-template-columns:0.95fr 1.05fr;gap:18px;align-items:stretch;height:calc(100vh - 86px);min-height:640px;">
+                    <div class="rr-detail-left" style="position:relative;border-radius:18px;overflow:hidden;height:100%;background:#0b1220;">
+                        <div class="rr-detail-hero placeImg" data-wb-slides="${safeJson([firstImg])}" data-wb-slide-idx="0" style="position:absolute;inset:0;">
+                            <img class="rr-detail-hero-img" src="${firstImg}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0.92;">
+                        </div>
+                        <div style="position:absolute;left:16px;right:16px;bottom:16px;color:#fff;z-index:2;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;">
+                            <div style="min-width:0;">
+                                <div class="rr-detail-title" style="font-weight:900;font-size:24px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Bestemming</div>
+                                <div class="rr-detail-sub" style="opacity:0.9;margin-top:6px;font-weight:800;font-size:13px;">Dag 1</div>
+                            </div>
+                            <div style="display:flex;gap:10px;align-items:center;flex:0 0 auto;">
+                                <button type="button" class="rr-page-back" style="border:1px solid rgba(255,255,255,.65);background:rgba(17,24,39,.45);color:#fff;border-radius:999px;padding:10px 12px;font-weight:900;cursor:pointer;">Terug</button>
+                                <button type="button" class="rr-page-prev" style="border:1px solid rgba(255,255,255,.65);background:rgba(17,24,39,.45);color:#fff;border-radius:999px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-weight:900;cursor:pointer;">‹</button>
+                                <button type="button" class="rr-page-next" style="border:1px solid rgba(255,255,255,.65);background:rgba(17,24,39,.45);color:#fff;border-radius:999px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-weight:900;cursor:pointer;">›</button>
+                            </div>
+                        </div>
+                        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.08) 35%,rgba(0,0,0,0.62) 100%);"></div>
+                    </div>
+
+                    <div class="rr-detail-right" style="border:1px solid #e5e7eb;border-radius:18px;background:#fff;overflow:hidden;display:flex;flex-direction:column;min-height:0;height:100%;">
+                        <div class="rr-hotel-map" style="border-bottom:1px solid #eef2f7;background:#fff;">
+                            <div class="rr-hotel-map-canvas" style="width:100%;height:170px;margin:0;padding:0;display:flex;align-items:center;justify-content:center;color:#6b7280;font-weight:800;">Ligging hotel</div>
+                        </div>
+                        <div class="rr-detail-scroll" style="padding:16px;overflow:auto;min-height:0;flex:1;">
+                            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                                <div style="min-width:0;">
+                                    <div class="rr-detail-h1 editable" contenteditable="true" style="font-weight:900;color:#111827;font-size:20px;">Bestemming</div>
+                                    <div class="rr-detail-hotel-line" style="margin-top:4px;color:#6b7280;font-weight:800;font-size:13px;">Hotel</div>
+                                </div>
+                            </div>
+
+                            <div class="rr-detail-text editable" contenteditable="true" style="margin-top:12px;color:#374151;line-height:1.75;">Beschrijving van de bestemming...</div>
+
+                            <div class="rr-detail-thumbs" style="margin-top:14px;display:flex;gap:10px;overflow:auto;padding-bottom:6px;"></div>
+
+                            <div style="height:1px;background:#eef2f7;margin:18px 0;"></div>
+
+                            <div class="rr-hotel-section">
+                                <div class="editable" contenteditable="true" style="font-weight:900;color:#111827;font-size:16px;">Hotel</div>
+                                <div class="rr-hotel-desc editable" contenteditable="true" style="margin-top:10px;color:#374151;line-height:1.75;">Hotel informatie...</div>
+                                <div class="rr-hotel-thumbs" style="margin-top:14px;display:flex;gap:10px;overflow:auto;padding-bottom:6px;"></div>
+                            </div>
+
+                            <div style="height:1px;background:#eef2f7;margin:18px 0;"></div>
+
+                            <div class="rr-excursies-section">
+                                <div class="editable" contenteditable="true" style="font-weight:900;color:#111827;font-size:16px;">Excursies</div>
+                                <div class="editable" contenteditable="true" style="margin-top:10px;color:#374151;line-height:1.75;">Excursies en tips...</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -7016,18 +7124,101 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                 if (!block || block.dataset.rrInited === '1') return;
                 block.dataset.rrInited = '1';
 
+                const pageHome = block.querySelector('.rr-page-home');
+                const pageDetail = block.querySelector('.rr-page-detail');
                 const placesView = block.querySelector('.rr-places-view');
                 const detailView = block.querySelector('.rr-detail-view');
                 const showPlaces = () => {
                     try {
-                        if (placesView) placesView.style.display = 'flex';
-                        if (detailView) detailView.style.display = 'none';
+                        if (pageHome && pageDetail) {
+                            pageHome.style.display = 'block';
+                            pageDetail.style.display = 'none';
+                        } else {
+                            if (placesView) placesView.style.display = 'flex';
+                            if (detailView) detailView.style.display = 'none';
+                        }
                     } catch (e) {}
                 };
                 const showDetail = () => {
                     try {
-                        if (placesView) placesView.style.display = 'none';
-                        if (detailView) detailView.style.display = 'flex';
+                        if (pageHome && pageDetail) {
+                            pageHome.style.display = 'none';
+                            pageDetail.style.display = 'block';
+                        } else {
+                            if (placesView) placesView.style.display = 'none';
+                            if (detailView) detailView.style.display = 'flex';
+                        }
+                    } catch (e) {}
+                };
+
+                const rrData = (() => {
+                    try {
+                        const d = block._roadbookData || {};
+                        const gs = block._rrGroupedStops;
+                        return { data: d, groupedStops: Array.isArray(gs) ? gs : [] };
+                    } catch (e) {
+                        return { data: {}, groupedStops: [] };
+                    }
+                })();
+
+                const renderThumbStrip = (wrapEl, images) => {
+                    try {
+                        if (!wrapEl) return;
+                        const imgs = (Array.isArray(images) ? images : []).filter(Boolean).slice(0, 12);
+                        wrapEl.innerHTML = imgs.map((u, idx) => {
+                            const slides = encodeURIComponent(JSON.stringify([String(u)]));
+                            return `
+                                <div class="rr-thumb placeImg" data-wb-slides="${slides}" data-wb-slide-idx="0" data-rr-thumb-idx="${idx}" style="flex:0 0 auto;width:120px;height:78px;border-radius:12px;overflow:hidden;background:#f3f4f6;border:1px solid #e5e7eb;cursor:pointer;">
+                                    <img src="${String(u)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
+                                </div>
+                            `;
+                        }).join('');
+                    } catch (e) {}
+                };
+
+                const setDetailStop = (idx) => {
+                    try {
+                        const i = parseInt(String(idx), 10);
+                        if (Number.isNaN(i)) return;
+                        const stops = rrData.groupedStops;
+                        if (!Array.isArray(stops) || !stops.length) return;
+                        const s = stops[i];
+                        if (!s) return;
+                        block._rrActiveIdx = i;
+
+                        const heroWrap = block.querySelector('.rr-detail-hero.placeImg');
+                        const heroImg = block.querySelector('.rr-detail-hero-img');
+                        const titleEl = block.querySelector('.rr-detail-title');
+                        const subEl = block.querySelector('.rr-detail-sub');
+                        const h1El = block.querySelector('.rr-detail-h1');
+                        const hotelLine = block.querySelector('.rr-detail-hotel-line');
+                        const hotelDesc = block.querySelector('.rr-hotel-desc');
+                        const thumbsDest = block.querySelector('.rr-detail-thumbs');
+                        const thumbsHotel = block.querySelector('.rr-hotel-thumbs');
+
+                        const dayLabel = `Dag ${s.fromDay}${(s.toDay && s.toDay !== s.fromDay) ? `-${s.toDay}` : ''}`;
+                        const destImages = Array.isArray(s.destImages) && s.destImages.length ? s.destImages : [s.img].filter(Boolean);
+                        const mainImg = destImages[0] || s.img;
+                        if (heroImg && mainImg) heroImg.src = String(mainImg);
+                        if (heroWrap) {
+                            heroWrap._wbSlides = destImages;
+                            heroWrap.dataset.wbSlideInited = '0';
+                            heroWrap.dataset.wbSlideIdx = '0';
+                            heroWrap.setAttribute('data-wb-slides', encodeURIComponent(JSON.stringify(destImages)));
+                        }
+                        if (titleEl) titleEl.textContent = s.name || 'Bestemming';
+                        if (subEl) subEl.textContent = dayLabel;
+                        if (h1El) h1El.textContent = s.name || 'Bestemming';
+
+                        const h = s.hotel || null;
+                        const hotelTitle = h && (h.name || h.location) ? [h.name, h.location].filter(Boolean).join(' · ') : (h && h.name ? h.name : 'Hotel');
+                        if (hotelLine) hotelLine.textContent = hotelTitle;
+                        if (hotelDesc) hotelDesc.textContent = (h && h.description) ? String(h.description) : 'Hotel informatie...';
+
+                        renderThumbStrip(thumbsDest, destImages);
+                        renderThumbStrip(thumbsHotel, h && Array.isArray(h.images) ? h.images : []);
+
+                        try { initSlideshows(); } catch (e2) {}
                     } catch (e) {}
                 };
 
@@ -7157,6 +7348,7 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                     block._rrSetActiveStop = setActiveStop;
                     block._rrShowDetail = showDetail;
                     block._rrShowPlaces = showPlaces;
+                    block._rrSetDetailStop = setDetailStop;
                 } catch (e00) {}
 
                 try {
@@ -7206,10 +7398,62 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                             e.stopPropagation();
                             setActiveStop(stopBtn.dataset.stopIndex);
                             try {
-                                showDetail();
-                                const detail = block.querySelector('#rr-detail') || block.querySelector('.rr-detail-view');
-                                if (detail) detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                if (pageHome && pageDetail) {
+                                    try { setDetailStop(stopBtn.dataset.stopIndex); } catch (e22) {}
+                                    showDetail();
+                                    if (pageDetail) pageDetail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                } else {
+                                    showDetail();
+                                    const detail = block.querySelector('#rr-detail') || block.querySelector('.rr-detail-view');
+                                    if (detail) detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }
                             } catch (e2) {}
+                            return;
+                        }
+
+                        const backPage = t.closest('.rr-page-back');
+                        if (backPage && block.contains(backPage)) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            showPlaces();
+                            return;
+                        }
+
+                        const prevBtn = t.closest('.rr-page-prev');
+                        if (prevBtn && block.contains(prevBtn)) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const cur = parseInt(String(block._rrActiveIdx || '0'), 10) || 0;
+                            const n = rrData.groupedStops.length || 0;
+                            const next = n ? ((cur - 1 + n) % n) : 0;
+                            setDetailStop(next);
+                            return;
+                        }
+
+                        const nextBtn = t.closest('.rr-page-next');
+                        if (nextBtn && block.contains(nextBtn)) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const cur = parseInt(String(block._rrActiveIdx || '0'), 10) || 0;
+                            const n = rrData.groupedStops.length || 0;
+                            const next = n ? ((cur + 1) % n) : 0;
+                            setDetailStop(next);
+                            return;
+                        }
+
+                        const thumb = t.closest('.rr-thumb');
+                        if (thumb && block.contains(thumb) && !isEdit) {
+                            try {
+                                const heroWrap = block.querySelector('.rr-detail-hero.placeImg');
+                                const heroImg = block.querySelector('.rr-detail-hero-img');
+                                const u = thumb.querySelector('img') ? thumb.querySelector('img').src : '';
+                                if (u && heroImg) heroImg.src = u;
+                                if (u && heroWrap) {
+                                    heroWrap.dataset.wbSlideIdx = '0';
+                                    heroWrap._wbSlides = [u];
+                                    heroWrap.setAttribute('data-wb-slides', encodeURIComponent(JSON.stringify([u])));
+                                }
+                            } catch (e9) {}
                             return;
                         }
 
@@ -7305,6 +7549,9 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                 try {
                     const first = block.querySelector('.rr-stop-item');
                     if (first) setActiveStop(first.dataset.stopIndex || '0');
+                    if (pageHome && pageDetail) {
+                        try { setDetailStop(first ? (first.dataset.stopIndex || '0') : '0'); } catch (e7) {}
+                    }
                 } catch (e1) {}
 
                 try { showPlaces(); } catch (e3) {}
