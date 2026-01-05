@@ -6543,9 +6543,9 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
             </div>
         </div>
 
-        <div class="rr-wrap" style="max-width:1200px;margin:0 auto;padding:16px;">
-            <div class="rr-home" style="display:grid;grid-template-columns:1.1fr 1fr;gap:16px;align-items:stretch;">
-                <div class="rr-hero-media" style="position:relative;border-radius:18px;overflow:hidden;min-height:520px;background:#0b1220;">
+        <div class="rr-wrap" style="max-width:none;width:100%;margin:0 auto;padding:16px 24px;">
+            <div class="rr-home" style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch;height:calc(100vh - 86px);min-height:640px;">
+                <div class="rr-hero-media" style="position:relative;border-radius:18px;overflow:hidden;height:100%;background:#0b1220;">
                     <div class="rr-hero-img placeImg" data-wb-slides="${safeJson([firstImg])}" data-wb-slide-idx="0" style="position:absolute;inset:0;">
                         <img src="${firstImg}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0.92;">
                     </div>
@@ -6556,24 +6556,24 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
                     <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.0) 45%,rgba(0,0,0,0.55) 100%);"></div>
                 </div>
 
-                <div class="rr-right" style="display:flex;flex-direction:column;gap:14px;min-height:520px;">
-                    <div id="rr-map" class="wb-component wb-roadbook-route-map" data-component="roadbook-route-map" data-wb-destinations="${routePointsAttr}" style="border-radius:18px;overflow:hidden;border:1px solid #e5e7eb;background:#fff;">
-                        <div class="roadbook-route-map-canvas" style="width:100%;height:260px;margin:0;padding:0;display:flex;align-items:center;justify-content:center;color:#6b7280;font-weight:800;">Kaart wordt geladen...</div>
+                <div class="rr-right" style="display:flex;flex-direction:column;gap:18px;height:100%;min-height:0;">
+                    <div id="rr-map" class="wb-component wb-roadbook-route-map" data-component="roadbook-route-map" data-wb-destinations="${routePointsAttr}" style="border-radius:18px;overflow:hidden;border:1px solid #e5e7eb;background:#fff;flex:1;min-height:0;">
+                        <div class="roadbook-route-map-canvas" style="width:100%;height:100%;margin:0;padding:0;display:flex;align-items:center;justify-content:center;color:#6b7280;font-weight:800;">Kaart wordt geladen...</div>
                     </div>
 
-                    <div class="rr-panel" style="border:1px solid #e5e7eb;border-radius:18px;background:#fff;overflow:hidden;display:flex;flex-direction:column;min-height:0;flex:1;">
-                        <div class="rr-places-view" style="display:block;min-height:0;flex:1;">
+                    <div class="rr-panel" style="border:1px solid #e5e7eb;border-radius:18px;background:#fff;overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0;">
+                        <div class="rr-places-view" style="display:flex;flex-direction:column;min-height:0;flex:1;">
                             <div style="padding:12px 14px;border-bottom:1px solid #eef2f7;font-weight:900;color:#111827;">Plaatsen</div>
-                            <div class="rr-stops" style="padding:12px;display:grid;gap:10px;overflow:auto;max-height:calc(520px - 260px - 52px);">${stopsListHtml}</div>
+                            <div class="rr-stops" style="padding:12px;display:grid;gap:10px;overflow:auto;flex:1;min-height:0;">${stopsListHtml}</div>
                         </div>
 
-                        <div id="rr-detail" class="rr-detail-view" style="display:none;min-height:0;flex:1;">
+                        <div id="rr-detail" class="rr-detail-view" style="display:none;min-height:0;flex:1;flex-direction:column;">
                             <div style="padding:12px 14px;border-bottom:1px solid #eef2f7;display:flex;align-items:center;justify-content:space-between;gap:10px;">
                                 <button type="button" class="rr-back-btn" style="border:1px solid #e5e7eb;background:#fff;border-radius:999px;padding:8px 12px;font-weight:900;cursor:pointer;">Terug</button>
                                 <div style="font-weight:900;color:#111827;font-size:16px;">Details</div>
                                 <div style="color:#6b7280;font-weight:800;font-size:12px;" class="rr-active-stop-label"></div>
                             </div>
-                            <div class="rr-details" style="padding:12px;overflow:auto;">${detailsHtml}</div>
+                            <div class="rr-details" style="padding:12px;overflow:auto;flex:1;min-height:0;">${detailsHtml}</div>
                         </div>
                     </div>
                 </div>
@@ -6659,7 +6659,7 @@ window.ComponentFactory = ComponentFactory;
 })();
 
 // Attach remove-safety button to any existing hero-travel sections (migration)
-document.addEventListener('DOMContentLoaded', () => {
+const wbInitOnLoad = () => {
     // Upgrade existing hero-banner sections to two-image crossfade if needed
     try {
         document.querySelectorAll('.wb-hero-banner').forEach((section) => {
@@ -6731,7 +6731,13 @@ document.addEventListener('DOMContentLoaded', () => {
             window.ComponentFactory.initRoadbookRondreis(document);
         }
     } catch (e) {}
-});
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wbInitOnLoad);
+} else {
+    try { wbInitOnLoad(); } catch (e) {}
+}
 
 // Safety net: delegated handler so the trash always works, even on cloned nodes
 document.addEventListener('click', (e) => {
@@ -7003,14 +7009,14 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                 const detailView = block.querySelector('.rr-detail-view');
                 const showPlaces = () => {
                     try {
-                        if (placesView) placesView.style.display = 'block';
+                        if (placesView) placesView.style.display = 'flex';
                         if (detailView) detailView.style.display = 'none';
                     } catch (e) {}
                 };
                 const showDetail = () => {
                     try {
                         if (placesView) placesView.style.display = 'none';
-                        if (detailView) detailView.style.display = 'block';
+                        if (detailView) detailView.style.display = 'flex';
                     } catch (e) {}
                 };
 
@@ -7137,6 +7143,12 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                 };
 
                 try {
+                    block._rrSetActiveStop = setActiveStop;
+                    block._rrShowDetail = showDetail;
+                    block._rrShowPlaces = showPlaces;
+                } catch (e00) {}
+
+                try {
                     const backBtn = block.querySelector('.rr-back-btn');
                     if (backBtn && backBtn.dataset.rrBound !== '1') {
                         backBtn.dataset.rrBound = '1';
@@ -7257,6 +7269,44 @@ ComponentFactory.initRoadbookRondreis = function(root) {
         });
     } catch (e) {}
 };
+
+// Fallback: ensure stop clicks always open details, even if init timing was missed
+try {
+    if (document && document.documentElement && document.documentElement.dataset.wbRrClickFallback !== '1') {
+        document.documentElement.dataset.wbRrClickFallback = '1';
+        document.addEventListener('click', (e) => {
+            try {
+                const t = e && e.target ? (e.target.nodeType === 1 ? e.target : e.target.parentElement) : null;
+                if (!t || !t.closest) return;
+                const stopBtn = t.closest('.rr-stop-item');
+                if (!stopBtn) return;
+                const block = stopBtn.closest('.wb-roadbook-rondreis');
+                if (!block) return;
+
+                // If not inited yet, init just this block
+                try {
+                    if (block.dataset.rrInited !== '1' && window.ComponentFactory && typeof window.ComponentFactory.initRoadbookRondreis === 'function') {
+                        window.ComponentFactory.initRoadbookRondreis(block);
+                    }
+                } catch (e1) {}
+
+                // Drive UI
+                try {
+                    e.preventDefault();
+                    e.stopPropagation();
+                } catch (e2) {}
+
+                try { block._rrSetActiveStop && block._rrSetActiveStop(stopBtn.dataset.stopIndex); } catch (e3) {}
+                try { block._rrShowDetail && block._rrShowDetail(); } catch (e4) {}
+                try {
+                    const detail = block.querySelector('#rr-detail') || block.querySelector('.rr-detail-view');
+                    if (detail) detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } catch (e5) {}
+            } catch (e0) {}
+        }, true);
+    }
+} catch (e) {}
+
 // Animated Travel Route Map - Mapbox GL JS animated routes
 ComponentFactory.createAnimatedRouteMap = function(options = {}) {
         const section = document.createElement('section');
