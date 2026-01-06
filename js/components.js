@@ -6681,7 +6681,7 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
 
                             <div class="rr-excursies-section">
                                 <div class="editable" contenteditable="true" style="font-weight:900;color:#111827;font-size:16px;">Excursies</div>
-                                <div class="editable" contenteditable="true" style="margin-top:10px;color:#374151;line-height:1.75;">Excursies en tips...</div>
+                                <div class="rr-excursies-text editable" contenteditable="true" style="margin-top:10px;color:#374151;line-height:1.75;">Excursies en tips...</div>
                             </div>
                         </div>
                     </div>
@@ -7198,9 +7198,12 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                         const subEl = block.querySelector('.rr-detail-sub');
                         const h1El = block.querySelector('.rr-detail-h1');
                         const hotelLine = block.querySelector('.rr-detail-hotel-line');
+                        const destText = block.querySelector('.rr-detail-text');
                         const hotelDesc = block.querySelector('.rr-hotel-desc');
                         const thumbsDest = block.querySelector('.rr-detail-thumbs');
                         const thumbsHotel = block.querySelector('.rr-hotel-thumbs');
+                        const excText = block.querySelector('.rr-excursies-text');
+                        const hotelMapCanvas = block.querySelector('.rr-hotel-map-canvas');
 
                         const dayLabel = `Dag ${s.fromDay}${(s.toDay && s.toDay !== s.fromDay) ? `-${s.toDay}` : ''}`;
                         const destImages = Array.isArray(s.destImages) && s.destImages.length ? s.destImages : [s.img].filter(Boolean);
@@ -7216,10 +7219,79 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                         if (subEl) subEl.textContent = dayLabel;
                         if (h1El) h1El.textContent = s.name || 'Bestemming';
 
+                        try {
+                            const items = Array.isArray(s.items) ? s.items : [];
+                            const descHit = items
+                                .map(it => it && (it.description || it.text || it.summary || ''))
+                                .map(x => String(x || '').trim())
+                                .find(x => !!x) || '';
+                            if (destText) {
+                                if (descHit) {
+                                    destText.textContent = descHit;
+                                } else {
+                                    destText.textContent = 'Beschrijving van de bestemming...';
+                                }
+                            }
+                        } catch (eD) {}
+
                         const h = s.hotel || null;
                         const hotelTitle = h && (h.name || h.location) ? [h.name, h.location].filter(Boolean).join(' · ') : (h && h.name ? h.name : 'Hotel');
                         if (hotelLine) hotelLine.textContent = hotelTitle;
                         if (hotelDesc) hotelDesc.textContent = (h && h.description) ? String(h.description) : 'Hotel informatie...';
+
+                        try {
+                            if (hotelMapCanvas) {
+                                if (h && (h.location || h.name)) {
+                                    const q = encodeURIComponent([h.name, h.location].filter(Boolean).join(' '));
+                                    hotelMapCanvas.innerHTML = `
+                                        <iframe
+                                            width="100%"
+                                            height="170"
+                                            frameborder="0"
+                                            style="border:0;display:block;"
+                                            src="https://www.google.com/maps?q=${q}&output=embed"
+                                            allowfullscreen>
+                                        </iframe>
+                                    `;
+                                } else {
+                                    hotelMapCanvas.textContent = 'Ligging hotel';
+                                }
+                            }
+                        } catch (eMap) {}
+
+                        try {
+                            const norm = (x) => String(x || '').replace(/^Dag\s*\d+\s*:\s*/i, '').trim().toLowerCase();
+                            const placeKey = norm(s.name);
+                            const all = Array.isArray(rrData.data && rrData.data.activities) ? rrData.data.activities : [];
+                            const acts = all.filter(a => {
+                                try {
+                                    const lk = norm(a && (a.location || a.city || a.destination || ''));
+                                    return lk && placeKey && (lk === placeKey || lk.includes(placeKey) || placeKey.includes(lk));
+                                } catch (e0) { return false; }
+                            }).slice(0, 6);
+                            if (excText) {
+                                if (!acts.length) {
+                                    excText.textContent = 'Excursies en tips...';
+                                } else {
+                                    const safe = (v) => {
+                                        try { return (typeof escapeHtml === 'function') ? escapeHtml(String(v || '')) : String(v || ''); } catch (e0) { return String(v || ''); }
+                                    };
+                                    excText.innerHTML = acts.map((a) => {
+                                        const meta = [a.date || a.startDate || '', a.time || '', a.provider || ''].filter(Boolean).join(' · ');
+                                        const loc = a.location || a.city || '';
+                                        const meta2 = [meta, loc].filter(Boolean).join(' · ');
+                                        const desc = String(a.description || '').trim();
+                                        return `
+                                            <div style="margin-bottom:12px;">
+                                                <div style="font-weight:900;color:#111827;">${safe(a.name || 'Excursie')}</div>
+                                                ${meta2 ? `<div style=\"margin-top:3px;color:#6b7280;font-weight:800;font-size:12px;\">${safe(meta2)}</div>` : ''}
+                                                ${desc ? `<div style=\"margin-top:6px;\">${safe(desc)}</div>` : ''}
+                                            </div>
+                                        `;
+                                    }).join('');
+                                }
+                            }
+                        } catch (eAct) {}
 
                         renderThumbStrip(thumbsDest, destImages);
                         renderThumbStrip(thumbsHotel, h && Array.isArray(h.images) ? h.images : []);
