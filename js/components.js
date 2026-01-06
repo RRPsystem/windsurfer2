@@ -7332,7 +7332,37 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                             hotelLine.textContent = '';
                             try { hotelLine.style.display = 'none'; } catch (e0) {}
                         }
-                        if (hotelDesc) hotelDesc.textContent = (h && h.description) ? String(h.description) : 'Hotel informatie...';
+                        try {
+                            if (hotelDesc) {
+                                const rawHotel = (h && h.description) ? String(h.description) : '';
+                                const cleaned = (() => {
+                                    try {
+                                        const s0 = String(rawHotel || '').trim();
+                                        if (!s0) return '';
+                                        const decoded = s0
+                                            .replace(/&nbsp;/g, ' ')
+                                            .replace(/&amp;/g, '&')
+                                            .replace(/&lt;/g, '<')
+                                            .replace(/&gt;/g, '>')
+                                            .replace(/&quot;/g, '"')
+                                            .replace(/&#39;/g, "'")
+                                            .trim();
+                                        const withBreaks = decoded.replace(/<\s*br\s*\/?\s*>/gi, '\n');
+                                        if (/[<>]/.test(withBreaks)) {
+                                            const doc = new DOMParser().parseFromString(withBreaks, 'text/html');
+                                            const txt = (doc && doc.body && doc.body.textContent) ? doc.body.textContent : '';
+                                            return String(txt || '').replace(/\u00a0/g, ' ').replace(/\s+\n/g, '\n').replace(/\n\s+/g, '\n').trim();
+                                        }
+                                        return withBreaks.replace(/\u00a0/g, ' ').trim();
+                                    } catch (e0) {
+                                        return String(rawHotel || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                                    }
+                                })();
+                                hotelDesc.textContent = cleaned || 'Hotel informatie...';
+                            }
+                        } catch (eHDesc) {
+                            if (hotelDesc) hotelDesc.textContent = (h && h.description) ? String(h.description) : 'Hotel informatie...';
+                        }
 
                         try {
                             if (hotelMeta) {
@@ -7759,7 +7789,12 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                             if (t.closest('.wb-slide-prev, .wb-slide-next')) return;
                             const ce = t.closest('[contenteditable="true"]');
                             // Keep normal text editing unless user explicitly wants media edit
-                            if (ce && !(e && (e.altKey || e.shiftKey))) return;
+                            if (ce && !(e && (e.altKey || e.shiftKey))) {
+                                // Allow double-click on HOME hero title/subtitle to open picker
+                                const inHomeHero = !!(ce && ce.closest && ce.closest('.rr-hero-media'));
+                                const dbl = !!(e && typeof e.detail === 'number' && e.detail >= 2);
+                                if (!(inHomeHero && dbl)) return;
+                            }
                             let wrap = t.closest('.placeImg[data-wb-slides]') || t.closest('.placeImg');
                             if (!wrap) {
                                 try {
@@ -7767,6 +7802,14 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                                     if (hero) wrap = hero.querySelector('.placeImg[data-wb-slides]') || hero.querySelector('.placeImg');
                                 } catch (e00) {}
                             }
+                            // Prefer explicit home hero image wrapper when clicking inside home hero
+                            try {
+                                const homeHero = t.closest('.rr-hero-media');
+                                if (homeHero) {
+                                    const w = homeHero.querySelector('.rr-hero-img.placeImg[data-wb-slides]') || homeHero.querySelector('.rr-hero-img.placeImg') || null;
+                                    if (w) wrap = w;
+                                }
+                            } catch (e00b) {}
                             if (!wrap || !block.contains(wrap)) return;
                             const imgEl = wrap.querySelector('img');
                             e.preventDefault();
