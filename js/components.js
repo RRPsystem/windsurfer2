@@ -6663,8 +6663,8 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
                             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
                                 <div style="min-width:0;">
                                     <div class="rr-detail-h1 editable" contenteditable="true" style="font-weight:900;color:#111827;font-size:20px;">Bestemming</div>
-                                    <div class="rr-detail-hotel-line" style="margin-top:4px;color:#6b7280;font-weight:800;font-size:13px;">Hotel</div>
-                                    <div class="rr-detail-hotel-meta" style="margin-top:3px;color:#6b7280;font-weight:700;font-size:12px;"></div>
+                                    <div class="rr-detail-hotel-line" style="margin-top:4px;color:#6b7280;font-weight:800;font-size:13px;display:none;"></div>
+                                    <div class="rr-detail-hotel-meta" style="margin-top:3px;color:#6b7280;font-weight:700;font-size:12px;display:none;"></div>
                                 </div>
                             </div>
 
@@ -6676,6 +6676,8 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
 
                             <div class="rr-hotel-section">
                                 <div class="editable" contenteditable="true" style="font-weight:900;color:#111827;font-size:16px;">Hotel</div>
+                                <div class="rr-hotel-title" style="margin-top:8px;font-weight:900;color:#111827;font-size:14px;"></div>
+                                <div class="rr-hotel-meta" style="margin-top:3px;color:#6b7280;font-weight:800;font-size:12px;"></div>
                                 <div class="rr-hotel-desc editable" contenteditable="true" style="margin-top:10px;color:#374151;line-height:1.75;">Hotel informatie...</div>
                                 <div class="rr-hotel-thumbs" style="margin-top:14px;display:flex;gap:10px;overflow:auto;padding-bottom:6px;"></div>
                             </div>
@@ -7178,7 +7180,7 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                         const thumbsHtml = imgs.map((u, idx) => {
                             const slides = encodeURIComponent(JSON.stringify([String(u)]));
                             return `
-                                <div class="rr-thumb placeImg" data-wb-slides="${slides}" data-wb-slide-idx="0" data-rr-thumb-kind="${String(kind || '')}" data-rr-thumb-idx="${idx}" style="position:relative;flex:0 0 auto;width:120px;height:78px;border-radius:12px;overflow:hidden;background:#f3f4f6;border:1px solid #e5e7eb;cursor:pointer;">
+                                <div class="rr-thumb placeImg" draggable="${canEdit ? 'true' : 'false'}" data-wb-slides="${slides}" data-wb-slide-idx="0" data-rr-thumb-kind="${String(kind || '')}" data-rr-thumb-idx="${idx}" style="position:relative;flex:0 0 auto;width:120px;height:78px;border-radius:12px;overflow:hidden;background:#f3f4f6;border:1px solid #e5e7eb;cursor:${canEdit ? 'grab' : 'pointer'};">
                                     <img src="${String(u)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
                                     ${canEdit ? `<button type="button" class="rr-thumb-remove" data-rr-thumb-kind="${String(kind || '')}" data-rr-thumb-idx="${idx}" style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:999px;border:1px solid rgba(255,255,255,.85);background:rgba(17,24,39,.55);color:#fff;font-weight:900;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">×</button>` : ''}
                                 </div>
@@ -7251,6 +7253,8 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                         const hotelMeta = block.querySelector('.rr-detail-hotel-meta');
                         const destText = block.querySelector('.rr-detail-text');
                         const hotelDesc = block.querySelector('.rr-hotel-desc');
+                        const hotelTitleEl = block.querySelector('.rr-hotel-title');
+                        const hotelMetaEl = block.querySelector('.rr-hotel-meta');
                         const thumbsDest = block.querySelector('.rr-detail-thumbs');
                         const thumbsHotel = block.querySelector('.rr-hotel-thumbs');
                         const excText = block.querySelector('.rr-excursies-text');
@@ -7324,15 +7328,23 @@ ComponentFactory.initRoadbookRondreis = function(root) {
 
                         const h = s.hotel || null;
                         const hotelTitle = h && (h.name || h.location) ? [h.name, h.location].filter(Boolean).join(' · ') : (h && h.name ? h.name : 'Hotel');
-                        if (hotelLine) hotelLine.textContent = hotelTitle;
+                        if (hotelLine) {
+                            hotelLine.textContent = '';
+                            try { hotelLine.style.display = 'none'; } catch (e0) {}
+                        }
                         if (hotelDesc) hotelDesc.textContent = (h && h.description) ? String(h.description) : 'Hotel informatie...';
 
                         try {
                             if (hotelMeta) {
+                                hotelMeta.textContent = '';
+                                try { hotelMeta.style.display = 'none'; } catch (e0) {}
+                            }
+                            if (hotelTitleEl) hotelTitleEl.textContent = hotelTitle || '';
+                            if (hotelMetaEl) {
                                 const metaParts = [h && h.roomType ? String(h.roomType) : '', h && h.meals ? String(h.meals) : '']
                                     .map(x => String(x || '').trim())
                                     .filter(Boolean);
-                                hotelMeta.textContent = metaParts.join(' · ');
+                                hotelMetaEl.textContent = metaParts.join(' · ');
                             }
                         } catch (eHM) {}
 
@@ -7745,14 +7757,23 @@ ComponentFactory.initRoadbookRondreis = function(root) {
 
                         if (isEdit && window.MediaPicker && (typeof window.MediaPicker.openImage === 'function' || typeof window.MediaPicker.openVideo === 'function')) {
                             if (t.closest('.wb-slide-prev, .wb-slide-next')) return;
-                            const wrap = t.closest('.placeImg[data-wb-slides]') || t.closest('.placeImg');
+                            const ce = t.closest('[contenteditable="true"]');
+                            // Keep normal text editing unless user explicitly wants media edit
+                            if (ce && !(e && (e.altKey || e.shiftKey))) return;
+                            let wrap = t.closest('.placeImg[data-wb-slides]') || t.closest('.placeImg');
+                            if (!wrap) {
+                                try {
+                                    const hero = t.closest('.rr-hero-media') || t.closest('.rr-detail-left');
+                                    if (hero) wrap = hero.querySelector('.placeImg[data-wb-slides]') || hero.querySelector('.placeImg');
+                                } catch (e00) {}
+                            }
                             if (!wrap || !block.contains(wrap)) return;
                             const imgEl = wrap.querySelector('img');
                             e.preventDefault();
                             e.stopPropagation();
                             (async () => {
                                 try {
-                                    const wantsVideo = !!(e && e.altKey);
+                                    const wantsVideo = !!(e && (e.altKey || e.shiftKey));
                                     const picker = (wantsVideo && typeof window.MediaPicker.openVideo === 'function')
                                         ? window.MediaPicker.openVideo
                                         : window.MediaPicker.openImage;
@@ -7821,6 +7842,101 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                         }
                     } catch (e0) {}
                 }, true);
+
+                // Drag & drop reorder for thumbnails (dest/hotel)
+                try {
+                    if (block.dataset.rrThumbDndBound !== '1') {
+                        block.dataset.rrThumbDndBound = '1';
+                        block._rrThumbDrag = null;
+
+                        block.addEventListener('dragstart', (ev) => {
+                            try {
+                                const isEdit = isEditMode();
+                                if (!isEdit) return;
+                                const el = ev && ev.target ? (ev.target.nodeType === 1 ? ev.target : ev.target.parentElement) : null;
+                                const thumb = el && el.closest ? el.closest('.rr-thumb') : null;
+                                if (!thumb || !block.contains(thumb)) return;
+                                const kind = String(thumb.dataset.rrThumbKind || '').trim() || 'dest';
+                                const fromIdx = parseInt(String(thumb.dataset.rrThumbIdx || '0'), 10);
+                                if (Number.isNaN(fromIdx)) return;
+                                block._rrThumbDrag = { kind, fromIdx };
+                                try {
+                                    ev.dataTransfer.effectAllowed = 'move';
+                                    ev.dataTransfer.setData('text/plain', `${kind}:${fromIdx}`);
+                                } catch (e0) {}
+                            } catch (e) {}
+                        }, true);
+
+                        block.addEventListener('dragover', (ev) => {
+                            try {
+                                const isEdit = isEditMode();
+                                if (!isEdit) return;
+                                const el = ev && ev.target ? (ev.target.nodeType === 1 ? ev.target : ev.target.parentElement) : null;
+                                const over = el && el.closest ? (el.closest('.rr-thumb') || el.closest('.rr-thumb-add') || el.closest('.rr-detail-thumbs') || el.closest('.rr-hotel-thumbs')) : null;
+                                if (!over || !block.contains(over)) return;
+                                ev.preventDefault();
+                                try { ev.dataTransfer.dropEffect = 'move'; } catch (e0) {}
+                            } catch (e) {}
+                        }, true);
+
+                        block.addEventListener('drop', (ev) => {
+                            try {
+                                const isEdit = isEditMode();
+                                if (!isEdit) return;
+                                const drag = block._rrThumbDrag;
+                                if (!drag || !drag.kind) return;
+
+                                const el = ev && ev.target ? (ev.target.nodeType === 1 ? ev.target : ev.target.parentElement) : null;
+                                if (!el || !el.closest) return;
+
+                                const cur = parseInt(String(block._rrActiveIdx || '0'), 10) || 0;
+                                const stopBtnEl = getStopBtnEl(cur);
+                                const attr = (drag.kind === 'hotel') ? 'data-rr-hotel-slides' : 'data-rr-dest-slides';
+
+                                const strip = el.closest(drag.kind === 'hotel' ? '.rr-hotel-thumbs' : '.rr-detail-thumbs');
+                                if (!strip || !block.contains(strip)) return;
+
+                                let toIdx = null;
+                                const toThumb = el.closest('.rr-thumb');
+                                if (toThumb && strip.contains(toThumb)) {
+                                    const v = parseInt(String(toThumb.dataset.rrThumbIdx || '0'), 10);
+                                    if (!Number.isNaN(v)) toIdx = v;
+                                } else {
+                                    // drop on strip / add button => to end
+                                    toIdx = 9999;
+                                }
+
+                                // Rebuild current list from stored slides OR current DOM
+                                let slides = getStoredSlides(stopBtnEl, attr);
+                                if (!slides.length) {
+                                    slides = Array.from(strip.querySelectorAll('.rr-thumb img')).map(n => (n.currentSrc || n.src)).filter(Boolean);
+                                }
+                                slides = Array.isArray(slides) ? slides.filter(Boolean).map(String) : [];
+                                if (!slides.length) return;
+
+                                const fromIdx = drag.fromIdx;
+                                if (fromIdx < 0 || fromIdx >= slides.length) return;
+
+                                ev.preventDefault();
+                                ev.stopPropagation();
+
+                                const [moved] = slides.splice(fromIdx, 1);
+                                let insertAt = (toIdx == null) ? slides.length : toIdx;
+                                if (insertAt < 0) insertAt = 0;
+                                if (insertAt > slides.length) insertAt = slides.length;
+                                slides.splice(insertAt, 0, moved);
+
+                                setStoredSlides(stopBtnEl, attr, slides);
+                                block._rrThumbDrag = null;
+                                try { setDetailStop(cur); } catch (e1) {}
+                            } catch (e) {}
+                        }, true);
+
+                        block.addEventListener('dragend', () => {
+                            try { block._rrThumbDrag = null; } catch (e) {}
+                        }, true);
+                    }
+                } catch (eDnd) {}
 
                 try {
                     const first = block.querySelector('.rr-stop-item');
