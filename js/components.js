@@ -7197,7 +7197,21 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                         return String(m || '').trim().toLowerCase();
                     } catch (e) { return ''; }
                 };
-                const isEditMode = () => getWbMode() === 'edit';
+                const isEditMode = () => {
+                    try {
+                        const here = (
+                            getWbMode() === 'edit' ||
+                            !!window.PropertiesPanel ||
+                            !!window.dragDropManager
+                        );
+                        if (here) return true;
+                        // Builder sometimes injects edit controls in parent window
+                        const p = window.parent;
+                        return !!(p && (p.PropertiesPanel || p.dragDropManager));
+                    } catch (e) {
+                        return getWbMode() === 'edit';
+                    }
+                };
 
                 const getStopBtnEl = (idx) => {
                     try { return block.querySelector(`.rr-stop-item[data-stop-index="${idx}"]`); } catch (e) { return null; }
@@ -7260,11 +7274,45 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                         if (h1El) h1El.textContent = s.name || 'Bestemming';
 
                         try {
+                            const stripToText = (raw) => {
+                                try {
+                                    const s0 = String(raw || '');
+                                    if (!s0.trim()) return '';
+                                    // Decode common entities first (so &lt;p&gt; becomes <p>)
+                                    const decoded = s0
+                                        .replace(/&nbsp;/g, ' ')
+                                        .replace(/&amp;/g, '&')
+                                        .replace(/&lt;/g, '<')
+                                        .replace(/&gt;/g, '>')
+                                        .replace(/&quot;/g, '"')
+                                        .replace(/&#39;/g, "'")
+                                        .trim();
+
+                                    // If HTML-like, parse and take textContent
+                                    if (/[<>]/.test(decoded)) {
+                                        const doc = new DOMParser().parseFromString(decoded, 'text/html');
+                                        const txt = (doc && doc.body && doc.body.textContent) ? doc.body.textContent : '';
+                                        return String(txt || '')
+                                            .replace(/\u00a0/g, ' ')
+                                            .replace(/\s+/g, ' ')
+                                            .trim();
+                                    }
+
+                                    return decoded
+                                        .replace(/\u00a0/g, ' ')
+                                        .replace(/\s+/g, ' ')
+                                        .trim();
+                                } catch (e) {
+                                    return String(raw || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                                }
+                            };
+
                             const items = Array.isArray(s.items) ? s.items : [];
-                            const descHit = items
-                                .map(it => it && (it.description || it.text || it.summary || ''))
+                            const descHitRaw = items
+                                .map(it => it && (it.description || it.text || it.summary || it.fullDescription || ''))
                                 .map(x => String(x || '').trim())
                                 .find(x => !!x) || '';
+                            const descHit = stripToText(descHitRaw);
                             if (destText) {
                                 if (descHit) {
                                     destText.textContent = descHit;
@@ -7525,7 +7573,16 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                         if (!t || !t.closest) return;
 
                         const wbMode = (document.body && document.body.dataset && document.body.dataset.wbMode) || (document.documentElement && document.documentElement.dataset && document.documentElement.dataset.wbMode) || '';
-                        const isEdit = String(wbMode || '').trim().toLowerCase() === 'edit';
+                        const isEdit = (() => {
+                            try {
+                                if (String(wbMode || '').trim().toLowerCase() === 'edit') return true;
+                                if (window.PropertiesPanel || window.dragDropManager) return true;
+                                const p = window.parent;
+                                return !!(p && (p.PropertiesPanel || p.dragDropManager));
+                            } catch (e) {
+                                return String(wbMode || '').trim().toLowerCase() === 'edit';
+                            }
+                        })();
 
                         const thumbRemove = t.closest('.rr-thumb-remove');
                         if (thumbRemove && block.contains(thumbRemove) && isEdit) {
@@ -7788,6 +7845,40 @@ try {
             try {
                 const t = e && e.target ? (e.target.nodeType === 1 ? e.target : e.target.parentElement) : null;
                 if (!t || !t.closest) return;
+
+                const backBtn = t.closest('.rr-page-back');
+                if (backBtn) {
+                    const block = backBtn.closest('.wb-roadbook-rondreis');
+                    if (!block) return;
+
+                    // If not inited yet, init just this block
+                    try {
+                        if (block.dataset.rrInited !== '1' && window.ComponentFactory && typeof window.ComponentFactory.initRoadbookRondreis === 'function') {
+                            window.ComponentFactory.initRoadbookRondreis(block);
+                        }
+                    } catch (e1) {}
+
+                    try {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    } catch (e2) {}
+
+                    try {
+                        block._rrShowPlaces && block._rrShowPlaces();
+                    } catch (e3) {}
+
+                    try {
+                        const pageHome = block.querySelector('.rr-page-home');
+                        const pageDetail = block.querySelector('.rr-page-detail');
+                        if (pageHome && pageDetail) {
+                            try { pageHome.style.display = 'block'; } catch (e66) {}
+                            try { pageDetail.style.display = 'none'; } catch (e67) {}
+                            try { pageHome.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e68) {}
+                            return;
+                        }
+                    } catch (e4) {}
+                    return;
+                }
                 const stopBtn = t.closest('.rr-stop-item');
                 if (!stopBtn) return;
                 const block = stopBtn.closest('.wb-roadbook-rondreis');
