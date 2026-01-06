@@ -6424,6 +6424,8 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
                         name: hit.name ? String(hit.name) : '',
                         location: hit.location || hit.city || hit.destination ? String(hit.location || hit.city || hit.destination) : '',
                         description: String(hit.description || hit.fullDescription || ''),
+                        roomType: String(hit.roomType || hit.roomTypes || ''),
+                        meals: String(hit.mealPlan || hit.meals || ''),
                         images: Array.from(new Set([hotelImg, ...hotelImgs].filter(Boolean))).slice(0, 12)
                     };
                 } else {
@@ -6604,7 +6606,7 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
                         <div style="font-weight:900;font-size:26px;line-height:1.1;" class="editable" contenteditable="true">${escapeHtml(data.title)}</div>
                         <div style="opacity:0.9;margin-top:6px;font-weight:700;" class="editable" contenteditable="true">${escapeHtml(new Date(data.departureDate).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' }))} · ${escapeHtml(String(stops.length || '').trim() ? `${stops.length} dagen` : '')}</div>
                     </div>
-                    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.0) 45%,rgba(0,0,0,0.55) 100%);"></div>
+                    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.0) 45%,rgba(0,0,0,0.55) 100%);pointer-events:none;"></div>
                 </div>
 
                 <div class="rr-right" style="display:flex;flex-direction:column;gap:18px;height:100%;min-height:0;">
@@ -6650,7 +6652,7 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
                                 <button type="button" class="rr-page-next" style="border:1px solid rgba(255,255,255,.65);background:rgba(17,24,39,.45);color:#fff;border-radius:999px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-weight:900;cursor:pointer;">›</button>
                             </div>
                         </div>
-                        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.08) 35%,rgba(0,0,0,0.62) 100%);"></div>
+                        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.08) 35%,rgba(0,0,0,0.62) 100%);pointer-events:none;"></div>
                     </div>
 
                     <div class="rr-detail-right" style="border:1px solid #e5e7eb;border-radius:18px;background:#fff;overflow:hidden;display:flex;flex-direction:column;min-height:0;height:100%;">
@@ -6662,6 +6664,7 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
                                 <div style="min-width:0;">
                                     <div class="rr-detail-h1 editable" contenteditable="true" style="font-weight:900;color:#111827;font-size:20px;">Bestemming</div>
                                     <div class="rr-detail-hotel-line" style="margin-top:4px;color:#6b7280;font-weight:800;font-size:13px;">Hotel</div>
+                                    <div class="rr-detail-hotel-meta" style="margin-top:3px;color:#6b7280;font-weight:700;font-size:12px;"></div>
                                 </div>
                             </div>
 
@@ -7167,18 +7170,51 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                     }
                 })();
 
-                const renderThumbStrip = (wrapEl, images) => {
+                const renderThumbStrip = (wrapEl, images, kind, isEditMode) => {
                     try {
                         if (!wrapEl) return;
                         const imgs = (Array.isArray(images) ? images : []).filter(Boolean).slice(0, 12);
-                        wrapEl.innerHTML = imgs.map((u, idx) => {
+                        const canEdit = !!isEditMode;
+                        const thumbsHtml = imgs.map((u, idx) => {
                             const slides = encodeURIComponent(JSON.stringify([String(u)]));
                             return `
-                                <div class="rr-thumb placeImg" data-wb-slides="${slides}" data-wb-slide-idx="0" data-rr-thumb-idx="${idx}" style="flex:0 0 auto;width:120px;height:78px;border-radius:12px;overflow:hidden;background:#f3f4f6;border:1px solid #e5e7eb;cursor:pointer;">
+                                <div class="rr-thumb placeImg" data-wb-slides="${slides}" data-wb-slide-idx="0" data-rr-thumb-kind="${String(kind || '')}" data-rr-thumb-idx="${idx}" style="position:relative;flex:0 0 auto;width:120px;height:78px;border-radius:12px;overflow:hidden;background:#f3f4f6;border:1px solid #e5e7eb;cursor:pointer;">
                                     <img src="${String(u)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
+                                    ${canEdit ? `<button type="button" class="rr-thumb-remove" data-rr-thumb-kind="${String(kind || '')}" data-rr-thumb-idx="${idx}" style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:999px;border:1px solid rgba(255,255,255,.85);background:rgba(17,24,39,.55);color:#fff;font-weight:900;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">×</button>` : ''}
                                 </div>
                             `;
                         }).join('');
+                        const addHtml = canEdit ? `
+                            <button type="button" class="rr-thumb-add" data-rr-thumb-kind="${String(kind || '')}" style="flex:0 0 auto;width:120px;height:78px;border-radius:12px;border:1px dashed #cbd5e1;background:#fff;color:#0f172a;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+ Foto</button>
+                        ` : '';
+                        wrapEl.innerHTML = `${thumbsHtml}${addHtml}`;
+                    } catch (e) {}
+                };
+
+                const getWbMode = () => {
+                    try {
+                        const m = (document.body && document.body.dataset && document.body.dataset.wbMode) || (document.documentElement && document.documentElement.dataset && document.documentElement.dataset.wbMode) || '';
+                        return String(m || '').trim().toLowerCase();
+                    } catch (e) { return ''; }
+                };
+                const isEditMode = () => getWbMode() === 'edit';
+
+                const getStopBtnEl = (idx) => {
+                    try { return block.querySelector(`.rr-stop-item[data-stop-index="${idx}"]`); } catch (e) { return null; }
+                };
+                const getStoredSlides = (btn, attr) => {
+                    try {
+                        if (!btn) return [];
+                        const raw = btn.getAttribute(attr) || '';
+                        const parsed = parseSlidesAttr(raw);
+                        return (Array.isArray(parsed) ? parsed : []).filter(Boolean).map(String);
+                    } catch (e) { return []; }
+                };
+                const setStoredSlides = (btn, attr, slides) => {
+                    try {
+                        if (!btn) return;
+                        const list = (Array.isArray(slides) ? slides : []).filter(Boolean).map(String).slice(0, 12);
+                        btn.setAttribute(attr, encodeURIComponent(JSON.stringify(list)));
                     } catch (e) {}
                 };
 
@@ -7198,6 +7234,7 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                         const subEl = block.querySelector('.rr-detail-sub');
                         const h1El = block.querySelector('.rr-detail-h1');
                         const hotelLine = block.querySelector('.rr-detail-hotel-line');
+                        const hotelMeta = block.querySelector('.rr-detail-hotel-meta');
                         const destText = block.querySelector('.rr-detail-text');
                         const hotelDesc = block.querySelector('.rr-hotel-desc');
                         const thumbsDest = block.querySelector('.rr-detail-thumbs');
@@ -7205,8 +7242,11 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                         const excText = block.querySelector('.rr-excursies-text');
                         const hotelMapCanvas = block.querySelector('.rr-hotel-map-canvas');
 
+                        const stopBtnEl = getStopBtnEl(i);
+
                         const dayLabel = `Dag ${s.fromDay}${(s.toDay && s.toDay !== s.fromDay) ? `-${s.toDay}` : ''}`;
-                        const destImages = Array.isArray(s.destImages) && s.destImages.length ? s.destImages : [s.img].filter(Boolean);
+                        const storedDest = getStoredSlides(stopBtnEl, 'data-rr-dest-slides');
+                        const destImages = storedDest.length ? storedDest : (Array.isArray(s.destImages) && s.destImages.length ? s.destImages : [s.img].filter(Boolean));
                         const mainImg = destImages[0] || s.img;
                         if (heroImg && mainImg) heroImg.src = String(mainImg);
                         if (heroWrap) {
@@ -7240,16 +7280,48 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                         if (hotelDesc) hotelDesc.textContent = (h && h.description) ? String(h.description) : 'Hotel informatie...';
 
                         try {
+                            if (hotelMeta) {
+                                const metaParts = [h && h.roomType ? String(h.roomType) : '', h && h.meals ? String(h.meals) : '']
+                                    .map(x => String(x || '').trim())
+                                    .filter(Boolean);
+                                hotelMeta.textContent = metaParts.join(' · ');
+                            }
+                        } catch (eHM) {}
+
+                        try {
                             if (hotelMapCanvas) {
-                                if (h && (h.location || h.name)) {
-                                    const q = encodeURIComponent([h.name, h.location].filter(Boolean).join(' '));
+                                const lat = (s && s.latitude != null) ? Number(s.latitude) : null;
+                                const lng = (s && s.longitude != null) ? Number(s.longitude) : null;
+                                if (typeof L !== 'undefined' && lat != null && lng != null && !Number.isNaN(lat) && !Number.isNaN(lng)) {
+                                    try {
+                                        if (block._rrHotelLeafletMap && typeof block._rrHotelLeafletMap.remove === 'function') {
+                                            try { block._rrHotelLeafletMap.remove(); } catch (eR) {}
+                                        }
+                                        hotelMapCanvas.innerHTML = `<div class="rr-hotel-leaflet" style="width:100%;height:170px;"></div>`;
+                                        const mapEl = hotelMapCanvas.querySelector('.rr-hotel-leaflet');
+                                        const map = L.map(mapEl, { zoomControl: false, attributionControl: false, dragging: true }).setView([lat, lng], 13);
+                                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+                                        L.marker([lat, lng]).addTo(map);
+                                        block._rrHotelLeafletMap = map;
+                                        setTimeout(() => { try { map.invalidateSize(); } catch (eInv) {} }, 50);
+                                    } catch (eL) {
+                                        hotelMapCanvas.textContent = 'Ligging hotel';
+                                    }
+                                } else if (lat != null && lng != null && !Number.isNaN(lat) && !Number.isNaN(lng)) {
+                                    const delta = 0.02;
+                                    const left = lng - delta;
+                                    const right = lng + delta;
+                                    const top = lat + delta;
+                                    const bottom = lat - delta;
+                                    const bbox = encodeURIComponent([left, bottom, right, top].join(','));
+                                    const marker = encodeURIComponent([lat, lng].join(','));
                                     hotelMapCanvas.innerHTML = `
                                         <iframe
                                             width="100%"
                                             height="170"
                                             frameborder="0"
                                             style="border:0;display:block;"
-                                            src="https://www.google.com/maps?q=${q}&output=embed"
+                                            src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${marker}"
                                             allowfullscreen>
                                         </iframe>
                                     `;
@@ -7293,8 +7365,10 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                             }
                         } catch (eAct) {}
 
-                        renderThumbStrip(thumbsDest, destImages);
-                        renderThumbStrip(thumbsHotel, h && Array.isArray(h.images) ? h.images : []);
+                        const storedHotel = getStoredSlides(stopBtnEl, 'data-rr-hotel-slides');
+                        const hotelImages = storedHotel.length ? storedHotel : (h && Array.isArray(h.images) ? h.images : []);
+                        renderThumbStrip(thumbsDest, destImages, 'dest', isEditMode());
+                        renderThumbStrip(thumbsHotel, hotelImages, 'hotel', isEditMode());
 
                         try { initSlideshows(); } catch (e2) {}
                     } catch (e) {}
@@ -7450,6 +7524,61 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                         const t = e && e.target ? (e.target.nodeType === 1 ? e.target : e.target.parentElement) : null;
                         if (!t || !t.closest) return;
 
+                        const wbMode = (document.body && document.body.dataset && document.body.dataset.wbMode) || (document.documentElement && document.documentElement.dataset && document.documentElement.dataset.wbMode) || '';
+                        const isEdit = String(wbMode || '').trim().toLowerCase() === 'edit';
+
+                        const thumbRemove = t.closest('.rr-thumb-remove');
+                        if (thumbRemove && block.contains(thumbRemove) && isEdit) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const kind = String(thumbRemove.dataset.rrThumbKind || '').trim() || 'dest';
+                            const idx = parseInt(String(thumbRemove.dataset.rrThumbIdx || '-1'), 10);
+                            const cur = parseInt(String(block._rrActiveIdx || '0'), 10) || 0;
+                            const stopBtnEl = getStopBtnEl(cur);
+                            const attr = (kind === 'hotel') ? 'data-rr-hotel-slides' : 'data-rr-dest-slides';
+                            let slides = getStoredSlides(stopBtnEl, attr);
+                            if (!slides.length) {
+                                const stops = rrData.groupedStops;
+                                const s = stops && stops[cur] ? stops[cur] : null;
+                                if (kind === 'hotel') slides = (s && s.hotel && Array.isArray(s.hotel.images)) ? s.hotel.images.slice() : [];
+                                else slides = (s && Array.isArray(s.destImages)) ? s.destImages.slice() : [s && s.img].filter(Boolean);
+                            }
+                            if (!Number.isNaN(idx) && idx >= 0 && idx < slides.length) {
+                                slides.splice(idx, 1);
+                                setStoredSlides(stopBtnEl, attr, slides);
+                            }
+                            setDetailStop(cur);
+                            return;
+                        }
+
+                        const thumbAdd = t.closest('.rr-thumb-add');
+                        if (thumbAdd && block.contains(thumbAdd) && isEdit && window.MediaPicker && typeof window.MediaPicker.openImage === 'function') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            (async () => {
+                                try {
+                                    const kind = String(thumbAdd.dataset.rrThumbKind || '').trim() || 'dest';
+                                    const cur = parseInt(String(block._rrActiveIdx || '0'), 10) || 0;
+                                    const stopBtnEl = getStopBtnEl(cur);
+                                    const attr = (kind === 'hotel') ? 'data-rr-hotel-slides' : 'data-rr-dest-slides';
+                                    let slides = getStoredSlides(stopBtnEl, attr);
+                                    if (!slides.length) {
+                                        const stops = rrData.groupedStops;
+                                        const s = stops && stops[cur] ? stops[cur] : null;
+                                        if (kind === 'hotel') slides = (s && s.hotel && Array.isArray(s.hotel.images)) ? s.hotel.images.slice() : [];
+                                        else slides = (s && Array.isArray(s.destImages)) ? s.destImages.slice() : [s && s.img].filter(Boolean);
+                                    }
+                                    const res = await window.MediaPicker.openImage({ defaultTab: 'unsplash', allowUpload: true });
+                                    const pickedUrl = res && (res.fullUrl || res.regularUrl || res.url || res.dataUrl);
+                                    if (!pickedUrl) return;
+                                    slides.push(String(pickedUrl));
+                                    setStoredSlides(stopBtnEl, attr, slides);
+                                    setDetailStop(cur);
+                                } catch (e0) {}
+                            })();
+                            return;
+                        }
+
                         const nav = t.closest('.rr-nav');
                         if (nav && block.contains(nav)) {
                             try {
@@ -7527,6 +7656,9 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                                 const u = thumb.querySelector('img') ? thumb.querySelector('img').src : '';
                                 if (u && heroImg) heroImg.src = u;
                                 if (u && heroWrap) {
+                                    const cur = parseInt(String(block._rrActiveIdx || '0'), 10) || 0;
+                                    const stopBtnEl = getStopBtnEl(cur);
+                                    setStoredSlides(stopBtnEl, 'data-rr-dest-slides', [u]);
                                     heroWrap.dataset.wbSlideIdx = '0';
                                     heroWrap._wbSlides = [u];
                                     heroWrap.setAttribute('data-wb-slides', encodeURIComponent(JSON.stringify([u])));
@@ -7554,11 +7686,6 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                             return;
                         }
 
-                        const isEdit = !!(
-                            (document.body && document.body.dataset && document.body.dataset.wbMode === 'edit') ||
-                            window.PropertiesPanel ||
-                            window.dragDropManager
-                        );
                         if (isEdit && window.MediaPicker && (typeof window.MediaPicker.openImage === 'function' || typeof window.MediaPicker.openVideo === 'function')) {
                             if (t.closest('.wb-slide-prev, .wb-slide-next')) return;
                             const wrap = t.closest('.placeImg[data-wb-slides]') || t.closest('.placeImg');
@@ -7613,6 +7740,20 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                                     } else {
                                         wrap.innerHTML = `<img src="${pickedUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
                                     }
+
+                                    try {
+                                        const cur = parseInt(String(block._rrActiveIdx || '0'), 10) || 0;
+                                        const stopBtnEl = getStopBtnEl(cur);
+                                        if (stopBtnEl) {
+                                            if (wrap.classList && wrap.classList.contains('rr-detail-hero')) {
+                                                setStoredSlides(stopBtnEl, 'data-rr-dest-slides', slides);
+                                            } else if (wrap.closest && wrap.closest('.rr-detail-thumbs')) {
+                                                setStoredSlides(stopBtnEl, 'data-rr-dest-slides', slides);
+                                            } else if (wrap.closest && wrap.closest('.rr-hotel-thumbs')) {
+                                                setStoredSlides(stopBtnEl, 'data-rr-hotel-slides', slides);
+                                            }
+                                        }
+                                    } catch (ePersist) {}
                                     try {
                                         wrap.dataset.wbSlideInited = '0';
                                         initSlideshows();
