@@ -954,6 +954,8 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const brand_id = urlParams.get('brand_id') || window.BOLT_DB?.brandId;
                 const baseUrl = window.BOLT_DB.url.replace(/\/functions\/v1$/, '');
+                const jwtToken = urlParams.get('token') || window.BOLT_DB?.token || window.BOLT_DB?.jwt || '';
+                const authHeader = jwtToken ? `Bearer ${jwtToken}` : `Bearer ${window.BOLT_DB.anonKey}`;
                 
                 console.log('[TravelView] Creating trip assignment for brand:', brand_id);
                 
@@ -974,7 +976,7 @@
                   headers: {
                     'Content-Type': 'application/json',
                     'apikey': window.BOLT_DB.anonKey,
-                    'Authorization': `Bearer ${window.BOLT_DB.anonKey}`,
+                    'Authorization': authHeader,
                     'Prefer': 'return=representation'
                   },
                   body: JSON.stringify(assignmentData)
