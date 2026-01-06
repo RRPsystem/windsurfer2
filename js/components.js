@@ -6630,6 +6630,7 @@ ComponentFactory.createRoadbookRondreis = function(options = {}) {
                 </div>
             </div>
         </div>
+        </div>
 
         <div class="rr-page rr-page-detail" style="display:none;">
             <div class="rr-wrap rr-detail-wrap" style="max-width:none;width:100%;margin:0 auto;padding:16px 24px;">
@@ -7126,6 +7127,11 @@ ComponentFactory.initRoadbookRondreis = function(root) {
 
                 const pageHome = block.querySelector('.rr-page-home');
                 const pageDetail = block.querySelector('.rr-page-detail');
+                try {
+                    if (pageHome && pageDetail && pageHome.contains(pageDetail) && pageHome.parentNode) {
+                        pageHome.parentNode.insertBefore(pageDetail, pageHome.nextSibling);
+                    }
+                } catch (eFixNest) {}
                 const placesView = block.querySelector('.rr-places-view');
                 const detailView = block.querySelector('.rr-detail-view');
                 const showPlaces = () => {
@@ -7561,7 +7567,6 @@ ComponentFactory.initRoadbookRondreis = function(root) {
         });
     } catch (e) {}
 };
-
 // Fallback: ensure stop clicks always open details, even if init timing was missed
 try {
     if (document && document.documentElement && document.documentElement.dataset.wbRrClickFallback !== '1') {
@@ -7592,7 +7597,17 @@ try {
                 try { block._rrSetDetailStop && block._rrSetDetailStop(stopBtn.dataset.stopIndex); } catch (e33) {}
                 try { block._rrShowDetail && block._rrShowDetail(); } catch (e4) {}
                 try {
+                    const pageHome = block.querySelector('.rr-page-home');
                     const pageDetail = block.querySelector('.rr-page-detail');
+                    try {
+                        if (pageHome && pageDetail && pageHome.contains(pageDetail) && pageHome.parentNode) {
+                            pageHome.parentNode.insertBefore(pageDetail, pageHome.nextSibling);
+                        }
+                    } catch (eFixNest2) {}
+                    if (pageHome && pageDetail) {
+                        try { pageHome.style.display = 'none'; } catch (e66) {}
+                        try { pageDetail.style.display = 'block'; } catch (e67) {}
+                    }
                     if (pageDetail && getComputedStyle(pageDetail).display !== 'none') {
                         pageDetail.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         return;
