@@ -956,6 +956,27 @@
                 const baseUrl = window.BOLT_DB.url.replace(/\/functions\/v1$/, '');
                 const jwtToken = urlParams.get('token') || window.BOLT_DB?.token || window.BOLT_DB?.jwt || '';
                 const authHeader = jwtToken ? `Bearer ${jwtToken}` : `Bearer ${window.BOLT_DB.anonKey}`;
+
+                const isLikelySupabaseJwt = (() => {
+                  try {
+                    const parts = String(jwtToken || '').split('.');
+                    if (parts.length < 2) return false;
+                    const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+                    const json = atob(b64);
+                    const payload = JSON.parse(json);
+                    const iss = payload && payload.iss ? String(payload.iss) : '';
+                    if (!iss) return false;
+                    return /supabase/i.test(iss) || /\/auth\/v1/i.test(iss);
+                  } catch (e) {
+                    return false;
+                  }
+                })();
+
+                if (!isLikelySupabaseJwt) {
+                  console.info('[TravelView] Skipping trip_brand_assignments create (token is not a Supabase JWT)');
+                  // Continue anyway
+                  throw null;
+                }
                 
                 console.log('[TravelView] Creating trip assignment for brand:', brand_id);
                 
@@ -990,7 +1011,9 @@
                   // Don't fail the whole import if assignment fails
                 }
               } catch (assignError) {
-                console.warn('[TravelView] Assignment creation failed:', assignError);
+                if (assignError) {
+                  console.warn('[TravelView] Assignment creation failed:', assignError);
+                }
                 // Continue anyway
               }
             }

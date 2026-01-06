@@ -7589,7 +7589,15 @@ try {
                 } catch (e2) {}
 
                 try { block._rrSetActiveStop && block._rrSetActiveStop(stopBtn.dataset.stopIndex); } catch (e3) {}
+                try { block._rrSetDetailStop && block._rrSetDetailStop(stopBtn.dataset.stopIndex); } catch (e33) {}
                 try { block._rrShowDetail && block._rrShowDetail(); } catch (e4) {}
+                try {
+                    const pageDetail = block.querySelector('.rr-page-detail');
+                    if (pageDetail && getComputedStyle(pageDetail).display !== 'none') {
+                        pageDetail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        return;
+                    }
+                } catch (e55) {}
                 try {
                     const detail = block.querySelector('#rr-detail') || block.querySelector('.rr-detail-view');
                     if (detail) detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
