@@ -7786,6 +7786,10 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                         }
 
                         if (isEdit && window.MediaPicker && (typeof window.MediaPicker.openImage === 'function' || typeof window.MediaPicker.openVideo === 'function')) {
+                            try {
+                                const sup = Number(block._rrSuppressMediaClickUntil || 0);
+                                if (sup && Date.now() < sup) return;
+                            } catch (eSup) {}
                             if (t.closest('.wb-slide-prev, .wb-slide-next')) return;
                             const ce = t.closest('[contenteditable="true"]');
                             // Keep normal text editing unless user explicitly wants media edit
@@ -7885,6 +7889,81 @@ ComponentFactory.initRoadbookRondreis = function(root) {
                         }
                     } catch (e0) {}
                 }, true);
+
+                try {
+                    if (block.dataset.rrHomeHeroMediaBound !== '1') {
+                        block.dataset.rrHomeHeroMediaBound = '1';
+                        const openHomeHeroPicker = (ev, isDbl) => {
+                            try {
+                                const isEdit = isEditMode();
+                                if (!isEdit) return;
+                                if (!window.MediaPicker || (typeof window.MediaPicker.openImage !== 'function' && typeof window.MediaPicker.openVideo !== 'function')) return;
+                                const t0 = (ev && ev.target) ? (ev.target.nodeType === 1 ? ev.target : ev.target.parentElement) : null;
+                                let t1 = null;
+                                try {
+                                    if (typeof ev.clientX === 'number' && typeof ev.clientY === 'number') {
+                                        t1 = document.elementFromPoint(ev.clientX, ev.clientY);
+                                    }
+                                } catch (ePt) {}
+                                const nodes = [t0, t1].filter(Boolean);
+                                const homeHero = nodes.map(n => (n && n.closest) ? n.closest('.rr-page-home .rr-hero-media') : null).find(Boolean);
+                                if (!homeHero || !block.contains(homeHero)) return;
+                                const ce = nodes.map(n => (n && n.closest) ? n.closest('[contenteditable="true"]') : null).find(Boolean);
+                                if (ce && !(ev && (ev.altKey || ev.shiftKey)) && !isDbl) return;
+                                const wrap = homeHero.querySelector('.rr-hero-img.placeImg[data-wb-slides]') || homeHero.querySelector('.rr-hero-img.placeImg');
+                                if (!wrap) return;
+                                try { block._rrSuppressMediaClickUntil = Date.now() + 700; } catch (eSup2) {}
+                                ev.preventDefault();
+                                ev.stopPropagation();
+                                (async () => {
+                                    try {
+                                        const wantsVideo = !!(ev && (ev.altKey || ev.shiftKey));
+                                        const picker = (wantsVideo && typeof window.MediaPicker.openVideo === 'function')
+                                            ? window.MediaPicker.openVideo
+                                            : window.MediaPicker.openImage;
+                                        if (typeof picker !== 'function') return;
+                                        const res = await picker({ defaultTab: 'unsplash', allowUpload: true });
+                                        const pickedUrl = res && (res.fullUrl || res.regularUrl || res.url || res.dataUrl || res.videoUrl || res.embedUrl);
+                                        if (!pickedUrl) return;
+                                        const imgEl = wrap.querySelector('img');
+                                        const isVideo = wantsVideo || (res && (res.type === 'video' || String(res.type || '').includes('video')));
+                                        if (isVideo) {
+                                            const url = String(pickedUrl);
+                                            if (/youtube\.com|youtu\.be|vimeo\.com/.test(url)) {
+                                                wrap.innerHTML = `<iframe src="${url}" style="width:100%;height:100%;border:0;" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+                                            } else {
+                                                wrap.innerHTML = `<video src="${url}" style="width:100%;height:100%;object-fit:cover;display:block;" autoplay muted loop playsinline controls></video>`;
+                                            }
+                                            return;
+                                        }
+                                        let slides = parseSlidesAttr(wrap.getAttribute('data-wb-slides') || '');
+                                        slides = Array.isArray(slides) ? slides.filter(Boolean) : [];
+                                        const idx = parseInt(wrap.dataset.wbSlideIdx || '0', 10) || 0;
+                                        if (slides.length) slides[idx] = pickedUrl;
+                                        else {
+                                            slides = [pickedUrl];
+                                            wrap.dataset.wbSlideIdx = '0';
+                                        }
+                                        wrap._wbSlides = slides;
+                                        wrap.setAttribute('data-wb-slides', encodeURIComponent(JSON.stringify(slides)));
+                                        if (imgEl) {
+                                            if (typeof window.__WB_applyResponsiveSrc === 'function') window.__WB_applyResponsiveSrc(imgEl, pickedUrl);
+                                            else imgEl.src = pickedUrl;
+                                        } else {
+                                            wrap.innerHTML = `<img src="${pickedUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+                                        }
+                                        try {
+                                            wrap.dataset.wbSlideInited = '0';
+                                            initSlideshows();
+                                        } catch (eRe) {}
+                                    } catch (eOpen) {}
+                                })();
+                            } catch (eH) {}
+                        };
+                        block.addEventListener('pointerdown', (ev) => openHomeHeroPicker(ev, false), true);
+                        block.addEventListener('dblclick', (ev) => openHomeHeroPicker(ev, true), true);
+                    }
+                } catch (eBindHero) {}
 
                 // Drag & drop reorder for thumbnails (dest/hotel)
                 try {
@@ -8082,6 +8161,110 @@ try {
                 } catch (e5) {}
             } catch (e0) {}
         }, true);
+    }
+} catch (e) {}
+
+try {
+    if (document && document.documentElement && document.documentElement.dataset.wbRrHomeHeroGlobalBound !== '1') {
+        document.documentElement.dataset.wbRrHomeHeroGlobalBound = '1';
+
+        const __rrIsEdit = () => {
+            try {
+                const wbMode = (document.body && document.body.dataset && document.body.dataset.wbMode) || (document.documentElement && document.documentElement.dataset && document.documentElement.dataset.wbMode) || '';
+                if (String(wbMode || '').trim().toLowerCase() === 'edit') return true;
+                if (window.PropertiesPanel || window.dragDropManager) return true;
+                const p = window.parent;
+                return !!(p && (p.PropertiesPanel || p.dragDropManager));
+            } catch (e) { return false; }
+        };
+
+        const __rrOpenHomeHero = (ev, isDbl) => {
+            try {
+                if (!__rrIsEdit()) return;
+                if (!window.MediaPicker || (typeof window.MediaPicker.openImage !== 'function' && typeof window.MediaPicker.openVideo !== 'function')) return;
+
+                const x = (ev && typeof ev.clientX === 'number') ? ev.clientX : null;
+                const y = (ev && typeof ev.clientY === 'number') ? ev.clientY : null;
+                if (x == null || y == null) return;
+
+                let hero = null;
+                try {
+                    const els = (typeof document.elementsFromPoint === 'function') ? document.elementsFromPoint(x, y) : [];
+                    hero = (els || []).map(n => (n && n.closest) ? n.closest('.rr-page-home .rr-hero-media') : null).find(Boolean) || null;
+                } catch (e0) { hero = null; }
+                if (!hero) return;
+
+                const block = hero.closest('.wb-roadbook-rondreis');
+                if (!block) return;
+
+                try {
+                    const sup = Number(block._rrSuppressMediaClickUntil || 0);
+                    if (sup && Date.now() < sup) return;
+                } catch (eSup) {}
+
+                const ce = (ev && ev.target && ev.target.closest) ? ev.target.closest('[contenteditable="true"]') : null;
+                if (ce && !(ev && (ev.altKey || ev.shiftKey)) && !isDbl) return;
+
+                const wrap = hero.querySelector('.rr-hero-img.placeImg[data-wb-slides]') || hero.querySelector('.rr-hero-img.placeImg');
+                if (!wrap) return;
+
+                try { block._rrSuppressMediaClickUntil = Date.now() + 700; } catch (eSup2) {}
+                try {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                } catch (eP) {}
+
+                (async () => {
+                    try {
+                        const wantsVideo = !!(ev && (ev.altKey || ev.shiftKey));
+                        const picker = (wantsVideo && typeof window.MediaPicker.openVideo === 'function')
+                            ? window.MediaPicker.openVideo
+                            : window.MediaPicker.openImage;
+                        if (typeof picker !== 'function') return;
+
+                        const res = await picker({ defaultTab: 'unsplash', allowUpload: true });
+                        const pickedUrl = res && (res.fullUrl || res.regularUrl || res.url || res.dataUrl || res.videoUrl || res.embedUrl);
+                        if (!pickedUrl) return;
+
+                        const imgEl = wrap.querySelector('img');
+                        const isVideo = wantsVideo || (res && (res.type === 'video' || String(res.type || '').includes('video')));
+                        if (isVideo) {
+                            const url = String(pickedUrl);
+                            if (/youtube\.com|youtu\.be|vimeo\.com/.test(url)) {
+                                wrap.innerHTML = `<iframe src="${url}" style="width:100%;height:100%;border:0;" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+                            } else {
+                                wrap.innerHTML = `<video src="${url}" style="width:100%;height:100%;object-fit:cover;display:block;" autoplay muted loop playsinline controls></video>`;
+                            }
+                            return;
+                        }
+
+                        let slides = parseSlidesAttr(wrap.getAttribute('data-wb-slides') || '');
+                        slides = Array.isArray(slides) ? slides.filter(Boolean) : [];
+                        const idx = parseInt(wrap.dataset.wbSlideIdx || '0', 10) || 0;
+                        if (slides.length) slides[idx] = pickedUrl;
+                        else {
+                            slides = [pickedUrl];
+                            wrap.dataset.wbSlideIdx = '0';
+                        }
+                        wrap._wbSlides = slides;
+                        wrap.setAttribute('data-wb-slides', encodeURIComponent(JSON.stringify(slides)));
+                        if (imgEl) {
+                            if (typeof window.__WB_applyResponsiveSrc === 'function') window.__WB_applyResponsiveSrc(imgEl, pickedUrl);
+                            else imgEl.src = pickedUrl;
+                        } else {
+                            wrap.innerHTML = `<img src="${pickedUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+                        }
+                        try {
+                            wrap.dataset.wbSlideInited = '0';
+                            if (block && typeof block._wbInitSlideshows === 'function') block._wbInitSlideshows();
+                        } catch (eRe) {}
+                    } catch (e1) {}
+                })();
+            } catch (e2) {}
+        };
+
+        document.addEventListener('pointerdown', (ev) => __rrOpenHomeHero(ev, false), true);
+        document.addEventListener('dblclick', (ev) => __rrOpenHomeHero(ev, true), true);
     }
 } catch (e) {}
 
