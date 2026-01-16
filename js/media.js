@@ -223,9 +223,8 @@ class MediaPicker {
           } catch (e) {}
         };
 
-        if (!key) {
-          if (noteEl) noteEl.textContent = 'Tip: voeg een Unsplash Access Key toe in js/config.local.js als window.MEDIA_CONFIG.unsplashAccessKey (of unsplashKey) om hier te zoeken.';
-        }
+        // Note: Server-side API route is used when no client key is available
+        if (noteEl) noteEl.textContent = '';
         let currentPage = 1;
         let currentQuery = '';
         const runSearch = async (append = false) => {
@@ -344,6 +343,9 @@ class MediaPicker {
         const key = (window.MEDIA_CONFIG && window.MEDIA_CONFIG.pexelsKey)
           ? window.MEDIA_CONFIG.pexelsKey
           : '';
+
+        // Clear any tip messages - we use server-side API routes
+        if (noteEl) noteEl.textContent = '';
 
         let currentPage = 1;
         let currentQuery = '';
@@ -608,6 +610,9 @@ class MediaPicker {
         const noteEl = storyblocksPane ? storyblocksPane.querySelector('.storyblocks-note') : null;
         const grid = storyblocksPane ? storyblocksPane.querySelector('.storyblocks-grid') : null;
         const moreBtnStoryblocks = storyblocksPane ? storyblocksPane.querySelector('.storyblocks-more') : null;
+
+        // Clear any tip messages - we use server-side API routes
+        if (noteEl) noteEl.textContent = '';
 
         let currentPage = 1;
         let currentQuery = '';
