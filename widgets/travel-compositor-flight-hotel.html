@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vlucht + Hotel Searchbox Widget</title>
+    
+    <!-- jQuery & jQuery UI -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.8.18/i18n/jquery.ui.datepicker-nl.min.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --tc-primary: #066168;
+            --tc-primary-dark: #055058;
+            --tc-white: #ffffff;
+            --tc-light: #f8fafc;
+            --tc-dark: #1e293b;
+            --tc-gray: #64748b;
+            --tc-border: #e2e8f0;
+            --tc-radius: 12px;
+            --tc-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        
+        * { box-sizing: border-box; }
+        
+        .tc-fh-widget {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--tc-radius);
+            box-shadow: var(--tc-shadow);
+            padding: 24px;
+        }
+        
+        .tc-fh-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 20px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--tc-primary);
+        }
+        
+        .tc-fh-title i {
+            font-size: 20px;
+        }
+        
+        .tc-fh-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .tc-fh-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .tc-fh-group {
+            position: relative;
+        }
+        
+        .tc-fh-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--tc-gray);
+            margin-bottom: 4px;
+        }
+        
+        .tc-fh-input-wrap {
+            position: relative;
+        }
+        
+        .tc-fh-input-wrap i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--tc-gray);
+            font-size: 14px;
+            pointer-events: none;
+        }
+        
+        .tc-fh-input {
+            width: 100%;
+            padding: 12px 12px 12px 38px;
+            border: 1px solid var(--tc-border);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--tc-dark);
+            background: var(--tc-white);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        .tc-fh-input:focus {
+            outline: none;
+            border-color: var(--tc-primary);
+            box-shadow: 0 0 0 3px rgba(6, 97, 104, 0.1);
+        }
+        
+        .tc-fh-input::placeholder {
+            color: #94a3b8;
+        }
+        
+        /* Room Selector */
+        .tc-fh-room-selector {
+            position: relative;
+        }
+        
+        .tc-fh-room-trigger {
+            width: 100%;
+            padding: 12px 12px 12px 38px;
+            border: 1px solid var(--tc-border);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--tc-dark);
+            background: var(--tc-white);
+            cursor: pointer;
+            text-align: left;
+            transition: border-color 0.2s;
+        }
+        
+        .tc-fh-room-trigger:hover {
+            border-color: var(--tc-primary);
+        }
+        
+        .tc-fh-room-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--tc-white);
+            border: 1px solid var(--tc-border);
+            border-radius: 8px;
+            box-shadow: var(--tc-shadow);
+            padding: 16px;
+            z-index: 100;
+            margin-top: 4px;
+        }
+        
+        .tc-fh-room-dropdown.open {
+            display: block;
+        }
+        
+        .tc-fh-room-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--tc-border);
+        }
+        
+        .tc-fh-room-row:last-child {
+            border-bottom: none;
+        }
+        
+        .tc-fh-room-label {
+            font-size: 14px;
+            color: var(--tc-dark);
+        }
+        
+        .tc-fh-room-label small {
+            display: block;
+            color: var(--tc-gray);
+            font-size: 12px;
+            margin-top: 2px;
+        }
+        
+        .tc-fh-counter {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .tc-fh-counter-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--tc-border);
+            border-radius: 50%;
+            background: var(--tc-white);
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--tc-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .tc-fh-counter-btn:hover {
+            background: var(--tc-primary);
+            color: var(--tc-white);
+            border-color: var(--tc-primary);
+        }
+        
+        .tc-fh-counter-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .tc-fh-counter-value {
+            min-width: 24px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        
+        /* Submit Button */
+        .tc-fh-submit {
+            width: 100%;
+            padding: 14px 24px;
+            background: var(--tc-primary);
+            color: var(--tc-white);
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .tc-fh-submit:hover {
+            background: var(--tc-primary-dark);
+        }
+        
+        .tc-fh-submit:active {
+            transform: scale(0.98);
+        }
+        
+        /* Responsive */
+        @media (max-width: 640px) {
+            .tc-fh-widget {
+                padding: 16px;
+                border-radius: 8px;
+            }
+            
+            .tc-fh-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .tc-fh-title {
+                font-size: 16px;
+            }
+        }
+        
+        /* jQuery UI Datepicker Override */
+        .ui-datepicker {
+            font-family: inherit;
+            border-radius: 8px;
+            box-shadow: var(--tc-shadow);
+            border: 1px solid var(--tc-border);
+            padding: 8px;
+        }
+        
+        .ui-datepicker-header {
+            background: var(--tc-primary);
+            border: none;
+            border-radius: 6px 6px 0 0;
+            padding: 8px;
+        }
+        
+        .ui-datepicker-title {
+            color: white;
+        }
+        
+        .ui-datepicker-prev, .ui-datepicker-next {
+            top: 10px !important;
+        }
+        
+        .ui-datepicker td a {
+            text-align: center;
+            padding: 6px;
+            border-radius: 4px;
+        }
+        
+        .ui-datepicker td a.ui-state-active {
+            background: var(--tc-primary);
+            color: white;
+        }
+        
+        .ui-datepicker td a.ui-state-hover {
+            background: rgba(6, 97, 104, 0.1);
+        }
+        
+        /* Autocomplete */
+        .ui-autocomplete {
+            max-height: 250px;
+            overflow-y: auto;
+            border-radius: 8px;
+            box-shadow: var(--tc-shadow);
+            border: 1px solid var(--tc-border);
+        }
+        
+        .ui-menu-item-wrapper {
+            padding: 10px 14px;
+            font-size: 14px;
+        }
+        
+        .ui-menu-item-wrapper.ui-state-active {
+            background: var(--tc-primary);
+            color: white;
+        }
+    </style>
+</head>
+<body style="background: linear-gradient(135deg, #066168 0%, #0a8a94 100%); min-height: 100vh; padding: 40px 20px;">
+
+<!-- 
+================================================================================
+VLUCHT + HOTEL WIDGET
+================================================================================
+Configuratie via data attributen:
+- data-microsite: Je Travel Compositor microsite ID
+- data-base-url: De base URL van je microsite
+- data-primary-color: Optionele custom kleur
+================================================================================
+-->
+
+<div class="tc-fh-widget" 
+     id="tc-flight-hotel-widget"
+     data-microsite="rondreis-planner" 
+     data-base-url="https://rondreis-planner.nl">
+    
+    <h3 class="tc-fh-title">
+        <i class="fa-light fa-plane-departure"></i>
+        <span>Vlucht + Hotel zoeken</span>
+    </h3>
+    
+    <!-- Row 1: Origin & Destination -->
+    <div class="tc-fh-row">
+        <div class="tc-fh-group">
+            <label>Vertrek vanaf</label>
+            <div class="tc-fh-input-wrap">
+                <i class="fa-light fa-plane-departure"></i>
+                <input type="text" class="tc-fh-input" id="tc-fh-origin" placeholder="Luchthaven of stad" autocomplete="off">
+                <input type="hidden" id="tc-fh-origin-code">
+            </div>
+        </div>
+        <div class="tc-fh-group">
+            <label>Bestemming</label>
+            <div class="tc-fh-input-wrap">
+                <i class="fa-light fa-map-marker-alt"></i>
+                <input type="text" class="tc-fh-input" id="tc-fh-destination" placeholder="Stad, regio of hotel" autocomplete="off">
+                <input type="hidden" id="tc-fh-destination-code">
+            </div>
+        </div>
+    </div>
+    
+    <!-- Row 2: Dates -->
+    <div class="tc-fh-row">
+        <div class="tc-fh-group">
+            <label>Check-in</label>
+            <div class="tc-fh-input-wrap">
+                <i class="fa-light fa-calendar-alt"></i>
+                <input type="text" class="tc-fh-input tc-fh-datepicker" id="tc-fh-checkin" placeholder="Selecteer datum" readonly>
+            </div>
+        </div>
+        <div class="tc-fh-group">
+            <label>Check-out</label>
+            <div class="tc-fh-input-wrap">
+                <i class="fa-light fa-calendar-alt"></i>
+                <input type="text" class="tc-fh-input tc-fh-datepicker" id="tc-fh-checkout" placeholder="Selecteer datum" readonly>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Row 3: Travelers -->
+    <div class="tc-fh-row">
+        <div class="tc-fh-group tc-fh-room-selector">
+            <label>Reizigers</label>
+            <div class="tc-fh-input-wrap">
+                <i class="fa-light fa-users"></i>
+                <button type="button" class="tc-fh-room-trigger" id="tc-fh-room-trigger">
+                    <span id="tc-fh-room-summary">2 Volwassenen, 1 Kamer</span>
+                </button>
+            </div>
+            <div class="tc-fh-room-dropdown" id="tc-fh-room-dropdown">
+                <div class="tc-fh-room-row">
+                    <div class="tc-fh-room-label">
+                        Volwassenen
+                        <small>18 jaar en ouder</small>
+                    </div>
+                    <div class="tc-fh-counter">
+                        <button type="button" class="tc-fh-counter-btn" data-action="decrease" data-target="adults">−</button>
+                        <span class="tc-fh-counter-value" id="tc-fh-adults">2</span>
+                        <button type="button" class="tc-fh-counter-btn" data-action="increase" data-target="adults">+</button>
+                    </div>
+                </div>
+                <div class="tc-fh-room-row">
+                    <div class="tc-fh-room-label">
+                        Kinderen
+                        <small>0-17 jaar</small>
+                    </div>
+                    <div class="tc-fh-counter">
+                        <button type="button" class="tc-fh-counter-btn" data-action="decrease" data-target="children">−</button>
+                        <span class="tc-fh-counter-value" id="tc-fh-children">0</span>
+                        <button type="button" class="tc-fh-counter-btn" data-action="increase" data-target="children">+</button>
+                    </div>
+                </div>
+                <div class="tc-fh-room-row">
+                    <div class="tc-fh-room-label">
+                        Kamers
+                    </div>
+                    <div class="tc-fh-counter">
+                        <button type="button" class="tc-fh-counter-btn" data-action="decrease" data-target="rooms">−</button>
+                        <span class="tc-fh-counter-value" id="tc-fh-rooms">1</span>
+                        <button type="button" class="tc-fh-counter-btn" data-action="increase" data-target="rooms">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Submit -->
+    <div class="tc-fh-row" style="margin-top: 8px;">
+        <button type="button" class="tc-fh-submit" id="tc-fh-submit">
+            <i class="fa-solid fa-search"></i>
+            <span>Zoek vlucht + hotel</span>
+        </button>
+    </div>
+    
+</div>
+
+<script>
+/**
+ * Vlucht + Hotel Widget
+ * Compact searchbox for WordPress hero sections
+ */
+(function() {
+    'use strict';
+    
+    // Configuration
+    const config = {
+        microsite: 'rondreis-planner',
+        baseUrl: 'https://rondreis-planner.nl',
+        language: 'NL',
+        currency: 'EUR'
+    };
+    
+    // State
+    const state = {
+        adults: 2,
+        children: 0,
+        rooms: 1,
+        childAges: []
+    };
+    
+    // Common airports for autocomplete fallback
+    const commonAirports = [
+        { label: 'Amsterdam Schiphol (AMS)', value: 'AMS', code: 'AMS' },
+        { label: 'Rotterdam The Hague (RTM)', value: 'RTM', code: 'RTM' },
+        { label: 'Eindhoven Airport (EIN)', value: 'EIN', code: 'EIN' },
+        { label: 'Brussel Zaventem (BRU)', value: 'BRU', code: 'BRU' },
+        { label: 'Düsseldorf (DUS)', value: 'DUS', code: 'DUS' },
+        { label: 'Frankfurt (FRA)', value: 'FRA', code: 'FRA' },
+        { label: 'Parijs Charles de Gaulle (CDG)', value: 'CDG', code: 'CDG' },
+        { label: 'Londen Heathrow (LHR)', value: 'LHR', code: 'LHR' }
+    ];
+    
+    // Initialize
+    function init() {
+        const widget = document.getElementById('tc-flight-hotel-widget');
+        if (widget) {
+            config.microsite = widget.dataset.microsite || config.microsite;
+            config.baseUrl = widget.dataset.baseUrl || config.baseUrl;
+            
+            // Custom primary color
+            if (widget.dataset.primaryColor) {
+                widget.style.setProperty('--tc-primary', widget.dataset.primaryColor);
+            }
+        }
+        
+        initDatepickers();
+        initRoomSelector();
+        initAutocomplete();
+        initSubmit();
+    }
+    
+    // Datepickers
+    function initDatepickers() {
+        const minDate = new Date();
+        minDate.setDate(minDate.getDate() + 3);
+        
+        const checkinPicker = $('#tc-fh-checkin');
+        const checkoutPicker = $('#tc-fh-checkout');
+        
+        checkinPicker.datepicker({
+            dateFormat: 'dd-mm-yy',
+            minDate: minDate,
+            numberOfMonths: window.innerWidth > 768 ? 2 : 1,
+            onSelect: function(dateText, inst) {
+                // Set checkout min date to checkin + 1
+                const checkinDate = checkinPicker.datepicker('getDate');
+                const minCheckout = new Date(checkinDate);
+                minCheckout.setDate(minCheckout.getDate() + 1);
+                checkoutPicker.datepicker('option', 'minDate', minCheckout);
+                
+                // Auto-open checkout picker
+                setTimeout(() => checkoutPicker.datepicker('show'), 100);
+            }
+        });
+        
+        checkoutPicker.datepicker({
+            dateFormat: 'dd-mm-yy',
+            minDate: new Date(minDate.getTime() + 86400000),
+            numberOfMonths: window.innerWidth > 768 ? 2 : 1
+        });
+    }
+    
+    // Room selector
+    function initRoomSelector() {
+        const trigger = document.getElementById('tc-fh-room-trigger');
+        const dropdown = document.getElementById('tc-fh-room-dropdown');
+        
+        if (trigger && dropdown) {
+            trigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdown.classList.toggle('open');
+            });
+            
+            document.addEventListener('click', function(e) {
+                if (!dropdown.contains(e.target) && e.target !== trigger) {
+                    dropdown.classList.remove('open');
+                }
+            });
+            
+            // Counter buttons
+            document.querySelectorAll('.tc-fh-counter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const action = this.dataset.action;
+                    const target = this.dataset.target;
+                    
+                    if (action === 'increase') {
+                        if (target === 'adults' && state.adults < 9) state.adults++;
+                        if (target === 'children' && state.children < 6) state.children++;
+                        if (target === 'rooms' && state.rooms < 5) state.rooms++;
+                    } else {
+                        if (target === 'adults' && state.adults > 1) state.adults--;
+                        if (target === 'children' && state.children > 0) state.children--;
+                        if (target === 'rooms' && state.rooms > 1) state.rooms--;
+                    }
+                    
+                    updateRoomDisplay();
+                });
+            });
+        }
+        
+        updateRoomDisplay();
+    }
+    
+    function updateRoomDisplay() {
+        document.getElementById('tc-fh-adults').textContent = state.adults;
+        document.getElementById('tc-fh-children').textContent = state.children;
+        document.getElementById('tc-fh-rooms').textContent = state.rooms;
+        
+        let summary = `${state.adults} Volwassene${state.adults > 1 ? 'n' : ''}`;
+        if (state.children > 0) {
+            summary += `, ${state.children} Kind${state.children > 1 ? 'eren' : ''}`;
+        }
+        summary += `, ${state.rooms} Kamer${state.rooms > 1 ? 's' : ''}`;
+        
+        document.getElementById('tc-fh-room-summary').textContent = summary;
+    }
+    
+    // Autocomplete
+    function initAutocomplete() {
+        // Origin (airports)
+        $('#tc-fh-origin').autocomplete({
+            source: function(request, response) {
+                const term = request.term.toLowerCase();
+                const filtered = commonAirports.filter(a => 
+                    a.label.toLowerCase().includes(term)
+                );
+                response(filtered);
+            },
+            minLength: 1,
+            select: function(event, ui) {
+                $('#tc-fh-origin-code').val(ui.item.code);
+            }
+        });
+        
+        // Destination
+        $('#tc-fh-destination').autocomplete({
+            source: function(request, response) {
+                // Try to fetch from API, fallback to empty
+                $.ajax({
+                    url: config.baseUrl + '/api/autocomplete',
+                    dataType: 'json',
+                    data: { term: request.term, type: 'destination' },
+                    success: function(data) {
+                        response(data.slice(0, 10));
+                    },
+                    error: function() {
+                        response([]);
+                    }
+                });
+            },
+            minLength: 2,
+            select: function(event, ui) {
+                $('#tc-fh-destination-code').val(ui.item.code || ui.item.value);
+            }
+        });
+    }
+    
+    // Submit
+    function initSubmit() {
+        document.getElementById('tc-fh-submit').addEventListener('click', function() {
+            const origin = $('#tc-fh-origin').val();
+            const destination = $('#tc-fh-destination').val();
+            const checkin = $('#tc-fh-checkin').val();
+            const checkout = $('#tc-fh-checkout').val();
+            
+            // Validation
+            if (!origin) {
+                alert('Selecteer een vertrekplaats');
+                $('#tc-fh-origin').focus();
+                return;
+            }
+            if (!destination) {
+                alert('Selecteer een bestemming');
+                $('#tc-fh-destination').focus();
+                return;
+            }
+            if (!checkin) {
+                alert('Selecteer een check-in datum');
+                $('#tc-fh-checkin').focus();
+                return;
+            }
+            if (!checkout) {
+                alert('Selecteer een check-out datum');
+                $('#tc-fh-checkout').focus();
+                return;
+            }
+            
+            // Format dates
+            const formatDate = (dateStr) => {
+                const parts = dateStr.split('-');
+                return `${parts[2]}-${parts[1]}-${parts[0]}`; // yyyy-mm-dd
+            };
+            
+            // Build distribution
+            const distribution = buildDistribution();
+            
+            // Build URL
+            const params = new URLSearchParams({
+                origin: $('#tc-fh-origin-code').val() || origin,
+                destination: $('#tc-fh-destination-code').val() || destination,
+                departureDate: formatDate(checkin),
+                returnDate: formatDate(checkout),
+                distribution: distribution,
+                language: config.language,
+                currency: config.currency
+            });
+            
+            const url = `${config.baseUrl}/flight-hotel?${params.toString()}`;
+            
+            // Open in new tab
+            window.open(url, '_blank');
+        });
+    }
+    
+    function buildDistribution() {
+        // Format: adults-childAge1,childAge2|adults-childAge1,childAge2 (per room)
+        let dist = '';
+        for (let i = 0; i < state.rooms; i++) {
+            if (i > 0) dist += '|';
+            dist += state.adults;
+            if (state.children > 0 && state.childAges.length > 0) {
+                dist += '-' + state.childAges.slice(0, state.children).join(',');
+            }
+        }
+        return dist || `${state.adults}`;
+    }
+    
+    // Initialize on DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+</script>
+
+</body>
+</html>

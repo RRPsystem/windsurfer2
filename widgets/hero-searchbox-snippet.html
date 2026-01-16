@@ -1,0 +1,593 @@
+<!-- Travel Compositor Hero Searchbox + Thema Link -->
+<!-- Voeg Font Awesome toe als nog niet geladen -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="tc-hero-section">
+    
+    <!-- Zoek & Boek Widget -->
+    <div class="tc-hero-widget">
+        <!-- Tabs -->
+        <div class="tc-hero-tabs">
+            <button class="tc-hero-tab active" data-type="flighthotel">
+                <i class="fa-solid fa-plane"></i>
+                <span>Vlucht + Hotel</span>
+            </button>
+            <button class="tc-hero-tab" data-type="hotel">
+                <i class="fa-solid fa-bed"></i>
+                <span>Accommodatie</span>
+            </button>
+            <button class="tc-hero-tab" data-type="tripplanner">
+                <i class="fa-solid fa-route"></i>
+                <span>Trip Planner</span>
+            </button>
+            <button class="tc-hero-tab" data-type="ai">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>AI Planner</span>
+            </button>
+        </div>
+        
+        <!-- Flight + Hotel Panel -->
+        <div class="tc-hero-panel active" data-type="flighthotel">
+            <div class="tc-hero-form">
+                <div class="tc-hero-field">
+                    <label>Vertrek vanaf</label>
+                    <div class="tc-input-wrap">
+                        <i class="fa-solid fa-plane-departure"></i>
+                        <input type="text" class="tc-hero-input tc-origin" placeholder="Amsterdam (AMS)">
+                    </div>
+                </div>
+                <div class="tc-hero-field">
+                    <label>Bestemming</label>
+                    <div class="tc-input-wrap">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <input type="text" class="tc-hero-input tc-destination" placeholder="Waar wil je heen?">
+                    </div>
+                </div>
+                <div class="tc-hero-field tc-hero-field-date">
+                    <label>Check-in</label>
+                    <div class="tc-input-wrap">
+                        <i class="fa-solid fa-calendar"></i>
+                        <input type="text" class="tc-hero-input tc-checkin" placeholder="Datum" readonly>
+                    </div>
+                </div>
+                <div class="tc-hero-field tc-hero-field-date">
+                    <label>Check-out</label>
+                    <div class="tc-input-wrap">
+                        <i class="fa-solid fa-calendar"></i>
+                        <input type="text" class="tc-hero-input tc-checkout" placeholder="Datum" readonly>
+                    </div>
+                </div>
+                <div class="tc-hero-field tc-hero-field-travelers">
+                    <label>Reizigers</label>
+                    <div class="tc-input-wrap">
+                        <i class="fa-solid fa-user-group"></i>
+                        <button type="button" class="tc-hero-input tc-travelers-btn">2 personen</button>
+                    </div>
+                </div>
+                <button type="button" class="tc-hero-submit">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <span>Zoeken</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Hotel Panel -->
+        <div class="tc-hero-panel" data-type="hotel">
+            <div class="tc-hero-form">
+                <div class="tc-hero-field tc-hero-field-wide">
+                    <label>Bestemming of hotel</label>
+                    <div class="tc-input-wrap">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <input type="text" class="tc-hero-input tc-hotel-dest" placeholder="Stad, regio of hotelnaam">
+                    </div>
+                </div>
+                <div class="tc-hero-field tc-hero-field-date">
+                    <label>Check-in</label>
+                    <div class="tc-input-wrap">
+                        <i class="fa-solid fa-calendar"></i>
+                        <input type="text" class="tc-hero-input tc-hotel-checkin" placeholder="Datum" readonly>
+                    </div>
+                </div>
+                <div class="tc-hero-field tc-hero-field-date">
+                    <label>Check-out</label>
+                    <div class="tc-input-wrap">
+                        <i class="fa-solid fa-calendar"></i>
+                        <input type="text" class="tc-hero-input tc-hotel-checkout" placeholder="Datum" readonly>
+                    </div>
+                </div>
+                <div class="tc-hero-field tc-hero-field-travelers">
+                    <label>Gasten</label>
+                    <div class="tc-input-wrap">
+                        <i class="fa-solid fa-user-group"></i>
+                        <button type="button" class="tc-hero-input tc-travelers-btn">2 personen</button>
+                    </div>
+                </div>
+                <button type="button" class="tc-hero-submit tc-submit-hotel">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <span>Zoeken</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Trip Planner Panel -->
+        <div class="tc-hero-panel" data-type="tripplanner">
+            <div class="tc-hero-form">
+                <div class="tc-hero-field">
+                    <label>Vertrek vanaf</label>
+                    <div class="tc-input-wrap">
+                        <i class="fa-solid fa-plane-departure"></i>
+                        <input type="text" class="tc-hero-input tc-trip-origin" placeholder="Amsterdam (AMS)">
+                    </div>
+                </div>
+                <div class="tc-hero-field">
+                    <label>Bestemming</label>
+                    <div class="tc-input-wrap">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <input type="text" class="tc-hero-input tc-trip-destination" placeholder="Land of regio">
+                    </div>
+                </div>
+                <div class="tc-hero-field tc-hero-field-date">
+                    <label>Vertrekdatum</label>
+                    <div class="tc-input-wrap">
+                        <i class="fa-solid fa-calendar"></i>
+                        <input type="text" class="tc-hero-input tc-trip-date" placeholder="Datum" readonly>
+                    </div>
+                </div>
+                <div class="tc-hero-field tc-hero-field-travelers">
+                    <label>Reizigers</label>
+                    <div class="tc-input-wrap">
+                        <i class="fa-solid fa-user-group"></i>
+                        <button type="button" class="tc-hero-input tc-travelers-btn">2 personen</button>
+                    </div>
+                </div>
+                <button type="button" class="tc-hero-submit tc-submit-tripplanner">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <span>Zoeken</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- AI Planner Panel -->
+        <div class="tc-hero-panel" data-type="ai">
+            <div class="tc-hero-form tc-hero-form-ai">
+                <div class="tc-hero-field tc-hero-field-ai">
+                    <label>Beschrijf je droomreis</label>
+                    <div class="tc-input-wrap">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <input type="text" class="tc-hero-input tc-ai-description" placeholder="Bijv. 'Een romantische week in Italië met wijnproeverijen'">
+                    </div>
+                </div>
+                <button type="button" class="tc-hero-submit tc-submit-ai">
+                    <i class="fa-solid fa-sparkles"></i>
+                    <span>Plan met AI</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bestaande thema link -->
+    <div class="text-with-arrow">
+        <span class="text">Of zoek op een thema reis!</span>
+    </div>
+    
+</div>
+
+<style>
+/* ============================================
+   HERO SEARCHBOX - MODERN HORIZONTAL DESIGN
+   ============================================ */
+
+.tc-hero-section {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    box-sizing: border-box;
+}
+
+.tc-hero-section * {
+    box-sizing: border-box;
+}
+
+.tc-hero-widget {
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+/* ============================================
+   TABS - Horizontal with colored backgrounds
+   ============================================ */
+
+.tc-hero-tabs {
+    display: flex;
+    background: transparent;
+    padding: 0;
+    gap: 0;
+}
+
+.tc-hero-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 24px;
+    background: #fff;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    color: #64748b;
+    transition: all 0.25s ease;
+    position: relative;
+}
+
+.tc-hero-tab:first-child {
+    border-radius: 16px 0 0 0;
+}
+
+.tc-hero-tab:last-child {
+    border-radius: 0 16px 0 0;
+}
+
+.tc-hero-tab:nth-child(1) { background: #fff; color: #64748b; }
+.tc-hero-tab:nth-child(2) { background: #fff; color: #64748b; }
+.tc-hero-tab:nth-child(3) { background: #fff; color: #64748b; }
+.tc-hero-tab:nth-child(4) { background: #fff; color: #64748b; }
+
+.tc-hero-tab:hover {
+    background: #f8fafc;
+    color: #f97316;
+}
+
+.tc-hero-tab.active {
+    background: #f97316 !important;
+    color: #fff !important;
+    box-shadow: 0 2px 10px rgba(249, 115, 22, 0.3);
+}
+
+.tc-hero-tab.active::after {
+    display: none;
+}
+
+.tc-hero-tab:nth-child(1).active,
+.tc-hero-tab:nth-child(2).active,
+.tc-hero-tab:nth-child(3).active,
+.tc-hero-tab:nth-child(4).active { 
+    color: #fff; 
+    background: #f97316 !important;
+}
+
+.tc-hero-tab i {
+    font-size: 18px;
+}
+
+/* ============================================
+   PANELS
+   ============================================ */
+
+.tc-hero-panel {
+    display: none;
+    padding: 24px;
+    background: #fff;
+}
+
+.tc-hero-panel.active {
+    display: block;
+}
+
+/* ============================================
+   FORM - Horizontal Layout
+   ============================================ */
+
+.tc-hero-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.tc-hero-field {
+    flex: 1;
+    min-width: 0;
+}
+
+.tc-hero-field-wide {
+    flex: 1.5;
+}
+
+.tc-hero-field-date {
+    flex: 0.8;
+    min-width: 120px;
+}
+
+.tc-hero-field-travelers {
+    flex: 0.9;
+    min-width: 130px;
+}
+
+.tc-hero-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tc-input-wrap {
+    position: relative;
+}
+
+.tc-input-wrap > i {
+    display: none;
+}
+
+.tc-hero-input {
+    width: 100%;
+    height: 50px;
+    padding: 0 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1e293b;
+    background: #fff;
+    transition: all 0.2s ease;
+    text-align: left;
+    cursor: text;
+}
+
+.tc-hero-input:hover {
+    border-color: #cbd5e1;
+}
+
+.tc-hero-input:focus {
+    outline: none;
+    border-color: #f97316;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1);
+}
+
+.tc-hero-input::placeholder {
+    color: #94a3b8;
+    font-weight: 400;
+}
+
+button.tc-hero-input {
+    cursor: pointer;
+    background: #fff;
+}
+
+/* AI Panel specific */
+.tc-hero-form-ai {
+    display: flex;
+    gap: 12px;
+}
+
+.tc-hero-field-ai {
+    flex: 1;
+}
+
+/* ============================================
+   SUBMIT BUTTON
+   ============================================ */
+
+.tc-hero-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 50px;
+    padding: 0 32px;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.tc-hero-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+}
+
+.tc-hero-submit:active {
+    transform: translateY(0);
+}
+
+.tc-hero-submit i {
+    font-size: 16px;
+}
+
+/* ============================================
+   THEMA LINK
+   ============================================ */
+
+.text-with-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 24px;
+    padding: 16px;
+}
+
+.text-with-arrow .text {
+    font-family: 'Caveat', 'Segoe Script', cursive;
+    font-size: 26px;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    font-style: italic;
+}
+
+.text-with-arrow::before {
+    content: '↙';
+    font-size: 28px;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    animation: arrow-bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes arrow-bounce {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-5px, 5px); }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 900px) {
+    .tc-hero-form {
+        flex-wrap: wrap;
+    }
+    
+    .tc-hero-field {
+        flex: 1 1 calc(50% - 6px);
+        min-width: calc(50% - 6px);
+    }
+    
+    .tc-hero-field-wide {
+        flex: 1 1 100%;
+    }
+    
+    .tc-hero-submit {
+        flex: 1 1 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .tc-hero-section {
+        padding: 0 12px;
+    }
+    
+    .tc-hero-tabs {
+        flex-direction: row;
+    }
+    
+    .tc-hero-tab {
+        padding: 14px 12px;
+        font-size: 13px;
+    }
+    
+    .tc-hero-tab span {
+        display: none;
+    }
+    
+    .tc-hero-tab i {
+        font-size: 20px;
+    }
+    
+    .tc-hero-panel {
+        padding: 16px;
+    }
+    
+    .tc-hero-form {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .tc-hero-field,
+    .tc-hero-field-wide,
+    .tc-hero-field-date,
+    .tc-hero-field-travelers {
+        flex: 1 1 100%;
+        min-width: 100%;
+    }
+    
+    .tc-hero-submit {
+        width: 100%;
+        height: 54px;
+        font-size: 17px;
+    }
+    
+    .text-with-arrow .text {
+        font-size: 22px;
+    }
+}
+</style>
+
+<script>
+(function() {
+    'use strict';
+    
+    // Tab switching
+    document.querySelectorAll('.tc-hero-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const type = this.dataset.type;
+            const widget = this.closest('.tc-hero-widget');
+            
+            widget.querySelectorAll('.tc-hero-tab').forEach(t => t.classList.remove('active'));
+            widget.querySelectorAll('.tc-hero-panel').forEach(p => p.classList.remove('active'));
+            
+            this.classList.add('active');
+            widget.querySelector('.tc-hero-panel[data-type="' + type + '"]').classList.add('active');
+        });
+    });
+    
+    // Initialize datepickers if jQuery UI is available
+    if (typeof jQuery !== 'undefined' && jQuery.fn.datepicker) {
+        jQuery('.tc-hero-input[readonly]').datepicker({
+            dateFormat: 'dd-mm-yy',
+            minDate: '+3d',
+            numberOfMonths: 1,
+            beforeShow: function(input, inst) {
+                setTimeout(function() {
+                    inst.dpDiv.css({ 'z-index': 9999 });
+                }, 0);
+            }
+        });
+    }
+    
+    // Submit handlers
+    document.querySelectorAll('.tc-hero-submit').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const panel = this.closest('.tc-hero-panel');
+            const type = panel.dataset.type;
+            
+            // Configure your base URL here
+            const baseUrl = 'https://rondreis-planner.nl';
+            let url = baseUrl;
+            
+            if (type === 'flighthotel') {
+                const origin = panel.querySelector('.tc-origin')?.value || '';
+                const dest = panel.querySelector('.tc-destination')?.value || '';
+                const checkin = panel.querySelector('.tc-checkin')?.value || '';
+                const checkout = panel.querySelector('.tc-checkout')?.value || '';
+                url += '/flight-hotel?origin=' + encodeURIComponent(origin) + 
+                       '&destination=' + encodeURIComponent(dest) +
+                       '&checkin=' + encodeURIComponent(checkin) +
+                       '&checkout=' + encodeURIComponent(checkout);
+            } else if (type === 'hotel') {
+                const dest = panel.querySelector('.tc-hotel-dest')?.value || '';
+                const checkin = panel.querySelector('.tc-hotel-checkin')?.value || '';
+                const checkout = panel.querySelector('.tc-hotel-checkout')?.value || '';
+                url += '/hotel?destination=' + encodeURIComponent(dest) +
+                       '&checkin=' + encodeURIComponent(checkin) +
+                       '&checkout=' + encodeURIComponent(checkout);
+            } else if (type === 'tripplanner') {
+                const origin = panel.querySelector('.tc-trip-origin')?.value || '';
+                const dest = panel.querySelector('.tc-trip-destination')?.value || '';
+                const date = panel.querySelector('.tc-trip-date')?.value || '';
+                url += '/tripplanner?origin=' + encodeURIComponent(origin) +
+                       '&destination=' + encodeURIComponent(dest) +
+                       '&date=' + encodeURIComponent(date);
+            } else if (type === 'ai') {
+                const description = panel.querySelector('.tc-ai-description')?.value || '';
+                url += '/ai-trip?description=' + encodeURIComponent(description);
+            }
+            
+            window.open(url, '_blank');
+        });
+    });
+})();
+</script>

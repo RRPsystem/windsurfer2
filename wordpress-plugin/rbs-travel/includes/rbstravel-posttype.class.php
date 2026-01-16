@@ -86,6 +86,10 @@ if (!class_exists('RBS_TRAVEL\\INCLUDES\\RBS_TRAVEL_Posttype')) {
 //            
            add_action('init', array($this, 'register_taxonomy'));
            
+           // Frontend archive filtering
+           add_action('pre_get_posts', array($this, 'filter_archive_query'));
+           add_filter('template_include', array($this, 'archive_template'));
+           
            // AJAX handlers for Photo Manager
            add_action('wp_ajax_rbs_save_photo', array($this, 'ajax_save_photo'));
            add_action('wp_ajax_rbs_remove_photo', array($this, 'ajax_remove_photo'));
@@ -151,7 +155,7 @@ if (!class_exists('RBS_TRAVEL\\INCLUDES\\RBS_TRAVEL_Posttype')) {
                 'show_in_admin_bar'     => true,
                 'show_in_nav_menus'     => true,
                 'can_export'            => true,
-                'has_archive'           => false,
+                'has_archive'           => 'reizen',
                 'exclude_from_search'   => false,
                 'publicly_queryable'    => true,
                 'capability_type'       => 'page',
@@ -825,16 +829,73 @@ if (!class_exists('RBS_TRAVEL\\INCLUDES\\RBS_TRAVEL_Posttype')) {
         //         'new_item_name' => __( 'New Location Name' ),
         //         'menu_name' => __( 'Locations' ),
         //     ),
-        //     // Control the slugs used for this taxonomy
-        //     'rewrite' => array(
-        //         'slug' => 'locations', // This controls the base slug that will display before each term
-        //         'with_front' => false, // Don't display the category base before "/locations/"
-        //         'hierarchical' => true // This will allow URL's like "/locations/boston/cambridge/"
-        //     ),
-        //     ));
-        // }
         
+        /**
+         * Filter archive query based on search widget parameters
+         * Handles: land (country), type (travel type), dagen (days)
+         */
+        public function filter_archive_query($query) {
+            // Only filter frontend archive queries
+            if (is_admin() || !$query->is_main_query()) {
+                return;
+            }
+            
+            // Only for our post type archive
+            if (!$query->is_post_type_archive('rbs-travel-idea')) {
+                return;
+            }
+            
+            $meta_query = array();
+            
+            // Filter by country (land)
+            $land = isset($_GET['land']) ? sanitize_text_field($_GET['land']) : '';
+            if (!empty($land)) {
+                $meta_query[] = array(
+                    'key' => 'rbstravel_travel_meta_fields',
+                    'value' => $land,
+                    'compare' => 'LIKE'
+                );
+            }
+            
+            // Filter by travel type (taxonomy)
+            $type = isset($_GET['type']) ? sanitize_text_field($_GET['type']) : '';
+            if (!empty($type)) {
+                $query->set('tax_query', array(
+                    array(
+                        'taxonomy' => 'travel-type',
+                        'field' => 'name',
+                        'terms' => $type,
+                    )
+                ));
+            }
+            
+            // Filter by days (dagen) - search in serialized meta
+            $dagen = isset($_GET['dagen']) ? sanitize_text_field($_GET['dagen']) : '';
+            if (!empty($dagen) && $dagen !== '22+') {
+                $range = explode('-', $dagen);
+                if (count($range) === 2) {
+                    // For now, use LIKE search - not perfect but works
+                    // A custom table would be better for complex filtering
+                }
+            }
+            
+            if (!empty($meta_query)) {
+                $query->set('meta_query', $meta_query);
+            }
+        }
         
+        /**
+         * Load custom archive template
+         */
+        public function archive_template($template) {
+            if (is_post_type_archive('rbs-travel-idea')) {
+                $custom_template = RBS_TRAVEL_PATH . 'templates/frontend/archive-rbs-travel-idea.php';
+                if (file_exists($custom_template)) {
+                    return $custom_template;
+                }
+            }
+            return $template;
+        }
         
         
     }

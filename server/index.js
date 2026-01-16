@@ -1,4 +1,5 @@
 // Simple local dev server with a Git push endpoint
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -761,6 +762,118 @@ const voiceoverUploadHandler = require('./api/voiceover-upload');
 app.post('/api/video/generate', videoGenerateHandler);
 app.get('/api/video/status/:id', videoStatusHandler);
 app.post('/api/video/upload-voiceover', voiceoverUploadHandler);
+
+// Video library routes (for local development - in production these are Vercel serverless functions)
+app.get('/api/videos/list', async (req, res) => {
+  // Return empty list for local development (Blob storage only works in Vercel)
+  res.json({ success: true, videos: [], count: 0, note: 'Local development - use Vercel for Blob storage' });
+});
+app.post('/api/videos/upload', async (req, res) => {
+  res.status(501).json({ error: 'Video upload only available in production (Vercel Blob Storage)' });
+});
+app.post('/api/videos/delete', async (req, res) => {
+  res.status(501).json({ error: 'Video delete only available in production (Vercel Blob Storage)' });
+});
+
+// Pexels search route (uses server-side API key)
+app.get('/api/pexels/search', async (req, res) => {
+  const { query, page = 1, per_page = 20, orientation = 'landscape' } = req.query;
+  
+  if (!query) {
+    return res.status(400).json({ error: 'Query parameter is required' });
+  }
+
+  const apiKey = process.env.PEXELS_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'PEXELS_API_KEY not configured. Add to Vercel env or server/.env' });
+  }
+
+  try {
+    const axios = require('axios');
+    const pexelsUrl = `https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&per_page=${per_page}&page=${page}&orientation=${orientation}`;
+    
+    const response = await axios.get(pexelsUrl, {
+      headers: { 'Authorization': apiKey }
+    });
+
+    res.json({
+      success: true,
+      videos: response.data.videos || [],
+      total_results: response.data.total_results || 0,
+      page: response.data.page || 1,
+      per_page: response.data.per_page || per_page
+    });
+  } catch (error) {
+    console.error('[PexelsSearch] Error:', error.message);
+    res.status(500).json({ error: 'Pexels search failed', detail: error.message });
+  }
+});
+
+// Unsplash search route (uses server-side API key)
+app.get('/api/unsplash/search', async (req, res) => {
+  const { query, page = 1, per_page = 12, orientation = 'landscape' } = req.query;
+  
+  if (!query) {
+    return res.status(400).json({ error: 'Query parameter is required' });
+  }
+
+  const apiKey = process.env.UNSPLASH_ACCESS_KEY || process.env.UNSPLASH_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'UNSPLASH_ACCESS_KEY not configured. Add to Vercel env or server/.env' });
+  }
+
+  try {
+    const axios = require('axios');
+    const unsplashUrl = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=${per_page}&page=${page}&orientation=${orientation}`;
+    
+    const response = await axios.get(unsplashUrl, {
+      headers: { 'Authorization': `Client-ID ${apiKey}` }
+    });
+
+    res.json({
+      success: true,
+      results: response.data.results || [],
+      total: response.data.total || 0,
+      total_pages: response.data.total_pages || 0,
+      page: page,
+      per_page: per_page
+    });
+  } catch (error) {
+    console.error('[UnsplashSearch] Error:', error.message);
+    res.status(500).json({ error: 'Unsplash search failed', detail: error.message });
+  }
+});
+
+// Storyblocks search route (uses server-side API key)
+app.get('/api/storyblocks/search', async (req, res) => {
+  const { query, page = 1 } = req.query;
+  
+  if (!query) {
+    return res.status(400).json({ error: 'Query parameter is required' });
+  }
+
+  const apiKey = process.env.STORYBLOCKS_PUBLIC_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'STORYBLOCKS_PUBLIC_KEY not configured. Add to Vercel env or server/.env' });
+  }
+
+  try {
+    const axios = require('axios');
+    const url = `https://api.graphicstock.com/api/v2/videos/search?keywords=${encodeURIComponent(query)}&page=${page}&results_per_page=20`;
+    
+    const response = await axios.get(url, {
+      headers: { 
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('[StoryblocksSearch] Error:', error.message);
+    res.status(500).json({ error: 'Storyblocks search failed', detail: error.message });
+  }
+});
 
 // Contact form route (with Joi validation)
 const contactHandler = require('./api/contact');

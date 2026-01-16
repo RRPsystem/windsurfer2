@@ -1,0 +1,267 @@
+<!-- RBS Travel Zoekwidget - Hero versie -->
+<!-- Horizontale layout voor in hero section -->
+
+<div class="rbs-hero-search">
+    
+    <!-- Zoekwidget -->
+    <div class="rbs-hero-widget">
+        <form class="rbs-hero-form" action="/reizen/" method="get">
+            
+            <!-- Bestemming -->
+            <div class="rbs-hero-field">
+                <label class="rbs-hero-label">Bestemming</label>
+                <select name="land" class="rbs-hero-select">
+                    <option value="">Alle bestemmingen</option>
+                    <option value="Indonesië">Indonesië</option>
+                    <option value="Thailand">Thailand</option>
+                    <option value="Vietnam">Vietnam</option>
+                    <option value="Japan">Japan</option>
+                    <option value="Zuid-Afrika">Zuid-Afrika</option>
+                    <option value="Namibië">Namibië</option>
+                    <option value="Costa Rica">Costa Rica</option>
+                    <option value="Peru">Peru</option>
+                    <option value="Italië">Italië</option>
+                    <option value="Spanje">Spanje</option>
+                    <option value="Portugal">Portugal</option>
+                    <option value="Griekenland">Griekenland</option>
+                </select>
+            </div>
+            
+            <!-- Reistype -->
+            <div class="rbs-hero-field">
+                <label class="rbs-hero-label">Reistype</label>
+                <select name="type" class="rbs-hero-select">
+                    <option value="">Alle reistypes</option>
+                    <option value="Rondreis">Rondreis</option>
+                    <option value="Strandvakantie">Strandvakantie</option>
+                    <option value="Safari">Safari</option>
+                    <option value="Stedentrip">Stedentrip</option>
+                    <option value="Avontuur">Avontuur</option>
+                    <option value="Cultuur">Cultuur</option>
+                    <option value="Huwelijksreis">Huwelijksreis</option>
+                    <option value="Familiereis">Familiereis</option>
+                </select>
+            </div>
+            
+            <!-- Reisduur -->
+            <div class="rbs-hero-field">
+                <label class="rbs-hero-label">Reisduur</label>
+                <select name="dagen" class="rbs-hero-select">
+                    <option value="">Alle reisduren</option>
+                    <option value="1-7">1-7 dagen</option>
+                    <option value="8-14">8-14 dagen</option>
+                    <option value="15-21">15-21 dagen</option>
+                    <option value="22+">22+ dagen</option>
+                </select>
+            </div>
+            
+            <!-- Zoekknop -->
+            <button type="submit" class="rbs-hero-button">
+                <span>Zoek Reizen</span>
+            </button>
+        </form>
+    </div>
+    
+    <!-- Thema link -->
+    <div class="text-with-arrow">
+        <span class="text">Of zoek op een thema reis!</span>
+    </div>
+    
+</div>
+
+<style>
+/* ============================================
+   RBS HERO SEARCH - HORIZONTALE LAYOUT
+   ============================================ */
+
+.rbs-hero-search {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    box-sizing: border-box;
+}
+
+.rbs-hero-search *,
+.rbs-hero-search *::before,
+.rbs-hero-search *::after {
+    box-sizing: border-box;
+}
+
+/* Widget Container */
+.rbs-hero-widget {
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Form - Horizontal */
+.rbs-hero-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+}
+
+/* Field */
+.rbs-hero-field {
+    flex: 1;
+    min-width: 0;
+}
+
+.rbs-hero-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Select */
+.rbs-hero-select {
+    width: 100%;
+    height: 50px;
+    padding: 0 40px 0 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #1e293b;
+    background-color: #fff;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    transition: all 0.2s ease;
+}
+
+.rbs-hero-select:hover {
+    border-color: #cbd5e1;
+}
+
+.rbs-hero-select:focus {
+    outline: none;
+    border-color: #f97316;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1);
+}
+
+/* Button */
+.rbs-hero-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 50px;
+    padding: 0 32px;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.rbs-hero-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+}
+
+.rbs-hero-button:active {
+    transform: translateY(0);
+}
+
+/* ============================================
+   THEMA LINK
+   ============================================ */
+
+.text-with-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 24px;
+    padding: 16px;
+}
+
+.text-with-arrow .text {
+    font-family: 'Caveat', 'Segoe Script', cursive;
+    font-size: 26px;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    font-style: italic;
+}
+
+.text-with-arrow::before {
+    content: '↙';
+    font-size: 28px;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    animation: rbs-arrow-bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes rbs-arrow-bounce {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-5px, 5px); }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .rbs-hero-form {
+        flex-wrap: wrap;
+    }
+    
+    .rbs-hero-field {
+        flex: 1 1 calc(50% - 8px);
+        min-width: calc(50% - 8px);
+    }
+    
+    .rbs-hero-button {
+        flex: 1 1 100%;
+        margin-top: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .rbs-hero-search {
+        padding: 0 12px;
+    }
+    
+    .rbs-hero-widget {
+        padding: 16px;
+        border-radius: 12px;
+    }
+    
+    .rbs-hero-form {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .rbs-hero-field {
+        flex: 1 1 100%;
+        min-width: 100%;
+    }
+    
+    .rbs-hero-button {
+        width: 100%;
+        height: 54px;
+        font-size: 17px;
+    }
+    
+    .text-with-arrow .text {
+        font-size: 22px;
+    }
+}
+</style>

@@ -239,44 +239,24 @@ class MediaPicker {
             updateSelectedUi();
           }
           try {
-            if (!key) {
-              const demo = [
-                'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop',
-                'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=1600&auto=format&fit=crop',
-                'https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1600&auto=format&fit=crop'
-              ];
-              if (grid) grid.innerHTML = '';
-              demo.forEach(url => {
-                const img = document.createElement('img');
-                img.src = url;
-                img.className = 'mp-thumb';
-                img.onclick = () => {
-                  if (multi && type === 'image') {
-                    const idx = selectedUrls.indexOf(url);
-                    if (idx >= 0) {
-                      selectedUrls.splice(idx, 1);
-                      img.style.outline = '';
-                    } else {
-                      selectedUrls.push(url);
-                      img.style.outline = '3px solid #2563eb';
-                    }
-                    updateSelectedUi();
-                    return;
-                  }
-                  resolve({ source: 'unsplash-demo', type: 'image', url }); close();
-                };
-                if (grid) grid.appendChild(img);
+            let data;
+            
+            // Use server-side API route (key is in Vercel env)
+            if (!key || key === 'SERVER_SIDE') {
+              const enhancedQuery = `${q} landmark highlights iconic famous tourist attraction`;
+              const resp = await fetch(`/api/unsplash/search?query=${encodeURIComponent(enhancedQuery)}&per_page=12&page=${currentPage}&orientation=landscape`);
+              data = await resp.json();
+              if (!resp.ok) {
+                throw new Error(data.error || data.detail || 'Unsplash search failed');
+              }
+            } else {
+              // Use client-side key directly
+              const enhancedQuery = `${q} landmark highlights iconic famous tourist attraction`;
+              const resp = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(enhancedQuery)}&per_page=12&page=${currentPage}&orientation=landscape&order_by=relevant&content_filter=high` , {
+                headers: { Authorization: `Client-ID ${key}` }
               });
-              if (moreBtn) moreBtn.disabled = true;
-              updateSelectedUi();
-              return;
+              data = await resp.json();
             }
-            // Add better filters for hero/background images - focus on landmarks and highlights
-            const enhancedQuery = `${q} landmark highlights iconic famous tourist attraction`;
-            const resp = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(enhancedQuery)}&per_page=12&page=${currentPage}&orientation=landscape&order_by=relevant&content_filter=high` , {
-              headers: { Authorization: `Client-ID ${key}` }
-            });
-            const data = await resp.json();
             if (!append && grid) grid.innerHTML = '';
             (data.results || []).forEach(item => {
               const urls = item.urls || {};
@@ -376,18 +356,25 @@ class MediaPicker {
             currentPage = 1;
             currentQuery = q;
           }
-          if (!key) {
-            if (noteEl) noteEl.textContent = 'Tip: voeg window.MEDIA_CONFIG.pexelsKey toe voor Pexels video\'s (gratis op pexels.com/api).';
-            if (grid) grid.innerHTML = '<div style="color:#666;">Geen API key: voeg PEXELS_API_KEY toe.</div>';
-            if (moreBtnPexels) moreBtnPexels.style.display = 'none';
-            return;
-          }
+          
           try {
-            const url = `https://api.pexels.com/videos/search?query=${encodeURIComponent(q)}&per_page=12&page=${currentPage}&orientation=landscape`;
-            const resp = await fetch(url, {
-              headers: { 'Authorization': key }
-            });
-            const data = await resp.json();
+            let data;
+            
+            // Use server-side API route if no client-side key (key is in Vercel env)
+            if (!key || key === 'SERVER_SIDE') {
+              const resp = await fetch(`/api/pexels/search?query=${encodeURIComponent(q)}&per_page=12&page=${currentPage}&orientation=landscape`);
+              data = await resp.json();
+              if (!resp.ok) {
+                throw new Error(data.error || data.detail || 'Pexels search failed');
+              }
+            } else {
+              // Use client-side key directly
+              const url = `https://api.pexels.com/videos/search?query=${encodeURIComponent(q)}&per_page=12&page=${currentPage}&orientation=landscape`;
+              const resp = await fetch(url, {
+                headers: { 'Authorization': key }
+              });
+              data = await resp.json();
+            }
             if (!append && grid) grid.innerHTML = '';
             
             // Render as 2-column thumbnail grid
