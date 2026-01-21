@@ -1372,6 +1372,8 @@
       statusInterval: null,
 
       init() {
+        // Check for deeplink parameters from BOLT
+        this.handleDeeplink();
         
         // Setup navigation
         document.querySelectorAll('.nav-item').forEach(item => {
@@ -2043,6 +2045,67 @@
       // Travel Compositor Import
       travelData: null,
 
+      // Deeplink handler for BOLT integration
+      handleDeeplink() {
+        const params = new URLSearchParams(window.location.search);
+        
+        // Get deeplink parameters
+        const tripId = params.get('trip_id') || params.get('id');
+        const brandId = params.get('brand_id');
+        const token = params.get('token');
+        const apiKey = params.get('apikey');
+        const returnUrl = params.get('return_url');
+        const title = params.get('title');
+        
+        // Store return URL for later
+        if (returnUrl) {
+          this.returnUrl = decodeURIComponent(returnUrl);
+          this.showReturnButton();
+        }
+        
+        // Store auth info
+        if (token) this.authToken = token;
+        if (apiKey) this.apiKey = apiKey;
+        if (brandId) this.brandId = brandId;
+        
+        // If we have a trip ID, auto-load it
+        if (tripId) {
+          console.log('[VideoStudio] Deeplink detected, loading trip:', tripId);
+          
+          // Set the input field
+          document.getElementById('travelIdInput').value = tripId;
+          
+          // If title is provided, set it
+          if (title) {
+            document.getElementById('videoTitle').value = decodeURIComponent(title);
+          }
+          
+          // Auto-import after a short delay (to ensure DOM is ready)
+          setTimeout(() => {
+            this.importTravelId();
+          }, 500);
+        }
+      },
+
+      showReturnButton() {
+        // Add return button to sidebar footer
+        const footer = document.querySelector('.sidebar-footer');
+        if (footer && this.returnUrl) {
+          footer.innerHTML = `
+            <button onclick="VideoStudio.returnToBolt()" class="btn btn-secondary" style="width: 100%; margin-bottom: 8px;">
+              <i class="fas fa-arrow-left"></i> Terug naar BOLT
+            </button>
+            <div style="font-size: 12px; color: #64748b;">© 2024 AI Travel Video</div>
+          `;
+        }
+      },
+
+      returnToBolt() {
+        if (this.returnUrl) {
+          window.location.href = this.returnUrl;
+        }
+      },
+
       async importTravelId() {
         const input = document.getElementById('travelIdInput');
         const status = document.getElementById('importStatus');
@@ -2056,7 +2119,7 @@
         status.innerHTML = '<span style="color: #94a3b8;"><i class="fas fa-spinner fa-spin"></i> Laden...</span>';
 
         try {
-          const response = await fetch(`/api/ideas/${ideaId}`);
+          const response = await fetch(`/api/trips/${ideaId}`);
           if (!response.ok) throw new Error('Reis niet gevonden');
 
           const data = await response.json();
