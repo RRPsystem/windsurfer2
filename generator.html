@@ -2165,12 +2165,19 @@
             body: JSON.stringify(payload)
           });
 
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Video generatie mislukt');
+          // Read response body once as text, then parse
+          const responseText = await response.text();
+          let result;
+          try {
+            result = JSON.parse(responseText);
+          } catch (e) {
+            throw new Error('Server gaf geen geldige response');
           }
 
-          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.message || 'Video generatie mislukt');
+          }
+
           this.renderId = result.renderId;
 
           // Start polling
