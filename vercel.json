@@ -14,6 +14,10 @@
   "redirects": [],
   "rewrites": [
     {
+      "source": "/generator",
+      "destination": "/generator.html"
+    },
+    {
       "source": "/",
       "destination": "/api/page/home"
     },
