@@ -428,6 +428,33 @@
       display: flex;
     }
 
+    /* Transition Buttons */
+    .transition-btn {
+      padding: 12px 8px;
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 10px;
+      color: #e2e8f0;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .transition-btn:hover {
+      border-color: #8b5cf6;
+      background: #334155;
+    }
+
+    .transition-btn.selected {
+      border-color: #8b5cf6;
+      background: rgba(139, 92, 246, 0.2);
+      color: #a78bfa;
+    }
+
     /* Form Elements */
     .form-group {
       margin-bottom: 20px;
@@ -1329,6 +1356,31 @@
           <input type="range" id="clipDuration" min="2" max="15" value="7" step="0.5">
         </div>
         
+        <!-- Transition Selector -->
+        <div class="form-group" style="margin-top: 16px;">
+          <label><i class="fas fa-exchange-alt"></i> Overgang tussen clips</label>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-top: 8px;">
+            <button class="transition-btn selected" data-transition="fade" onclick="VideoStudio.selectTransition('fade', this)">
+              <span style="font-size: 18px;">✨</span> Fade
+            </button>
+            <button class="transition-btn" data-transition="slideLeft" onclick="VideoStudio.selectTransition('slideLeft', this)">
+              <span style="font-size: 18px;">⬅️</span> Slide Links
+            </button>
+            <button class="transition-btn" data-transition="slideRight" onclick="VideoStudio.selectTransition('slideRight', this)">
+              <span style="font-size: 18px;">➡️</span> Slide Rechts
+            </button>
+            <button class="transition-btn" data-transition="wipeLeft" onclick="VideoStudio.selectTransition('wipeLeft', this)">
+              <span style="font-size: 18px;">🔲</span> Wipe Links
+            </button>
+            <button class="transition-btn" data-transition="zoom" onclick="VideoStudio.selectTransition('zoom', this)">
+              <span style="font-size: 18px;">🔍</span> Zoom
+            </button>
+            <button class="transition-btn" data-transition="mixed" onclick="VideoStudio.selectTransition('mixed', this)">
+              <span style="font-size: 18px;">🎲</span> Mix
+            </button>
+          </div>
+        </div>
+        
         <!-- Overlay Settings (only show when travelData is available) -->
         <div id="overlaySettings" style="display: none; margin-top: 20px; padding: 16px; background: rgba(139, 92, 246, 0.1); border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.3);">
           <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: #a78bfa; font-weight: 600;">
@@ -1556,6 +1608,9 @@
 
       // Current user context (from BOLT deeplink)
       currentUserId: null,
+      
+      // Selected transition type
+      selectedTransition: 'fade',
 
       init() {
         // Check for deeplink parameters
@@ -2099,7 +2154,9 @@
             showFlightOverlay: showFlightOverlay,
             overlayDuration: overlayDuration,
             template: this.selectedTemplate,
-            templateConfig: this.selectedTemplate ? this.templates[this.selectedTemplate] : null
+            templateConfig: this.selectedTemplate ? this.templates[this.selectedTemplate] : null,
+            transition: this.selectedTransition || 'fade',
+            transitionDuration: 0.5
           };
 
           const response = await fetch('/api/video/generate', {
@@ -2712,6 +2769,15 @@
             icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
           }
         }
+      },
+
+      // Select transition type
+      selectTransition(transitionType, btn) {
+        this.selectedTransition = transitionType;
+        // Update UI
+        document.querySelectorAll('.transition-btn').forEach(b => b.classList.remove('selected'));
+        if (btn) btn.classList.add('selected');
+        console.log('[VideoStudio] Transition selected:', transitionType);
       }
     };
 

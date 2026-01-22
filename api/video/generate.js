@@ -32,7 +32,9 @@ export default async function handler(req, res) {
       destinations = [], 
       title = 'Jouw Reis',
       voiceoverUrl = null,
-      clipDuration = 3 // seconds per clip (renamed from 'duration')
+      clipDuration = 3, // seconds per clip (renamed from 'duration')
+      transition = 'fade', // Transition type: fade, slideLeft, slideRight, wipeLeft, wipeRight, zoom, carouselLeft
+      transitionDuration = 0.5 // Duration of transition in seconds
     } = req.body;
 
     // Use user-selected clips if provided, otherwise search automatically
@@ -68,7 +70,7 @@ export default async function handler(req, res) {
     console.log('[VideoGen] Clips:', JSON.stringify(validClips.map(c => ({dest: c.destination, url: c.url.substring(0, 50)})), null, 2));
 
     // Step 2: Create Shotstack timeline
-    const timeline = createTimeline(validClips, title, clipDuration, voiceoverUrl);
+    const timeline = createTimeline(validClips, title, clipDuration, voiceoverUrl, transition, transitionDuration);
     console.log('[VideoGen] Timeline created, tracks:', timeline.timeline.tracks.length);
 
     // Step 3: Submit to Shotstack for rendering
@@ -152,15 +154,46 @@ async function searchVideoClip(destination, apiKey) {
   return clips.length > 0 ? clips[0] : null;
 }
 
+// Available transitions for Shotstack
+const TRANSITIONS = {
+  fade: { in: 'fade', out: 'fade' },
+  slideLeft: { in: 'slideLeft', out: 'slideLeft' },
+  slideRight: { in: 'slideRight', out: 'slideRight' },
+  slideUp: { in: 'slideUp', out: 'slideUp' },
+  slideDown: { in: 'slideDown', out: 'slideDown' },
+  wipeLeft: { in: 'wipeLeft', out: 'wipeLeft' },
+  wipeRight: { in: 'wipeRight', out: 'wipeRight' },
+  zoom: { in: 'zoom', out: 'zoom' },
+  carouselLeft: { in: 'carouselLeft', out: 'carouselLeft' },
+  carouselRight: { in: 'carouselRight', out: 'carouselRight' },
+  reveal: { in: 'reveal', out: 'reveal' },
+  // Mixed transitions for variety
+  mixed: null // Will be handled specially
+};
+
 // Create Shotstack timeline
-function createTimeline(clips, title, clipDuration, voiceoverUrl) {
+function createTimeline(clips, title, clipDuration, voiceoverUrl, transitionType = 'fade', transitionDuration = 0.5) {
   const tracks = [];
   let currentTime = 0;
+  
+  // Get transition config
+  const getTransition = (index) => {
+    if (transitionType === 'mixed') {
+      // Alternate between different transitions for variety
+      const mixedTransitions = ['fade', 'slideLeft', 'wipeRight', 'zoom', 'carouselLeft'];
+      const t = mixedTransitions[index % mixedTransitions.length];
+      return TRANSITIONS[t];
+    }
+    return TRANSITIONS[transitionType] || TRANSITIONS.fade;
+  };
 
-  // Track 1: Video clips
+  // Track 1: Video clips with transitions
   const videoClips = clips.map((clip, index) => {
     const start = currentTime;
-    currentTime += clipDuration;
+    // Overlap clips slightly for smoother transitions
+    currentTime += clipDuration - transitionDuration;
+    
+    const trans = getTransition(index);
     
     return {
       asset: {
@@ -173,8 +206,8 @@ function createTimeline(clips, title, clipDuration, voiceoverUrl) {
       fit: 'cover',
       scale: 1,
       transition: {
-        in: 'fade',
-        out: 'fade'
+        in: trans.in,
+        out: trans.out
       }
     };
   });
