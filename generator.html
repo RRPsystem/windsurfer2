@@ -2650,6 +2650,7 @@
       showReturnButton() {
         // Add return button to sidebar footer
         const footer = document.querySelector('.sidebar-footer');
+        console.log('[VideoStudio] showReturnButton called, returnUrl:', this.returnUrl, 'footer:', footer);
         if (footer && this.returnUrl) {
           footer.innerHTML = `
             <button onclick="VideoStudio.returnToBolt()" class="btn btn-secondary" style="width: 100%; margin-bottom: 8px;">
@@ -2657,6 +2658,9 @@
             </button>
             <div style="font-size: 12px; color: #64748b;">© 2026 AI Travel Video</div>
           `;
+          console.log('[VideoStudio] Return button added to footer');
+        } else {
+          console.warn('[VideoStudio] Could not add return button - footer:', !!footer, 'returnUrl:', !!this.returnUrl);
         }
       },
 
