@@ -43,8 +43,13 @@ export default async function handler(req, res) {
     });
 
     if (!tripResponse.ok) {
-      console.error('[trips/id] Supabase error:', tripResponse.status);
-      return res.status(tripResponse.status).json({ error: 'Failed to fetch trip' });
+      const errorText = await tripResponse.text();
+      console.error('[trips/id] Supabase error:', tripResponse.status, errorText);
+      return res.status(tripResponse.status).json({ 
+        error: 'Failed to fetch trip', 
+        status: tripResponse.status,
+        detail: errorText 
+      });
     }
 
     const trips = await tripResponse.json();
