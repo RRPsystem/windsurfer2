@@ -1,5 +1,6 @@
 // Storyblocks Video Search API Route
-// Proxies requests to Storyblocks API using server-side API key
+// Proxies requests to Storyblocks API using HMAC authentication
+import crypto from 'crypto';
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -21,67 +22,95 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Query parameter required' });
   }
 
-  const apiKey = process.env.STORYBLOCKS_PUBLIC_KEY;
+  const publicKey = process.env.STORYBLOCKS_PUBLIC_KEY;
+  const privateKey = process.env.STORYBLOCKS_PRIVATE_KEY;
 
-  if (!apiKey) {
-    console.error('[Storyblocks API] STORYBLOCKS_PUBLIC_KEY not found in environment variables');
-    return res.status(500).json({ error: 'API key not configured' });
+  if (!publicKey || !privateKey) {
+    console.error('[Storyblocks API] API keys not configured');
+    return res.status(500).json({ 
+      error: 'Storyblocks API niet geconfigureerd',
+      detail: 'Voeg STORYBLOCKS_PUBLIC_KEY en STORYBLOCKS_PRIVATE_KEY toe aan environment variables'
+    });
   }
 
   try {
-    // Storyblocks API endpoint - try multiple formats
-    // Format 1: Standard API v2
-    const url = `https://api.graphicstock.com/api/v2/videos/search?keywords=${encodeURIComponent(query)}&page=${page}&results_per_page=20`;
+    // Storyblocks API v2 uses HMAC authentication
+    // Resource path for video search
+    const resource = '/api/v2/videos/search';
     
-    console.log('[Storyblocks API] Request URL:', url);
-    console.log('[Storyblocks API] API Key (first 10 chars):', apiKey.substring(0, 10) + '...');
+    // Expiration time (1 hour from now)
+    const expires = Math.floor(Date.now() / 1000) + 3600;
+    
+    // Generate HMAC: SHA-256 of resource using (privateKey + expires) as key
+    const hmacKey = privateKey + expires;
+    const hmac = crypto.createHmac('sha256', hmacKey).update(resource).digest('hex');
+    
+    // Build URL with auth params
+    const baseUrl = 'https://api.storyblocks.com';
+    const url = `${baseUrl}${resource}?keywords=${encodeURIComponent(query)}&page=${page}&results_per_page=20&APIKEY=${publicKey}&EXPIRES=${expires}&HMAC=${hmac}`;
+    
     console.log('[Storyblocks API] Searching:', query, 'page:', page);
 
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'User-Agent': 'AI-TravelVideo/1.0'
       }
     });
 
     console.log('[Storyblocks API] Response status:', response.status);
-    console.log('[Storyblocks API] Response headers:', Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('[Storyblocks API] Error response:', errorText);
       
-      // Try to parse error as JSON
       let errorDetails = errorText;
       try {
         errorDetails = JSON.parse(errorText);
-      } catch (e) {
-        // Not JSON, use as-is
-      }
+      } catch (e) {}
       
       return res.status(response.status).json({ 
         error: 'Storyblocks API error',
         status: response.status,
-        details: errorDetails,
-        url: url.replace(apiKey, 'HIDDEN')
+        details: errorDetails
       });
     }
 
     const data = await response.json();
-    console.log('[Storyblocks API] Success:', data.info?.total_results || 0, 'results');
-    console.log('[Storyblocks API] Response structure:', Object.keys(data));
+    console.log('[Storyblocks API] Success:', data.info?.total_results || data.total_results || 0, 'results');
 
-    return res.status(200).json(data);
+    // Normalize response format
+    const results = data.results || data.videos || [];
+    const normalizedResults = results.map(video => ({
+      id: video.id,
+      title: video.title || video.name,
+      description: video.description,
+      duration: video.duration,
+      width: video.width,
+      height: video.height,
+      thumbnail_url: video.thumbnail_url || video.thumbnails?.large || video.thumbnails?.medium,
+      preview_urls: {
+        mp4_preview: video.preview_urls?.mp4 || video.preview_url || video.preview_mp4,
+        webm_preview: video.preview_urls?.webm || video.preview_webm
+      },
+      download_url: video.formats?.['4k']?.url || video.formats?.hd?.url || video.formats?.sd?.url || video.preview_url
+    }));
+
+    return res.status(200).json({
+      results: normalizedResults,
+      info: {
+        total_results: data.info?.total_results || data.total_results || results.length,
+        page: parseInt(page),
+        results_per_page: 20
+      }
+    });
 
   } catch (error) {
     console.error('[Storyblocks API] Exception:', error);
-    console.error('[Storyblocks API] Stack:', error.stack);
     return res.status(500).json({ 
       error: 'Internal server error',
-      message: error.message,
-      type: error.name
+      message: error.message
     });
   }
 }
