@@ -2257,25 +2257,26 @@
             body: formData
           });
 
+          // Read response body once as text, then parse
+          const responseText = await response.text();
+          
           if (!response.ok) {
             let errorMsg = 'Upload mislukt';
             try {
-              const error = await response.json();
+              const error = JSON.parse(responseText);
               errorMsg = error.error || error.detail || errorMsg;
             } catch (e) {
-              const text = await response.text();
-              console.error('[VideoStudio] Non-JSON error response:', text);
-              errorMsg = text.substring(0, 100) || `HTTP ${response.status}`;
+              console.error('[VideoStudio] Non-JSON error response:', responseText);
+              errorMsg = responseText.substring(0, 100) || `HTTP ${response.status}`;
             }
             throw new Error(errorMsg);
           }
 
           let result;
           try {
-            result = await response.json();
+            result = JSON.parse(responseText);
           } catch (e) {
-            const text = await response.text();
-            console.error('[VideoStudio] Non-JSON success response:', text);
+            console.error('[VideoStudio] Non-JSON success response:', responseText);
             throw new Error('Server gaf geen geldige response');
           }
           
