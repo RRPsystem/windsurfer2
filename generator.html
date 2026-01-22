@@ -2527,10 +2527,28 @@
         status.innerHTML = '<span style="color: #94a3b8;"><i class="fas fa-spinner fa-spin"></i> Laden...</span>';
 
         try {
-          const response = await fetch(`/api/trips/${ideaId}`);
-          if (!response.ok) throw new Error('Reis niet gevonden');
-
-          const data = await response.json();
+          let data = null;
+          let source = '';
+          
+          // Try Supabase trips first (for BOLT trips)
+          const tripsResponse = await fetch(`/api/trips/${ideaId}`);
+          if (tripsResponse.ok) {
+            data = await tripsResponse.json();
+            source = 'supabase';
+            console.log('[VideoStudio] Trip loaded from Supabase');
+          } else {
+            // Fallback to Travel Compositor API
+            console.log('[VideoStudio] Trip not found in Supabase, trying Travel Compositor...');
+            const tcResponse = await fetch(`/api/ideas/${ideaId}`);
+            if (tcResponse.ok) {
+              data = await tcResponse.json();
+              source = 'travelcompositor';
+              console.log('[VideoStudio] Trip loaded from Travel Compositor');
+            } else {
+              throw new Error('Reis niet gevonden in Supabase of Travel Compositor');
+            }
+          }
+          
           this.travelData = data;
 
           // Update title
