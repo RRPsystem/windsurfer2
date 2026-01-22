@@ -103,6 +103,22 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('[VideoUpload] Error:', error);
+    
+    // Check for specific error types
+    if (error.message?.includes('Request Entity Too Large') || error.message?.includes('body exceeded')) {
+      return res.status(413).json({ 
+        error: 'Video te groot', 
+        detail: 'Maximum bestandsgrootte is 100MB. Probeer een kortere video.'
+      });
+    }
+    
+    if (error.message?.includes('BLOB_READ_WRITE_TOKEN')) {
+      return res.status(500).json({ 
+        error: 'Blob Storage niet geconfigureerd',
+        detail: 'Voeg BLOB_READ_WRITE_TOKEN toe aan Vercel environment variables'
+      });
+    }
+    
     return res.status(500).json({ 
       error: 'Upload mislukt', 
       detail: error.message 
