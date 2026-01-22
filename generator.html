@@ -2190,7 +2190,43 @@
           }
 
           const result = await response.json();
-          saveStatus.innerHTML = '<span style="color: #22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen!</span>';
+          
+          // Also save metadata to BOLT/Supabase if we have a brand_id
+          if (this.brandId && result.url) {
+            try {
+              console.log('[VideoStudio] Saving video metadata to BOLT...');
+              const boltResponse = await fetch('/api/videos/save-to-bolt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  brand_id: this.brandId,
+                  trip_id: this.boltConfig?.tripId || null,
+                  title: videoName,
+                  video_url: result.url,
+                  thumbnail_url: result.thumbnail || null,
+                  duration: videoElement.duration || 0,
+                  width: videoElement.videoWidth || 1920,
+                  height: videoElement.videoHeight || 1080,
+                  template: this.selectedTemplate || null,
+                  theme: this.selectedThemeName || null,
+                  file_size: result.size || null
+                })
+              });
+              
+              if (boltResponse.ok) {
+                console.log('[VideoStudio] Video metadata saved to BOLT');
+                saveStatus.innerHTML = '<span style="color: #22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen in BOLT!</span>';
+              } else {
+                console.warn('[VideoStudio] Failed to save to BOLT, but video is saved locally');
+                saveStatus.innerHTML = '<span style="color: #22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen!</span>';
+              }
+            } catch (boltError) {
+              console.warn('[VideoStudio] BOLT save error:', boltError);
+              saveStatus.innerHTML = '<span style="color: #22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen!</span>';
+            }
+          } else {
+            saveStatus.innerHTML = '<span style="color: #22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen!</span>';
+          }
 
           // Reload videos
           setTimeout(() => {
