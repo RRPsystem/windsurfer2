@@ -2173,27 +2173,31 @@
           // Fetch video as blob
           const videoBlob = await fetch(videoElement.src).then(r => r.blob());
           
-          // Convert to base64
-          const base64Video = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(videoBlob);
+          // Check file size (max 50MB for Vercel)
+          const maxSize = 50 * 1024 * 1024; // 50MB
+          if (videoBlob.size > maxSize) {
+            throw new Error(`Video te groot (${Math.round(videoBlob.size / 1024 / 1024)}MB). Maximum is 50MB.`);
+          }
+          
+          console.log('[VideoStudio] Uploading video:', {
+            size: Math.round(videoBlob.size / 1024 / 1024) + 'MB',
+            type: videoBlob.type
           });
 
-          // Upload to storage (include userId for user isolation)
-          const response = await fetch('/api/videos/upload', {
+          // Use FormData for large file uploads
+          const formData = new FormData();
+          formData.append('video', videoBlob, `${videoName.replace(/[^a-z0-9]/gi, '-')}.mp4`);
+          formData.append('title', videoName);
+          formData.append('type', 'ai-generated');
+          formData.append('duration', String(videoElement.duration || 0));
+          formData.append('width', String(videoElement.videoWidth || 1920));
+          formData.append('height', String(videoElement.videoHeight || 1080));
+          if (this.currentUserId) formData.append('userId', this.currentUserId);
+
+          // Upload to storage
+          const response = await fetch('/api/videos/upload-formdata', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              videoData: base64Video,
-              title: videoName,
-              type: 'ai-generated',
-              duration: videoElement.duration || 0,
-              width: videoElement.videoWidth || 1920,
-              height: videoElement.videoHeight || 1080,
-              userId: this.currentUserId
-            })
+            body: formData
           });
 
           if (!response.ok) {
