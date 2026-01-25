@@ -346,8 +346,32 @@ Reizigers: 2 volwassenen
 
 ---
 
+## ⚠️ BELANGRIJK: CSP Configuratie
+
+BOLT moet `https://www.ai-websitestudio.nl` toevoegen aan de Content Security Policy (CSP).
+
+### Huidige CSP Error
+```
+Connecting to 'https://www.ai-websitestudio.nl/api/...' violates the following 
+Content Security Policy directive: "connect-src 'self' https://*.supabase.co ..."
+```
+
+### Oplossing
+Voeg `https://www.ai-websitestudio.nl` toe aan de `connect-src` directive:
+
+```
+connect-src 'self' https://*.supabase.co https://*.supabase.net https://maps.googleapis.com https://places.googleapis.com https://www.ai-websitestudio.nl;
+```
+
+**Waar te wijzigen:**
+- In de HTML `<meta>` tag met CSP, of
+- In de server response headers (bijv. Vercel/Netlify config)
+
+---
+
 ## Checklist voor BOLT
 
+- [ ] **CSP: Voeg `https://www.ai-websitestudio.nl` toe aan `connect-src`**
 - [ ] Bij laden pagina: Haal microsites op via `GET /api/config/microsites`
 - [ ] Toon dropdown met beschikbare microsites (naam + id)
 - [ ] Gebruiker kan TC Idea ID invoeren
