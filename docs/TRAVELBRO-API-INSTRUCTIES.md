@@ -130,10 +130,22 @@ Content-Type: application/json
 
 ## BOLT Implementatie Voorbeeld
 
-### JavaScript/TypeScript Code
+### JavaScript/TypeScript Code - Volledige Implementatie
 
 ```typescript
-async function syncTravelCompositor(tcIdeaId: string, brandId: string) {
+// ============================================
+// STAP 1: Haal beschikbare microsites op
+// ============================================
+async function loadMicrosites() {
+  const response = await fetch('https://www.ai-websitestudio.nl/api/config/microsites');
+  const data = await response.json();
+  return data.microsites; // [{id: "rondreis-planner", name: "Rondreis Planner", hasCredentials: true}, ...]
+}
+
+// ============================================
+// STAP 2: Sync Travel Compositor data
+// ============================================
+async function syncTravelCompositor(tcIdeaId: string, micrositeId: string, brandId: string) {
   try {
     const response = await fetch('https://www.ai-websitestudio.nl/api/travelbro/sync-travel', {
       method: 'POST',
@@ -141,10 +153,10 @@ async function syncTravelCompositor(tcIdeaId: string, brandId: string) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        id: tcIdeaId,                    // Verplicht: TC Idea ID
-        micrositeId: 'rondreis-planner', // Optioneel: microsite
-        language: 'NL',                  // Optioneel: taal
-        brand_id: brandId                // Optioneel: koppel aan brand
+        id: tcIdeaId,           // ✅ VERPLICHT: TC Idea ID (bijv. "12345")
+        micrositeId: micrositeId, // ✅ VERPLICHT: Microsite ID (bijv. "rondreis-planner")
+        language: 'NL',         // Optioneel: taal
+        brand_id: brandId       // Optioneel: koppel aan brand
       })
     });
 
@@ -165,19 +177,99 @@ async function syncTravelCompositor(tcIdeaId: string, brandId: string) {
   }
 }
 
-// Gebruik:
-const result = await syncTravelCompositor('12345', 'brand-uuid-hier');
+// ============================================
+// GEBRUIK IN BOLT UI
+// ============================================
+
+// Bij laden van pagina:
+const microsites = await loadMicrosites();
+// → Vul dropdown met microsites
+
+// Bij klik op "Synchroniseren":
+const tcIdeaId = document.getElementById('tc-idea-input').value;      // "12345"
+const micrositeId = document.getElementById('microsite-select').value; // "rondreis-planner"
+const brandId = getCurrentBrandId();                                   // UUID van huidige brand
+
+const result = await syncTravelCompositor(tcIdeaId, micrositeId, brandId);
+// → result.trip_id bevat de opgeslagen trip UUID
+// → result.data bevat alle reis data voor de AI bot
 ```
 
 ---
 
-## Beschikbare Microsites
+## Stap 1: Beschikbare Microsites Ophalen
 
-| Microsite ID | Naam |
-|--------------|------|
-| `rondreis-planner` | Rondreis Planner (default) |
+**BELANGRIJK:** Voordat je een TC ID kunt synchroniseren, moet je weten welke microsite het ID vandaan komt. Haal eerst de beschikbare microsites op:
 
-> **Let op:** Vraag het team welke micrositeId je moet gebruiken als je een andere nodig hebt.
+### Request
+
+```
+GET https://www.ai-websitestudio.nl/api/config/microsites
+```
+
+### Response
+
+```json
+{
+  "microsites": [
+    {
+      "id": "rondreis-planner",
+      "name": "Rondreis Planner",
+      "hasCredentials": true
+    },
+    {
+      "id": "reisbureaunederland",
+      "name": "Blauw Versie RRP",
+      "hasCredentials": true
+    }
+  ],
+  "baseUrl": "https://online.travelcompositor.com"
+}
+```
+
+### BOLT UI Implementatie
+
+1. **Bij laden van de pagina:** Haal microsites op via `GET /api/config/microsites`
+2. **Toon dropdown:** Laat gebruiker kiezen uit beschikbare microsites
+3. **Bij synchroniseren:** Stuur gekozen `micrositeId` mee in de request
+
+### Voorbeeld Code
+
+```typescript
+// 1. Haal beschikbare microsites op
+async function loadMicrosites() {
+  const response = await fetch('https://www.ai-websitestudio.nl/api/config/microsites');
+  const data = await response.json();
+  return data.microsites; // Array van {id, name, hasCredentials}
+}
+
+// 2. Toon in dropdown
+const microsites = await loadMicrosites();
+// Render dropdown met microsites.map(m => <option value={m.id}>{m.name}</option>)
+
+// 3. Bij synchroniseren: gebruik gekozen microsite
+async function syncTravel(tcIdeaId: string, micrositeId: string, brandId: string) {
+  const response = await fetch('https://www.ai-websitestudio.nl/api/travelbro/sync-travel', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: tcIdeaId,
+      micrositeId: micrositeId,  // ← Van dropdown
+      brand_id: brandId
+    })
+  });
+  return response.json();
+}
+```
+
+### Huidige Microsites
+
+| Microsite ID | Naam | Status |
+|--------------|------|--------|
+| `rondreis-planner` | Rondreis Planner | ✅ Actief |
+| `reisbureaunederland` | Blauw Versie RRP | ✅ Actief |
+
+> **Let op:** Gebruik altijd de `/api/config/microsites` endpoint om de actuele lijst op te halen. Er kunnen microsites worden toegevoegd of verwijderd.
 
 ---
 
@@ -256,10 +348,14 @@ Reizigers: 2 volwassenen
 
 ## Checklist voor BOLT
 
+- [ ] Bij laden pagina: Haal microsites op via `GET /api/config/microsites`
+- [ ] Toon dropdown met beschikbare microsites (naam + id)
 - [ ] Gebruiker kan TC Idea ID invoeren
-- [ ] Bij "Synchroniseren" wordt `POST /api/travelbro/sync-travel` aangeroepen
-- [ ] `id` parameter wordt meegegeven (verplicht)
-- [ ] `brand_id` wordt meegegeven (om trip aan brand te koppelen)
+- [ ] Gebruiker selecteert microsite uit dropdown
+- [ ] Bij "Synchroniseren" wordt `POST /api/travelbro/sync-travel` aangeroepen met:
+  - [ ] `id` - TC Idea ID (verplicht)
+  - [ ] `micrositeId` - Gekozen microsite (verplicht)
+  - [ ] `brand_id` - UUID van huidige brand (optioneel)
 - [ ] Success: toon bevestiging + `trip_id`
 - [ ] Error: toon foutmelding aan gebruiker
 - [ ] Data is beschikbaar voor AI bot via `ai_summary` en `all_texts`
