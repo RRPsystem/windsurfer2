@@ -7,8 +7,6 @@
  * @since 5.9.0
  */
 
-namespace RBS_TRAVEL\INCLUDES;
-
 if (!defined('ABSPATH')) exit;
 
 class RBS_TRAVEL_Shortcodes {

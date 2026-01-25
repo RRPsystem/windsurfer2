@@ -238,69 +238,76 @@ async function fetchTravelCompositorData(id, micrositeId, language) {
  */
 async function saveToTravelBro(data, existingTripId, brandId, supabaseUrl, serviceKey) {
   try {
-    // Prepare the trip record
+    // Prepare the trip record - only use columns that exist in the trips table
+    // All detailed travel data goes into the 'travel_data' JSON column
     const tripRecord = {
       // Use existing ID or let Supabase generate one
       ...(existingTripId && { id: existingTripId }),
       
-      // Basic info
+      // Basic info (standard trips table columns)
       title: data.title,
       slug: data.tc_idea_id, // Use TC ID as slug for easy lookup
-      description: data.description,
-      
-      // Introduction texts
-      intro_text: data.intro_text,
-      short_description: data.short_description,
+      description: data.description || data.ai_summary || '',
       
       // Media
       featured_image: data.featured_image,
-      images: data.all_images,
       
-      // Duration
-      duration_days: data.duration_days,
-      duration_nights: data.duration_nights,
-      
-      // Pricing
-      total_price: data.total_price,
-      price_per_person: data.price_per_person,
-      currency: data.currency,
-      price_breakdown: data.price_breakdown,
-      
-      // Locations
-      destinations: data.destinations,
-      destination_names: data.destination_names,
-      countries: data.countries,
-      
-      // Components
-      hotels: data.hotels,
-      flights: data.flights,
-      other_transports: data.other_transports,
-      car_rentals: data.car_rentals,
-      activities: data.activities,
-      
-      // Itinerary
-      itinerary: data.itinerary,
-      
-      // Travelers
-      travelers: data.travelers,
-      
-      // Included/excluded
-      included: data.included,
-      not_included: data.not_included,
-      
-      // Practical info
-      practical_info: data.practical_info,
-      
-      // AI helpers
-      ai_summary: data.ai_summary,
-      all_texts: data.all_texts,
-      trip_highlights: data.trip_highlights,
-      selling_points: data.selling_points,
-      
-      // Metadata
-      tc_idea_id: data.tc_idea_id,
-      source: 'travel_compositor',
-      language: data.language,
+      // All Travel Compositor data in one JSON column
+      travel_data: {
+        // Source info
+        tc_idea_id: data.tc_idea_id,
+        source: 'travel_compositor',
+        language: data.language,
+        synced_at: new Date().toISOString(),
+        
+        // Introduction texts
+        intro_text: data.intro_text,
+        short_description: data.short_description,
+        trip_highlights: data.trip_highlights,
+        selling_points: data.selling_points,
+        
+        // Duration
+        duration_days: data.duration_days,
+        duration_nights: data.duration_nights,
+        
+        // Pricing
+        total_price: data.total_price,
+        price_per_person: data.price_per_person,
+        currency: data.currency,
+        price_breakdown: data.price_breakdown,
+        
+        // Locations
+        destinations: data.destinations,
+        destination_names: data.destination_names,
+        countries: data.countries,
+        
+        // Components
+        hotels: data.hotels,
+        flights: data.flights,
+        other_transports: data.other_transports,
+        car_rentals: data.car_rentals,
+        activities: data.activities,
+        
+        // Itinerary
+        itinerary: data.itinerary,
+        
+        // Travelers
+        travelers: data.travelers,
+        
+        // Included/excluded
+        included: data.included,
+        not_included: data.not_included,
+        
+        // Practical info
+        practical_info: data.practical_info,
+        
+        // AI helpers
+        ai_summary: data.ai_summary,
+        all_texts: data.all_texts,
+        
+        // All images
+        all_images: data.all_images
+      },
       
       // Brand association
       ...(brandId && { brand_id: brandId }),
