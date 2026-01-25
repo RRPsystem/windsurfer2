@@ -68,19 +68,19 @@ export default async function handler(req, res) {
     console.log('[TravelBro Sync] TC data fetched successfully');
 
     // ========================================
-    // STEP 2: Write to TravelBro Supabase
+    // STEP 2: Write to Supabase (same database as Website Builder)
     // ========================================
     const {
-      TRAVELBRO_SUPABASE_URL,
-      TRAVELBRO_SUPABASE_SERVICE_KEY
+      SUPABASE_URL,
+      SUPABASE_SERVICE_ROLE_KEY
     } = process.env;
 
-    if (!TRAVELBRO_SUPABASE_URL || !TRAVELBRO_SUPABASE_SERVICE_KEY) {
-      // If no TravelBro credentials, just return the data
-      console.log('[TravelBro Sync] No TravelBro Supabase credentials, returning data only');
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      // If no Supabase credentials, just return the data
+      console.log('[TravelBro Sync] No Supabase credentials, returning data only');
       return res.status(200).json({
         success: true,
-        message: 'Data fetched but not saved (no TravelBro credentials configured)',
+        message: 'Data fetched but not saved (no Supabase credentials configured)',
         data: tcData.data,
         saved: false
       });
@@ -90,8 +90,8 @@ export default async function handler(req, res) {
       tcData.data, 
       trip_id, 
       brand_id,
-      TRAVELBRO_SUPABASE_URL,
-      TRAVELBRO_SUPABASE_SERVICE_KEY
+      SUPABASE_URL,
+      SUPABASE_SERVICE_ROLE_KEY
     );
 
     if (!savedTrip.success) {
