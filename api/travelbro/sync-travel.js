@@ -316,37 +316,90 @@ async function saveToTravelBro(data, existingTripId, brandId, supabaseUrl, servi
       updated_at: new Date().toISOString()
     };
 
-    // If no existing ID, add created_at
-    if (!existingTripId) {
+    // First, check if trip already exists for this brand + TC ID (slug)
+    const existingTrip = await findExistingTrip(supabaseUrl, serviceKey, brandId, data.tc_idea_id);
+    
+    if (existingTrip) {
+      // UPDATE existing trip
+      console.log('[TravelBro Sync] Updating existing trip:', existingTrip.id);
+      
+      const response = await fetch(`${supabaseUrl}/rest/v1/trips?id=eq.${existingTrip.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${serviceKey}`,
+          'apikey': serviceKey,
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(tripRecord)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[TravelBro Sync] Supabase update error:', response.status, errorText);
+        return { success: false, error: errorText };
+      }
+
+      const savedData = await response.json();
+      const savedTrip = Array.isArray(savedData) ? savedData[0] : savedData;
+      return { success: true, trip_id: savedTrip?.id || existingTrip.id, updated: true };
+      
+    } else {
+      // INSERT new trip
       tripRecord.created_at = new Date().toISOString();
+      
+      const response = await fetch(`${supabaseUrl}/rest/v1/trips`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${serviceKey}`,
+          'apikey': serviceKey,
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(tripRecord)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[TravelBro Sync] Supabase insert error:', response.status, errorText);
+        return { success: false, error: errorText };
+      }
+
+      const savedData = await response.json();
+      const savedTrip = Array.isArray(savedData) ? savedData[0] : savedData;
+      return { success: true, trip_id: savedTrip?.id, created: true };
     }
-
-    // Upsert to Supabase
-    const response = await fetch(`${supabaseUrl}/rest/v1/trips`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${serviceKey}`,
-        'apikey': serviceKey,
-        'Prefer': 'resolution=merge-duplicates,return=representation'
-      },
-      body: JSON.stringify(tripRecord)
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[TravelBro Sync] Supabase error:', response.status, errorText);
-      return { success: false, error: errorText };
-    }
-
-    const savedData = await response.json();
-    const savedTrip = Array.isArray(savedData) ? savedData[0] : savedData;
-
-    return { success: true, trip_id: savedTrip?.id || existingTripId };
 
   } catch (error) {
     console.error('[TravelBro Sync] Save error:', error);
     return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Find existing trip by brand_id and TC idea ID (stored as slug)
+ */
+async function findExistingTrip(supabaseUrl, serviceKey, brandId, tcIdeaId) {
+  try {
+    let url = `${supabaseUrl}/rest/v1/trips?slug=eq.${tcIdeaId}&select=id`;
+    if (brandId) {
+      url += `&brand_id=eq.${brandId}`;
+    }
+    
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${serviceKey}`,
+        'apikey': serviceKey
+      }
+    });
+    
+    if (!response.ok) return null;
+    
+    const data = await response.json();
+    return data && data.length > 0 ? data[0] : null;
+  } catch (error) {
+    console.error('[TravelBro Sync] Find existing trip error:', error);
+    return null;
   }
 }
 
