@@ -28,6 +28,7 @@ class RBS_TRAVEL_Shortcodes {
     public function featured_travels_shortcode($atts) {
         $atts = shortcode_atts(array(
             'ids' => '',
+            'tc_ids' => '',  // Support Travel Compositor IDs
             'columns' => 3,
             'title' => '',
             'show_price' => 'yes',
@@ -36,32 +37,90 @@ class RBS_TRAVEL_Shortcodes {
             'button_text' => 'Bekijk reis',
         ), $atts, 'uitgelichte_reizen');
         
-        // Parse IDs
-        $ids = array_filter(array_map('intval', explode(',', $atts['ids'])));
+        $travels = array();
         
-        if (empty($ids)) {
+        // Check if using Travel Compositor IDs (tc_ids) or if ids look like TC IDs (very large numbers)
+        $raw_ids = array_filter(array_map('trim', explode(',', $atts['ids'])));
+        $tc_ids_attr = array_filter(array_map('trim', explode(',', $atts['tc_ids'])));
+        
+        // Detect if IDs are Travel Compositor IDs (typically 8+ digits)
+        $use_tc_ids = !empty($tc_ids_attr);
+        if (!$use_tc_ids && !empty($raw_ids)) {
+            // Check if first ID looks like a TC ID (8+ digits)
+            $first_id = intval($raw_ids[0]);
+            if ($first_id > 10000000) {
+                $use_tc_ids = true;
+                $tc_ids_attr = $raw_ids;
+            }
+        }
+        
+        if ($use_tc_ids && !empty($tc_ids_attr)) {
+            // Search by Travel Compositor ID stored in post meta
+            foreach ($tc_ids_attr as $tc_id) {
+                $found = get_posts(array(
+                    'post_type' => 'rbs-travel-idea',
+                    'posts_per_page' => 1,
+                    'post_status' => 'publish',
+                    'meta_query' => array(
+                        'relation' => 'OR',
+                        array(
+                            'key' => 'travel_id',  // Primary: stored during import
+                            'value' => $tc_id,
+                            'compare' => '='
+                        ),
+                        array(
+                            'key' => 'travel_compositor_id',
+                            'value' => $tc_id,
+                            'compare' => '='
+                        ),
+                        array(
+                            'key' => 'tc_idea_id',
+                            'value' => $tc_id,
+                            'compare' => '='
+                        ),
+                        array(
+                            'key' => '_tc_idea_id',
+                            'value' => $tc_id,
+                            'compare' => '='
+                        )
+                    )
+                ));
+                if (!empty($found)) {
+                    $travels[] = $found[0];
+                }
+            }
+        } else {
+            // Use WordPress post IDs
+            $ids = array_filter(array_map('intval', $raw_ids));
+            
+            if (!empty($ids)) {
+                $travels = get_posts(array(
+                    'post_type' => 'rbs-travel-idea',
+                    'post__in' => $ids,
+                    'orderby' => 'post__in',
+                    'posts_per_page' => count($ids),
+                    'post_status' => 'publish',
+                ));
+            }
+        }
+        
+        if (empty($raw_ids) && empty($tc_ids_attr)) {
             if (current_user_can('edit_posts')) {
                 return '<div style="padding: 20px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; margin: 20px 0;">
                     <strong>⚠️ Uitgelichte Reizen:</strong> Geen reis IDs opgegeven.<br>
-                    <small>Gebruik: <code>[uitgelichte_reizen ids="123,456,789"]</code></small>
+                    <small>Gebruik: <code>[uitgelichte_reizen ids="123,456"]</code> (WordPress IDs)<br>
+                    Of: <code>[uitgelichte_reizen tc_ids="25668474,27599666"]</code> (Travel Compositor IDs)</small>
                 </div>';
             }
             return '';
         }
         
-        // Get travels
-        $travels = get_posts(array(
-            'post_type' => 'rbs-travel-idea',
-            'post__in' => $ids,
-            'orderby' => 'post__in',
-            'posts_per_page' => count($ids),
-            'post_status' => 'publish',
-        ));
-        
         if (empty($travels)) {
             if (current_user_can('edit_posts')) {
+                $id_type = $use_tc_ids ? 'Travel Compositor' : 'WordPress';
                 return '<div style="padding: 20px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; margin: 20px 0;">
-                    <strong>⚠️ Uitgelichte Reizen:</strong> Geen reizen gevonden met IDs: ' . esc_html($atts['ids']) . '
+                    <strong>⚠️ Uitgelichte Reizen:</strong> Geen reizen gevonden met ' . $id_type . ' IDs: ' . esc_html($atts['ids'] ?: $atts['tc_ids']) . '<br>
+                    <small>Controleer of de reizen zijn geïmporteerd en gepubliceerd.</small>
                 </div>';
             }
             return '';
