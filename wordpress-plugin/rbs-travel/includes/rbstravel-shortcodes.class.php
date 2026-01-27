@@ -58,13 +58,28 @@ class RBS_TRAVEL_Shortcodes {
         if ($use_tc_ids) {
             // Search by Travel Compositor ID stored in travel_id meta
             foreach ($raw_ids as $tc_id) {
+                $tc_id = trim($tc_id);
+                
+                // Try direct meta key first
                 $found = get_posts(array(
                     'post_type' => 'rbs-travel-idea',
                     'posts_per_page' => 1,
                     'post_status' => 'publish',
-                    'meta_key' => 'travel_id',
-                    'meta_value' => $tc_id,
+                    'meta_query' => array(
+                        'relation' => 'OR',
+                        array(
+                            'key' => 'travel_id',
+                            'value' => $tc_id,
+                            'compare' => '='
+                        ),
+                        array(
+                            'key' => 'travel_id',
+                            'value' => intval($tc_id),
+                            'compare' => '='
+                        ),
+                    )
                 ));
+                
                 if (!empty($found)) {
                     $travels[] = $found[0];
                 }
@@ -86,9 +101,40 @@ class RBS_TRAVEL_Shortcodes {
         if (empty($travels)) {
             if (current_user_can('edit_posts')) {
                 $id_type = $use_tc_ids ? 'Travel Compositor' : 'WordPress';
+                
+                // Debug: Check if any travels exist with these IDs
+                $debug_info = '';
+                if ($use_tc_ids) {
+                    global $wpdb;
+                    $first_tc_id = trim($raw_ids[0]);
+                    $meta_check = $wpdb->get_results($wpdb->prepare(
+                        "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = 'travel_id' AND meta_value LIKE %s LIMIT 5",
+                        '%' . $first_tc_id . '%'
+                    ));
+                    if (!empty($meta_check)) {
+                        $debug_info = '<br><small>Debug: Gevonden meta waarden: ';
+                        foreach ($meta_check as $row) {
+                            $debug_info .= 'Post ' . $row->post_id . ' = "' . $row->meta_value . '", ';
+                        }
+                        $debug_info .= '</small>';
+                    } else {
+                        // Check what travel_id values exist
+                        $sample = $wpdb->get_results(
+                            "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = 'travel_id' LIMIT 3"
+                        );
+                        if (!empty($sample)) {
+                            $debug_info = '<br><small>Debug: Voorbeeld travel_id waarden in database: ';
+                            foreach ($sample as $row) {
+                                $debug_info .= '"' . $row->meta_value . '", ';
+                            }
+                            $debug_info .= '</small>';
+                        }
+                    }
+                }
+                
                 return '<div style="padding: 20px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; margin: 20px 0;">
                     <strong>⚠️ Uitgelichte Reizen:</strong> Geen reizen gevonden met ' . $id_type . ' IDs: ' . esc_html($atts['ids']) . '<br>
-                    <small>Controleer of de reizen zijn geïmporteerd en gepubliceerd.</small>
+                    <small>Controleer of de reizen zijn geïmporteerd en gepubliceerd.</small>' . $debug_info . '
                 </div>';
             }
             return '';
