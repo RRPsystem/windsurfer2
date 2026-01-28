@@ -2543,9 +2543,9 @@
         this.currentSearchDestination = destinationIndex;
         const dest = this.destinations[destinationIndex];
         
-        // Combine destination name with selected theme for better search results
-        // e.g. "Malaga" + "drone aerial" = "Malaga drone aerial"
-        let searchQuery = dest.name;
+        // Combine destination name with travel keywords for better Pexels results
+        // Adding "city travel" helps avoid unrelated results (e.g. "Belfast" returning coffee beans)
+        let searchQuery = `${dest.name} city travel`;
         if (this.selectedTheme) {
           searchQuery = `${dest.name} ${this.selectedTheme}`;
         }
@@ -2598,23 +2598,25 @@
       },
 
       addClipToDestination(destinationIndex, clipData) {
-        // Check if clip already exists for this destination
-        const exists = this.selectedClips.some(
-          c => c.id === clipData.id && c.destinationIndex === destinationIndex
-        );
+        // Check if clip already exists for ANY destination (prevent duplicates across all destinations)
+        const existingClip = this.selectedClips.find(c => c.url === clipData.url);
         
-        if (!exists) {
-          this.selectedClips.push({
-            id: clipData.id,
-            url: clipData.url,
-            thumbnail: clipData.thumbnail,
-            duration: clipData.duration,
-            destinationIndex: destinationIndex,
-            destinationName: this.destinations[destinationIndex].name
-          });
-          
-          console.log('[VideoStudio] Clip added for', this.destinations[destinationIndex].name);
+        if (existingClip) {
+          // Clip already used for another destination - skip it
+          console.log('[VideoStudio] Clip already used for', existingClip.destinationName, '- skipping duplicate');
+          return;
         }
+        
+        this.selectedClips.push({
+          id: clipData.id,
+          url: clipData.url,
+          thumbnail: clipData.thumbnail,
+          duration: clipData.duration,
+          destinationIndex: destinationIndex,
+          destinationName: this.destinations[destinationIndex].name
+        });
+        
+        console.log('[VideoStudio] Clip added for', this.destinations[destinationIndex].name);
 
         this.updateSelectedCount();
         this.renderDestinations();
