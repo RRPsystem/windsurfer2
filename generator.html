@@ -2673,8 +2673,17 @@
             status.innerHTML = `<span style="color: #22c55e;"><i class="fas fa-check-circle"></i> "${title}" geladen met ${destinations.length} bestemming${destinations.length !== 1 ? 'en' : ''}</span>`;
 
             // Show overlay settings if we have hotel/flight data
-            const hasHotels = data.hotels && data.hotels.length > 0;
-            const hasFlights = data.flights && data.flights.length > 0;
+            // Support both transformed data (hotels/flights) and raw TC data (accommodations/transports)
+            const hasHotels = (data.hotels && data.hotels.length > 0) || (data.accommodations && data.accommodations.length > 0);
+            const hasFlights = (data.flights && data.flights.length > 0) || (data.transports && data.transports.length > 0);
+            console.log('[VideoStudio] Travel data check:', { 
+              hasHotels, hasFlights, 
+              hotels: data.hotels?.length || 0,
+              accommodations: data.accommodations?.length || 0,
+              flights: data.flights?.length || 0,
+              transports: data.transports?.length || 0,
+              dataKeys: Object.keys(data)
+            });
             if (hasHotels || hasFlights) {
               document.getElementById('overlaySettings').style.display = 'block';
             }
