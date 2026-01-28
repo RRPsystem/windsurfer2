@@ -71,7 +71,32 @@ export default async function handler(req, res) {
     }
 
     console.log('[VideoGen] Generating video with clips:', validClips.length);
-    console.log('[VideoGen] Clips:', JSON.stringify(validClips.map(c => ({dest: c.destination, url: c.url.substring(0, 50)})), null, 2));
+    console.log('[VideoGen] Clips:', JSON.stringify(validClips.map((c, i) => ({
+      index: i,
+      dest: c.destination,
+      url: c.url ? c.url.substring(0, 80) : 'NO URL'
+    })), null, 2));
+    
+    // Check for duplicate URLs
+    const uniqueUrls = new Set(validClips.map(c => c.url));
+    if (uniqueUrls.size !== validClips.length) {
+      console.warn('[VideoGen] WARNING: Duplicate clip URLs detected!', {
+        total: validClips.length,
+        unique: uniqueUrls.size
+      });
+    }
+    
+    // Debug: Log travelData structure
+    if (travelData) {
+      console.log('[VideoGen] travelData keys:', Object.keys(travelData));
+      console.log('[VideoGen] hotels:', travelData.hotels ? `${travelData.hotels.length} hotels` : 'none');
+      console.log('[VideoGen] flights:', travelData.flights ? `${travelData.flights.length} flights` : 'none');
+      // TC data might have different structure - check for alternatives
+      console.log('[VideoGen] accommodations:', travelData.accommodations ? `${travelData.accommodations.length}` : 'none');
+      console.log('[VideoGen] transports:', travelData.transports ? `${travelData.transports.length}` : 'none');
+    } else {
+      console.log('[VideoGen] No travelData provided');
+    }
 
     // Step 2: Create Shotstack timeline
     const overlayOptions = {
@@ -277,9 +302,10 @@ function createTimeline(clips, title, clipDuration, voiceoverUrl, transitionType
   });
 
   // Track 4: Hotel info overlays (if enabled and data available)
-  if (showHotelOverlay && travelData && travelData.hotels && travelData.hotels.length > 0) {
+  // Support both 'hotels' and 'accommodations' (TC uses accommodations)
+  const hotels = travelData?.hotels || travelData?.accommodations || [];
+  if (showHotelOverlay && hotels.length > 0) {
     const hotelClips = [];
-    const hotels = travelData.hotels;
     
     // Show hotel info for each destination that has a hotel
     clips.forEach((clip, index) => {
@@ -330,19 +356,26 @@ function createTimeline(clips, title, clipDuration, voiceoverUrl, transitionType
   }
 
   // Track 5: Flight info overlay (if enabled and data available)
-  if (showFlightOverlay && travelData && travelData.flights && travelData.flights.length > 0) {
-    const flight = travelData.flights[0]; // Use first flight
+  // Support both 'flights' and 'transports' (TC uses transports)
+  const flights = travelData?.flights || travelData?.transports?.filter(t => t.type === 'flight' || t.transportType === 'FLIGHT') || [];
+  if (showFlightOverlay && flights.length > 0) {
+    const flight = flights[0]; // Use first flight
     const flightInfo = [];
     
-    // Build flight text
+    // Build flight text - support various TC data structures
     let flightText = '✈️';
-    if (flight.departure && flight.arrival) {
-      flightText += ` ${flight.departure} → ${flight.arrival}`;
-    } else if (flight.airline) {
-      flightText += ` ${flight.airline}`;
+    const departure = flight.departure || flight.departureCity || flight.from || flight.origin;
+    const arrival = flight.arrival || flight.arrivalCity || flight.to || flight.destination;
+    const airline = flight.airline || flight.carrier || flight.companyName;
+    const flightNum = flight.flightNumber || flight.number || flight.code;
+    
+    if (departure && arrival) {
+      flightText += ` ${departure} → ${arrival}`;
+    } else if (airline) {
+      flightText += ` ${airline}`;
     }
-    if (flight.flightNumber) {
-      flightText += ` (${flight.flightNumber})`;
+    if (flightNum) {
+      flightText += ` (${flightNum})`;
     }
     
     // Show flight info at the beginning of the video (after title)
