@@ -34,7 +34,11 @@ export default async function handler(req, res) {
       voiceoverUrl = null,
       clipDuration = 3, // seconds per clip (renamed from 'duration')
       transition = 'fade', // Transition type: fade, slideLeft, slideRight, wipeLeft, wipeRight, zoom, carouselLeft
-      transitionDuration = 0.5 // Duration of transition in seconds
+      transitionDuration = 0.5, // Duration of transition in seconds
+      travelData = null, // Full Travel Compositor data for hotel/flight info
+      showHotelOverlay = true,
+      showFlightOverlay = true,
+      overlayDuration = 0.4 // How long overlays show (as fraction of clip duration)
     } = req.body;
 
     // Use user-selected clips if provided, otherwise search automatically
@@ -70,7 +74,14 @@ export default async function handler(req, res) {
     console.log('[VideoGen] Clips:', JSON.stringify(validClips.map(c => ({dest: c.destination, url: c.url.substring(0, 50)})), null, 2));
 
     // Step 2: Create Shotstack timeline
-    const timeline = createTimeline(validClips, title, clipDuration, voiceoverUrl, transition, transitionDuration);
+    const overlayOptions = {
+      travelData,
+      showHotelOverlay,
+      showFlightOverlay,
+      overlayDuration,
+      destinations
+    };
+    const timeline = createTimeline(validClips, title, clipDuration, voiceoverUrl, transition, transitionDuration, overlayOptions);
     console.log('[VideoGen] Timeline created, tracks:', timeline.timeline.tracks.length);
 
     // Step 3: Submit to Shotstack for rendering
@@ -172,7 +183,8 @@ const TRANSITIONS = {
 };
 
 // Create Shotstack timeline
-function createTimeline(clips, title, clipDuration, voiceoverUrl, transitionType = 'fade', transitionDuration = 0.5) {
+function createTimeline(clips, title, clipDuration, voiceoverUrl, transitionType = 'fade', transitionDuration = 0.5, overlayOptions = {}) {
+  const { travelData, showHotelOverlay, showFlightOverlay, overlayDuration = 0.4, destinations = [] } = overlayOptions;
   const tracks = [];
   let currentTime = 0;
   
@@ -264,7 +276,104 @@ function createTimeline(clips, title, clipDuration, voiceoverUrl, transitionType
     clips: textClips
   });
 
-  // Track 4: Voice-over (if provided)
+  // Track 4: Hotel info overlays (if enabled and data available)
+  if (showHotelOverlay && travelData && travelData.hotels && travelData.hotels.length > 0) {
+    const hotelClips = [];
+    const hotels = travelData.hotels;
+    
+    // Show hotel info for each destination that has a hotel
+    clips.forEach((clip, index) => {
+      // Find hotel for this destination
+      const destName = clip.destination?.toLowerCase() || '';
+      const hotel = hotels.find(h => {
+        const hotelCity = (h.city || h.location || '').toLowerCase();
+        return hotelCity.includes(destName) || destName.includes(hotelCity);
+      }) || hotels[index % hotels.length]; // Fallback to cycling through hotels
+      
+      if (hotel) {
+        const hotelName = hotel.name || 'Hotel';
+        const hotelStars = hotel.stars ? '★'.repeat(hotel.stars) : '';
+        const hotelText = hotelStars ? `🏨 ${hotelName} ${hotelStars}` : `🏨 ${hotelName}`;
+        
+        // Show hotel info in the second half of the clip
+        const clipStart = index * (clipDuration - transitionDuration);
+        const infoStart = clipStart + (clipDuration * 0.5);
+        const infoDuration = clipDuration * overlayDuration;
+        
+        hotelClips.push({
+          asset: {
+            type: 'title',
+            text: hotelText,
+            style: 'subtitle',
+            color: '#ffffff',
+            size: 'small',
+            position: 'bottomRight'
+          },
+          start: infoStart,
+          length: infoDuration,
+          offset: {
+            x: -0.05,
+            y: -0.15
+          },
+          transition: {
+            in: 'fade',
+            out: 'fade'
+          }
+        });
+      }
+    });
+    
+    if (hotelClips.length > 0) {
+      tracks.push({ clips: hotelClips });
+      console.log('[VideoGen] Added hotel overlay track with', hotelClips.length, 'clips');
+    }
+  }
+
+  // Track 5: Flight info overlay (if enabled and data available)
+  if (showFlightOverlay && travelData && travelData.flights && travelData.flights.length > 0) {
+    const flight = travelData.flights[0]; // Use first flight
+    const flightInfo = [];
+    
+    // Build flight text
+    let flightText = '✈️';
+    if (flight.departure && flight.arrival) {
+      flightText += ` ${flight.departure} → ${flight.arrival}`;
+    } else if (flight.airline) {
+      flightText += ` ${flight.airline}`;
+    }
+    if (flight.flightNumber) {
+      flightText += ` (${flight.flightNumber})`;
+    }
+    
+    // Show flight info at the beginning of the video (after title)
+    if (flightText.length > 2) {
+      flightInfo.push({
+        asset: {
+          type: 'title',
+          text: flightText,
+          style: 'subtitle',
+          color: '#ffffff',
+          size: 'small',
+          position: 'topRight'
+        },
+        start: 3, // After title
+        length: clipDuration,
+        offset: {
+          x: -0.05,
+          y: 0.1
+        },
+        transition: {
+          in: 'slideRight',
+          out: 'fade'
+        }
+      });
+      
+      tracks.push({ clips: flightInfo });
+      console.log('[VideoGen] Added flight overlay track');
+    }
+  }
+
+  // Track 6: Voice-over (if provided)
   if (voiceoverUrl) {
     tracks.push({
       clips: [{
