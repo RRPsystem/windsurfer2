@@ -16,7 +16,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { query, page = 1, per_page = 20, orientation = 'landscape' } = req.query;
+    const { query, page = 1, per_page = 20, orientation = 'landscape', exclude = '' } = req.query;
+    
+    // Parse excluded video IDs (comma-separated)
+    const excludeIds = exclude ? exclude.split(',').map(id => id.trim()) : [];
 
     if (!query) {
       return res.status(400).json({ error: 'Query parameter is required' });
@@ -33,10 +36,13 @@ export default async function handler(req, res) {
       });
     }
 
-    console.log('[PexelsSearch] Searching for:', query);
+    // Enhance query for better travel-related results
+    // Add "travel destination" to get more relevant content
+    const enhancedQuery = `${query} travel destination aerial`;
+    console.log('[PexelsSearch] Searching for:', query, '-> enhanced:', enhancedQuery);
 
-    // Call Pexels API
-    const pexelsUrl = `https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&per_page=${per_page}&page=${page}&orientation=${orientation}`;
+    // Call Pexels API with enhanced query
+    const pexelsUrl = `https://api.pexels.com/videos/search?query=${encodeURIComponent(enhancedQuery)}&per_page=${per_page}&page=${page}&orientation=${orientation}`;
     
     const response = await fetch(pexelsUrl, {
       headers: {
@@ -57,13 +63,22 @@ export default async function handler(req, res) {
 
     console.log('[PexelsSearch] Found', data.total_results, 'results');
 
+    // Filter out excluded videos
+    let videos = data.videos || [];
+    if (excludeIds.length > 0) {
+      const beforeCount = videos.length;
+      videos = videos.filter(v => !excludeIds.includes(String(v.id)));
+      console.log('[PexelsSearch] Filtered out', beforeCount - videos.length, 'excluded videos');
+    }
+
     return res.status(200).json({
       success: true,
-      videos: data.videos || [],
+      videos: videos,
       total_results: data.total_results || 0,
       page: data.page || 1,
       per_page: data.per_page || per_page,
-      next_page: data.next_page || null
+      next_page: data.next_page || null,
+      excluded_count: excludeIds.length
     });
 
   } catch (error) {

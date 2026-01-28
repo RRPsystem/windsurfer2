@@ -364,7 +364,9 @@ class MediaPicker {
             
             // Use server-side API route if no client-side key (key is in Vercel env)
             if (!key || key === 'SERVER_SIDE') {
-              const resp = await fetch(`/api/pexels/search?query=${encodeURIComponent(q)}&per_page=12&page=${currentPage}&orientation=landscape`);
+              // Get already selected video IDs from VideoStudio to exclude them
+              const excludeIds = window.VideoStudio?.selectedClips?.map(c => c.id).join(',') || '';
+              const resp = await fetch(`/api/pexels/search?query=${encodeURIComponent(q)}&per_page=12&page=${currentPage}&orientation=landscape&exclude=${excludeIds}`);
               data = await resp.json();
               if (!resp.ok) {
                 throw new Error(data.error || data.detail || 'Pexels search failed');
