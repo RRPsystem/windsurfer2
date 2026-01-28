@@ -2133,6 +2133,24 @@
         document.getElementById('generateBtn').style.opacity = '0.5';
 
         try {
+          // Debug: Log selected clips before sending
+          console.log('[VideoStudio] Selected clips before send:', this.selectedClips.length);
+          console.log('[VideoStudio] Clips by destination:', this.selectedClips.map(c => ({
+            dest: c.destinationName,
+            destIndex: c.destinationIndex,
+            url: c.url?.substring(0, 60)
+          })));
+          
+          // Check for duplicates
+          const urlCounts = {};
+          this.selectedClips.forEach(c => {
+            urlCounts[c.url] = (urlCounts[c.url] || 0) + 1;
+          });
+          const duplicates = Object.entries(urlCounts).filter(([url, count]) => count > 1);
+          if (duplicates.length > 0) {
+            console.warn('[VideoStudio] DUPLICATE CLIPS DETECTED:', duplicates.map(([url, count]) => `${count}x ${url.substring(0, 50)}`));
+          }
+          
           // Build payload with clips organized by destination
           const payload = {
             destinations: this.destinations.map(d => ({ 
