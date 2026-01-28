@@ -94,6 +94,15 @@ export default async function handler(req, res) {
       // TC data might have different structure - check for alternatives
       console.log('[VideoGen] accommodations:', travelData.accommodations ? `${travelData.accommodations.length}` : 'none');
       console.log('[VideoGen] transports:', travelData.transports ? `${travelData.transports.length}` : 'none');
+      // Log first transport to see field names
+      if (travelData.transports && travelData.transports.length > 0) {
+        console.log('[VideoGen] First transport keys:', Object.keys(travelData.transports[0]));
+        console.log('[VideoGen] First transport sample:', JSON.stringify(travelData.transports[0]).substring(0, 500));
+      }
+      // Log first hotel to see field names
+      if (travelData.hotels && travelData.hotels.length > 0) {
+        console.log('[VideoGen] First hotel keys:', Object.keys(travelData.hotels[0]));
+      }
     } else {
       console.log('[VideoGen] No travelData provided');
     }
@@ -356,8 +365,24 @@ function createTimeline(clips, title, clipDuration, voiceoverUrl, transitionType
   }
 
   // Track 5: Flight info overlay (if enabled and data available)
-  // Support both 'flights' and 'transports' (TC uses transports)
-  const flights = travelData?.flights || travelData?.transports?.filter(t => t.type === 'flight' || t.transportType === 'FLIGHT') || [];
+  // Support both 'flights' and 'transports' (TC uses transports with various type field names)
+  let flights = travelData?.flights || [];
+  if (flights.length === 0 && travelData?.transports) {
+    // TC transports can have type in various fields - check all possibilities
+    flights = travelData.transports.filter(t => {
+      const typeStr = String(t.type || t.transportType || t.serviceType || t.category || '').toLowerCase();
+      return typeStr.includes('flight') || typeStr.includes('vlucht') || typeStr.includes('air');
+    });
+    // If no flights found by type, check if it has flight-like properties
+    if (flights.length === 0) {
+      flights = travelData.transports.filter(t => 
+        t.flightNumber || t.airline || t.carrier || 
+        (t.departureAirport || t.arrivalAirport) ||
+        (t.departureCity && t.arrivalCity)
+      );
+    }
+    console.log('[VideoGen] Filtered flights from transports:', flights.length);
+  }
   if (showFlightOverlay && flights.length > 0) {
     const flight = flights[0]; // Use first flight
     const flightInfo = [];
