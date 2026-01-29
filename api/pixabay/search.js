@@ -119,12 +119,59 @@ export default async function handler(req, res) {
     
     if (isEuropeanSearch && filteredHits.length > 0) {
       const beforeCount = filteredHits.length;
+      
+      // Get the city name from the query
+      const searchedCity = europeanCities.find(city => originalQuery.includes(city));
+      
       filteredHits = filteredHits.filter(video => {
         const tags = (video.tags || '').toLowerCase();
+        
+        // First: filter out obviously irrelevant content
         const isIrrelevant = irrelevantKeywords.some(keyword => tags.includes(keyword));
-        return !isIrrelevant;
+        if (isIrrelevant) return false;
+        
+        // Second: for city searches, require the video to have relevant tags
+        // Either the city name, country name, or related terms
+        if (searchedCity) {
+          const cityCountryTerms = {
+            'belfast': ['belfast', 'northern ireland', 'ireland', 'irish', 'uk', 'united kingdom', 'britain'],
+            'dublin': ['dublin', 'ireland', 'irish', 'eire'],
+            'cork': ['cork', 'ireland', 'irish'],
+            'galway': ['galway', 'ireland', 'irish'],
+            'london': ['london', 'england', 'uk', 'united kingdom', 'britain', 'british'],
+            'edinburgh': ['edinburgh', 'scotland', 'scottish', 'uk'],
+            'glasgow': ['glasgow', 'scotland', 'scottish', 'uk'],
+            'paris': ['paris', 'france', 'french', 'eiffel'],
+            'amsterdam': ['amsterdam', 'netherlands', 'dutch', 'holland'],
+            'rome': ['rome', 'roma', 'italy', 'italian', 'colosseum'],
+            'barcelona': ['barcelona', 'spain', 'spanish', 'catalonia'],
+            'lisbon': ['lisbon', 'lisboa', 'portugal', 'portuguese'],
+            'prague': ['prague', 'praha', 'czech', 'bohemia'],
+            'vienna': ['vienna', 'wien', 'austria', 'austrian'],
+            'berlin': ['berlin', 'germany', 'german'],
+            'munich': ['munich', 'munchen', 'germany', 'german', 'bavaria'],
+            'brussels': ['brussels', 'belgium', 'belgian'],
+            'copenhagen': ['copenhagen', 'denmark', 'danish'],
+            'stockholm': ['stockholm', 'sweden', 'swedish'],
+            'oslo': ['oslo', 'norway', 'norwegian'],
+            'helsinki': ['helsinki', 'finland', 'finnish'],
+            'reykjavik': ['reykjavik', 'iceland', 'icelandic']
+          };
+          
+          const relevantTerms = cityCountryTerms[searchedCity] || [searchedCity];
+          const hasRelevantTag = relevantTerms.some(term => tags.includes(term));
+          
+          // Also allow generic city/urban content
+          const genericCityTerms = ['city', 'urban', 'downtown', 'street', 'architecture', 'building', 'skyline', 'aerial city'];
+          const hasGenericCityTag = genericCityTerms.some(term => tags.includes(term));
+          
+          return hasRelevantTag || hasGenericCityTag;
+        }
+        
+        return true;
       });
-      console.log(`[Pixabay API] Filtered ${beforeCount - filteredHits.length} irrelevant results for European search`);
+      
+      console.log(`[Pixabay API] Filtered ${beforeCount - filteredHits.length} irrelevant results for European search "${searchedCity}"`);
     }
 
     // Transform to consistent format
