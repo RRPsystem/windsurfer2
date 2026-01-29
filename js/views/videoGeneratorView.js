@@ -776,46 +776,86 @@
         saveBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Opslaan...';
       }
 
-      if (saveStatus) saveStatus.innerHTML = '<span style="color:#6b7280;"><i class="fas fa-circle-notch fa-spin"></i> Video wordt geüpload naar storage...</span>';
+      if (saveStatus) saveStatus.innerHTML = '<span style="color:#6b7280;"><i class="fas fa-circle-notch fa-spin"></i> Video wordt opgeslagen...</span>';
 
       try {
-        // STAP 1: Upload video naar Vercel Blob Storage
-        const videoBlob = await fetch(resultVideo.src).then(r => r.blob());
-        const base64Video = await this.blobToBase64(videoBlob);
-
-        const uploadResponse = await fetch('/api/videos/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            videoData: base64Video,
-            title: videoName,
-            type: 'ai-generated',
-            duration: resultVideo.duration || 0,
-            width: resultVideo.videoWidth || 1920,
-            height: resultVideo.videoHeight || 1080,
-            thumbnail: null
-          })
-        });
-
-        if (!uploadResponse.ok) {
-          let errorMessage = 'Upload mislukt';
-          try {
-            const contentType = uploadResponse.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-              const error = await uploadResponse.json();
-              errorMessage = error.detail || error.message || error.error || 'Upload mislukt';
-            } else {
-              const errorText = await uploadResponse.text();
-              errorMessage = errorText.substring(0, 100);
-            }
-          } catch (e) {
-            errorMessage = `HTTP ${uploadResponse.status}: ${uploadResponse.statusText}`;
+        let videoUrl = resultVideo.src;
+        let videoBlob = null;
+        
+        // Check if video is already an external URL (Pexels, Pixabay, Storyblocks, etc.)
+        const isExternalUrl = videoUrl.startsWith('http') && (
+          videoUrl.includes('pexels.com') ||
+          videoUrl.includes('pixabay.com') ||
+          videoUrl.includes('storyblocks.com') ||
+          videoUrl.includes('graphicstock.com') ||
+          videoUrl.includes('videos.pexels.com') ||
+          videoUrl.includes('player.vimeo.com') ||
+          videoUrl.includes('cdn.pixabay.com')
+        );
+        
+        if (isExternalUrl) {
+          // External URL - use directly, no upload needed
+          console.log('[VideoGen] Using external video URL directly:', videoUrl);
+          if (saveStatus) saveStatus.innerHTML = '<span style="color:#6b7280;"><i class="fas fa-circle-notch fa-spin"></i> Externe video wordt geregistreerd...</span>';
+        } else if (videoUrl.startsWith('blob:') || videoUrl.startsWith('data:')) {
+          // Local blob/data URL - need to upload via FormData (avoids 4.5MB JSON limit)
+          if (saveStatus) saveStatus.innerHTML = '<span style="color:#6b7280;"><i class="fas fa-circle-notch fa-spin"></i> Video wordt geüpload naar storage...</span>';
+          
+          videoBlob = await fetch(resultVideo.src).then(r => r.blob());
+          
+          // Check file size - warn if very large
+          const sizeMB = videoBlob.size / (1024 * 1024);
+          if (sizeMB > 4) {
+            if (saveStatus) saveStatus.innerHTML = `<span style="color:#6b7280;"><i class="fas fa-circle-notch fa-spin"></i> Grote video (${sizeMB.toFixed(1)}MB) wordt geüpload...</span>`;
           }
-          throw new Error(errorMessage);
-        }
+          
+          // Use FormData upload to avoid JSON payload limit
+          const formData = new FormData();
+          formData.append('video', videoBlob, `${videoName.replace(/[^a-z0-9]/gi, '-')}.mp4`);
+          formData.append('title', videoName);
+          formData.append('type', 'ai-generated');
+          formData.append('duration', String(resultVideo.duration || 0));
+          formData.append('width', String(resultVideo.videoWidth || 1920));
+          formData.append('height', String(resultVideo.videoHeight || 1080));
 
-        const uploadResult = await uploadResponse.json();
-        const videoUrl = uploadResult?.video?.videoUrl;
+          const uploadResponse = await fetch('/api/videos/upload-formdata', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!uploadResponse.ok) {
+            let errorMessage = 'Upload mislukt';
+            try {
+              const contentType = uploadResponse.headers.get('content-type');
+              if (contentType && contentType.includes('application/json')) {
+                const error = await uploadResponse.json();
+                errorMessage = error.detail || error.message || error.error || 'Upload mislukt';
+              } else {
+                const errorText = await uploadResponse.text();
+                // Check for Vercel payload limit error
+                if (errorText.includes('FUNCTION_PAYLOAD_TOO_LARGE') || errorText.includes('Request Entity Too Large')) {
+                  errorMessage = `Video te groot (${sizeMB.toFixed(1)}MB). Probeer een kortere video of lagere kwaliteit.`;
+                } else {
+                  errorMessage = errorText.substring(0, 100);
+                }
+              }
+            } catch (e) {
+              errorMessage = `HTTP ${uploadResponse.status}: ${uploadResponse.statusText}`;
+            }
+            throw new Error(errorMessage);
+          }
+
+          const uploadResult = await uploadResponse.json();
+          videoUrl = uploadResult?.video?.videoUrl || uploadResult?.url;
+
+          if (!videoUrl) {
+            throw new Error('Video URL niet ontvangen van storage');
+          }
+          
+          console.log('[VideoGen] Video uploaded to storage:', videoUrl);
+        }
+        
+        // videoUrl is now either the external URL or the uploaded blob URL
 
         if (!videoUrl) {
           throw new Error('Video URL niet ontvangen van storage');
@@ -851,7 +891,7 @@
               brandId,
               videoUrl,
               videoTitle: videoName,
-              fileSizeBytes: videoBlob.size,
+              fileSizeBytes: videoBlob?.size || 0,
               durationSeconds: Math.round(resultVideo.duration || 0)
             })
           });
