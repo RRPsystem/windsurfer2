@@ -621,9 +621,24 @@ class MediaPicker {
         if (pexelsTabBtn) pexelsTabBtn.addEventListener('click', () => {
           setTimeout(() => {
             const pqi = pexelsPane ? pexelsPane.querySelector('.pexels-query') : null;
-            if (pqi) pqi.focus();
-          }, 0);
+            if (pqi) {
+              pqi.focus();
+              // Auto-search if field has value and grid is empty
+              if (pqi.value && pqi.value.trim() && !grid.hasChildNodes()) {
+                runPexelsSearch(false);
+              }
+            }
+          }, 100);
         });
+        
+        // If searchQuery provided and this is the default tab, auto-search
+        if (searchQuery && defaultTab === 'pexels') {
+          const pqi = pexelsPane ? pexelsPane.querySelector('.pexels-query') : null;
+          if (pqi) {
+            pqi.value = searchQuery;
+            setTimeout(() => runPexelsSearch(false), 200);
+          }
+        }
       }
 
       // Pixabay Videos
@@ -809,9 +824,24 @@ class MediaPicker {
         if (pixabayTabBtn) pixabayTabBtn.addEventListener('click', () => {
           setTimeout(() => {
             const pqi = pixabayPane ? pixabayPane.querySelector('.pixabay-query') : null;
-            if (pqi) pqi.focus();
-          }, 0);
+            if (pqi) {
+              pqi.focus();
+              // Auto-search if searchQuery was provided and field has value
+              if (pqi.value && pqi.value.trim() && !grid.hasChildNodes()) {
+                runPixabaySearch(false);
+              }
+            }
+          }, 100);
         });
+        
+        // If searchQuery provided and this is the default tab, auto-search
+        if (searchQuery && defaultTab === 'pixabay') {
+          const pqi = pixabayPane ? pixabayPane.querySelector('.pixabay-query') : null;
+          if (pqi) {
+            pqi.value = searchQuery;
+            setTimeout(() => runPixabaySearch(false), 200);
+          }
+        }
       }
 
       // Storyblocks

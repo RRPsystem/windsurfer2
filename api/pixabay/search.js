@@ -94,8 +94,41 @@ export default async function handler(req, res) {
     const data = await response.json();
     console.log('[Pixabay API] Success:', data.totalHits || 0, 'results');
 
+    // Filter out irrelevant results for European/Irish city searches
+    const originalQuery = query.toLowerCase();
+    const europeanCities = ['belfast', 'dublin', 'london', 'paris', 'amsterdam', 'rome', 'barcelona', 'lisbon', 'prague', 'vienna', 'berlin', 'munich', 'brussels', 'copenhagen', 'stockholm', 'oslo', 'helsinki', 'edinburgh', 'glasgow', 'cork', 'galway', 'reykjavik', 'madrid', 'milan', 'venice', 'florence', 'athens', 'budapest', 'warsaw', 'krakow'];
+    const isEuropeanSearch = europeanCities.some(city => originalQuery.includes(city));
+    
+    // Keywords that indicate irrelevant content for European city searches
+    const irrelevantKeywords = [
+      // Asia
+      'thailand', 'thai', 'vietnam', 'vietnamese', 'cambodia', 'indonesia', 'bali', 'philippines', 'malaysia', 'singapore', 'china', 'chinese', 'japan', 'japanese', 'korea', 'korean', 'india', 'indian', 'asia', 'asian', 'tropical', 'maldives', 'sri lanka', 'myanmar', 'laos', 'nepal', 'tibet',
+      // Turkey/Middle East
+      'turkey', 'turkish', 'cappadocia', 'pamukkale', 'istanbul', 'dubai', 'uae', 'emirates', 'qatar', 'saudi', 'oman', 'jordan', 'petra', 'morocco', 'marrakech',
+      // Africa
+      'egypt', 'cairo', 'pyramid', 'sahara', 'safari', 'serengeti', 'kenya', 'tanzania', 'south africa', 'cape town', 'african',
+      // Americas (tropical)
+      'mexico', 'cancun', 'caribbean', 'cuba', 'jamaica', 'bahamas', 'brazil', 'rio', 'peru', 'machu picchu', 'costa rica',
+      // Australia/Pacific
+      'australia', 'australian', 'new zealand', 'fiji', 'tahiti', 'bora bora', 'hawaii', 'polynesia',
+      // Generic irrelevant for cities
+      'desert', 'jungle', 'rainforest', 'savanna', 'coral reef', 'palm beach', 'rice field', 'rice terrace', 'bamboo', 'elephant', 'monkey', 'temple asia'
+    ];
+
+    let filteredHits = data.hits || [];
+    
+    if (isEuropeanSearch && filteredHits.length > 0) {
+      const beforeCount = filteredHits.length;
+      filteredHits = filteredHits.filter(video => {
+        const tags = (video.tags || '').toLowerCase();
+        const isIrrelevant = irrelevantKeywords.some(keyword => tags.includes(keyword));
+        return !isIrrelevant;
+      });
+      console.log(`[Pixabay API] Filtered ${beforeCount - filteredHits.length} irrelevant results for European search`);
+    }
+
     // Transform to consistent format
-    const videos = (data.hits || []).map(video => ({
+    const videos = filteredHits.map(video => ({
       id: video.id,
       title: video.tags || '',
       thumbnail: video.videos?.tiny?.thumbnail || video.videos?.small?.thumbnail || `https://i.vimeocdn.com/video/${video.picture_id}_295x166.jpg`,
