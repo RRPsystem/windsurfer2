@@ -798,56 +798,58 @@
           console.log('[VideoGen] Using external video URL directly:', videoUrl);
           if (saveStatus) saveStatus.innerHTML = '<span style="color:#6b7280;"><i class="fas fa-circle-notch fa-spin"></i> Externe video wordt geregistreerd...</span>';
         } else if (videoUrl.startsWith('blob:') || videoUrl.startsWith('data:')) {
-          // Local blob/data URL - need to upload via FormData (avoids 4.5MB JSON limit)
+          // Local blob/data URL - use client-side direct upload to bypass 4.5MB serverless limit
           if (saveStatus) saveStatus.innerHTML = '<span style="color:#6b7280;"><i class="fas fa-circle-notch fa-spin"></i> Video wordt geüpload naar storage...</span>';
           
           videoBlob = await fetch(resultVideo.src).then(r => r.blob());
           
-          // Check file size - warn if very large
+          // Check file size
           const sizeMB = videoBlob.size / (1024 * 1024);
+          console.log('[VideoGen] Video size:', sizeMB.toFixed(2), 'MB');
+          
           if (sizeMB > 4) {
             if (saveStatus) saveStatus.innerHTML = `<span style="color:#6b7280;"><i class="fas fa-circle-notch fa-spin"></i> Grote video (${sizeMB.toFixed(1)}MB) wordt geüpload...</span>`;
           }
           
-          // Use FormData upload to avoid JSON payload limit
-          const formData = new FormData();
-          formData.append('video', videoBlob, `${videoName.replace(/[^a-z0-9]/gi, '-')}.mp4`);
-          formData.append('title', videoName);
-          formData.append('type', 'ai-generated');
-          formData.append('duration', String(resultVideo.duration || 0));
-          formData.append('width', String(resultVideo.videoWidth || 1920));
-          formData.append('height', String(resultVideo.videoHeight || 1080));
-
-          const uploadResponse = await fetch('/api/videos/upload-formdata', {
-            method: 'POST',
-            body: formData
+          // Generate unique filename
+          const timestamp = Date.now();
+          const safeTitle = videoName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+          const filename = `videos/${timestamp}-${safeTitle}.mp4`;
+          
+          // Use streaming PUT upload to bypass 4.5MB serverless limit
+          // The server streams directly to Vercel Blob without buffering
+          const uploadResponse = await fetch('/api/videos/upload-direct', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'video/mp4',
+              'X-Filename': `${timestamp}-${safeTitle}.mp4`
+            },
+            body: videoBlob
           });
-
+          
           if (!uploadResponse.ok) {
             let errorMessage = 'Upload mislukt';
             try {
-              const contentType = uploadResponse.headers.get('content-type');
-              if (contentType && contentType.includes('application/json')) {
-                const error = await uploadResponse.json();
-                errorMessage = error.detail || error.message || error.error || 'Upload mislukt';
+              const errorText = await uploadResponse.text();
+              if (errorText.includes('FUNCTION_PAYLOAD_TOO_LARGE') || errorText.includes('Request Entity Too Large')) {
+                errorMessage = `Video te groot (${sizeMB.toFixed(1)}MB). Maximum is ~100MB voor streaming upload.`;
               } else {
-                const errorText = await uploadResponse.text();
-                // Check for Vercel payload limit error
-                if (errorText.includes('FUNCTION_PAYLOAD_TOO_LARGE') || errorText.includes('Request Entity Too Large')) {
-                  errorMessage = `Video te groot (${sizeMB.toFixed(1)}MB). Probeer een kortere video of lagere kwaliteit.`;
-                } else {
-                  errorMessage = errorText.substring(0, 100);
+                try {
+                  const errorJson = JSON.parse(errorText);
+                  errorMessage = errorJson.detail || errorJson.error || errorMessage;
+                } catch (e) {
+                  errorMessage = errorText.substring(0, 200);
                 }
               }
             } catch (e) {
-              errorMessage = `HTTP ${uploadResponse.status}: ${uploadResponse.statusText}`;
+              errorMessage = `HTTP ${uploadResponse.status}`;
             }
             throw new Error(errorMessage);
           }
-
+          
           const uploadResult = await uploadResponse.json();
-          videoUrl = uploadResult?.video?.videoUrl || uploadResult?.url;
-
+          videoUrl = uploadResult.url || uploadResult.blobUrl;
+          
           if (!videoUrl) {
             throw new Error('Video URL niet ontvangen van storage');
           }
