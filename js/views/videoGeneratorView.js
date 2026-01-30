@@ -716,8 +716,34 @@
 
       if (progressDiv) progressDiv.style.display = 'none';
       if (resultDiv) resultDiv.style.display = 'block';
-      if (resultVideo) resultVideo.src = videoUrl;
       if (downloadBtn) downloadBtn.href = videoUrl;
+      
+      if (resultVideo) {
+        resultVideo.src = videoUrl;
+        
+        // Generate poster from first frame when video loads
+        resultVideo.addEventListener('loadeddata', () => {
+          // Seek to first frame (0.1 sec to ensure frame is loaded)
+          resultVideo.currentTime = 0.1;
+        }, { once: true });
+        
+        resultVideo.addEventListener('seeked', () => {
+          // Generate thumbnail from current frame
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = resultVideo.videoWidth || 1280;
+            canvas.height = resultVideo.videoHeight || 720;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(resultVideo, 0, 0, canvas.width, canvas.height);
+            const posterUrl = canvas.toDataURL('image/jpeg', 0.9);
+            resultVideo.poster = posterUrl;
+            resultVideo.currentTime = 0; // Reset to start
+            console.log('[VideoGen] Poster generated from first frame');
+          } catch (e) {
+            console.warn('[VideoGen] Could not generate poster:', e);
+          }
+        }, { once: true });
+      }
     },
 
     showError(container, message) {
