@@ -1547,7 +1547,12 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    // Supabase client for direct storage upload
+    const SUPABASE_URL = 'https://huaaogdxxdcakxryecnw.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1YWFvZ2R4eGRjYWt4cnllY253Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzMzMTI0NzAsImV4cCI6MjA0ODg4ODQ3MH0.Jqe9NHtlxLCllmVk2j5Mkcw4qvMpkGyeY0vN9qTdR_4';
+    
     // Video Studio App
     const VideoStudio = {
       videos: [],
@@ -1559,6 +1564,7 @@
       selectedTemplate: null,
       selectedTheme: null,
       selectedThemeName: null,
+      supabase: null,
       
       // Template configurations
       templates: {
@@ -1613,6 +1619,10 @@
       selectedTransition: 'fade',
 
       init() {
+        // Initialize Supabase client for direct storage upload
+        this.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('[VideoStudio] Supabase initialized for storage');
+
         // Check for deeplink parameters
         this.handleDeeplink();
         
@@ -2249,98 +2259,85 @@
           return;
         }
 
-        saveStatus.innerHTML = '<span style="color: #94a3b8;"><i class="fas fa-spinner fa-spin"></i> Opslaan...</span>';
+        saveStatus.innerHTML = '<span style="color: #94a3b8;"><i class="fas fa-spinner fa-spin"></i> Video downloaden...</span>';
 
         try {
-          // Fetch video as blob
-          const videoBlob = await fetch(videoElement.src).then(r => r.blob());
+          // Download video from Shotstack using XMLHttpRequest (shows progress)
+          const videoBlob = await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', videoElement.src, true);
+            xhr.responseType = 'blob';
+            xhr.onload = () => {
+              if (xhr.status === 200) {
+                resolve(xhr.response);
+              } else {
+                reject(new Error(`Download failed: ${xhr.status}`));
+              }
+            };
+            xhr.onerror = () => reject(new Error('Download failed'));
+            xhr.onprogress = (e) => {
+              if (e.lengthComputable) {
+                const pct = Math.round((e.loaded / e.total) * 100);
+                saveStatus.innerHTML = `<span style="color: #94a3b8;"><i class="fas fa-spinner fa-spin"></i> Downloaden... ${pct}%</span>`;
+              }
+            };
+            xhr.send();
+          });
           
-          // Check file size (max 500MB for Vercel Blob)
-          const maxSize = 500 * 1024 * 1024; // 500MB
-          if (videoBlob.size > maxSize) {
-            throw new Error(`Video te groot (${Math.round(videoBlob.size / 1024 / 1024)}MB). Maximum is 500MB.`);
-          }
+          saveStatus.innerHTML = '<span style="color: #94a3b8;"><i class="fas fa-spinner fa-spin"></i> Uploaden naar Supabase...</span>';
           
-          console.log('[VideoStudio] Uploading video:', {
+          console.log('[VideoStudio] Uploading video to Supabase:', {
             size: Math.round(videoBlob.size / 1024 / 1024) + 'MB',
             type: videoBlob.type
           });
 
-          // Use FormData for large file uploads
-          const formData = new FormData();
-          formData.append('video', videoBlob, `${videoName.replace(/[^a-z0-9]/gi, '-')}.mp4`);
-          formData.append('title', videoName);
-          formData.append('type', 'ai-generated');
-          formData.append('duration', String(videoElement.duration || 0));
-          formData.append('width', String(videoElement.videoWidth || 1920));
-          formData.append('height', String(videoElement.videoHeight || 1080));
-          if (this.currentUserId) formData.append('userId', this.currentUserId);
+          // Generate filename
+          const timestamp = Date.now();
+          const safeTitle = videoName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+          const filename = `${timestamp}-${safeTitle}.mp4`;
+          const filePath = this.currentUserId ? `${this.currentUserId}/${filename}` : `public/${filename}`;
 
-          // Upload to storage
-          const response = await fetch('/api/videos/upload-formdata', {
-            method: 'POST',
-            body: formData
-          });
+          // Upload directly to Supabase Storage (bypasses Vercel completely)
+          const { data, error } = await this.supabase.storage
+            .from('videos')
+            .upload(filePath, videoBlob, {
+              contentType: 'video/mp4',
+              upsert: false
+            });
 
-          // Read response body once as text, then parse
-          const responseText = await response.text();
-          
-          if (!response.ok) {
-            let errorMsg = 'Upload mislukt';
-            try {
-              const error = JSON.parse(responseText);
-              errorMsg = error.error || error.detail || errorMsg;
-            } catch (e) {
-              console.error('[VideoStudio] Non-JSON error response:', responseText);
-              errorMsg = responseText.substring(0, 100) || `HTTP ${response.status}`;
-            }
-            throw new Error(errorMsg);
-          }
+          if (error) throw new Error(error.message);
 
-          let result;
+          // Get public URL
+          const { data: urlData } = this.supabase.storage
+            .from('videos')
+            .getPublicUrl(filePath);
+
+          const publicUrl = urlData.publicUrl;
+          console.log('[VideoStudio] Video uploaded:', publicUrl);
+
+          // Save metadata to Supabase database
           try {
-            result = JSON.parse(responseText);
-          } catch (e) {
-            console.error('[VideoStudio] Non-JSON success response:', responseText);
-            throw new Error('Server gaf geen geldige response');
-          }
-          
-          // Also save metadata to BOLT/Supabase if we have a brand_id
-          if (this.brandId && result.url) {
-            try {
-              console.log('[VideoStudio] Saving video metadata to BOLT...');
-              const boltResponse = await fetch('/api/videos/save-to-bolt', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  brand_id: this.brandId,
-                  trip_id: this.boltConfig?.tripId || null,
-                  title: videoName,
-                  video_url: result.url,
-                  thumbnail_url: result.thumbnail || null,
-                  duration: videoElement.duration || 0,
-                  width: videoElement.videoWidth || 1920,
-                  height: videoElement.videoHeight || 1080,
-                  template: this.selectedTemplate || null,
-                  theme: this.selectedThemeName || null,
-                  file_size: result.size || null
-                })
+            const { error: dbError } = await this.supabase
+              .from('brand_videos')
+              .insert({
+                brand_id: this.brandId || null,
+                title: videoName,
+                video_url: publicUrl,
+                type: 'ai-generated',
+                duration_seconds: Math.round(videoElement.duration || 0),
+                status: 'published'
               });
-              
-              if (boltResponse.ok) {
-                console.log('[VideoStudio] Video metadata saved to BOLT');
-                saveStatus.innerHTML = '<span style="color: #22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen in BOLT!</span>';
-              } else {
-                console.warn('[VideoStudio] Failed to save to BOLT, but video is saved locally');
-                saveStatus.innerHTML = '<span style="color: #22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen!</span>';
-              }
-            } catch (boltError) {
-              console.warn('[VideoStudio] BOLT save error:', boltError);
-              saveStatus.innerHTML = '<span style="color: #22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen!</span>';
+
+            if (dbError) {
+              console.warn('[VideoStudio] Metadata save warning:', dbError);
+            } else {
+              console.log('[VideoStudio] Video metadata saved to database');
             }
-          } else {
-            saveStatus.innerHTML = '<span style="color: #22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen!</span>';
+          } catch (dbErr) {
+            console.warn('[VideoStudio] Database save error:', dbErr);
           }
+
+          saveStatus.innerHTML = '<span style="color: #22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen!</span>';
 
           // Reload videos
           setTimeout(() => {
