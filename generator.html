@@ -2259,83 +2259,27 @@
           return;
         }
 
-        saveStatus.innerHTML = '<span style="color: #94a3b8;"><i class="fas fa-spinner fa-spin"></i> Video downloaden...</span>';
+        saveStatus.innerHTML = '<span style="color: #94a3b8;"><i class="fas fa-spinner fa-spin"></i> Uploaden naar Supabase...</span>';
 
         try {
-          // Download video from Shotstack using XMLHttpRequest (shows progress)
-          const videoBlob = await new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', videoElement.src, true);
-            xhr.responseType = 'blob';
-            xhr.onload = () => {
-              if (xhr.status === 200) {
-                resolve(xhr.response);
-              } else {
-                reject(new Error(`Download failed: ${xhr.status}`));
-              }
-            };
-            xhr.onerror = () => reject(new Error('Download failed'));
-            xhr.onprogress = (e) => {
-              if (e.lengthComputable) {
-                const pct = Math.round((e.loaded / e.total) * 100);
-                saveStatus.innerHTML = `<span style="color: #94a3b8;"><i class="fas fa-spinner fa-spin"></i> Downloaden... ${pct}%</span>`;
-              }
-            };
-            xhr.send();
-          });
-          
-          saveStatus.innerHTML = '<span style="color: #94a3b8;"><i class="fas fa-spinner fa-spin"></i> Uploaden naar Supabase...</span>';
-          
-          console.log('[VideoStudio] Uploading video to Supabase:', {
-            size: Math.round(videoBlob.size / 1024 / 1024) + 'MB',
-            type: videoBlob.type
+          // Use server-side API to upload to Supabase (uses service role key, bypasses RLS)
+          const response = await fetch('/api/videos/upload-to-supabase', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              videoUrl: videoElement.src,
+              title: videoName,
+              brandId: this.brandId || this.currentUserId || null
+            })
           });
 
-          // Generate filename
-          const timestamp = Date.now();
-          const safeTitle = videoName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-          const filename = `${timestamp}-${safeTitle}.mp4`;
-          const filePath = this.currentUserId ? `${this.currentUserId}/${filename}` : `public/${filename}`;
-
-          // Upload directly to Supabase Storage (bypasses Vercel completely)
-          const { data, error } = await this.supabase.storage
-            .from('videos')
-            .upload(filePath, videoBlob, {
-              contentType: 'video/mp4',
-              upsert: false
-            });
-
-          if (error) throw new Error(error.message);
-
-          // Get public URL
-          const { data: urlData } = this.supabase.storage
-            .from('videos')
-            .getPublicUrl(filePath);
-
-          const publicUrl = urlData.publicUrl;
-          console.log('[VideoStudio] Video uploaded:', publicUrl);
-
-          // Save metadata to Supabase database
-          try {
-            const { error: dbError } = await this.supabase
-              .from('brand_videos')
-              .insert({
-                brand_id: this.brandId || null,
-                title: videoName,
-                video_url: publicUrl,
-                type: 'ai-generated',
-                duration_seconds: Math.round(videoElement.duration || 0),
-                status: 'published'
-              });
-
-            if (dbError) {
-              console.warn('[VideoStudio] Metadata save warning:', dbError);
-            } else {
-              console.log('[VideoStudio] Video metadata saved to database');
-            }
-          } catch (dbErr) {
-            console.warn('[VideoStudio] Database save error:', dbErr);
+          const result = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(result.error || 'Upload failed');
           }
+
+          console.log('[VideoStudio] Video uploaded:', result.url);
 
           saveStatus.innerHTML = '<span style="color: #22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen!</span>';
 
