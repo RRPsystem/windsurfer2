@@ -93,13 +93,16 @@ export default async function handler(req, res) {
 
     // Save metadata to database
     if (brandId) {
+      // Generate slug from title
+      const slug = (title || 'video').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + timestamp;
+      
       const { error: dbError } = await supabase
         .from('brand_videos')
         .insert({
           brand_id: brandId,
           title: title || 'Untitled Video',
+          slug: slug,
           video_url: publicUrl,
-          type: 'ai-generated',
           status: 'published'
         });
 
