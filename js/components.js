@@ -9141,17 +9141,18 @@ ComponentFactory.createRoadbook = function(options = {}) {
                 <h2 class="roadbook-section-title editable" contenteditable="true">TravelBRO</h2>
                 <div class="editable" contenteditable="true" style="color:#6b7280;margin-bottom:18px;">Scan de QR code om TravelBRO te openen.</div>
                 <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;">
-                    ${hasTravelBroUrl ? `
-                        <div style="width:220px;height:220px;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;">
+                    <div id="travelbro-qr-container" style="width:220px;height:220px;border:${hasTravelBroUrl ? '1px solid #e5e7eb' : '1px dashed #d1d5db'};border-radius:12px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+                        ${hasTravelBroUrl ? `
                             <img alt="TravelBRO QR" style="width:220px;height:220px;display:block;" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(travelBroUrl)}" />
-                        </div>
-                    ` : `
-                        <div style="width:220px;height:220px;border:1px dashed #d1d5db;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;color:#6b7280;font-weight:700;text-align:center;padding:18px;box-sizing:border-box;">
-                            QR volgt
-                        </div>
-                    `}
-                    <div style="min-width:240px;flex:1;">
-                        ${hasTravelBroUrl ? `<a class="editable" contenteditable="true" href="${travelBroUrl}" target="_blank" rel="noopener" style="display:inline-block;color:${brandPrimary};font-weight:700;text-decoration:none;">Open TravelBRO</a>` : `<div class="editable" contenteditable="true" style="display:inline-block;color:#6b7280;font-weight:700;">Nog geen TravelBRO gekoppeld</div>`}
+                        ` : `
+                            <div style="color:#6b7280;font-weight:600;text-align:center;padding:12px;">Nog geen TravelBRO</div>
+                            <button id="create-travelbro-btn" onclick="ComponentFactory.createTravelBroFromRoadbook(this)" style="background:${brandPrimary};color:#fff;border:none;padding:10px 18px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:8px;">
+                                <i class="fas fa-plus"></i> Maak TravelBro
+                            </button>
+                        `}
+                    </div>
+                    <div id="travelbro-link-container" style="min-width:240px;flex:1;">
+                        ${hasTravelBroUrl ? `<a class="editable" contenteditable="true" href="${travelBroUrl}" target="_blank" rel="noopener" style="display:inline-block;color:${brandPrimary};font-weight:700;text-decoration:none;">Open TravelBRO</a>` : `<div class="editable" contenteditable="true" style="display:inline-block;color:#6b7280;font-weight:700;">Klik op "Maak TravelBro" om een reis aan te maken</div>`}
                         <div class="editable" contenteditable="true" style="color:#6b7280;margin-top:10px;">(Chat / integratie met BOLT volgt.)</div>
                     </div>
                 </div>
@@ -10448,6 +10449,83 @@ ComponentFactory.createRoadbookAnimatedTimeline = function(options = {}) {
     
     this.makeSelectable(section);
     return section;
+};
+
+// Create TravelBro from Roadbook
+ComponentFactory.createTravelBroFromRoadbook = async function(btn) {
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Bezig...';
+    btn.disabled = true;
+    
+    try {
+        // Get page_id and brand_id from URL or window
+        const urlParams = new URLSearchParams(window.location.search);
+        const pageId = urlParams.get('id') || window.currentPageId;
+        const brandId = urlParams.get('brand_id') || window.currentBrandId;
+        
+        if (!pageId) {
+            throw new Error('Geen page_id gevonden. Sla eerst de pagina op.');
+        }
+        
+        console.log('[TravelBro] Creating TravelBro for page:', pageId, 'brand:', brandId);
+        
+        // Call the Supabase Edge Function
+        const response = await fetch('https://huaaogdxxdcakxryecnw.supabase.co/functions/v1/create-travelbro-from-roadbook', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${urlParams.get('token') || window.supabaseToken || ''}`
+            },
+            body: JSON.stringify({
+                page_id: pageId,
+                brand_id: brandId
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || result.message || 'API fout');
+        }
+        
+        console.log('[TravelBro] Created successfully:', result);
+        
+        // Get the new TravelBro URL
+        const travelBroUrl = result.url || `https://www.travelbro.nl/${result.share_token}`;
+        
+        // Update the QR container
+        const qrContainer = document.getElementById('travelbro-qr-container');
+        if (qrContainer) {
+            qrContainer.style.border = '1px solid #e5e7eb';
+            qrContainer.innerHTML = `
+                <img alt="TravelBRO QR" style="width:220px;height:220px;display:block;" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(travelBroUrl)}" />
+            `;
+        }
+        
+        // Update the link container
+        const linkContainer = document.getElementById('travelbro-link-container');
+        if (linkContainer) {
+            const firstChild = linkContainer.firstElementChild;
+            if (firstChild) {
+                firstChild.outerHTML = `<a class="editable" contenteditable="true" href="${travelBroUrl}" target="_blank" rel="noopener" style="display:inline-block;color:#066168;font-weight:700;text-decoration:none;">Open TravelBRO</a>`;
+            }
+        }
+        
+        // Update the roadbook data
+        const roadbookSection = btn.closest('.wb-roadbook');
+        if (roadbookSection && roadbookSection._roadbookData) {
+            roadbookSection._roadbookData.travelBroUrl = travelBroUrl;
+        }
+        
+        // Show success message
+        alert('✅ TravelBro aangemaakt! De QR code is nu zichtbaar.');
+        
+    } catch (error) {
+        console.error('[TravelBro] Error creating TravelBro:', error);
+        alert('❌ Fout bij aanmaken TravelBro: ' + error.message);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
 };
 
 // Export ComponentFactory globally
