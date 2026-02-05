@@ -6,9 +6,64 @@
   const brandId = qs('brand_id') || window.CURRENT_BRAND_ID || '';
   const token = qs('token') || window.CURRENT_TOKEN || '';
   const pageSlug = qs('page') || '';
+  const pageId = qs('page_id') || '';
+
+  // Direct page_id mode: load page directly from Supabase without API
+  if (pageId && !api) {
+    console.log('[Preview] Direct page_id mode:', pageId);
+    try {
+      const supabaseUrl = 'https://qdyouqpkbwjzgzgvnqxs.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkeW91cXBrYndqemd6Z3ZucXhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI0NjA1NTEsImV4cCI6MjA0ODAzNjU1MX0.LEAT9DPqxYjJFBBPCJnPKWJSBGNnqHqNeaC_F5TiuFs';
+      
+      const res = await fetch(`${supabaseUrl}/rest/v1/pages?id=eq.${pageId}&select=*`, {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`
+        }
+      });
+      
+      if (res.ok) {
+        const pages = await res.json();
+        if (pages && pages.length > 0) {
+          const page = pages[0];
+          console.log('[Preview] Page loaded:', page.title);
+          
+          // Render the page content
+          let html = '';
+          if (page.content_html) {
+            html = page.content_html;
+          } else if (page.content_json) {
+            // Try to render from JSON if available
+            html = '<div class="pv-main" style="padding:40px;text-align:center;"><h2>' + (page.title || 'Roadbook') + '</h2><p>Content wordt geladen...</p></div>';
+          }
+          
+          document.getElementById('pv-body').innerHTML = html || '<div style="padding:40px;text-align:center;"><h2>Geen content</h2></div>';
+          
+          // Initialize timeline behaviors
+          setTimeout(() => {
+            try {
+              const timelines = document.querySelectorAll('.roadbook-animated-timeline-section');
+              timelines.forEach((timeline) => {
+                if (window.initTimelineAnimations) window.initTimelineAnimations(timeline);
+              });
+            } catch (e) { console.warn('Timeline init failed', e); }
+          }, 100);
+          
+          return; // Exit early - page loaded successfully
+        }
+      }
+      
+      document.getElementById('pv-body').innerHTML = '<div style="color:#b91c1c;padding:40px;text-align:center;">Pagina niet gevonden (page_id: ' + pageId + ')</div>';
+      return;
+    } catch (e) {
+      console.error('[Preview] Direct page load failed:', e);
+      document.getElementById('pv-body').innerHTML = '<div style="color:#b91c1c;padding:40px;text-align:center;">Fout bij laden pagina: ' + e.message + '</div>';
+      return;
+    }
+  }
 
   if (!api || !brandId){
-    document.getElementById('pv-body').innerHTML = '<div style="color:#b91c1c;">Ontbrekende api of brand_id voor preview.</div>';
+    document.getElementById('pv-body').innerHTML = '<div style="color:#b91c1c;padding:40px;text-align:center;">Ontbrekende api of brand_id voor preview.<br><small>Tip: Voeg ?brand_id=xxx toe aan de URL</small></div>';
     return;
   }
 
