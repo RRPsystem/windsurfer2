@@ -242,10 +242,16 @@ async function saveToTravelBro(data, existingTripId, brandId, supabaseUrl, servi
     const customContext = buildCustomContextForAI(data);
     
     // Prepare the trip record for travel_trips table
+    // Generate share_token for client access
+    const shareToken = require('crypto').randomBytes(16).toString('hex');
+
     const tripRecord = {
       // Use existing ID or let Supabase generate one
       ...(existingTripId && { id: existingTripId }),
-      
+
+      // Share token for client access (only set on new trips)
+      ...(!existingTripId && { share_token: shareToken }),
+
       // Basic info
       name: data.title,
       compositor_booking_id: data.tc_idea_id,
@@ -346,7 +352,7 @@ async function saveToTravelBro(data, existingTripId, brandId, supabaseUrl, servi
 
       const savedData = await response.json();
       const savedTrip = Array.isArray(savedData) ? savedData[0] : savedData;
-      return { success: true, trip_id: savedTrip?.id || existingTrip.id, updated: true };
+      return { success: true, trip_id: savedTrip?.id || existingTrip.id, share_token: existingTrip.share_token, updated: true };
       
     } else {
       // INSERT new trip
@@ -371,7 +377,7 @@ async function saveToTravelBro(data, existingTripId, brandId, supabaseUrl, servi
 
       const savedData = await response.json();
       const savedTrip = Array.isArray(savedData) ? savedData[0] : savedData;
-      return { success: true, trip_id: savedTrip?.id, created: true };
+      return { success: true, trip_id: savedTrip?.id, share_token: savedTrip?.share_token || shareToken, created: true };
     }
 
   } catch (error) {
@@ -460,7 +466,7 @@ function buildCustomContextForAI(data) {
  */
 async function findExistingTravelTrip(supabaseUrl, serviceKey, brandId, tcIdeaId) {
   try {
-    let url = `${supabaseUrl}/rest/v1/travel_trips?compositor_booking_id=eq.${tcIdeaId}&select=id`;
+    let url = `${supabaseUrl}/rest/v1/travel_trips?compositor_booking_id=eq.${tcIdeaId}&select=id,share_token`;
     if (brandId) {
       url += `&brand_id=eq.${brandId}`;
     }
