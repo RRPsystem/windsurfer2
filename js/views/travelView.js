@@ -2110,7 +2110,6 @@
         itinerary,
         destinations
       };
-    }
     },
 
     // Show method - switches to travel mode and mounts the view
