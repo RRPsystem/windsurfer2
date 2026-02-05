@@ -234,26 +234,24 @@ async function fetchTravelCompositorData(id, micrositeId, language) {
 }
 
 /**
- * Save trip data to TravelBro's Supabase
+ * Save trip data to TravelBro's Supabase (travel_trips table)
  */
 async function saveToTravelBro(data, existingTripId, brandId, supabaseUrl, serviceKey) {
   try {
-    // Prepare the trip record - only use columns that exist in the trips table
-    // All detailed travel data goes into the 'travel_data' JSON column
+    // Build custom_context with all trip details for AI
+    const customContext = buildCustomContextForAI(data);
+    
+    // Prepare the trip record for travel_trips table
     const tripRecord = {
       // Use existing ID or let Supabase generate one
       ...(existingTripId && { id: existingTripId }),
       
-      // Basic info (standard trips table columns)
-      title: data.title,
-      slug: data.tc_idea_id, // Use TC ID as slug for easy lookup
-      description: data.description || data.ai_summary || '',
+      // Basic info
+      name: data.title,
+      compositor_booking_id: data.tc_idea_id,
       
-      // Media
-      featured_image: data.featured_image,
-      
-      // All Travel Compositor data in one JSON column
-      travel_data: {
+      // All Travel Compositor data in parsed_data JSON column
+      parsed_data: {
         // Source info
         tc_idea_id: data.tc_idea_id,
         source: 'travel_compositor',
@@ -309,6 +307,12 @@ async function saveToTravelBro(data, existingTripId, brandId, supabaseUrl, servi
         all_images: data.all_images
       },
       
+      // Custom context for AI with readable trip info
+      custom_context: customContext,
+      
+      // Source URLs (destination names)
+      source_urls: data.destination_names || [],
+      
       // Brand association
       ...(brandId && { brand_id: brandId }),
       
@@ -316,14 +320,14 @@ async function saveToTravelBro(data, existingTripId, brandId, supabaseUrl, servi
       updated_at: new Date().toISOString()
     };
 
-    // First, check if trip already exists for this brand + TC ID (slug)
-    const existingTrip = await findExistingTrip(supabaseUrl, serviceKey, brandId, data.tc_idea_id);
+    // First, check if trip already exists for this brand + TC ID
+    const existingTrip = await findExistingTravelTrip(supabaseUrl, serviceKey, brandId, data.tc_idea_id);
     
     if (existingTrip) {
       // UPDATE existing trip
-      console.log('[TravelBro Sync] Updating existing trip:', existingTrip.id);
+      console.log('[TravelBro Sync] Updating existing travel_trip:', existingTrip.id);
       
-      const response = await fetch(`${supabaseUrl}/rest/v1/trips?id=eq.${existingTrip.id}`, {
+      const response = await fetch(`${supabaseUrl}/rest/v1/travel_trips?id=eq.${existingTrip.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -348,7 +352,7 @@ async function saveToTravelBro(data, existingTripId, brandId, supabaseUrl, servi
       // INSERT new trip
       tripRecord.created_at = new Date().toISOString();
       
-      const response = await fetch(`${supabaseUrl}/rest/v1/trips`, {
+      const response = await fetch(`${supabaseUrl}/rest/v1/travel_trips`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -377,11 +381,86 @@ async function saveToTravelBro(data, existingTripId, brandId, supabaseUrl, servi
 }
 
 /**
- * Find existing trip by brand_id and TC idea ID (stored as slug)
+ * Build custom_context string with all trip details for AI
  */
-async function findExistingTrip(supabaseUrl, serviceKey, brandId, tcIdeaId) {
+function buildCustomContextForAI(data) {
+  const lines = [];
+  
+  lines.push(`REIS: ${data.title}`);
+  lines.push(`BESTEMMING: ${data.destination_names?.join(', ') || 'Onbekend'}`);
+  lines.push(`DUUR: ${data.duration_days} dagen / ${data.duration_nights} nachten`);
+  lines.push('');
+  
+  // Hotels
+  if (data.hotels && data.hotels.length > 0) {
+    lines.push('HOTELS:');
+    data.hotels.forEach((h, i) => {
+      lines.push(`${i + 1}. ${h.name} (${h.nights} nachten)`);
+      if (h.city) lines.push(`   Locatie: ${h.city}${h.country ? ', ' + h.country : ''}`);
+      if (h.checkIn) lines.push(`   Check-in: ${h.checkIn}`);
+      if (h.checkOut) lines.push(`   Check-out: ${h.checkOut}`);
+      if (h.mealPlan) lines.push(`   Maaltijden: ${h.mealPlanDescription || h.mealPlan}`);
+      if (h.roomType) lines.push(`   Kamer: ${h.roomName || h.roomType}`);
+      if (h.address) lines.push(`   Adres: ${h.address}`);
+    });
+    lines.push('');
+  }
+  
+  // Flights
+  if (data.flights && data.flights.length > 0) {
+    lines.push('VLUCHTEN:');
+    data.flights.forEach((f, i) => {
+      lines.push(`${i + 1}. ${f.departureAirport} → ${f.arrivalAirport}`);
+      if (f.carrier) lines.push(`   Maatschappij: ${f.carrierName || f.carrier} ${f.flightNumber || ''}`);
+      if (f.departureDate) lines.push(`   Datum: ${f.departureDate} ${f.departureTime || ''}`);
+    });
+    lines.push('');
+  }
+  
+  // Car rentals
+  if (data.car_rentals && data.car_rentals.length > 0) {
+    lines.push('HUURAUTO:');
+    data.car_rentals.forEach((c, i) => {
+      lines.push(`${i + 1}. ${c.company || 'Huurauto'} - ${c.category || c.carType || 'Standaard'}`);
+      if (c.pickupLocation) lines.push(`   Ophalen: ${c.pickupLocation} (${c.pickupDate || ''})`);
+      if (c.dropoffLocation) lines.push(`   Inleveren: ${c.dropoffLocation} (${c.dropoffDate || ''})`);
+      if (c.days) lines.push(`   Duur: ${c.days} dagen`);
+    });
+    lines.push('');
+  }
+  
+  // Itinerary
+  if (data.itinerary && data.itinerary.length > 0) {
+    lines.push('DAGPROGRAMMA:');
+    data.itinerary.forEach(day => {
+      lines.push(`Dag ${day.dayNumber}: ${day.title || day.destination || ''}`);
+      if (day.description) lines.push(`   ${day.description.substring(0, 200)}${day.description.length > 200 ? '...' : ''}`);
+    });
+    lines.push('');
+  }
+  
+  // Included
+  if (data.included && data.included.length > 0) {
+    lines.push('INBEGREPEN:');
+    data.included.forEach(item => lines.push(`- ${item}`));
+    lines.push('');
+  }
+  
+  // Not included
+  if (data.not_included && data.not_included.length > 0) {
+    lines.push('NIET INBEGREPEN:');
+    data.not_included.forEach(item => lines.push(`- ${item}`));
+  }
+  
+  return lines.join('\n');
+}
+
+/**
+ * Find existing travel_trip by brand_id and TC idea ID (stored as compositor_booking_id)
+ */
+async function findExistingTravelTrip(supabaseUrl, serviceKey, brandId, tcIdeaId) {
   try {
-    let url = `${supabaseUrl}/rest/v1/trips?slug=eq.${tcIdeaId}&select=id`;
+    let url = `${supabaseUrl}/rest/v1/travel_trips?compositor_booking_id=eq.${tcIdeaId}&select=id`;
     if (brandId) {
       url += `&brand_id=eq.${brandId}`;
     }
@@ -398,7 +477,7 @@ async function findExistingTrip(supabaseUrl, serviceKey, brandId, tcIdeaId) {
     const data = await response.json();
     return data && data.length > 0 ? data[0] : null;
   } catch (error) {
-    console.error('[TravelBro Sync] Find existing trip error:', error);
+    console.error('[TravelBro Sync] Find existing travel_trip error:', error);
     return null;
   }
 }
