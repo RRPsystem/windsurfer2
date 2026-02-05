@@ -702,7 +702,26 @@
           departure: rawTransports[0]?.date,
           return: rawTransports[rawTransports.length - 1]?.date
         }
-      };
+    },
+
+    // Show method - switches to travel mode and mounts the view
+    show() {
+      console.log('[TravelView] show() called');
+      if (window.WB_setMode && typeof window.WB_setMode === 'function') {
+        window.WB_setMode('travel');
+      } else {
+        const view = document.getElementById('modeView');
+        if (view) {
+          this.mount(view);
+          view.style.display = 'block';
+          ['.sidebar', '.canvas-area', '.properties-panel', '.app-body'].forEach(s => {
+            const el = document.querySelector(s);
+            if (el) el.style.display = 'none';
+          });
+        }
+      }
+    }
+  };
       
       console.log('[TravelView] Converted to TC format:', travelData);
       return travelData;
@@ -1834,7 +1853,26 @@
         } catch (e) {
           return '';
         }
-      };
+    },
+
+    // Show method - switches to travel mode and mounts the view
+    show() {
+      console.log('[TravelView] show() called');
+      if (window.WB_setMode && typeof window.WB_setMode === 'function') {
+        window.WB_setMode('travel');
+      } else {
+        const view = document.getElementById('modeView');
+        if (view) {
+          this.mount(view);
+          view.style.display = 'block';
+          ['.sidebar', '.canvas-area', '.properties-panel', '.app-body'].forEach(s => {
+            const el = document.querySelector(s);
+            if (el) el.style.display = 'none';
+          });
+        }
+      }
+    }
+  };
       
       // Store for debugging
       window.lastTravelData = tcData;
@@ -2073,7 +2111,27 @@
         destinations
       };
     }
+    },
+
+    // Show method - switches to travel mode and mounts the view
+    show() {
+      console.log('[TravelView] show() called');
+      if (window.WB_setMode && typeof window.WB_setMode === 'function') {
+        window.WB_setMode('travel');
+      } else {
+        const view = document.getElementById('modeView');
+        if (view) {
+          this.mount(view);
+          view.style.display = 'block';
+          ['.sidebar', '.canvas-area', '.properties-panel', '.app-body'].forEach(s => {
+            const el = document.querySelector(s);
+            if (el) el.style.display = 'none';
+          });
+        }
+      }
+    }
   };
+
 
   // Expose globally
   window.TravelView = TravelView;
