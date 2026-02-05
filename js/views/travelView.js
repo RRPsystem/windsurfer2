@@ -18,6 +18,13 @@
       console.log('[TravelView] URL params:', window.location.search);
       console.log('[TravelView] Hash:', window.location.hash);
       
+      // Check for TravelBro pre-filled TC ID
+      this.travelbroTcId = window.TRAVELBRO_TC_ID || null;
+      this.travelbroMode = window.TRAVELBRO_MODE || null;
+      if (this.travelbroTcId) {
+        console.log('[TravelView] TravelBro TC ID detected:', this.travelbroTcId);
+      }
+      
       // Check if there's an id in URL params - if not, we're creating NEW travel
       const urlParams = new URLSearchParams(window.location.search);
       const tripId = urlParams.get('id');
@@ -210,6 +217,15 @@
           if (window.WB_setMode) window.WB_setMode('page');
         });
       }
+      
+      // Auto-open TC form if coming from TravelBro with pre-filled TC ID
+      if (this.travelbroTcId && this.travelbroMode === 'roadbook') {
+        console.log('[TravelView] Auto-opening TC form for TravelBro roadbook flow');
+        setTimeout(() => {
+          this.currentMethod = 'tc';
+          this.showMethodContent('tc', methodContent);
+        }, 100);
+      }
     },
 
     showMethodContent(method, container) {
@@ -329,11 +345,24 @@
         `<option value="${ms.id}">${ms.name}</option>`
       ).join('');
 
+      // Check for pre-filled TC ID from TravelBro
+      const prefilledTcId = this.travelbroTcId || '';
+      const isTravelBroFlow = !!(this.travelbroTcId && this.travelbroMode === 'roadbook');
+      
+      if (isTravelBroFlow) {
+        console.log('[TravelView] TravelBro flow - pre-filling TC ID:', prefilledTcId);
+        // Pre-select roadbook template
+        this.selectedTemplate = 'roadbook';
+      }
+
       container.innerHTML = `<div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        ${isTravelBroFlow ? `<div style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px;">
+          <strong><i class="fas fa-magic"></i> TravelBro Roadbook</strong> - TC ID is al ingevuld. Kies een roadbook type en klik op "Reis Laden".
+        </div>` : ''}
         <h3 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700; color: #111827;"><i class="fas fa-link" style="color: #667eea;"></i> Travel Compositor Import</h3>
         <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px;">
           <div style="flex: 1; min-width: 200px;"><label style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 14px;"><i class="fas fa-hashtag"></i> Travel Compositor ID</label>
-            <input type="text" id="tcIdeaIdInput" placeholder="Bijv. 12345" style="width: 100%; height: 40px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px;" /></div>
+            <input type="text" id="tcIdeaIdInput" placeholder="Bijv. 12345" value="${prefilledTcId}" style="width: 100%; height: 40px; padding: 8px 12px; border: 1px solid ${isTravelBroFlow ? '#f97316' : '#d1d5db'}; border-radius: 8px; ${isTravelBroFlow ? 'background: #fff7ed;' : ''}" ${isTravelBroFlow ? 'readonly' : ''} /></div>
           <div style="flex: 1; min-width: 200px;"><label style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 14px;"><i class="fas fa-building"></i> Microsite ID</label>
             <select id="tcMicrositeIdInput" style="width: 100%; height: 40px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; background: white; cursor: pointer;">
               ${micrositeOptions}
@@ -362,6 +391,17 @@
       const langInput = container.querySelector('#tcLanguageInput');
 
       this.attachTemplateListeners(container);
+      
+      // Auto-select roadbook template if TravelBro flow
+      if (isTravelBroFlow) {
+        setTimeout(() => {
+          const roadbookCard = container.querySelector('.template-card[data-template="roadbook"]');
+          if (roadbookCard) {
+            roadbookCard.click();
+            console.log('[TravelView] Auto-selected Roadbook template for TravelBro flow');
+          }
+        }, 50);
+      }
 
       if (loadBtn) {
         loadBtn.addEventListener('click', async () => {

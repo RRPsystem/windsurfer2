@@ -208,10 +208,37 @@
   
   // Handle travel/trip loading
   const kind = determineKind(ctx);
+  
+  // Check for TravelBro roadbook creation flow (tc_id + mode=roadbook)
+  const tcId = u && u.searchParams.get('tc_id');
+  const urlMode = u && u.searchParams.get('mode');
+  if (tcId && urlMode === 'roadbook') {
+    log('TravelBro roadbook flow detected, tc_id:', tcId);
+    // Store TC ID for TravelView to pick up
+    window.TRAVELBRO_TC_ID = tcId;
+    window.TRAVELBRO_MODE = 'roadbook';
+    window.TRAVELBRO_BRAND_ID = u.searchParams.get('brand_id') || '';
+    window.TRAVELBRO_TRIP_ID = u.searchParams.get('trip_id') || '';
+    window.TRAVELBRO_TRIP_NAME = u.searchParams.get('trip_name') || '';
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        try {
+          if (window.TravelView && typeof window.TravelView.show === 'function') {
+            log('Opening Travel View with pre-filled TC ID');
+            window.TravelView.show();
+          }
+        } catch (e) {
+          warn('Failed to show Travel View for TravelBro:', e);
+        }
+      }, 300);
+    });
+  }
+  
   if (kind === 'travel') {
     const tripId = u && (u.searchParams.get('trip_id') || u.searchParams.get('id'));
     
-    if (tripId) {
+    if (tripId && !tcId) {
       // Load existing trip by ID
       log('Existing trip detected, loading trip_id:', tripId);
       document.addEventListener('DOMContentLoaded', () => {
