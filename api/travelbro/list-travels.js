@@ -137,13 +137,14 @@ export default async function handler(req, res) {
     headers['auth-token'] = bearer;
 
     // Build the ideas list URL
-    // TC API: GET /resources/travelidea/{micrositeId}/ideas
+    // TC API: GET /resources/travelidea/{micrositeId} (without /ideas suffix)
+    // See docs/travel-compositor.md: "List ideas: GET .../travelidea/<MICROSITE_ID>"
     const params = new URLSearchParams();
     params.set('language', String(language));
     params.set('lang', String(language));
     params.set('currency', String(currency));
     
-    const ideasPath = `/resources/travelidea/${encodeURIComponent(micrositeId)}/ideas`;
+    const ideasPath = `/resources/travelidea/${encodeURIComponent(micrositeId)}`;
     const ideasUrl = `${base}${ideasPath}?${params.toString()}`;
     
     console.log('[list-travels] Fetching ideas from:', ideasUrl);
