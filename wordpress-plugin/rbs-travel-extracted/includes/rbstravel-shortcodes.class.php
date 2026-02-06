@@ -28,7 +28,6 @@ class RBS_TRAVEL_Shortcodes {
     public function featured_travels_shortcode($atts) {
         $atts = shortcode_atts(array(
             'ids' => '',
-            'tc_ids' => '',  // Support Travel Compositor IDs
             'columns' => 3,
             'title' => '',
             'show_price' => 'yes',
@@ -37,26 +36,31 @@ class RBS_TRAVEL_Shortcodes {
             'button_text' => 'Bekijk reis',
         ), $atts, 'uitgelichte_reizen');
         
-        $travels = array();
-        
-        // Check if using Travel Compositor IDs (tc_ids) or if ids look like TC IDs (very large numbers)
+        // Parse IDs
         $raw_ids = array_filter(array_map('trim', explode(',', $atts['ids'])));
-        $tc_ids_attr = array_filter(array_map('trim', explode(',', $atts['tc_ids'])));
         
-        // Detect if IDs are Travel Compositor IDs (typically 8+ digits)
-        $use_tc_ids = !empty($tc_ids_attr);
-        if (!$use_tc_ids && !empty($raw_ids)) {
-            // Check if first ID looks like a TC ID (8+ digits)
-            $first_id = intval($raw_ids[0]);
-            if ($first_id > 10000000) {
-                $use_tc_ids = true;
-                $tc_ids_attr = $raw_ids;
+        if (empty($raw_ids)) {
+            if (current_user_can('edit_posts')) {
+                return '<div style="padding: 20px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; margin: 20px 0;">
+                    <strong>⚠️ Uitgelichte Reizen:</strong> Geen reis IDs opgegeven.<br>
+                    <small>Gebruik: <code>[uitgelichte_reizen ids="123,456,789"]</code></small>
+                </div>';
             }
+            return '';
         }
         
-        if ($use_tc_ids && !empty($tc_ids_attr)) {
-            // Search by Travel Compositor ID stored in post meta
-            foreach ($tc_ids_attr as $tc_id) {
+        // Check if IDs are Travel Compositor IDs (8+ digits) or WordPress post IDs
+        $first_id = intval($raw_ids[0]);
+        $use_tc_ids = ($first_id > 10000000); // TC IDs are typically 8+ digits
+        
+        $travels = array();
+        
+        if ($use_tc_ids) {
+            // Search by Travel Compositor ID stored in travel_id meta
+            foreach ($raw_ids as $tc_id) {
+                $tc_id = trim($tc_id);
+                
+                // Try direct meta key first
                 $found = get_posts(array(
                     'post_type' => 'rbs-travel-idea',
                     'posts_per_page' => 1,
@@ -64,27 +68,18 @@ class RBS_TRAVEL_Shortcodes {
                     'meta_query' => array(
                         'relation' => 'OR',
                         array(
-                            'key' => 'travel_id',  // Primary: stored during import
+                            'key' => 'travel_id',
                             'value' => $tc_id,
                             'compare' => '='
                         ),
                         array(
-                            'key' => 'travel_compositor_id',
-                            'value' => $tc_id,
+                            'key' => 'travel_id',
+                            'value' => intval($tc_id),
                             'compare' => '='
                         ),
-                        array(
-                            'key' => 'tc_idea_id',
-                            'value' => $tc_id,
-                            'compare' => '='
-                        ),
-                        array(
-                            'key' => '_tc_idea_id',
-                            'value' => $tc_id,
-                            'compare' => '='
-                        )
                     )
                 ));
+                
                 if (!empty($found)) {
                     $travels[] = $found[0];
                 }
@@ -92,7 +87,6 @@ class RBS_TRAVEL_Shortcodes {
         } else {
             // Use WordPress post IDs
             $ids = array_filter(array_map('intval', $raw_ids));
-            
             if (!empty($ids)) {
                 $travels = get_posts(array(
                     'post_type' => 'rbs-travel-idea',
@@ -104,23 +98,43 @@ class RBS_TRAVEL_Shortcodes {
             }
         }
         
-        if (empty($raw_ids) && empty($tc_ids_attr)) {
-            if (current_user_can('edit_posts')) {
-                return '<div style="padding: 20px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; margin: 20px 0;">
-                    <strong>⚠️ Uitgelichte Reizen:</strong> Geen reis IDs opgegeven.<br>
-                    <small>Gebruik: <code>[uitgelichte_reizen ids="123,456"]</code> (WordPress IDs)<br>
-                    Of: <code>[uitgelichte_reizen tc_ids="25668474,27599666"]</code> (Travel Compositor IDs)</small>
-                </div>';
-            }
-            return '';
-        }
-        
         if (empty($travels)) {
             if (current_user_can('edit_posts')) {
                 $id_type = $use_tc_ids ? 'Travel Compositor' : 'WordPress';
+                
+                // Debug: Check if any travels exist with these IDs
+                $debug_info = '';
+                if ($use_tc_ids) {
+                    global $wpdb;
+                    $first_tc_id = trim($raw_ids[0]);
+                    $meta_check = $wpdb->get_results($wpdb->prepare(
+                        "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = 'travel_id' AND meta_value LIKE %s LIMIT 5",
+                        '%' . $first_tc_id . '%'
+                    ));
+                    if (!empty($meta_check)) {
+                        $debug_info = '<br><small>Debug: Gevonden meta waarden: ';
+                        foreach ($meta_check as $row) {
+                            $debug_info .= 'Post ' . $row->post_id . ' = "' . $row->meta_value . '", ';
+                        }
+                        $debug_info .= '</small>';
+                    } else {
+                        // Check what travel_id values exist
+                        $sample = $wpdb->get_results(
+                            "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = 'travel_id' LIMIT 3"
+                        );
+                        if (!empty($sample)) {
+                            $debug_info = '<br><small>Debug: Voorbeeld travel_id waarden in database: ';
+                            foreach ($sample as $row) {
+                                $debug_info .= '"' . $row->meta_value . '", ';
+                            }
+                            $debug_info .= '</small>';
+                        }
+                    }
+                }
+                
                 return '<div style="padding: 20px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; margin: 20px 0;">
-                    <strong>⚠️ Uitgelichte Reizen:</strong> Geen reizen gevonden met ' . $id_type . ' IDs: ' . esc_html($atts['ids'] ?: $atts['tc_ids']) . '<br>
-                    <small>Controleer of de reizen zijn geïmporteerd en gepubliceerd.</small>
+                    <strong>⚠️ Uitgelichte Reizen:</strong> Geen reizen gevonden met ' . $id_type . ' IDs: ' . esc_html($atts['ids']) . '<br>
+                    <small>Controleer of de reizen zijn geïmporteerd en gepubliceerd.</small>' . $debug_info . '
                 </div>';
             }
             return '';
