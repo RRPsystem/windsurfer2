@@ -154,6 +154,19 @@ export default async function handler(req, res) {
     let ideasData;
     try { ideasData = JSON.parse(ideasText); } catch (e) { ideasData = null; }
     
+    // Debug: Log the raw response structure
+    console.log('[list-travels] Response status:', ideasRes.status);
+    console.log('[list-travels] Response type:', typeof ideasData);
+    console.log('[list-travels] Response keys:', ideasData ? Object.keys(ideasData) : 'null');
+    console.log('[list-travels] Is array:', Array.isArray(ideasData));
+    if (ideasData && !Array.isArray(ideasData)) {
+      // Log first level values to understand structure
+      for (const key of Object.keys(ideasData).slice(0, 5)) {
+        const val = ideasData[key];
+        console.log(`[list-travels] ${key}:`, Array.isArray(val) ? `Array(${val.length})` : typeof val);
+      }
+    }
+    
     if (!ideasRes.ok) {
       console.error('[list-travels] Failed to fetch ideas:', ideasRes.status);
       return res.status(ideasRes.status).json({ 
@@ -164,8 +177,23 @@ export default async function handler(req, res) {
     }
 
     // Transform the response to the expected format
-    // TC returns an array of ideas with various fields
-    const rawIdeas = Array.isArray(ideasData) ? ideasData : (ideasData?.ideas || ideasData?.data || []);
+    // TC might return data in various structures - check all possibilities
+    let rawIdeas = [];
+    if (Array.isArray(ideasData)) {
+      rawIdeas = ideasData;
+    } else if (ideasData) {
+      // Check common TC response structures
+      rawIdeas = ideasData.ideas || ideasData.data || ideasData.travelIdeas || 
+                 ideasData.items || ideasData.results || ideasData.list || [];
+      
+      // If still empty, check if the response itself contains idea-like properties
+      if (rawIdeas.length === 0 && ideasData.id) {
+        // Single idea returned instead of list
+        rawIdeas = [ideasData];
+      }
+    }
+    
+    console.log('[list-travels] Parsed rawIdeas count:', rawIdeas.length);
     
     const travels = rawIdeas.map(idea => ({
       id: String(idea.id || idea.ideaId || ''),
