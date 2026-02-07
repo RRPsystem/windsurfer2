@@ -154,16 +154,23 @@ export default async function handler(req, res) {
     let ideasData;
     try { ideasData = JSON.parse(ideasText); } catch (e) { ideasData = null; }
     
-    // Debug: Log the raw response structure
+    // Debug: Log the RAW response (truncated to avoid log overflow)
     console.log('[list-travels] Response status:', ideasRes.status);
+    console.log('[list-travels] RAW RESPONSE (first 2000 chars):', ideasText.substring(0, 2000));
     console.log('[list-travels] Response type:', typeof ideasData);
-    console.log('[list-travels] Response keys:', ideasData ? Object.keys(ideasData) : 'null');
     console.log('[list-travels] Is array:', Array.isArray(ideasData));
     if (ideasData && !Array.isArray(ideasData)) {
-      // Log first level values to understand structure
-      for (const key of Object.keys(ideasData).slice(0, 5)) {
+      console.log('[list-travels] Response keys:', Object.keys(ideasData));
+      // Log ALL first level values to understand structure
+      for (const key of Object.keys(ideasData)) {
         const val = ideasData[key];
-        console.log(`[list-travels] ${key}:`, Array.isArray(val) ? `Array(${val.length})` : typeof val);
+        if (Array.isArray(val)) {
+          console.log(`[list-travels] ${key}: Array(${val.length})`, val.length > 0 ? `first item keys: ${Object.keys(val[0] || {})}` : '');
+        } else if (typeof val === 'object' && val !== null) {
+          console.log(`[list-travels] ${key}: Object with keys:`, Object.keys(val));
+        } else {
+          console.log(`[list-travels] ${key}:`, val);
+        }
       }
     }
     
@@ -182,18 +189,36 @@ export default async function handler(req, res) {
     if (Array.isArray(ideasData)) {
       rawIdeas = ideasData;
     } else if (ideasData) {
-      // Check common TC response structures
+      // Check ALL possible TC response structures
       rawIdeas = ideasData.ideas || ideasData.data || ideasData.travelIdeas || 
-                 ideasData.items || ideasData.results || ideasData.list || [];
+                 ideasData.items || ideasData.results || ideasData.list ||
+                 ideasData.travels || ideasData.trips || ideasData.content ||
+                 ideasData.travelIdea || ideasData.response || [];
       
       // If still empty, check if the response itself contains idea-like properties
       if (rawIdeas.length === 0 && ideasData.id) {
         // Single idea returned instead of list
         rawIdeas = [ideasData];
       }
+      
+      // If still empty but we have an object, maybe the ideas are nested differently
+      if (rawIdeas.length === 0) {
+        // Try to find any array in the response
+        for (const key of Object.keys(ideasData)) {
+          if (Array.isArray(ideasData[key]) && ideasData[key].length > 0) {
+            console.log(`[list-travels] Found array in key "${key}" with ${ideasData[key].length} items`);
+            rawIdeas = ideasData[key];
+            break;
+          }
+        }
+      }
     }
     
     console.log('[list-travels] Parsed rawIdeas count:', rawIdeas.length);
+    if (rawIdeas.length > 0) {
+      console.log('[list-travels] First idea keys:', Object.keys(rawIdeas[0]));
+      console.log('[list-travels] First idea sample:', JSON.stringify(rawIdeas[0]).substring(0, 500));
+    }
     
     const travels = rawIdeas.map(idea => ({
       id: String(idea.id || idea.ideaId || ''),
