@@ -81,6 +81,17 @@ export default async function handler(req, res) {
         break;
       }
     }
+    
+    // Method 3: TRAVEL_COMPOSITOR_* prefix pattern (TRAVEL_COMPOSITOR_MICROSITE_ID_3, etc.)
+    for (let i = 2; i <= 10; i++) {
+      const tcMicrositeId = process.env[`TRAVEL_COMPOSITOR_MICROSITE_ID_${i}`];
+      if (tcMicrositeId === micrositeId) {
+        username = process.env[`TRAVEL_COMPOSITOR_USERNAME_${i}`] || username;
+        password = process.env[`TRAVEL_COMPOSITOR_PASSWORD_${i}`] || password;
+        console.log(`[list-travels] Using credentials from TRAVEL_COMPOSITOR_*_${i} for microsite:`, micrositeId);
+        break;
+      }
+    }
 
     // Remove trailing slash and /resources if present
     const base = TC_BASE_URL.replace(/\/$/, '').replace(/\/resources\/?$/, '');
