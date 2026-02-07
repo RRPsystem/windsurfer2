@@ -190,7 +190,8 @@ export default async function handler(req, res) {
       rawIdeas = ideasData;
     } else if (ideasData) {
       // Check ALL possible TC response structures
-      rawIdeas = ideasData.ideas || ideasData.data || ideasData.travelIdeas || 
+      // NOTE: TC API returns "idea" (singular) not "ideas" (plural)!
+      rawIdeas = ideasData.idea || ideasData.ideas || ideasData.data || ideasData.travelIdeas || 
                  ideasData.items || ideasData.results || ideasData.list ||
                  ideasData.travels || ideasData.trips || ideasData.content ||
                  ideasData.travelIdea || ideasData.response || [];
