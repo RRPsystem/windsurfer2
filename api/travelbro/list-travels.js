@@ -1,6 +1,7 @@
 // Vercel Serverless Function: GET /api/travelbro/list-travels
 // Lists all travels (ideas) from Travel Compositor for a given microsite
 // Parameters: ?micrositeId=rondreis-planner&language=NL
+// v1.1 - Fixed: TC API returns data.idea (singular) not data.ideas
 
 export default async function handler(req, res) {
   // CORS headers
