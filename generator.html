@@ -2297,6 +2297,44 @@
 
           console.log('[VideoStudio] Video uploaded:', result.url);
 
+          // Sync video to TravelC Studio database
+          try {
+            const brandId = this.brandId || this.boltConfig.brandId;
+            const apiKey = this.apiKey || this.boltConfig.apiKey;
+            
+            if (brandId && apiKey) {
+              const webhookUrl = `https://huaaogdxxdcakxryecnw.supabase.co/functions/v1/video-webhook`;
+              const webhookResponse = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                  brand_id: brandId,
+                  title: videoName || 'Mijn Video',
+                  slug: `${brandId}-${Date.now()}`,
+                  description: '',
+                  video_url: result.url,
+                  thumbnail_url: null,
+                  duration_seconds: null,
+                  status: 'published',
+                  trip_id: this.travelData?.id || null
+                })
+              });
+              
+              if (webhookResponse.ok) {
+                console.log('[VideoStudio] ✅ Video synced to database');
+              } else {
+                console.error('[VideoStudio] ❌ Failed to sync video:', await webhookResponse.text());
+              }
+            } else {
+              console.log('[VideoStudio] Skipping webhook sync - no brand_id or apikey');
+            }
+          } catch (err) {
+            console.error('[VideoStudio] ❌ Webhook error:', err);
+          }
+
           saveStatus.innerHTML = '<span style="color: #22c55e;"><i class="fas fa-check-circle"></i> Video opgeslagen!</span>';
 
           // Reload videos
